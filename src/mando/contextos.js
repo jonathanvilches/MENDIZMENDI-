@@ -21,7 +21,9 @@ const FIJOS = {
   encierro: { tit: 'El encierro', pal: 'andar', mira: true, b: { 0: ['Saltar', ' ', 'jump'], 3: ['Cámara', 'c', 'camera'], 7: ['Correr', 'Shift', 'run'] }, fijo: [7] },
   bino: { tit: 'Prismáticos', mira: true, b: { 0: ['Anotar', 'e', 'pen'], 1: ['Salir', 'f', 'close'] } },
   dialogo: { tit: 'Hablando', b: { 0: ['Seguir', 'e', 'play'] } },
-  pelota: { tit: 'Pelota a mano', pal: 'flechas', estilo: 'pelota', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift', 'hand'], 2: ['Cortada', 'l', 'slide'], 9: ['Salir', 'Escape', 'close'] } },
+  // (la dejada, con su tecla K: Mayúsculas es el esprint desde el 19 de noviembre de 2026, en el gatillo derecho, y en el
+  // móvil encima de GOLPE, como en la pantalla del partido)
+  pelota: { tit: 'Pelota a mano', pal: 'flechas', estilo: 'pelota', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'k', 'hand'], 2: ['Cortada', 'l', 'slide'], 7: ['Esprint', 'Shift', 'sprint'], 9: ['Salir', 'Escape', 'close'] }, der: [7] },
   pasaka: { tit: 'Pasaka', pal: 'flechas', estilo: 'pelota', b: { 0: ['Golpe', ' ', 'pelota'], 1: ['Dejada', 'Shift', 'hand'], 2: ['Globo', 'l', 'globo'], 9: ['Salir', 'Escape', 'close'] } },
   futbol: { tit: 'Fútbol', pal: 'pad', nativo: true, estilo: 'futbol', b: { 0: ['Pase', null, 'pass'], 1: ['Tiro', null, 'shoot'], 4: ['Cambiar', null, 'swap'], 7: ['Sprint', null, 'sprint'], 9: ['Pausa', null, 'pause'] }, der: [7, 4] },
   // (minijuegos 3D que se juegan con teclas: el esquileo con las flechas, la costura con un botón)

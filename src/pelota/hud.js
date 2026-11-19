@@ -204,6 +204,15 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 /* (cortada y dejada, con la misma letra: antes la cortada iba un tamaño más pequeña) */
 .pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);border:0;background:linear-gradient(180deg,#6440b8 0%,#432189 100%)}
 .pel-bcol{display:flex;flex-direction:column;align-items:center;gap:10px}
+/* el esprint: encima de GOLPE, a un pulgar de él. Oscuro con el aro del color de la energía (es lo que gasta); mientras
+   corres a tope, lleno de ese color; sin energía para esprintar, apagado. El rótulo de la fuerza de GOLPE sale por
+   encima de él, no sobre él */
+.pel-gcol{display:flex;flex-direction:column;align-items:center;gap:10px;--esp:68px}
+.pel-sprint{width:var(--esp);height:var(--esp);font-size:var(--fs-xs);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);transition:transform .08s,filter .08s,background-color .12s,color .12s,opacity .2s}
+.pel-root .pel-sprint{background:rgba(12,5,30,.86);--anillo:#ffc63d}
+.pel-root .pel-sprint.on{background:#ffc63d;color:#2a1300;text-shadow:none;--anillo:#fff}
+.pel-root .pel-sprint.no{opacity:.45}
+.pel-gcol .pel-hit .pel-pw{bottom:calc(100% + var(--esp) + 22px)}
 .pel-cut{background:linear-gradient(180deg,#ff5fae 0%,#d93088 100%)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
 .pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
@@ -264,7 +273,7 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
 @media (max-width:560px){
   .pel-tip{max-width:calc(calc(100vw / var(--z, 1)) - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
-@media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px;font-size:var(--fs-xs)}
+@media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px;font-size:var(--fs-xs)}.pel-gcol{--esp:58px;gap:8px}
   .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 48px);max-width:calc(calc(100vw / var(--z, 1)) - 240px);font-size:var(--fs-sm);padding:8px 12px}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:12px 20px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
@@ -744,7 +753,7 @@ export class PelotaHud {
       ${touch ? '' : `<div class="pel-teclas" aria-hidden="true">${(txt.teclas || []).map(([k, t]) => `<span>${k ? `<kbd>${k}</kbd>` : ''}${t}</span>`).join('')}</div>`}
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.cutKey || ''}</small>`}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.dropKey || ''}</small>`}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.cutKey || ''}</small>`}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.dropKey || ''}</small>`}</button></div><div class="pel-gcol"><button class="pel-btn pel-sprint" data-k="sprint" aria-label="${txt.sprint || 'ESPRINT'}"><span>${txt.sprint || 'ESPRINT'}</span>${touch ? '' : `<small class="pel-hk">${txt.sprintKey || ''}</small>`}</button><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     // (los dos nombres del marcador, enteros y a la misma letra: si uno no cabe, los dos bajan a la vez, nunca de 11 px.
@@ -907,6 +916,8 @@ export class PelotaHud {
   teclas(on) { this.$('.pel-teclas')?.classList.toggle('on', !!on); }
   tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
+  // el botón del esprint: lleno mientras corres a tope y apagado si no te queda energía para esprintar
+  esprint(on, puede) { const b = this._esp ||= this.$('.pel-sprint'); if (!b) return; const k = (on ? 1 : 0) + (puede ? 0 : 2); if (b._k !== k) { b._k = k; b.classList.toggle('on', !!on); b.classList.toggle('no', !puede); } }
   // el cestaño (material.js), en el desplegable del botón de la pelota: la pelota en juego y, mientras sacas tú, las tuyas
   // para cambiar (tocando o con la tecla B). rotulo(b): [su clase, su peso]; pista: lo que se puede hacer
   bolas(lista, actual, editable, rotulo, pista) {

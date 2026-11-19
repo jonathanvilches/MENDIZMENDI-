@@ -420,8 +420,8 @@ html:not(.tactil) :is(.fb-btns, .enc-btns, #bino .bbtn),
 .con-mando .pel-btns { pointer-events: none; }
 .con-mando .pel-hit { width: 72px; height: 72px; font-size: var(--fs-sm); opacity: .92; }
 .pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; text-transform: none; opacity: .85; }
-.pel-drop .pel-hk { bottom: 8px; }
-html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl, html:not(.con-mando) .pel-drop:has(.pel-hk) > span { transform: translateY(-5px); }
+.pel-drop .pel-hk, .pel-sprint .pel-hk { bottom: 8px; }
+html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl, html:not(.con-mando) .pel-drop:has(.pel-hk) > span, html:not(.con-mando) .pel-sprint:has(.pel-hk) > span { transform: translateY(-5px); }
 .con-mando .pel-hk { display: none; }   /* (con el mando, GOLPE es su botón: la tecla sobra) */
 .con-mando .touch #prompt { bottom: calc(var(--sb) + 110px); left: 50%; right: auto; transform: translateX(-50%); }
 /* (en una pantalla grande, util/tele.js: las vistas 3D a pantalla entera, que se miden con la ventana, sin el zoom de la interfaz) */

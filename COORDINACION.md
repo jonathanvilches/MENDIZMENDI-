@@ -27,11 +27,28 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   de la grada tras un buen tanto (`match.js` `dronGrada`, `game.js` `pausaTanto`, `hud.js` `.pel-root.dron`, de
   Principal por encargo directo del autor); y la cámara de las charlas con los vecinos, más lejos (`camera.js`
   `charla`); y el público con las manos sobre los muslos y la palma hacia abajo, el aplauso nuevo y la grada sin
-  pancartas de «¡Aupa…!» (`actors/crowdAnim.js`, `game/fronton.js`, 19 nov). Si otra ventana
+  pancartas de «¡Aupa…!» (`actors/crowdAnim.js`, `game/fronton.js`, 19 nov); y el esprint a mano de la pelota (botón
+  ESPRINT y Mayúsculas, también en el mando: `pelota/game.js`, `match.js`, `hud.js`, `rules.js`, `mando/contextos.js`,
+  `public/mando/`) con la cámara que deja ver el golpe al fondo (`match.js` `encuadra`, 19 nov). Si otra ventana
   necesita publicar lo suyo, que pregunte antes al autor.
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (19 nov): por encargo directo del autor («añadiría otro botón más al juego de
+  pelota que sea sprint»), en vuestro `src/pelota/hud.js` hay un botón nuevo, `.pel-sprint`, dentro de `.pel-gcol`
+  (la columna de GOLPE, con el esprint encima), su estado `esprint(on, puede)` y el rótulo de fuerza de GOLPE subido
+  para que no lo pise (`.pel-gcol .pel-hit .pel-pw`); en `src/style.css`, su letra de tecla. Mayúsculas ya no es la
+  dejada (sigue en K): es el esprint. Si recolocáis los botones del partido, contad con él.
+- **De Principal a Pelota · personajes** (19 nov): el autor ve «parpadeos en los personajes nuevos» en las charlas de
+  los pueblos. Los vecinos son vuestros, así que no lo he tocado; lo que he visto leyendo `src/actors/vecinoCerca.js`,
+  sin medirlo en pantalla: (1) en el móvil `MAX()` es 1 y `cercaVecinos` se queda cada medio segundo con el modelo más
+  cercano, sin margen: con dos vecinos de modelos distintos a parecida distancia (uno que pasea junto a otro parado),
+  el más cercano cambia una y otra vez, y a cada cambio uno vuelve a la textura de 512 y el otro espera a que cargue
+  la de 1024; (2) en cada charla hay hasta tres cambios a la vista: textura de 512 a 1024 al acercarse, malla ligera
+  por la completa (y textura de 2048 en el ordenador) cuando acaba de cargar, ya empezada la charla, y vuelta atrás al
+  terminar. Ideas: que el modelo que ya lleva la textura de cerca la conserve mientras otro no esté claramente más
+  cerca (un par de metros de margen), y hacer el cambio de malla antes de que la cámara de la charla llegue a su
+  sitio, o fundirlo. La cámara de las charlas ya se queda a tres metros (`camera.js` `charla`), que lo disimula algo.
 - **De Principal a Pelota · interfaz** (18 nov, tarde): por encargo directo del autor, la ventana principal ha tocado
   archivos vuestros: `src/game/torneo.js` («Elige tu pelotari» en anillo, `eligePelotariLibre`, la banda en el menú),
   `src/game/carrusel3d.js` (opción `banda`, entrada y luz de las portadas, `.ep-port`), `src/pelota/match.js`

@@ -8,6 +8,8 @@ import { HERRAMIENTAS } from './herramientas.js';
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 // lo que corres tú (m/s): algo más que antes, ahora que la pelota va más deprisa
 const YOU_RUN = 6.8;
+// el esprint a mano (el botón ESPRINT o Mayúsculas): cuánto más corre tu pelotari mientras lo mantienes (la mitad más)
+const ESPRINT = 0.5;
 // el saque, como en el frontón (y como en el vídeo de un saque en Sopelana que pasó el autor, 17 de noviembre de 2026):
 // el que saca sale del cuadro 6 con la pelota delante del pecho, andando y luego al trote; poco antes del 4 la bota con
 // fuerza, se planta, se agacha mucho y le pega cuando la pelota ya baja, a la altura del muslo. El que resta espera junto
@@ -34,7 +36,7 @@ const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.
 // va cansando; y si te cansan a ti, pides un descanso (DESCANSO). Antes, cualquier carrera a tope gastaba como un esprint
 // y con el joystick a fondo la barra se quedaba casi vacía todo el partido (octubre de 2026)
 const EN = { cortada: 0.05, cortPow: 0.025, racha: 0.75, rachaT: 9, dos: 0.035, cortDos: 0.065, gancho: 0.03, volea: 0.01, dejada: 0.01, rebote: 0.02,
-  normal: 0.035, trote: 0.01, run: 0.04, caza: 0.16, rally: 0.006, rest: 0.06, pausa: 0.15, low: 0.5 };
+  normal: 0.035, trote: 0.01, run: 0.04, caza: 0.16, rally: 0.006, rest: 0.06, pausa: 0.15, low: 0.5, esprint: 0.03, esprintMin: 0.08 };
 // los descansos: el reglamento de juego de la Federación Navarra de Pelota da a cada equipo hasta cinco descansos de un
 // minuto en el partido; aquí, en proporción a los tantos (5 a 22 tantos: en uno a 5, uno; a 7 o a 9, dos). Se piden entre
 // tanto y tanto. El que descansa recupera mucho; el otro, que también para, algo. Ese minuto pasa en unos segundos
@@ -209,6 +211,8 @@ export class PelotaGame {
   serverP() { return this.pairs ? this.team(this.server).find(id => this.role[id] === 'delantero') : this.server; }
   // cansancio: 0 con media energía o más; 1, sin energía
   tired(id) { const p = this.players[id]; return p ? clamp((EN.low - p.en) / EN.low, 0, 1) : 0; }
+  // (¿te queda energía para el esprint a mano? El botón se apaga si no)
+  puedeEsprint() { return (this.players.you?.en ?? 1) > EN.esprintMin; }
   /** Hasta dónde llega la fuerza del golpe (de 0 a 1) con el cansancio: entero, a tope; del todo cansado, a poco más de la mitad */
   powTope(id) { return 1 - this.tired(id) * 0.42; }
 
@@ -922,7 +926,7 @@ export class PelotaGame {
       // (por parejas, al que va a por ella); si no, EN.run, poco)
       // (el esprint de los cambios de ritmo no cuenta como correr más: se mira la velocidad sin él, y se suma su propio
       // gasto, pequeño; si no, con el esprint automático la barra se vaciaba en medio partido)
-      if (live) { const rt = Math.max(1, p.ritmo || 1), v = (p.speed || 0) / rt, k = caza === this.side(id) && (!this.pairs || !R.taker || R.taker === id) ? EN.caza : EN.run, ex = p.sprint ? EN.run * 0.8 * clamp((rt - 1) / 0.42, 0, 1) : 0;
+      if (live) { const rt = Math.max(1, p.ritmo || 1), v = (p.speed || 0) / rt, k = caza === this.side(id) && (!this.pairs || !R.taker || R.taker === id) ? EN.caza : EN.run, ex = (p.sprint ? EN.run * 0.8 * clamp((rt - 1) / 0.42, 0, 1) : 0) + (p.esprint ? EN.esprint : 0);   // (y el esprint a mano, el del botón, algo más: es un recurso, no se puede ir siempre a tope)
         p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - k * clamp((v - 5) / 2.6, 0, 1) - ex) * dt, 0, 1); }
       else if (this.phase === 'descanso') p.en = clamp(p.en + (this.side(id) === this.descanso?.side ? DESCANSO.gana : DESCANSO.ganaOtro) / DESCANSO.t * dt, 0, 1);
       else { const g = Math.min(EN.rest * dt, Math.max(0, EN.pausa - (p.rec || 0))); p.rec = (p.rec || 0) + g; p.en = clamp(p.en + g, 0, 1); }
@@ -1004,7 +1008,7 @@ export class PelotaGame {
     // jugador humano (o piloto automático)
     // (con el piloto automático, el que saca lo lleva el saque, como al rival: si no, la cabeza le decía que se quedara
     // quieto y corría a medio gas)
-    if (this.autoplay) { if (!(this.phase === 'serveWait' && this.serverP() === 'you')) this.driveAI('you', dt); }
+    if (this.autoplay) { you.esprint = 0; if (!(this.phase === 'serveWait' && this.serverP() === 'you')) this.driveAI('you', dt); }   // (el piloto, sin esprint a mano)
     else {
       const spd = YOU_RUN * (1 - this.tired('you') * 0.3), mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);   // (cansado, corres bastante menos)
       // por parejas, mantener el golpe con la pelota de tu compañero en el aire es pedirla («¡mía!»): si llegas, es tuya
@@ -1028,7 +1032,14 @@ export class PelotaGame {
             if (cos > 0.55 && d > (cam ? 1.6 : 2.2) && d / paso + 0.1 > c.t * 0.8) { dir = dz < -1.5 ? -1 : dz > 1.5 ? 1 : 0; ritmo = dir < 0 ? 1.42 : dir > 0 ? 1.3 : 1.15; }
           }
         }
-        you.ritmo ??= 1; you.ritmo += (ritmo - you.ritmo) * (1 - Math.exp(-(ritmo > you.ritmo ? 5 : 9) * dt));
+        // el esprint a mano (botón ESPRINT o Mayúsculas): mientras lo mantienes, corres a tope hacia donde lleves la
+        // palanca, sea tuya la pelota o no: hacia delante a por la dejada, hacia atrás a por la que se va al fondo o de
+        // vuelta a tu sitio. Arranca antes que el automático, gasta energía (EN.esprint) y, agotado, no sale; cansado,
+        // empuja menos. Con GOLPE mantenido (tu pelotari va solo a por la pelota), también le hace correr más
+        const man = !!inp.sprint && this.phase === 'rally' && you.en > EN.esprintMin && (im0 > 0.3 || (inp.aiming && mio));
+        if (man) { const tope = 1 + ESPRINT * (1 - this.tired('you') * 0.5); if (tope > ritmo) { ritmo = tope; dir = dir || (mz < -0.3 ? -1 : 1); } }
+        you.esprint = man ? 1 : 0;
+        you.ritmo ??= 1; you.ritmo += (ritmo - you.ritmo) * (1 - Math.exp(-(ritmo > you.ritmo ? (man ? 9 : 5) : 9) * dt));
         vx *= you.ritmo; vz *= you.ritmo; you.sprint = you.ritmo > 1.12 ? (dir || 1) : 0; }
       // ayuda: solo mientras mueves el joystick, y solo endereza un poco la carrera hacia donde llegará la pelota si ya
       // vas más o menos hacia allí. Sin tocar el joystick, el pelotari no se mueve. (Antes se acercaba solo a la pelota y,
@@ -1051,7 +1062,7 @@ export class PelotaGame {
         const c = this.interceptFor('you', YOU_RUN, 0.1);
         // (con la cámara, más deprisa y sin frenar tanto al llegar: no hay mando con el que ayudarle, y antes llegaba tarde
         // y la pelota le pasaba por delante)
-        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3) * (this.camara ? Math.max(1, you.ritmo || 1) : 1), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3) * (this.camara || you.esprint ? Math.max(1, you.ritmo || 1) : 1), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)

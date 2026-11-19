@@ -1114,6 +1114,35 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el móvil y 60 en el más justo, los más cercanos al centro de la cancha y a las filas de abajo. Todos van con figura
   en 3D: los más cercanos con la entera y los demás con la simplificada, nunca con el retrato plano (`figuras: true`).
   Esto sustituye a «gradas llenas» de la nota siguiente, que queda como historia.
+- **El esprint a mano y la cámara que deja ver el golpe al fondo** (`pelota/game.js`, `ESPRINT`, `EN.esprint`,
+  `puedeEsprint`; `pelota/match.js`, `ESPRINT_TOQUE`, `encuadra`, `huyeK`, `cercaK`; `pelota/hud.js`, `.pel-sprint`,
+  `esprint`; 19 de noviembre de 2026; el autor: «añadiría otro botón más que sea sprint, para cuando nos hacen una
+  dejada o la pelota va hacia atrás muy rápido… y que la cámara hacia atrás vaya también mucho más rápido para que
+  podamos ver al personaje golpeando, que a día de hoy eso no funciona»).
+  *El esprint.* Botón ESPRINT encima de GOLPE (oscuro con el aro del color de la energía; lleno mientras corres a tope y
+  apagado si no queda energía) y la tecla Mayúsculas, que deja de ser la dejada (sigue en K). Mientras se mantiene, tu
+  pelotari corre la mitad más (`ESPRINT`), hacia donde lleves la palanca, sea suya la pelota o no; un toque del botón
+  vale por una arrancada de 1,2 s (`ESPRINT_TOQUE`), porque en el móvil el pulgar tiene que volver a GOLPE. Con GOLPE
+  mantenido (el pelotari va solo a por la pelota) también le hace correr más. Gasta energía aparte del esprint
+  automático (`EN.esprint`), no sale por debajo de `EN.esprintMin` y cansado empuja menos. Solo durante el peloteo.
+  *La cámara.* Tres cosas. Una: si tu pelotari corre hacia el fondo, la cámara se le adelanta según su velocidad
+  (`huyeK`: sube enseguida y se apaga despacio), en vez de ir detrás de él con su retraso (a 9 m/s, casi dos metros,
+  y el pelotari bajaba al borde de la pantalla); y la pelota larga la lleva atrás el doble de rápido (`largoK`). Dos:
+  `encuadra`, tras `cabe`, en los planos de juego (el general y el de detrás): donde la cámara no cabe detrás del
+  pelotari (el cubierto y el trinquete no pasan del rebote; el Labrit, de la grada del fondo), antes subía y miraba
+  lejos, y con el pelotari en los dos últimos cuadros se salía entero por abajo. Ahora, si lo tiene cerca, baja a un
+  plano por encima del hombro, abre el campo (`cercaK`, hasta 10 grados) y, si aún no cabe, mira más abajo hasta que
+  sus pies quedan dentro (como mucho al 80 % de la media pantalla, que es donde ya caen en el plano de siempre; en
+  el plano de detrás, al 90 %). Tres: lo mismo se comprueba con la cámara donde ha quedado en cada fotograma (solo
+  inclinándola, y solo cuando ya está a menos de un par de metros de su sitio, para que no mire al suelo mientras
+  cruza la cancha tras el saque), así que es continuo y no da saltos.
+  Medido el 19 de noviembre con un jugador simulado que esprinta (10,2 m/s) en el frontón cubierto de Atarrabia, con
+  tu pelotari al fondo (z > 24). A 1280×720: los pies quedan de media al 76 % de la media pantalla y nunca pasan del
+  88 %, y la cabeza, siempre dentro. A 844×390: 79 % de media, 87 % como mucho. Antes, en lo mismo: los pies, de
+  media al 193 % (es decir, fuera) y la cabeza hasta el 266 %: el pelotari no se veía al golpear. En el Labrit,
+  retrocediendo a tope, los pies al 52 % de media (antes rozaban el borde, 96 %, corriendo a 5,4 m/s). En el mando, el
+  esprint va en el gatillo derecho y la dejada pasa a la K (`mando/contextos.js`); en el móvil como mando, el botón
+  ESPRINT encima de GOLPE (`public/mando/movil.js`).
 - **Las manos del público y el aplauso** (`actors/crowdAnim.js`, `manoA`, `MANOS`, `mMuslo`, `mPalma`, `mCuelga`,
   `mezcla`; 19 de noviembre de 2026; el autor: «todos los espectadores tienen las manos con las palmas hacia arriba;
   deben estar con las palmas hacia abajo o apoyadas en las rodillas» y «casi lo más importante son los aplausos»).

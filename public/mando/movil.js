@@ -16,7 +16,7 @@ const EU = {
   'Mover': 'Mugitu',
   '¡A jugar!': 'Jolastera!',
   'Acción': 'Ekintza', 'Saltar': 'Jauzi', 'Prismáticos': 'Prismatikoak', 'Mochila': 'Motxila', 'Correr': 'Korrika', 'Mapa': 'Mapa', 'Cuaderno': 'Koadernoa', 'Menú': 'Menua', 'Perro': 'Txakurra',
-  'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Globo': 'Globoa', 'Pausa': 'Pausa',
+  'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Esprint': 'Esprinta', 'Globo': 'Globoa', 'Pausa': 'Pausa',
   'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Cámara': 'Kamera', 'Coser': 'Josi',
   'En el pueblo': 'Herrian', 'El encierro': 'Entzierroa', 'Hablando': 'Hizketan', 'Pregunta': 'Galdera', 'Pelota a mano': 'Esku pilota', 'Pasaka': 'Pasaka',
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
@@ -269,7 +269,7 @@ const FBI = {
   tackle: IC('<circle cx="16.5" cy="12" r="3.5"/><path d="M11 12H3.5M6.5 9l-3 3 3 3"/>'), slide: IC('<path d="M2.5 17.5h11M10.5 14.5l3 3-3 3"/><circle cx="19" cy="17.5" r="2.3"/>'),
   dive: IC('<path d="M4 18c3.5-6.5 8.5-9.5 14-9.5"/><circle cx="19" cy="8.5" r="2"/>'), pause: IC('<path d="M8 5v14M16 5v14"/>'),
 };
-const FUT = { 0: 'fb-pass', 1: 'fb-shoot', 4: 'fb-swap', 7: 'fb-sprint' }, PEL = { 0: 'pel-hit', 1: 'pel-drop', 2: 'pel-drop pel-cut' };
+const FUT = { 0: 'fb-pass', 1: 'fb-shoot', 4: 'fb-swap', 7: 'fb-sprint' }, PEL = { 0: 'pel-hit', 1: 'pel-drop', 2: 'pel-drop pel-cut', 7: 'pel-drop pel-sprint' };
 // (arriba, redondos y con su icono; si no tuviera, su nombre)
 function sis(i) {
   const x = document.createElement('button'), n = T(C.b[i]); x.className = 'sis'; x.dataset.b = i; x.setAttribute('aria-label', n);
@@ -293,7 +293,7 @@ function pinta() {
   // pueblo, la mochila y los prismáticos); a la derecha, los de acción: en el fútbol y en la pelota, los de su pantalla; en
   // lo demás, el principal, los demás y, al final, los que se quedan puestos
   const top = [...(C.arriba || []), 4, 5, 8, 9].filter((i, n, L) => b[i] && !der.includes(i) && L.indexOf(i) === n);
-  const acc = esp.length ? [] : e === 'futbol' ? [1, 0, 7, 4].filter(i => b[i]) : e === 'pelota' ? [0, 1, 2].filter(i => b[i])
+  const acc = esp.length ? [] : e === 'futbol' ? [1, 0, 7, 4].filter(i => b[i]) : e === 'pelota' ? [0, 1, 2, 7].filter(i => b[i])
     : [0, 1, 2, 3, ...der, 7].filter((i, n, L) => b[i] && L.indexOf(i) === n && !top.includes(i) && !fijos.includes(i)).concat(fijos.filter(i => !top.includes(i)));
   const sup = $('#sup'); sup.innerHTML = ''; $('#top').classList.toggle('fila', top.length > 3);
   for (const i of top) { const x = sis(i); sup.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0)); }
@@ -348,8 +348,9 @@ function coloca() {
     const u = lim(Math.min((W - 2 * m) / 240, (H - 2 * m - arriba) / 178), 0.7, 1.4); zd.style.setProperty('--u', u);
     for (const x of ks) { const [r, bo, s] = FUTP[x.dataset.b] || FUTP[1]; pon(x, W - m - (r + s / 2) * u, H - m - (bo + s / 2) * u, s * u); }
   } else if (e === 'pelota') {
-    const u = lim(Math.min((W - 2 * m) / 204, (H - 2 * m - arriba) / 168), 0.7, 1.15); zd.style.setProperty('--u', u);
-    for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, W - m - 56 * u, H - m - 56 * u, 112 * u); else pon(x, W - m - 164 * u, H - m - (i === 1 ? 40 : 128) * u, 80 * u); }
+    // (el esprint, si lo hay, encima de GOLPE, como en la pantalla del partido: hace falta algo más de alto)
+    const esp = ks.some(x => +x.dataset.b === 7), u = lim(Math.min((W - 2 * m) / 204, (H - 2 * m - arriba) / (esp ? 190 : 168)), 0.7, 1.15); zd.style.setProperty('--u', u);
+    for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, W - m - 56 * u, H - m - 56 * u, 112 * u); else if (i === 7) pon(x, W - m - 56 * u, H - m - 156 * u, 68 * u); else pon(x, W - m - 164 * u, H - m - (i === 1 ? 40 : 128) * u, 80 * u); }
   } else {
     const pocos = ks.length <= 3, dA = Math.round(pocos ? lim(Math.min(W * 0.3, H * 0.36), 80, 120) : lim(Math.min(W * 0.25, H * 0.31), 72, 104));
     const dS = Math.round(pocos ? lim(dA * 0.8, 64, 96) : lim(dA * 0.76, 56, 80)), cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 14;

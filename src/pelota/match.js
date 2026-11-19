@@ -48,6 +48,8 @@ function lateral(P) {
 
 // (las cámaras del partido, en este orden con la C y en el menú)
 const PLANOS = ['general', 'fija', 'detras'];
+// (el esprint con un toque del botón: cuánto dura la arrancada, en segundos)
+const ESPRINT_TOQUE = 1.2;
 export class PelotaMatch {
   /**
    * @param {object} o
@@ -152,6 +154,20 @@ export class PelotaMatch {
     const C = this.court, over = p[2] - Math.min(COURT.L + 11, C.camZMax ?? Infinity);
     if (over > 0) { p[2] -= over; p[1] += over * 0.32; if (l) l[2] -= over * 0.4; }
     p[1] = Math.min(p[1], C.camTecho ?? Infinity);
+  }
+  // tu pelotari, siempre en cuadro (los planos de juego: el general y el de detrás). Donde la cámara no cabe detrás de él
+  // (el cubierto y el trinquete: no pasa del rebote; el Labrit: no entra en la grada del fondo), `cabe` la subía, y con
+  // el pelotari al fondo quedaba casi encima de él y mirando lejos: se salía entero por abajo y su golpe no se veía (el
+  // autor, 19 nov 2026: «que podamos ver al personaje golpeando, que a día de hoy eso no funciona»). Ahora, si lo tiene
+  // cerca, la cámara baja a un plano por encima del hombro (el campo se abre aparte: cercaK, en el fov) y, si aún no
+  // cabe, mira más abajo hasta que sus pies quedan dentro. zP: a qué fondo está el pelotari que hay que ver; borde: hasta
+  // dónde pueden bajar sus pies en la pantalla (0, el centro; 1, el borde de abajo). Devuelve a cuánto queda de él
+  encuadra(p, l, zP, fov, borde, baja = true) {
+    const d = p[2] - zP; if (!(d > 0.3)) return d;
+    if (baja) p[1] = Math.min(p[1], 3.3 + Math.max(0, d - 2.8) * 0.72 + Math.max(0, d - 6) * 2);
+    const lim = Math.atan(borde * Math.tan(fov * Math.PI / 360)), aP = Math.atan2(p[1] - 0.05, d), aL = Math.atan2(p[1] - l[1], Math.max(1, p[2] - l[2])), falta = aP - aL - lim;
+    if (falta > 0) l[2] = p[2] - Math.max(1, (p[1] - l[1]) / Math.tan(Math.min(1.05, aL + falta)));   // (como mucho, 60 grados hacia abajo)
+    return d;
   }
   // dónde empieza ese plano, en el mundo (el vuelo de la llegada acaba justo ahí): posición, a dónde mira y apertura
   introPose() {
@@ -976,7 +992,7 @@ export class PelotaMatch {
       if (!mine.includes(k)) return;
       // (soltar vale siempre: entre tanto y tanto, con una ventana abierta o con el partido parado; antes se perdía y la
       // palanca o la tecla se quedaban pulsadas al volver, hacia la izquierda, sin dejar mover)
-      const suelta = () => { I.keys[k] = false; const kind = ({ ' ': 'hit', j: 'hit', e: 'hit', enter: 'hit', shift: 'drop', k: 'drop', l: 'cut' })[k]; if (kind && I.charge?.kind === kind) I.charge = null; };
+      const suelta = () => { I.keys[k] = false; const kind = ({ ' ': 'hit', j: 'hit', e: 'hit', enter: 'hit', k: 'drop', l: 'cut' })[k]; if (kind && I.charge?.kind === kind) I.charge = null; };
       if (!down && !this.active) { suelta(); return; }
       if (!this.active) return;
       // (durante el vuelo de la llegada y el sorteo de la chapa, las teclas son suyas: saltar el vuelo, lanzar la chapa)
@@ -990,17 +1006,17 @@ export class PelotaMatch {
         if (k === 'v' && this.conCamara) this.cambiaVista();   // (la vista: en primera persona o la de la tele)
         if (k === 'c') this.hud.onPlano?.();   // (la cámara: general, fija o detrás de ti)
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
-        if (k === 'shift' || k === 'k') this.chargeStart('drop');
+        if (k === 'k') this.chargeStart('drop');   // (Mayúsculas era también la dejada: ahora es el esprint, mientras se mantiene; readInput)
         if (k === 'l') this.chargeStart('cut');
         if (k === 'escape') { if (hud.panelEl || this.finalOn) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
       }
-      if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'shift' || k === 'k') this.chargeEnd('drop'); }
+      if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'k') this.chargeEnd('drop'); }
       I.keys[k] = down;
     };
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
     // (al irse la ventana, todo suelto: las teclas, la palanca y el golpe que se estaba cargando, que si no dejaba al
     // pelotari apuntando y sin moverse)
-    this.soltar = () => { I.keys = {}; this.resetStick?.(); I.charge = null; I.drag = null; I.hitQ = I.dropQ = I.cutQ = false; };
+    this.soltar = () => { I.keys = {}; this.resetStick?.(); I.charge = null; I.drag = null; I.hitQ = I.dropQ = I.cutQ = false; I.sprintOn = false; I.sprintT = 0; hud.$('.pel-sprint')?.classList.remove('down'); };
     this.onBlur = () => this.soltar();
     addEventListener('blur', this.onBlur);
     // joystick táctil
@@ -1049,6 +1065,14 @@ export class PelotaMatch {
     };
     // (cada botón por su nombre: la cortada lleva el estilo de los botones pequeños y antes se cogía como si fuese la dejada)
     btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-dejada', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
+    // el esprint: mientras se mantiene, tu pelotari corre a tope; un toque corto vale por una arrancada de ESPRINT_TOQUE
+    // segundos (en el móvil el pulgar derecho tiene que volver enseguida a GOLPE: tocas ESPRINT y vas a por el golpe)
+    { const b = hud.$('.pel-sprint');
+      if (b) {
+        b.addEventListener('pointerdown', (e) => { e.preventDefault(); this.audio.ensure(); try { b.setPointerCapture(e.pointerId); } catch (x) { /* sin captura */ } b.classList.add('down'); I.sprintOn = true; I.sprintT = this.t + ESPRINT_TOQUE; });
+        const up = () => { b.classList.remove('down'); I.sprintOn = false; };
+        b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
+      } }
   }
   // carga del golpe: cuanto más se mantiene, más fuerte; un toque corto es un golpe suave. A tope en 1 s (la dejada, en
   // 1,3 s) y al principio más despacio: así se afina bien un golpe suave o medio y la altura de la dejada (antes, a tope
@@ -1099,7 +1123,8 @@ export class PelotaMatch {
     const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ, A = this.aimNow(rel);
     if (aiming) I.lastAim = A;
     const aim = rel && I.lastAim ? I.lastAim : A; if (rel) I.lastAim = null;
-    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc };
+    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc,
+      sprint: !!(k.shift || I.sprintOn || this.t < (I.sprintT || 0)) };   // (el esprint: Mayúsculas o el botón, mantenidos; o la arrancada de un toque)
     this.finDesc = false;
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
@@ -1600,6 +1625,7 @@ export class PelotaMatch {
     }
     C.serveZone.visible = g.phase === 'serveWait' || g.phase === 'servePrep' || (g.phase === 'rally' && g.rally?.serve && !g.rally.front);
     this.hud.ready(h && h.hittable || (g.phase === 'servePrep' && g.serverP() === 'you' && g.hittable('you')));
+    this.hud.esprint(!!g.players.you?.esprint, g.puedeEsprint?.() ?? true);
     { const pc = this.puedesCambiar(); if (pc !== this.pcAntes) { this.pcAntes = pc; this.pintaBolas(); } }   // (el cestaño: abierto mientras sacas tú)
     // el aro del momento justo en el botón de golpe (se cierra sobre el botón cuando hay que soltar) y el nombre del golpe
     // que saldría ahora: de volea, antes del bote; gancho, si viene alta
@@ -1800,12 +1826,20 @@ export class PelotaMatch {
     // frente al frontón. Sale una quinta parte más grande y los pies, a la misma altura de la pantalla
     const lp = portrait ? [cx * 0.3 + 0.6, 6.6 + up, cz + 9.4 + behind * 0.12] : [cx * 0.32 + 1.1, 5.2 + up * 0.7, cz + 7.6 + behind * 0.12];
     const ll = portrait ? [cx * 0.18, 1.2, cz - 9] : [cx * 0.2, 1.2, cz - 11];
+    // tu pelotari corre hacia el fondo (hacia la cámara) a por la pelota larga: la cámara se le adelanta. Con el seguimiento
+    // suave de siempre iba por detrás de él (a 9 m/s, casi dos metros): se le echaba encima, el pelotari bajaba al borde
+    // de la pantalla y el golpe no se veía. Ahora retrocede por delante de él y sube un poco, tanto más cuanto más corre
+    // (huyeK: su velocidad hacia el fondo, que sube enseguida y se apaga despacio, para que el golpe se vea con sitio)
+    { const vz = g.phase === 'rally' && Number.isFinite(you.vz) ? Math.max(0, you.vz) : 0, h0 = this.huyeK || 0;
+      this.huyeK = h0 + (vz - h0) * Math.min(1, dt * (vz > h0 ? 10 : 2.5)); }
+    const huye = this.huyeK;
+    lp[2] += huye * 0.34; lp[1] += huye * 0.07; ll[2] += huye * 0.2;
     // la pelota larga: si va hacia el rebote, por detrás de ti, la cámara retrocede y sube hasta verla llegar (y al
     // pelotari que va a por ella); antes se quedaba detrás de ti y la pelota se perdía por arriba
     if (g.phase === 'rally' && !this.tour) {
       const B = g.ball, bz = Number.isFinite(B.p.z) ? B.p.z + Math.max(0, B.v?.z || 0) * 0.3 : you.z;
       const largo = Math.max(0, Math.min(1, (bz - you.z - 2) / 10)) * Math.max(0, Math.min(1, (bz - 16) / 10));
-      this.largoK = (this.largoK || 0) + (largo - (this.largoK || 0)) * Math.min(1, dt * 3);
+      this.largoK = (this.largoK || 0) + (largo - (this.largoK || 0)) * Math.min(1, dt * (largo > (this.largoK || 0) ? 6 : 3));   // (hacia atrás, el doble de rápido: la pelota larga no espera)
     } else this.largoK = (this.largoK || 0) * Math.max(0, 1 - dt * 2);
     // y con un peloteo largo, poco a poco un plano más abierto, como en la tele cuando el tanto se alarga
     const abre = this.camDyn ? Math.max(0, Math.min(1, ((this.rallyN || 0) - 5) / 6)) * (g.phase === 'rally' ? 1 : 0) : 0;
@@ -1852,8 +1886,8 @@ export class PelotaMatch {
     // frontis y un poco hacia la pelota. Si la pelota se va al fondo, retrocede y sube un poco para verla llegar
     if (this.plano === 'detras' && !this.tour && !corte && !saqueRv && ['rally', 'serveWait', 'servePrep', 'point'].includes(g.phase)) {
       const B = g.ball, bx = Number.isFinite(B.p.x) ? Math.max(-COURT.W * 0.5, Math.min(COURT.W * 0.5, B.p.x)) : you.x, L2 = this.largoK || 0;
-      lp[0] = you.x * 0.85 + (portrait ? 0.5 : 0.9); lp[1] = (portrait ? 3 : 2.35) + L2 * 1.6; lp[2] = you.z + (portrait ? 5.2 : 4) + L2 * 4;
-      ll[0] = you.x * 0.45 + bx * 0.35; ll[1] = 1.7 + Math.max(0, Math.min(2.5, (B.p.y || 0) - 1.5)) * 0.2; ll[2] = you.z - 11 + L2 * 6;
+      lp[0] = you.x * 0.85 + (portrait ? 0.5 : 0.9); lp[1] = (portrait ? 3 : 2.35) + L2 * 1.6 + huye * 0.05; lp[2] = you.z + (portrait ? 5.2 : 4) + L2 * 4 + huye * 0.3;   // (y se adelanta a ti si corres hacia el fondo, como el plano general)
+      ll[0] = you.x * 0.45 + bx * 0.35; ll[1] = 1.7 + Math.max(0, Math.min(2.5, (B.p.y || 0) - 1.5)) * 0.2; ll[2] = you.z - 11 + L2 * 6 + huye * 0.2;
       this.detrasOn = true;
     } else this.detrasOn = false;
     if (this.camFija && !this.tour && !corte && !saqueRv && ['rally', 'serveWait', 'servePrep', 'point'].includes(g.phase)) {
@@ -1882,11 +1916,26 @@ export class PelotaMatch {
     } else this.roll += (0 - this.roll) * Math.min(1, dt * 4);
     if (this.kick > 0) this.kick = Math.max(0, this.kick - dt * 2.2);
     this.cabe(lp, ll);
+    // (los planos de juego: tu pelotari, o el que va a golpear si está más al fondo, siempre en cuadro: encuadra)
+    // (zP: a qué fondo está el que hay que ver; en el plano de detrás, siempre tú)
+    const juego = !enPlano && !this.fijaOn && !this.tour && !this.tossCam && !this.entraPl && ['rally', 'serveWait', 'servePrep', 'point'].includes(g.phase);
+    // (borde: en el plano general, 0,8: justo por debajo de donde ya caen sus pies en el plano de siempre, que así no cambia)
+    const borde = this.detrasOn ? 0.9 : 0.8, zP = this.detrasOn ? you.z : cz; let cerca = 0, dT = 0;
+    if (juego) { dT = this.encuadra(lp, ll, zP, this.cam.fov, borde); cerca = this.detrasOn ? Math.max(0, Math.min(1, (3.6 - dT) / 1.2)) : Math.max(0, Math.min(1, (6.8 - dT) / 3.4)); }
+    this.cercaK = (this.cercaK || 0) + (cerca - (this.cercaK || 0)) * Math.min(1, dt * 4);
     const wp = this.v3.set(lp[0], lp[1], lp[2]); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
     if (!this.camInit || this.tossCam) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }   // (con la chapa, sin retraso: ya va suave)
     const k = 1 - Math.exp(-5 * dt);
     this.camPos.lerp(wp, k); this.camLook.lerp(wl, k);
+    // (y con la cámara donde ha quedado en este fotograma, que va con su retraso: lo mismo, mirando más abajo si hace
+    // falta. Solo cuando ya está casi en su sitio, a menos de dos metros de donde va: mientras vuela de un sitio a otro
+    // (del que saca al que resta, que está al fondo) pasa por encima de los pelotaris, y ahí no hay encuadre que valga:
+    // se ponía a mirar al suelo un momento. Es continuo: no da saltos)
+    if (juego) { const a = grp.worldToLocal(wp.copy(this.camPos)), b = grp.worldToLocal(wl.copy(this.camLook)), pa = [a.x, a.y, a.z], pb = [b.x, b.y, b.z], z0 = pb[2];
+      const w = Math.max(0, Math.min(1, 1 - (Math.abs(pa[2] - zP - dT) - 0.8) / 1.2));
+      if (w > 0) { this.encuadra(pa, pb, zP, this.cam.fov, Math.min(0.93, borde + 0.08), false);
+        if (pb[2] !== z0) { b.z = z0 + (pb[2] - z0) * w; this.camLook.copy(grp.localToWorld(b)); } } }
     this.cam.position.copy(this.camPos);
     if (this.shake > 0) { this.shake -= dt; this.cam.position.x += (Math.random() - 0.5) * this.shake * 0.25; this.cam.position.y += (Math.random() - 0.5) * this.shake * 0.25; }
     this.cam.lookAt(this.camLook);
@@ -1897,7 +1946,7 @@ export class PelotaMatch {
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
     { const sp = this.camDyn && !this.fijaOn && g.players.you?.sprint ? 1 : 0; this.sprintK = (this.sprintK || 0) + (sp - (this.sprintK || 0)) * Math.min(1, dt * (sp ? 4 : 6)); }   // (al esprintar, el plano se abre un poco: se nota la arrancada)
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5;   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   // el radio de la pelota tal como se dibuja, en el mundo, a la escala esc (con sus costuras, que sobresalen un poco)
