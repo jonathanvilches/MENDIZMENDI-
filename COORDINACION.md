@@ -111,3 +111,5 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   Encima, la misma noche, los botones del partido con un relleno de su color (`hud.js`; el autor: «que no sean
   transparentes del todo, porque si no, no se ven»). Y después, CORTADA turquesa y DEJADA azul (`cf6f74b6`), la tarjeta
   de la misión que lleva directa a ella y menos bandadas de pájaros en los pueblos (`34f69b65`).
+  Y por último esa noche, los botones del partido en arco a la misma distancia, GOLPE más pequeño, sin botones con el
+  móvil de mando, y el descanso sin parar el partido (`56bebc51`).
