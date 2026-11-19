@@ -16,6 +16,12 @@ function libre(x, y, z) {
   }
   return true;
 }
+// ¿está libre la línea de (x0, z0) a (x1, z1) a la altura y? (un punto cada 0,6 m, sin contar los extremos)
+function despejado(x0, z0, x1, z1, y) {
+  const n = Math.max(2, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 0.6));
+  for (let i = 1; i < n; i++) if (!libre(x0 + (x1 - x0) * i / n, y, z0 + (z1 - z0) * i / n)) return false;
+  return true;
+}
 // muelle amortiguado (el SmoothDamp de siempre): de x hacia x1 en unos «tiempo» segundos, con la velocidad v que lleva;
 // devuelve [posición, velocidad]
 function muelle(x, x1, v, tiempo, dt) {
@@ -45,9 +51,10 @@ export class FollowCamera {
   /** El jugador va a cambiar de sitio de golpe (subir o bajar de la montura): la cámara lo sigue suave s segundos */
   suaviza(s = 0.45) { this.suave = s; }
   /** Charla con un vecino (el autor, 16 de noviembre: «Cuando hablemos con los vecinos la cámara se acerca a los
-   *  personajes»). Plano por encima del hombro del jugador, con el vecino de frente y la cara en el tercio de arriba,
-   *  que abajo va el cuadro de la charla. Detrás del hombro derecho; si ahí hay una casa, del izquierdo, y si no, más
-   *  cerca. Si ningún sitio está libre, o el vecino está lejos, o ya hay otro plano de cine, la cámara no cambia.
+   *  personajes»; y el 18: «no acerques tanto la cámara»). Plano de dos, desde detrás y a un lado del jugador, a unos
+   *  3 m: el explorador de espaldas, casi entero, y el vecino de frente y entero, con la cara en el tercio de arriba, que
+   *  abajo va el cuadro de la charla. Por su derecha; si ahí hay una casa, por su izquierda, y si no, algo más cerca. Si
+   *  ningún sitio está libre, o el vecino está lejos, o ya hay otro plano de cine, la cámara no cambia.
    *  Varias charlas seguidas con el mismo vecino son un solo plano: finCharla() espera un poco antes de volver */
   charla(a, player) {
     if (this._charla && this._charla.a === a && this.cinematic === this._charla) { this.finPendiente = 0; return; }
@@ -61,17 +68,25 @@ export class FollowCamera {
     const cara = A.y + clamp(a.altoCharla, 0.9, 2.8) * 0.9, y = Math.max(P.y + 1.45, cara);
     let pos = null, lado = 0;
     // (bien abierto a un lado: con la cámara casi detrás de la cabeza del explorador, su pelo tapaba medio vecino)
-    for (const [atras, l] of [[1.2, 1], [1.2, -1], [0.8, 0.9], [0.8, -0.9], [0.5, 1], [0.5, -1]]) {
-      const x = P.x - dx * atras + dz * l, z = P.z - dz * atras - dx * l;
-      if (!libre(x, y, z) || !libre((x + P.x) / 2, y, (z + P.z) / 2)) continue;
-      pos = new THREE.Vector3(x, Math.max(y, groundHeight(x, z) + 0.45), z); lado = l; break;
+    // (y LEJOS, desde el 18 de noviembre de 2026; el autor, en el ordenador: «los personajes pierden muchísima calidad
+    // cuando se acerca mucho la cámara en una conversación con el explorador. No acerques tanto la cámara». Estaba a
+    // 1,5 m del explorador y con el objetivo cerrado al 72 %: su cabeza y su hombro llenaban media pantalla y se veía la
+    // malla. Ahora, a 3,2 m en el ordenador (2,6 m en el móvil, que es pequeño) y con el objetivo casi como jugando: el
+    // explorador de espaldas, de cuerpo casi entero a un lado, y el vecino de frente y entero. Si ahí hay una casa, del
+    // otro lado, y si no algo más cerca, pero nunca a menos de 2 m (1,6 m en el móvil): antes llegaba a 1,1 m)
+    const tactil = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches, [AT, LA] = tactil ? [2.1, 1.55] : [2.6, 1.9];   // (más abierto a un lado: con 1,5 m la cabeza del explorador tapaba un hombro del vecino)
+    for (const [k, sg] of [[1, 1], [1, -1], [0.8, 1], [0.8, -1], [0.62, 1], [0.62, -1]]) {
+      const atras = AT * k, l = LA * k * sg, x = P.x - dx * atras + dz * l, z = P.z - dz * atras - dx * l;
+      // (nada en medio: ni entre la cámara y el explorador ni entre la cámara y el vecino)
+      if (!libre(x, y, z) || !despejado(x, z, P.x, P.z, y) || !despejado(x, z, A.x, A.z, y)) continue;
+      pos = new THREE.Vector3(x, Math.max(y + 0.12, groundHeight(x, z) + 0.45), z); lado = l; break;
     }
     if (!pos) return;
-    // mirando un poco hacia el lado de la cámara: el vecino casi en el centro y el hombro del explorador en el borde
-    const sl = Math.sign(lado) * 0.3, look = new THREE.Vector3(A.x - dx * 0.15 + dz * sl, cara - 0.28, A.z - dz * 0.15 - dx * sl);
-    // y con el objetivo algo más cerrado, como un plano de cine: el vecino de cintura para arriba, sin meter la cámara encima
+    // mirando entre los dos, más hacia el vecino y a la altura de su pecho: los dos enteros por encima del cuadro de la charla
+    const sl = Math.sign(lado) * 0.25, look = new THREE.Vector3(A.x - dx * 0.45 + dz * sl, cara - 0.5, A.z - dz * 0.45 - dx * sl);
+    // (el objetivo, apenas más cerrado que jugando: 0,86 en el ordenador y 0,8 en el móvil; antes 0,72)
     const fov0 = this.cam.userData.fov0 || this.cam.fov;
-    const c = this._charla = this.cinematic = { pos, look, t: 0, a, p0: P.clone(), fov: fov0 * 0.72 };
+    const c = this._charla = this.cinematic = { pos, look, t: 0, a, p0: P.clone(), fov: fov0 * (tactil ? 0.8 : 0.86) };
     this.finPendiente = 0; this.salida = null; this.fovTocado = true;
     if (reducido()) { this.cam.position.copy(pos); c.lookCur = look.clone(); this.cam.lookAt(look); this.cam.fov = c.fov; this.cam.updateProjectionMatrix(); }   // (sin deslizarse: de corte)
   }

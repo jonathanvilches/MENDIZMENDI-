@@ -25,7 +25,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   del carrusel de campeonatos regeneradas a 2048 px, con tres tamaños y la nítida solo en la de delante
   (`assets/pelota/fondos/{media,hd}`, `carrusel3d.js` «LA IMAGEN NÍTIDA», `torneo.js` `nitida`); y el plano de dron
   de la grada tras un buen tanto (`match.js` `dronGrada`, `game.js` `pausaTanto`, `hud.js` `.pel-root.dron`, de
-  Principal por encargo directo del autor). Si otra ventana
+  Principal por encargo directo del autor); y la cámara de las charlas con los vecinos, más lejos (`camera.js`
+  `charla`); y el público con las manos sobre los muslos y la palma hacia abajo, el aplauso nuevo y la grada sin
+  pancartas de «¡Aupa…!» (`actors/crowdAnim.js`, `game/fronton.js`, 19 nov). Si otra ventana
   necesita publicar lo suyo, que pregunte antes al autor.
 
 ## Peticiones entre ventanas

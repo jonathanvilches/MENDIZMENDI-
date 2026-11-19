@@ -437,27 +437,8 @@ export function labritInTown(scene, near) {
   return sp ? new Fronton(scene, sp, 'LABRIT', { ...labritOpts(), inTown: true }) : null;
 }
 
-// Las pancartas de la grada, sostenidas en alto por la gente (en la calle, en los balcones): «¡Aupa…!» para ti y para
-// el rival, cada una de su color, y la de los pelotazales del pueblo. Devuelve con qué quitarlas
-const COL_PANC = { azul: '#4b3cff', rojo: '#d8243c' };
-function pancartasDe(C, you, riv, town, colors) {
-  const S = (C.ocupados || C.standSpots || []).filter(p => p[1] > 0.3).sort((a, b) => a[2] - b[2]); if (S.length < 6) return null;
-  const txt = [[`¡AUPA ${you}!`.toUpperCase(), COL_PANC[colors.you] || COL_PANC.azul], [`¡AUPA ${riv}!`.toUpperCase(), COL_PANC[colors.rival] || COL_PANC.rojo], [`${town} · PILOTAZALEAK`.toUpperCase(), '#1c1630']];
-  const out = [];
-  txt.forEach(([t, col], i) => {
-    const sp = S[Math.floor(S.length * (0.22 + i * 0.28))]; if (!sp) return;
-    const c = document.createElement('canvas'); c.width = 512; c.height = 120; const g = c.getContext('2d');
-    g.fillStyle = col; g.fillRect(0, 0, 512, 120); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillRect(6, 6, 500, 4); g.fillRect(6, 110, 500, 4);
-    let fs = 64; g.font = `400 ${fs}px "MZ Display", "Lilita One", Nunito, Arial, sans-serif`; const w = g.measureText(t).width; if (w > 470) { fs *= 470 / w; g.font = `400 ${fs}px "MZ Display", "Lilita One", Nunito, Arial, sans-serif`; }
-    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 256, 62);
-    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.61), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, side: THREE.DoubleSide }));
-    // (delante de quien la sostiene, hacia donde mira: la cancha)
-    m.position.set(sp[0] + Math.sin(sp[3]) * 0.55, sp[1] + 0.95, sp[2] + Math.cos(sp[3]) * 0.55); m.rotation.y = sp[3]; m.rotation.z = (Math.random() - 0.5) * 0.06; m.name = 'pancarta';
-    C.group.add(m); out.push(m);
-  });
-  return () => { for (const m of out) { m.parent?.remove(m); m.geometry.dispose(); m.material.map.dispose(); m.material.dispose(); } };
-}
+// (La grada, sin pancartas: las de «¡Aupa…!» y la de los pelotazales del pueblo se quitaron el 19 de noviembre de 2026; el
+// autor: «quita los carteles de AUPA porque no me gustan nada».)
 
 /**
  * Partido (o peloteo) en un frontón. Devuelve una promesa con { win, you, cpu, best, quit }.
@@ -478,9 +459,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
     let temporal = false, natu = null, vd0 = null, flo0 = false;   // (el pueblo sin vecinos ni bosque mientras dura el partido, y cómo estaba)
-    // (pancartas, aquí y no dentro del montaje: si no, al acabar no se veían y se quedaban en la grada de partido en
-    // partido, cada una con su textura, gastando memoria gráfica)
-    let runAt0 = null, rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
+    let runAt0 = null, rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = []; const hidden = [], hiddenR = [];
     // (tu nombre en el partido: el tuyo o, en un campeonato, el del pelotari con el que lo juegas; yo: { name, town, stats })
     const tuNombre = yo?.name || profile().name || (isEU() ? 'Zu' : 'Tú');
     // (si el rival se llama como tú, con la inicial de su pueblo detrás, «Ane I.»: si no, en el marcador salían dos «Ane»)
@@ -601,7 +580,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (con la cara entera, con su textura, los más cercanos: en el móvil 14, y 4 en el más justo; antes 6 y 1, y desde la
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
-      C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
+      C.ocupados = sp;   // (dónde hay gente sentada: el plano de dron de la grada, match.js)
       // (18 de noviembre de 2026, noche; el autor: «que se vean los movimientos exactos de cómo se levantan y cómo
       // celebran»: sentados, con su esqueleto y sus movimientos en la tarjeta gráfica, crowdAnim.js: cada uno se levanta
       // con los pies en el suelo, celebra a su manera y se vuelve a sentar. Con la figura entera, los más cercanos a la
@@ -618,9 +597,6 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.add(crew); const tick0 = seated.tick, dispose0 = seated.dispose;
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); apunta('público del frontón', e); }
-    // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    // (en un frontón de «Frontones», el pueblo de ese frontón)
-    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, fronton.realId ? fronton.townName : (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     // (entre tanto y tanto, parado y sin nada que hacer, de vez en cuando un gesto de pelotari: se sopla la mano o suelta
     // el brazo. Cada uno a su aire, cada 4 a 9 segundos)
@@ -750,7 +726,6 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       function vuelve() {
         safe(() => quitaDorsal(rig));   // (si tu pelotari es tu figura de siempre, sin el nombre en la espalda al volver)
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
-        safe(() => { pancartas?.(); pancartas = null; });
         safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
         safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
         safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
