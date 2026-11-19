@@ -135,6 +135,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche (3), la hizo la ventana principal, por el encargo del autor («cuando seleccionas un bloque hasta que se
+  accede a dicho bloque al interior, tarda muchísimo»): `master` hasta `c803cb47`. Entra el menú de campeonatos sin
+  esperar a compilar el frontón (main.js, runtime.js `diferir`/`preparaDiferido` y townDeportes.js `venuePrep`): con
+  Lesaka, de 14 s a 8 en el ordenador de pruebas.
 - 19 nov, noche (2), la hizo la ventana principal, por el encargo del autor («repártelos un poco a lo largo de todo el
   frontón para que en las fases vaya aumentando el número de espectadores… en la final tiene que haber un lleno
   completo»): `master` hasta `463ce87b`. Entra el público por fases (fronton.js y `camp.fase` en townDeportes.js): un
