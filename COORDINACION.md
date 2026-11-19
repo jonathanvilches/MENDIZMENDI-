@@ -128,6 +128,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche, la hizo la ventana principal, por el aviso del autor (el menú en el iPhone: «no se ilumina cuando está
+  seleccionado el principal»): `master` hasta `0280d35a`, los carruseles con el velo nuevo, que también se ve bien en
+  Safari. Siguen sin subir los jardines de `src/world/nature.js` (rama `setos-sin-ver`), que aún no están vistos en pantalla.
 - 19 nov, más tarde, la hizo la ventana principal, por el aviso del autor («Los personajes no están cerrados en las cards.
   Y todo va super lento»): `master` hasta `c943589e`. Entran las portadas de los campeonatos con el pelotari entero y en
   plano cerrado (`c325f849`), el mando del móvil con los botones nuevos y el público sin figuras de lejos (`f7d39006`) y
