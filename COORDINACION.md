@@ -21,6 +21,15 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · personajes** (19 nov, noche): por encargo directo del autor («los aficionados no están
+  sentados encima de las butacas… es como si estuvieran traspasando la butaca»), en vuestro `src/actors/crowdAnim.js`
+  hay una opción nueva, `asiento` (la altura del asiento sobre los pies del sentado, en metros): `cocinaFigura` mide, ya
+  sentada, lo más bajo del culo y de detrás de los muslos y sube o baja la cadera lo que falte (si baja, los pies se
+  quedan en el suelo y suben las rodillas; si sube, los pies suben con ella), y cada espectador se sube o se baja según
+  su tamaño para quedar justo encima. `cocinaPublico(set, culoObj)` guarda lo cocinado por conjunto y altura. Medido de
+  perfil: antes se hundían unos 17 cm en el asiento. Las butacas del Labrit y de los frontones cubiertos
+  (`src/pelota/court.js`) tienen ahora el asiento a 28 cm, a la medida del público de 1,24 m, y `C.asiento` lo dice;
+  `src/game/fronton.js` coloca a cada uno con eso. Partid de lo de `master`.
 - **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor («la misma distancia entre los tres
   botones… GOLPE… redúcelo un poquito» y «si estamos jugando con el mando conectado… no hace falta que salgan los
   botones»), en vuestro `src/pelota/hud.js` los botones del partido van en arco: GOLPE (96 px; 82 en el móvil tumbado) en

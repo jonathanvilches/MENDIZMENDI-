@@ -591,6 +591,11 @@ export class PelotaCourt {
     // butacas de madera, una a una, como las del Labrit: concha de tablero curvado color miel (asiento y respaldo),
     // reposabrazos de madera y pie de hierro; abajo, claras; en los anfiteatros, algo más oscuras
     const seatsLo = [], seatsHi = [];
+    // (el asiento, a 28 cm del escalón: a la medida del público, que mide 1,24 m. Con el de 46 cm de una butaca de verdad,
+    // los sentados quedaban con el culo y los muslos metidos 17 cm en el asiento; el autor, 19 de noviembre de 2026: «los
+    // aficionados no están sentados encima de las butacas… es como si estuvieran traspasando la butaca». crowdAnim.js pone
+    // a cada figura con el culo justo encima)
+    const ASIENTO = 0.28, BA = ASIENTO - 0.4625;
     // (los huecos de las dos tarimas de la tele en la grada baja: ni butacas ni público; ver más abajo)
     const tvA = { x: xr + 7.2, z: 16 }, tvB = { x: -2.6, z: zf + 7.2 };
     const hueco = (x, z) => (Math.abs(x - tvA.x) < 1.05 && Math.abs(z - tvA.z) < 1.5) || (Math.abs(x - tvB.x) < 1.5 && Math.abs(z - tvB.z) < 1.05);
@@ -604,7 +609,7 @@ export class PelotaCourt {
       for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, x = s.x + dx * t * s.l + s.nx * 0.53, z = s.z + dz * t * s.l + s.nz * 0.53;
         if (!hi && hueco(x, z)) continue;
         (hi ? seatsHi : seatsLo).push([x, y, z, fy]);
-        this.standSpots.push([x, y + 0.44, z, fy]); } } };   // (todas las butacas: en la final, lleno)
+        this.standSpots.push([x, y + ASIENTO, z, fy]); } } };   // (todas las butacas: en la final, lleno; a la altura del asiento)
     // grada baja: el antepecho de madera junto a la contracancha y diez filas de butacas de madera
     // (el antepecho, forrado de tablas verticales de madera barnizada, como la tarima)
     const panelTex = canvasTex(T, 512, 128, (c, w, h) => { const n = 16, bw = w / n; for (let i = 0; i < n; i++) { const t = 0.86 + Math.random() * 0.2; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(152 * t)},${Math.round(88 * t)})`; c.fillRect(i * bw + 1, 0, bw - 2, h);
@@ -620,7 +625,7 @@ export class PelotaCourt {
       for (const s of segs(off0 + 0.6)) { const dx = Math.sin(s.ry), dz = Math.cos(s.ry); for (let t = -0.5; t <= 0.5; t += 0.5) if (s.l > 4 || t === 0) box(0.32, y0 - 0.5, 0.32, cream, s.x + dx * t * s.l * 0.9, (y0 - 0.5) / 2, s.z + dz * t * s.l * 0.9); }
     };
     balc(8.2, 5.2, 4); balc(10.4, 8.6, 4);
-    this.seated = true; this.sitAdelante = 0.08;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
+    this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
     // --- la tele, que retransmite la final: una cámara en una tarima en lo alto de la grada baja, frente a la pared
     // izquierda (el plano general); otra en el fondo, detrás del rebote, mirando al frontis; y una a pie de cancha, en la
     // esquina del frontis. Cada una sobre su trípode, con su operador detrás (this.tvCrew: fronton.js lo pone en el partido)
@@ -644,10 +649,10 @@ export class PelotaCourt {
       const mk = (list, mat) => { const m = new T.Mesh(boxesGeo(T, list), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); };
       mk(plat, M({ color: '#3b3330', roughness: 0.85 })); mk(dk, M({ color: '#3a3e44', roughness: 0.45, metalness: 0.35 })); mk(bk, M({ color: '#141619', roughness: 0.4, metalness: 0.3 }));
       mk(rd, new T.MeshBasicMaterial({ color: '#ff2a1f' })); }
-    { const shell = boxesGeo(T, [{ w: 0.46, h: 0.045, d: 0.42, x: 0, y: 0.44, z: 0.04 }, { w: 0.46, h: 0.5, d: 0.04, x: 0, y: 0.72, z: -0.2, rx: -0.2 },
-        { w: 0.05, h: 0.04, d: 0.36, x: -0.255, y: 0.64, z: 0.02 }, { w: 0.05, h: 0.04, d: 0.36, x: 0.255, y: 0.64, z: 0.02 }]);
-      const frame = boxesGeo(T, [{ w: 0.05, h: 0.44, d: 0.05, x: -0.255, y: 0.22, z: -0.08 }, { w: 0.05, h: 0.44, d: 0.05, x: 0.255, y: 0.22, z: -0.08 },
-        { w: 0.04, h: 0.22, d: 0.04, x: -0.255, y: 0.54, z: 0.14 }, { w: 0.04, h: 0.22, d: 0.04, x: 0.255, y: 0.54, z: 0.14 }]);
+    { const shell = boxesGeo(T, [{ w: 0.46, h: 0.045, d: 0.42, x: 0, y: 0.44 + BA, z: 0.04 }, { w: 0.46, h: 0.5, d: 0.04, x: 0, y: 0.72 + BA, z: -0.2, rx: -0.2 },
+        { w: 0.05, h: 0.04, d: 0.36, x: -0.255, y: 0.64 + BA, z: 0.02 }, { w: 0.05, h: 0.04, d: 0.36, x: 0.255, y: 0.64 + BA, z: 0.02 }]);
+      const LP = 0.44 + BA, frame = boxesGeo(T, [{ w: 0.05, h: LP, d: 0.05, x: -0.255, y: LP / 2, z: -0.08 }, { w: 0.05, h: LP, d: 0.05, x: 0.255, y: LP / 2, z: -0.08 },
+        { w: 0.04, h: 0.22, d: 0.04, x: -0.255, y: 0.54 + BA, z: 0.14 }, { w: 0.04, h: 0.22, d: 0.04, x: 0.255, y: 0.54 + BA, z: 0.14 }]);
       const woodLo = M({ color: '#d89c56', roughness: 0.42 }), woodHi = M({ color: '#a8703a', roughness: 0.48 }), iron = M({ color: '#2c2f33', roughness: 0.5, metalness: 0.5 });
       const mt = new T.Matrix4(), q = new T.Quaternion(), up = new T.Vector3(0, 1, 0), one = new T.Vector3(1, 1, 1), v = new T.Vector3();
       const inst = (geo, mat, list) => { if (!list.length) return; const im = new T.InstancedMesh(geo, mat, list.length);
@@ -951,11 +956,14 @@ export class PelotaCourt {
     // sin murete: la grada empieza en el primer escalón, todo asientos. Cada asiento, al fondo de su escalón (a 0,56 m del
     // borde): el sentado ocupa medio metro por delante con las rodillas y los pies, que así quedan en su escalón. Antes iba
     // a 0,42 y los pies de la primera fila atravesaban el murete negro (Marcilla, octubre de 2026)
-    const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62, 0), legG = new T.BoxGeometry(0.05, 0.37, 0.05).translate(0.08, 0.185, 0);
+    // (el asiento, a 28 cm del escalón y no a 45: a la medida del público, de 1,24 m; con el de 45 se hundían en él 17 cm;
+    // el autor, 19 de noviembre de 2026. El respaldo y la pata bajan con él)
+    const ASIENTO = 0.28, BA = ASIENTO - 0.45;
+    const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41 + BA, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62 + BA, 0), legG = new T.BoxGeometry(0.05, 0.37 + BA, 0.05).translate(0.08, (0.37 + BA) / 2, 0);
     const seats = []; this.standSpots = this.standSpots && TQ ? this.standSpots : [];
     if (!TQ) for (let i = 0; i < HALL_ROWS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
       if (Math.abs(z - (z0 + len / 3)) < 0.5 || Math.abs(z - (z0 + 2 * len / 3)) < 0.5) continue;   // (dos pasillos para subir)
-      const x = xs + i * RD + 0.56, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + 0.45, z, -Math.PI / 2]);   // (la altura del asiento)
+      const x = xs + i * RD + 0.56, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + ASIENTO, z, -Math.PI / 2]);   // (la altura del asiento)
     }
     const seatM = M({ color: '#ffffff', roughness: 0.6 }), legM = M({ color: '#a9a8b1', roughness: 0.45, metalness: 0.4 }), col = new T.Color();   // (las patas, un pie fino y claro)
     if (seats.length) for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
@@ -963,7 +971,7 @@ export class PelotaCourt {
       seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
       SI.receiveShadow = true; SI.name = nm; g.add(SI);
     }
-    this.seated = true; this.sitAdelante = 0.08;   // (el público, sentado en sus asientos: con la cadera sobre el asiento, fronton.js)
+    this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO;   // (el público, sentado en sus asientos: con la cadera sobre el asiento, fronton.js)
     this.extent = { x0: XL - 0.9, x1: xr + 0.9, z0: za - 0.6, z1: zb + 0.6 };
     this.platform = { x0: TQ ? -W / 2 : -W / 2 - 0.6, x1: xs, z0: za, z1: zb };   // (se anda por la cancha y la contracancha; la grada, no)
     this.boxes = this.boxes.filter(b => b.d !== L * 0.78);

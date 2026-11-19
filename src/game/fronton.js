@@ -481,7 +481,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (PUBLICO) crowdBuffers(G.sound?.ctx);   // (las voces y los aplausos del público se calculan mientras se preparan los pelotaris)
     // (y las figuras del público y sus retratos: si no, la grada salía vacía los primeros segundos de la presentación)
     // (sentado, el público animado de crowdAnim.js; de pie en las plazas, el de antes)
-    if (fronton.court?.seated) cocinaPublico('aficion').catch(() => {}); else preparaPublico('aficion', false);
+    // (con la altura de su asiento, la misma que luego pide crowdAnim: si no, se cocinaban dos veces)
+    if (fronton.court?.seated) { const a = fronton.court.asiento; cocinaPublico('aficion', a != null ? (a - 0.02) / (ALTO_AFICION / 1.5) : null).catch(() => {}); } else preparaPublico('aficion', false);
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
@@ -573,7 +574,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // alto, y eran vecinos de fiesta, de pastor y de calle. Cuánto se adelanta lo dice la grada: en las butacas
       // con respaldo, la cadera sobre el asiento, 8 cm; en los bancos corridos al borde del escalón, 30, con los pies en el
       // de abajo. Nadie atraviesa ni el escalón ni lo que tiene delante)
-      const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - 0.4, z + Math.cos(ry) * ad, ry]) : wsp;
+      // (el sitio de cada uno es el asiento; la figura va con los pies en su escalón, 2 cm por encima, y crowdAnim la sienta
+      // con el culo justo encima del asiento, que la grada dice a qué altura está: C.asiento, del escalón a la cara de arriba)
+      const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, alto = C.asiento ?? 0.42, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - alto + 0.02, z + Math.cos(ry) * ad, ry]) : wsp;
       // (con la cara entera, con su textura, los más cercanos: en el móvil 14, y 4 en el más justo; antes 6 y 1, y desde la
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
@@ -584,7 +587,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // cámara: 60, 36 en calidad media, 16 en el móvil y 8 en el más justo; los demás, con la de lejos, que conserva
       // la cara y se mueve igual)
       const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60;
-      if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated; }
+      if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc, asiento: C.asiento != null ? C.asiento - 0.02 : null }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated; }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }

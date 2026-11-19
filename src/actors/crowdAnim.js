@@ -132,7 +132,7 @@ function simplifica(g, posada, cell, fino = null) {
 }
 
 // una figura: su malla con huesos y pesos, la de lejos, la textura con todos sus cuadros y dónde empieza cada movimiento
-async function cocinaFigura(fig, num = 0) {
+async function cocinaFigura(fig, num = 0, culoObj = null) {
   const gl = await loadMeshy(fig.meshy, true);
   const c = new GlbChar(gl, MESHY_GAIT), root = c.root;
   root.scale.setScalar(gl.userData.fit || 1);
@@ -179,7 +179,7 @@ async function cocinaFigura(fig, num = 0) {
     const L1 = Math.hypot(K.y - J.y, K.z - J.z), L2 = Math.hypot(A.y - K.y, A.z - K.z), thR = Math.atan2(K.z - J.z, J.y - K.y), kR = thR - Math.atan2(A.z - K.z, K.y - A.y);
     return { up, lo, pie, J, A, L1, L2, thR, kR, thS: Math.PI / 2 - (i ? -0.04 : 0.06), kS: Math.PI / 2 - 0.08 };
   });
-  const muslo = (piernas[0].L1 + piernas[1].L1) / 2, BAJA = muslo * 0.95;
+  const muslo = (piernas[0].L1 + piernas[1].L1) / 2; let BAJA = muslo * 0.95;
   // (sentado, como sitPose de crowdSprites.js: la cadera baja lo que mide el muslo; el tobillo queda donde lo deja esa
   // postura, y de ahí no se mueve hasta estar de pie)
   for (const L of piernas) {
@@ -302,6 +302,29 @@ async function cocinaFigura(fig, num = 0) {
   // cómo se sienta cada figura, para que no estén todos igual: las manos en los muslos, más cerca de la rodilla o recogidas
   // hacia dentro, casi juntas en el regazo
   const SENT = [par(mMuslo()), par(mMuslo(-0.04, 0.03), mMuslo(0.05)), par(mMuslo(0.06, 0.05)), par(mMuslo(0.05), mMuslo(-0.04, 0.035))][num % 4];
+  // (sentado encima del asiento, no metido en él. El autor, 19 de noviembre de 2026: «los aficionados no están sentados
+  // encima de las butacas… es como si estuvieran traspasando la butaca». culoObj es la altura del asiento sobre los pies,
+  // en las medidas de la figura: ya sentado, se mide lo más bajo del culo y de detrás de los muslos (lo que mueven la
+  // cadera y los muslos, de la rodilla para atrás) y la cadera baja o sube lo que falte. Si baja, que es el que tiene las
+  // piernas largas, los pies se quedan en el suelo y suben las rodillas; si sube, los pies suben con ella y quedan un
+  // poco colgando, como en una silla alta)
+  if (culoObj != null) {
+    const culo = () => {
+      postura({ u: 0, brazos: SENT }); root.updateMatrixWorld(true);
+      const ks = new Set(['Hips', 'LeftUpLeg', 'RightUpLeg'].map(kH).filter(k => k >= 0)); if (!ks.size) return null;
+      const Mh = vb.map(fn => fn().clone()), zMax = wp(B.Hips).z + 0.12; let b = Infinity;
+      for (let i = 0; i < Pg.length / 3; i++) {
+        let mk = 0; for (let j = 1; j < 4; j++) if (Wg[i * 4 + j] > Wg[i * 4 + mk]) mk = j;
+        if (!ks.has(Hg[i * 4 + mk])) continue;
+        let y = 0, z = 0; for (let j = 0; j < 4; j++) { const w = Wg[i * 4 + j]; if (!w) continue; _v.set(Pg[i * 3], Pg[i * 3 + 1], Pg[i * 3 + 2]).applyMatrix4(Mh[Hg[i * 4 + j]]); y += _v.y * w; z += _v.z * w; }
+        if (z <= zMax) b = Math.min(b, y);
+      }
+      return Number.isFinite(b) ? b : null;
+    };
+    const b = culo();
+    if (b != null) { const d = Math.max(-0.12, Math.min(0.16, b - culoObj)); BAJA += d; if (d < 0) for (const L of piernas) L.Asy -= d; }
+    reposo();
+  }
   // 1. sentado, mirando el juego: la cabeza sigue la pelota de un lado a otro y el cuerpo respira (4 s, en bucle)
   graba('quieto', 20, (k) => { const p = k / 20 * Math.PI * 2; postura({ u: 0, inclina: 0.05 + 0.02 * Math.sin(p * 2), giro: 0.07 * Math.sin(p), cabeza: 0.3 * Math.sin(p), brazos: SENT }); }, FPS_QUIETO);
   // 2. levantarse (0,6 s): el cuerpo se echa hacia delante, la cadera avanza sobre los pies y sube; los brazos van ya
@@ -353,13 +376,14 @@ async function cocinaFigura(fig, num = 0) {
 
 const cocinados = new Map();
 /** Las figuras de un conjunto, con sus movimientos; se cocinan una vez y se guardan. */
-export function cocinaPublico(set = 'aficion') {
-  if (!cocinados.has(set)) cocinados.set(set, (async () => {
+export function cocinaPublico(set = 'aficion', culoObj = null) {
+  const clave = culoObj == null ? set : set + '|' + culoObj.toFixed(3);   // (sentados a una altura de asiento: culoObj, en cocinaFigura)
+  if (!cocinados.has(clave)) cocinados.set(clave, (async () => {
     const out = [];
-    for (let f = 0; f < nFigs(set); f++) { out.push(await cocinaFigura(figure(set, f), f)); await new Promise(r => setTimeout(r)); }   // (sin bloquear la pantalla)
+    for (let f = 0; f < nFigs(set); f++) { out.push(await cocinaFigura(figure(set, f), f, culoObj)); await new Promise(r => setTimeout(r)); }   // (sin bloquear la pantalla)
     return out;
-  })().catch(e => { cocinados.delete(set); throw e; }));
-  return cocinados.get(set);
+  })().catch(e => { cocinados.delete(clave); throw e; }));
+  return cocinados.get(clave);
 }
 /** Una malla de «cap» espectadores de la figura F (la entera o la de lejos), cada uno con su cuadro (aAnim). */
 export function mallaPublico(F, cap, cerca = true) {
@@ -377,7 +401,7 @@ export function mallaPublico(F, cap, cerca = true) {
  * con .tick(t, ánimo, zFoco, cámara), .cheer(on, lado, segundos), .listo y .dispose, como crowd3d.
  * kc: cuántos van con la figura entera (los más cercanos a la cámara); el resto, con la de lejos, que se mueve igual.
  */
-export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } = {}) {
+export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null, asiento = null } = {}) {
   const n = spots.length, Q = QUALITY, group = new THREE.Group(), NF = nFigs(set);
   const KC = Math.max(1, kc ?? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100));
   const figs = new Uint8Array(n), mats = new Float32Array(n * 16), fase = new Float32Array(n), dur = new Float32Array(n), luz = new Float32Array(n);
@@ -385,12 +409,14 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
   { const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
     for (let i = 0; i < n; i++) {
       figs[i] = Math.floor(Math.random() * NF); fase[i] = Math.random() * 20; dur[i] = 0.75 + Math.random() * 0.5; luz[i] = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898));
-      const s = spots[i]; m4.compose(v.set(s[0], s[1], s[2]), q.setFromEuler(e.set(0, s[3] + (Math.random() - 0.5) * 0.3, 0)), s3.setScalar((0.92 + Math.random() * 0.16) * height / 1.5));
+      // (cada uno, de un tamaño algo distinto; sentado sobre un asiento, se sube o se baja lo que haga falta para que el culo
+      // quede justo encima: las figuras se sientan para el tamaño de en medio)
+      const s = spots[i], k = 0.92 + Math.random() * 0.16; m4.compose(v.set(s[0], s[1] + (asiento != null ? asiento * (1 - k) : 0), s[2]), q.setFromEuler(e.set(0, s[3] + (Math.random() - 0.5) * 0.3, 0)), s3.setScalar(k * height / 1.5));
       m4.toArray(mats, i * 16);
     } }
   let F = null, cerca = null, lejos = null, resp = null, hasta = -1, pend = null, pendTodos = false, sucio = true, pick = 0, nNear = 0;
   const near = new Int32Array(n);
-  group.listo = cocinaPublico(set).then(G => {
+  group.listo = cocinaPublico(set, asiento != null ? asiento / (height / 1.5) : null).then(G => {
     F = G; const cuenta = new Array(NF).fill(0); for (let i = 0; i < n; i++) cuenta[figs[i]]++;
     cerca = F.map((f, k) => { const im = mallaPublico(f, Math.max(1, Math.min(cuenta[k], KC)), true); group.add(im); return im; });
     lejos = F.map((f, k) => { const im = mallaPublico(f, Math.max(1, cuenta[k]), false); group.add(im); return im; });
