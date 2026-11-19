@@ -414,11 +414,10 @@ summary { line-height: 1.3; }
    se pulsan con el ratón y cada uno lleva escrita su tecla, espacio, L y mayúsculas. Hasta el 14 de noviembre de 2026
    solo quedaba GOLPE, pequeño y sin poder pulsarlo, y el autor echaba de menos los controles en el escritorio) */
 html:not(.tactil) :is(.fb-btns, .enc-btns, #bino .bbtn),
-.con-mando :is(#controls, #stick, #stickHint, .fb-stick, .fb-stickhint, .fb-btns, .fb-keys, .pel-stick, .pel-stickhint, .pel-bcol, .enc-stick, .enc-stickhint, .enc-btns, .enc-cam, #bino .bbtn) { display: none !important; }
-/* (con el mando del móvil, de la pelota y la pasaka queda GOLPE, pequeño y sin tocar: su aro marca el momento de soltar
-   el golpe y se enciende cuando llegas a la pelota) */
-.con-mando .pel-btns { pointer-events: none; }
-.con-mando .pel-hit { width: 72px; height: 72px; font-size: var(--fs-sm); opacity: .92; }
+.con-mando :is(#controls, #stick, #stickHint, .fb-stick, .fb-stickhint, .fb-btns, .fb-keys, .pel-stick, .pel-stickhint, .pel-btns, .enc-stick, .enc-stickhint, .enc-btns, .enc-cam, #bino .bbtn) { display: none !important; }
+/* (con el móvil de mando, ningún botón en la pantalla, tampoco GOLPE: se juega con el móvil. El autor, 19 de noviembre de
+   2026: «si estamos jugando con el mando conectado, no hace falta que salgan los botones en la pantalla». Antes quedaba
+   GOLPE pequeño, sin tocar, con su aro de carga) */
 .pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; text-transform: none; opacity: .6; }
 .pel-drop .pel-hk, .pel-sprint .pel-hk { bottom: 8px; }
 html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl, html:not(.con-mando) .pel-drop:has(.pel-hk) > span, html:not(.con-mando) .pel-sprint:has(.pel-hk) > span { transform: translateY(-5px); }

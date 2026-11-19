@@ -1755,7 +1755,8 @@ export class PelotaMatch {
         // (acabado el partido, el que lo gana baila: cada pelotari, su baile; actors/glbChar.js, doDance)
         baila: g.phase === 'end' && g.mode !== 'rally' && (g.score.you > g.score.rival) === (g.side(who) === 'you'), lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
         // (el cansancio se ve: encorvado y respirando deprisa, más entre tanto y tanto; glbChar.js, armSwing)
-        tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso',
+        // (y en su descanso, encorvado recuperando el aire aunque aún le quede energía: se ve que descansa)
+        tired: g.mode === 'match' ? Math.max(g.tired(who), g.phase === 'descanso' && g.side(who) === g.descanso?.side ? 0.8 : 0) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso',
         // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)
         arma: cam ? cam.arma : arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
       if (cam) st.wind = Math.max(cam.wind, wind * 0.25);
@@ -1786,7 +1787,7 @@ export class PelotaMatch {
         if (A) { const pe = side.obj.getWorldPosition(this.herrP ||= new T.Vector3()); pe.y += 1.35; const d = (this.herrD ||= new T.Vector3()).copy(ce.w).sub(pe), n = d.length() || 1;
           st.contacto = (this.herrC ||= new T.Vector3()).copy(ce.w).addScaledVector(d, -Math.min(A, n * 0.6) / n); st.bolaR = 0.01; }
         else { st.contacto = ce.w; st.bolaR = this.radioBola(C.ball.scale.x); } } }
-      this.suda(who, st.tired, side.obj, dt);
+      this.suda(who, this.game.mode === 'match' ? this.game.tired(who) : 0, side.obj, dt);   // (el sudor y el aviso, con el cansancio de verdad: no con la postura del descanso)
       // un golpe nuevo (al pulsar), una sola vez: el gesto no se repite mientras dura el estado
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;
       (this.recSt ||= {})[who] = st;

@@ -573,6 +573,22 @@ body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pe
 .pel-root .pel-dejada{--anillo:#4b8bff}
 .pel-root .pel-btn.pel-cut{--anillo:#25dcc0}   /* (CORTADA lleva también la clase pel-drop, por su tamaño: sin .pel-btn delante cogía el color de DEJADA, y por eso se veían iguales) */
 .pel-root .pel-sprint{--anillo:#ffc63d}
+/* LOS CUATRO BOTONES, EN ARCO (19 de noviembre de 2026; el autor: «necesito que haya la misma distancia entre los tres
+   botones. El botón de golpe, que no sea tan grande, redúcelo un poquito, y que los botones de dejada, cortada y sprint
+   estén a la misma distancia»). GOLPE, algo más pequeño, en la esquina; DEJADA, CORTADA y ESPRINT, del mismo tamaño, en un
+   arco alrededor de él: los tres a la misma distancia de su centro (--R) y separados entre sí lo mismo, a 45° uno del otro
+   (a la izquierda, en diagonal y encima), como los mandos de los juegos de deportes del móvil. La caja de .pel-btns mide
+   lo que ocupa el arco; las columnas de dentro dejan de contar (display: contents) */
+.pel-root .pel-btns{--G:96px;--S:74px;--R:112px;display:block;width:calc(var(--G) / 2 + var(--R) + var(--S) / 2);height:calc(var(--G) / 2 + var(--R) + var(--S) / 2)}
+.pel-root .pel-btns :is(.pel-bcol,.pel-gcol){display:contents}
+.pel-root .pel-btns .pel-btn{position:absolute;margin:0}
+.pel-root .pel-btns .pel-hit{width:var(--G);height:var(--G);right:0;bottom:0}
+.pel-root .pel-btns :is(.pel-cut,.pel-dejada,.pel-sprint){width:var(--S);height:var(--S)}
+.pel-root .pel-btns .pel-sprint{right:calc(var(--G) / 2 - var(--S) / 2);bottom:calc(var(--G) / 2 + var(--R) - var(--S) / 2)}
+.pel-root .pel-btns .pel-btn.pel-cut{right:calc(var(--G) / 2 + var(--R) * .7071 - var(--S) / 2);bottom:calc(var(--G) / 2 + var(--R) * .7071 - var(--S) / 2)}
+.pel-root .pel-btns .pel-dejada{right:calc(var(--G) / 2 + var(--R) - var(--S) / 2);bottom:calc(var(--G) / 2 - var(--S) / 2)}
+.pel-root .pel-btns .pel-hit .pel-pw{bottom:calc(100% + var(--R) + var(--S) / 2 - var(--G) / 2 + 12px)}
+@media (max-height:520px){.pel-root .pel-btns{--G:82px;--S:62px;--R:94px}}
 .pel-root .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
 .pel-root .pel-sprint.on{background:color-mix(in srgb,var(--anillo) 62%,rgba(8,8,16,.42));animation:pel-pulse-oro .45s infinite alternate}
 .pel-root .pel-sprint.no{opacity:.4}
@@ -839,11 +855,11 @@ export class PelotaHud {
     }
   }
   /** Los descansos, en su botón suelto de arriba a la izquierda: cuántos te quedan (en su badge), pedido (rosa) o
-   *  descansando ahora (entonces se abre sola la ventana de pausa, con «Seguir»); on: false, fuera */
+   *  descansando ahora (sin abrir la ventana de pausa: se ve descansar al pelotari y el partido sigue solo); on: false, fuera */
   descansos(on, n, pedido, ahora) {
     const el = this.menuEl, b = this.root.querySelector('.pr-desc'); if (!el || !b) return;
     const D = this.txt.desc || {}, k = `${on}|${n}|${pedido}|${ahora}`; if (b._k === k) return; b._k = k;
-    // (en pleno descanso la ventana se abre sola con el título «Descanso» y Continuar lo termina: la fila del descanso se va)
+    // (si en pleno descanso se abre la ventana de pausa, lleva el título «Descanso» y Continuar lo termina)
     const PZ = this.txt.pausa || {}, seguir = el.querySelector('.pm-seguir small'), tit = el.querySelector('.pz-tit');
     if (seguir) seguir.textContent = ahora ? (PZ.descAhora || '') : (PZ.seguir?.[1] || '');
     if (tit) tit.textContent = ahora ? (PZ.descanso || D.tuyo || '') : (PZ.titulo || '');
@@ -853,7 +869,10 @@ export class PelotaHud {
       const t = pedido ? `${D.pedido || 'Pedido'}. ${PZ.descPedido || ''}` : `${D.btn || 'Descanso'}: ${D.quedan ? D.quedan(n) : n}`;
       b.setAttribute('aria-label', t.trim()); b.title = t.trim();
     }
-    if (ahora !== el._ahora) { el._ahora = ahora; this.abreMenu?.(!!ahora, false); }
+    // (el descanso ya no abre la ventana de pausa: el partido no se para, se ve al pelotari recuperando el aire unos segundos
+    // y se vuelve al saque solo. El autor, 19 de noviembre de 2026: «no hace falta que se pause el juego, simplemente que se
+    // vea al jugador descansando unos segundos y vuelve el juego, no que se pause y vaya a menú»)
+    el._ahora = ahora;
   }
   /** El botón del descanso brilla si estás cansado y te quedan descansos */
   cansado(on) { this.root.querySelector('.pr-desc')?.classList.toggle('llama', !!on); }
