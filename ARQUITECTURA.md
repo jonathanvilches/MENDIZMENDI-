@@ -2394,15 +2394,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`kitMedidas`: los 22 vienen ajustados a su caja y no miden lo mismo):
   - la zapatilla: todo lo que hay por debajo del tobillo, de un solo color, con una raya algo más oscura donde iría la
     suela;
-  - los tacos (la venda y los tacos de las manos): se separan de la piel por el tono, medido en los texeles de las manos
-    de los 22 (la piel, 10-20 grados, rosada; la venda y los tacos, 30-50, dorados, sin nada entre medias): todo lo
-    dorado de la mano pasa al color elegido, casi liso, con el borde suave en 22-28 grados. Antes solo valía el beis claro
-    y los tacos dorados se quedaban sin pintar, a manchas;
-  - las muñequeras: una banda del antebrazo justo encima de donde acaba la venda, que tapa su borde en dientes; dónde
-    acaba la venda en cada modelo, en `VENDA` (medido en sus texturas, entre el 27 y el 60 % del antebrazo), de un color
-    liso con canales muy suaves. Con los tacos de color y sin muñequera, la venda se corta ahí en línea recta y los dientes
-    de más allá toman el color de la piel (`kitCorte`). Los tacos no pintan encima de la muñequera (`kitMun`): las dos
-    marcas las deja `KIT` en el mismo sombreador y las lee `sinTacos`.
+  - los tacos (la venda y los tacos de las manos): se separan de la piel por el tono. En cada modelo se mide en su textura,
+    bajo los puntos de las manos y la muñeca, el valle entre los dos montones (la piel, rosada o morena, de 10 a 22 grados;
+    la venda, dorada, de 30 a 50; en los de piel más morena, como Amaia o Ane, el valle sube a 28-31) y el color de su piel
+    (la mediana de lo que cae de su lado): `medirManos`, `uTono`, `uPiel`. Todo lo de color de venda de la mano pasa al
+    color elegido, casi liso, con el borde suave alrededor del valle; la piel que asoma entre los trozos de venda (Ane) se
+    queda. Antes solo valía el beis claro y los tacos dorados se quedaban sin pintar, a manchas;
+  - las muñequeras, separadas de los tacos por una franja de piel (el autor: «hay que separar entre tacos y muñequera»):
+    con muñequera, los tacos se cortan en línea recta al 16 % del antebrazo (`TACOS_HASTA`), luego va la piel y luego la
+    muñequera, del 24 al 42 % (`MUN_DESDE`, `MUN_HASTA`), de un color liso con canales muy suaves y los bordes rectos. Sin
+    muñequera, los tacos llegan hasta donde acaba la venda de cada modelo (`VENDA`, medido en sus texturas: entre el 27 y
+    el 60 % del antebrazo) y ahí se cortan en línea recta. Lo que queda más allá del corte con color de venda pasa al de
+    la piel (`kitCorte`; con muñequera, aunque los tacos vayan como vienen: `tacosColor(ch, color, true)`). Los tacos no
+    pintan encima de la muñequera (`kitMun`): las dos marcas las deja `KIT` en el mismo sombreador y las lee `sinTacos`.
   Los pelotaris con la equipación se pintan por las dos caras (`side = DoubleSide`): Meshy dejó trozos de piel con los
   triángulos del revés, que eran manchas por las que se veía el fondo (en Ander, en la frente y junto a la boca).
   `ponKitColores(U, colores)` cambia los colores de un pelotari ya teñido sin rehacer el material.

@@ -67,7 +67,7 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
     nitido(A.modelo); const r = new GlbRig(await loadMeshy(A.modelo), A.modelo);
     // (de colorado, la camiseta teñida; y, si es el tuyo, tu equipación: zapatillas, muñequeras y tacos, pelota/kit.js)
     if (model === 'pelotari_rojo' || kit) outfitTint(r.char.root, A.modelo, { shirt: model === 'pelotari_rojo' ? COLORADO : null, ...(kit || {}) });
-    if (kit?.taco) tacosColor(r.char, kit.taco);
+    if (kit?.taco || kit?.wrist) tacosColor(r.char, kit.taco, true);   // (con muñequera también: corta la venda, actors/sinTacos.js)
     return corre(r);
   } catch (e) { console.warn('pelotari', A.modelo, e); }
   if (girl && hasChica('pelotari')) try {

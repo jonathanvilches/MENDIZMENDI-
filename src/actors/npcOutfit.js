@@ -46,12 +46,13 @@ const ZONES = {
 //   - la zapatilla: la del modelo, entera de un color (la suela también), con una raya algo más oscura donde se junta
 //     con la suela, para que se vea la forma. Sin fajín: queda para cuando los pelotaris se rehagan en Meshy con su
 //     equipación (las pruebas de un fajín y una zapatilla en 3D, en la rama borrador-equipacion)
-//   - las muñequeras: un tramo del antebrazo pegado a la muñeca, a cada lado, encima del final de la venda: de un color
-//     liso, con unos canales muy suaves, y el borde recto y limpio (antes tomaba las rayas de la venda de debajo)
+//   - las muñequeras: un tramo del antebrazo, separado de los tacos por una franja de piel (TACOS_HASTA, MUN_DESDE,
+//     MUN_HASTA): de un color liso, con unos canales muy suaves, y los bordes rectos
 // Todo de color liso: la luz de la escena ya les da volumen.
 const KIT = `
-    kitCorte = max(noCorte(vNoP, uPwL, uPeL, uVenda.x), noCorte(vNoP, uPwR, uPeR, uVenda.y));
-    if (uWrist.w > 0.) { float tb = max(noBanda(vNoP, uPwL, uPeL, uVenda.x), noBanda(vNoP, uPwR, uPeR, uVenda.y)); if (tb >= 0.) { kitMun = 1.; return uWrist.rgb * (0.97 + 0.03 * cos(tb * 6.2832 * 9.)); } }
+    float tl = noAnte(vNoP, uPwL, uPeL), ta = max(tl, noAnte(vNoP, uPwR, uPeR));
+    kitCorte = ta > (uWrist.w > 0. ? uVenda.x : tl > -8. ? uVendaFin.x : uVendaFin.y) ? (uWrist.w > 0. ? 2. : 1.) : 0.;
+    if (uWrist.w > 0. && ta > uVenda.y && ta < uVenda.z) { kitMun = 1.; return uWrist.rgb * (0.97 + 0.03 * cos((ta - uVenda.y) / (uVenda.z - uVenda.y) * 6.2832 * 9.)); }
     if (uShoes.w > 0. && y < uPfoot) {
       bool izq = distance(vNoP.xz, uFootL.xz) < distance(vNoP.xz, uFootR.xz); vec3 A = izq ? uFootL : uFootR;   // (el pie que le queda más cerca)
       float hy = (vNoP.y - uSuelo) / max(1e-4, A.y - uSuelo), lz = 0.8 + 0.2 * smoothstep(0.25, 0.9, v);
@@ -90,12 +91,15 @@ const hsv = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new
 // (color liso, en sRGB, con w = 1 si se pone)
 const liso = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new THREE.Color(c), g = (x) => Math.pow(Math.max(0, x), 1 / 2.2); return new THREE.Vector4(g(o.r), g(o.g), g(o.b), 1); };
 // dónde caen las muñecas, los tobillos y los pies de un modelo, en su pose de reposo y en las unidades de su malla.
-// uPw*, uPe*: la muñeca y el codo de cada brazo; uVenda: hasta dónde sube la venda (izquierdo, derecho); uPfoot: hasta dónde sube la zapatilla (de 0, los pies, a 1);
+// uPw*, uPe*: la muñeca y el codo de cada brazo; uVenda: dónde acaban los tacos con muñequera y dónde empieza y acaba ella; uVendaFin: dónde acaba la venda (izquierdo, derecho); uPfoot: hasta dónde sube la zapatilla (de 0, los pies, a 1);
 // uFoot*, uToe*: el tobillo y la base de los dedos de cada pie; uSuelo: la planta
-// hasta dónde sube la venda de las manos por el antebrazo en cada modelo, [derecho, izquierdo] (0 en la muñeca, 1 en el
-// codo; el 98 % de los puntos con color de venda, medido en las texturas: venda.mjs de las pruebas del 19 de noviembre). La
-// muñequera va encima de ese final, tapando el borde en dientes de la venda; y, con los tacos de color y sin muñequera, la
-// venda se corta ahí en línea recta (lo de más allá, de piel)
+// dónde acaban los tacos, cuánta piel queda hasta la muñequera y lo que mide la muñequera, en el antebrazo (0 en la muñeca,
+// 1 en el codo). El autor: «hay que separar entre tacos y muñequera», con margen entre los dos: con muñequera, los tacos (la
+// venda de la mano y de la muñeca) se cortan en línea recta en TACOS_HASTA; luego una franja de piel; luego la muñequera.
+// Sin muñequera, los tacos llegan hasta donde acaba la venda de cada modelo (VENDA, [derecho, izquierdo]: el 98 % de los
+// puntos con color de venda, medido en sus texturas; entre el 27 y el 60 % del antebrazo) y ahí se cortan en línea recta.
+// Lo que queda más allá del corte con color de venda (los dientes de su borde) toma el color de la piel
+const TACOS_HASTA = 0.16, MUN_DESDE = 0.24, MUN_HASTA = 0.42;
 const VENDA = { inigo: [0.43, 0.47], unai: [0.38, 0.41], mikel: [0.43, 0.48], aitor: [0.37, 0.41], inaki: [0.36, 0.4], ander: [0.47, 0.51], xabier: [0.41, 0.44], jokin: [0.41, 0.43], ekaitz: [0.48, 0.51], julen: [0.4, 0.45], asier: [0.3, 0.32], oihana: [0.35, 0.39], garazi: [0.41, 0.43], maialen: [0.27, 0.31], amaia: [0.6, 0.49], irati: [0.37, 0.41], nahia: [0.41, 0.45], nerea: [0.37, 0.41], leire: [0.39, 0.43], ane: [0.39, 0.41], miren: [0.34, 0.37], uxue: [0.33, 0.36] };
 function kitMedidas(o, bb, model = '') {
   const sk = o.skeleton, H = Math.max(1e-3, bb.max.y - bb.min.y), M = new THREE.Matrix4();
@@ -104,8 +108,8 @@ function kitMedidas(o, bb, model = '') {
   const cad = de(/Hips$/), esp = de(/Spine$/), pie = de(/LeftFoot$/), mus = de(/LeftUpLeg$/), mL = de(/LeftHand$/), cL = de(/LeftForeArm$/), mR = de(/RightHand$/), cR = de(/RightForeArm$/);
   if (!cad || !esp || !pie || !mus || !mL || !cL || !mR || !cR) return null;
   const pR = de(/RightFoot$/) || pie.clone().setX(-pie.x), dL = de(/LeftToeBase$/) || pie.clone().add(new THREE.Vector3(0, -(pie.y - bb.min.y) * 0.6, H * 0.07)), dR = de(/RightToeBase$/) || dL.clone().setX(-dL.x);
-  const vd = VENDA[model.replace(/^pelotari_/, '')] || [0.42, 0.42], cl = (x) => Math.min(0.6, Math.max(0.25, x));
-  return { uVenda: new THREE.Vector2(cl(vd[1]), cl(vd[0])), uPfoot: yn(pie) * 0.86, uPwL: mL, uPeL: cL, uPwR: mR, uPeR: cR, uFootL: pie, uToeL: dL, uFootR: pR, uToeR: dR, uSuelo: bb.min.y };
+  const vd = VENDA[model.replace(/^pelotari_/, '')] || [0.42, 0.42];
+  return { uVenda: new THREE.Vector3(TACOS_HASTA, MUN_DESDE, MUN_HASTA), uVendaFin: new THREE.Vector2(vd[1], vd[0]), uPfoot: yn(pie) * 0.86, uPwL: mL, uPeL: cL, uPwR: mR, uPeR: cR, uFootL: pie, uToeL: dL, uFootR: pR, uToeR: dR, uSuelo: bb.min.y };
 }
 /** Tiñe la ropa y el pelo de un vecino de Meshy. model: nombre del modelo; O: { shirt, pants, vest, acc, hair } y, en los
  *  pelotaris de siempre, la equipación: { shoes, wrist }. Devuelve sus colores (uShirt, uShoes…) para cambiarlos
@@ -132,7 +136,7 @@ export function outfitTint(root, model, O) {
     delete m.userData.sinTacos;
     // (sin esqueleto reconocible, la equipación no se pone: las medidas, fuera del cuerpo)
     const lejos = () => new THREE.Vector3(99, 99, 99);
-    const K = (conKit && kitMedidas(o, bb, model)) || { uVenda: new THREE.Vector2(0.42, 0.42), uPfoot: -9, uPwL: lejos(), uPeL: new THREE.Vector3(99, 98, 99), uPwR: lejos(), uPeR: new THREE.Vector3(99, 98, 99), uFootL: lejos(), uToeL: new THREE.Vector3(99, 99, 98), uFootR: lejos(), uToeR: new THREE.Vector3(99, 99, 98), uSuelo: 0 };
+    const K = (conKit && kitMedidas(o, bb, model)) || { uVenda: new THREE.Vector3(TACOS_HASTA, MUN_DESDE, MUN_HASTA), uVendaFin: new THREE.Vector2(0.42, 0.42), uPfoot: -9, uPwL: lejos(), uPeL: new THREE.Vector3(99, 98, 99), uPwR: lejos(), uPeR: new THREE.Vector3(99, 98, 99), uFootL: lejos(), uToeL: new THREE.Vector3(99, 99, 98), uFootR: lejos(), uToeR: new THREE.Vector3(99, 99, 98), uSuelo: 0 };
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, Object.fromEntries(Object.entries(U).map(([k, v]) => [k, { value: v }])), { uKitY: { value: kit } }, Object.fromEntries(Object.entries(K).map(([k, v]) => [k, { value: v }])));
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vNoY; varying vec3 vNoP; uniform vec2 uKitY;')
@@ -141,14 +145,12 @@ export function outfitTint(root, model, O) {
 #ifndef KIT_MUN
 #define KIT_MUN
 float kitMun = 0.;   // (1: aquí va la muñequera; los tacos, actors/sinTacos.js, no la pintan encima)
-float kitCorte = 0.;   // (1: más allá del final de la venda; con los tacos de color, lo que tenga color de venda pasa a piel)
+float kitCorte = 0.;   // (más allá de los tacos, en el antebrazo: 1, o 2 si lleva muñequera; lo que tenga color de venda pasa a piel)
 #endif
-uniform vec4 uShirt, uPants, uVest, uAcc, uShoes, uWrist; uniform vec2 uVenda; uniform vec3 uPwL, uPeL, uPwR, uPeR, uFootL, uToeL, uFootR, uToeR; uniform float uPfoot, uSuelo; varying float vNoY; varying vec3 vNoP;
-// (¿cae el punto en la muñequera? un tramo del antebrazo, de la muñeca w hacia el codo e, y cerca de su eje, alrededor del
-// final de la venda c: devuelve por dónde de la muñequera, de 0 a 1, o -1 si no cae en ella)
-float noBanda(vec3 p, vec3 w, vec3 e, float c){ vec3 d = e - w; float L = length(d); d /= L; vec3 q = p - w; float t = dot(q, d) / L; return t > c - 0.13 && t < c + 0.07 && length(q - d * t * L) < 0.52 * L ? (t - c + 0.13) / 0.2 : -1.; }
-// (¿más allá del final de la venda, en el antebrazo?)
-float noCorte(vec3 p, vec3 w, vec3 e, float c){ vec3 d = e - w; float L = length(d); d /= L; vec3 q = p - w; float t = dot(q, d) / L; return t > c && t < 1.1 && length(q - d * t * L) < 0.52 * L ? 1. : 0.; }
+uniform vec4 uShirt, uPants, uVest, uAcc, uShoes, uWrist; uniform vec3 uVenda; uniform vec2 uVendaFin; uniform vec3 uPwL, uPeL, uPwR, uPeR, uFootL, uToeL, uFootR, uToeR; uniform float uPfoot, uSuelo; varying float vNoY; varying vec3 vNoP;
+// (por dónde del antebrazo cae el punto, de la muñeca w hacia el codo e: 0 en la muñeca, 1 en el codo; -9 si no está cerca
+// de su eje)
+float noAnte(vec3 p, vec3 w, vec3 e){ vec3 d = e - w; float L = length(d); d /= L; vec3 q = p - w; float t = dot(q, d) / L; return length(q - d * t * L) < 0.52 * L && t < 1.1 ? t : -9.; }
 ${HSV}
 vec3 noOutfit(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = noHsv(cs); float h = q.x, s = q.y, v = q.z, y = vNoY;

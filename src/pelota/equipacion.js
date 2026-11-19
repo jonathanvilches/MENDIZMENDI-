@@ -53,7 +53,7 @@ async function maniqui(aspecto) {
   const gl = await loadMeshy(aspecto.modelo);
   const c = new GlbChar(gl, MESHY_GAIT); c.root.scale.setScalar(gl.userData.fit || 1);
   const K0 = kitColores(), U = outfitTint(c.root, aspecto.modelo, K0);
-  tacosColor(c, K0.taco);
+  tacosColor(c, K0.taco, true);
   c.update(0.3);   // (de pie, en su postura de reposo, para medirlo)
   const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#fff6e8', '#5a5060', 2.2));
@@ -85,7 +85,7 @@ async function maniqui(aspecto) {
       const R = offscreen(W, H, THREE.NeutralToneMapping); R.setClearColor(0x000000, 0); R.clear(); R.render(scene, cam);
       return offscreenCanvas(lienzo);
     },
-    pon(col) { ponKitColores(U, col); tacosColor(c, col.taco); },
+    pon(col) { ponKitColores(U, col); tacosColor(c, col.taco, true); },
     fin() { eje.remove(c.root); try { c.dispose(); } catch (e) { /* ya suelto */ } },
   };
 }

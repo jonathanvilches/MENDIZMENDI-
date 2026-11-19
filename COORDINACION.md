@@ -28,7 +28,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **Equipación sin faja ni pelo, con el pelotari en movimiento, y botones transparentes, pendiente de que el autor lo
   vea** (19 nov, noche, ventana principal; el autor: «elimina cambiar el color del pelo», «quiero que el pelotari se mueva
   y haga movimientos de pelota», «que se apliquen los colores perfectos, el contorno perfecto de todos los elementos»,
-  «cuidado con las manchas negras»): zapatillas enteras, muñequeras y tacos, con el color limpio y el borde recto; el
+  «cuidado con las manchas negras», «hay que separar entre tacos y muñequera»): zapatillas enteras, muñequeras y tacos,
+  con el color limpio, el borde recto y una franja de piel entre los tacos y la muñequera; el
   pelotari hace golpes mientras eliges; sin las manchas de la cara de Ander. Y los botones del partido, transparentes con
   el aro de color y su latido. El fajín y las zapatillas de Meshy quedan en la rama `borrador-equipacion`. Quien
   publique, que no lo meta sin su visto bueno.
@@ -42,14 +43,16 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **De Principal a Pelota · personajes** (19 nov, noche): por encargo directo del autor (la equipación: «tacos,
   muñequeras, zapatillas completas», «elimina cambiar el color del pelo», «el contorno perfecto de todos los
   elementos», «cuidado con las manchas negras»), toco vuestros:
-  - `src/actors/npcOutfit.js`: el `KIT` pinta la zapatilla entera y la muñequera encima del final de la venda (`VENDA`,
-    medido por modelo; `uVenda`), y deja `kitMun` y `kitCorte` para los tacos. Los `pelotari_<nombre>` teñidos con
+  - `src/actors/npcOutfit.js`: el `KIT` pinta la zapatilla entera y la muñequera separada de los tacos por una franja de
+    piel (`TACOS_HASTA`, `MUN_DESDE`, `MUN_HASTA`; sin muñequera, los tacos hasta el final de la venda de cada modelo,
+    `VENDA`), y deja `kitMun` y `kitCorte` para los tacos. Los `pelotari_<nombre>` teñidos con
     `outfitTint` se pintan por las dos caras (`DoubleSide`): tienen trozos de piel del revés que eran agujeros (Ander).
     Si os parece, ponedlo en `loadMeshy` para todos los pelotaris, también los que no se tiñen. Ya no hay fajín ni
     `uSole`, `uToe`, `uLace`, `uSash`, `uPwaist` ni `uNudo`. Al volver a teñir, la copia del material suelta
     `userData.sinTacos`.
-  - `src/actors/sinTacos.js`: la venda se separa de la piel por el tono (22-28 grados), no por el beis claro, y respeta
-    `kitMun` y `kitCorte`. Con herramienta (sin tacos) también coge ya los tacos dorados.
+  - `src/actors/sinTacos.js`: la venda se separa de la piel por el tono, con el valle medido en la textura de cada modelo
+    (`medirManos`, que también da el color de la piel; antes `pielDe`), y respeta `kitMun` y `kitCorte`;
+    `tacosColor(ch, color, siempre)`. Con herramienta (sin tacos) también coge ya los tacos dorados.
   - `src/actors/hairColor.js`: queda como estaba (sin `medirPelo`); el pelo ya no se elige.
   Partid de lo de `master`.
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («minimalistas y transparentes,
