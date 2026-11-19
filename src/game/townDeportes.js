@@ -21,6 +21,15 @@ import { showChampion } from '../ui/champion.js';
 import { llegaFronton } from './llegadas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { COURT } from '../pelota/rules.js';
+
+// (las texturas que usa algo, menos lo que cuelga de salvo: sus materiales, también los mapas que van en los uniformes de
+// los sombreadores propios)
+function texturasDe(raiz, out = new Set(), salvo = null) {
+  const dentro = (o) => { for (let x = o; x; x = x.parent) if (x === salvo) return true; return false; };
+  raiz.traverse((o) => { if (salvo && dentro(o)) return; const ms = Array.isArray(o.material) ? o.material : o.material ? [o.material] : [];
+    for (const m of ms) { for (const v of Object.values(m)) if (v?.isTexture) out.add(v); if (m.uniforms) for (const u of Object.values(m.uniforms)) if (u?.value?.isTexture) out.add(u.value); } });
+  return out;
+}
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 
@@ -235,7 +244,15 @@ export class PuebloDeportes {
       // (y si el pueblo juega a cubierto, levels.js esExterior, ninguna: aquí no se juega ningún partido)
       const C = this.fronton.toWorld(0, COURT.L / 2), R = esExterior(this.def.id) ? 60 : -Infinity, town = this.scene.children.find(o => o.name === 'town');
       // (fuera de la escena y sin su memoria gráfica, si llegó a subirse; el pueblo no vuelve a usarse)
-      if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); } }
+      const fuera = [];
+      if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); fuera.push(m); } }
+      // (y sus texturas, si ya no las usa nada de lo que queda: antes solo se soltaba la geometría)
+      if (fuera.length) { const usadas = texturasDe(this.scene); for (const m of fuera) for (const t of texturasDe(m)) if (!usadas.has(t)) t.dispose(); }
+      // (y la del explorador, 2048 × 2048, que en el campeonato no sale: se subía en el primer dibujo tapado y se quedaba
+      // en la tarjeta gráfica todo el campeonato, 21 MB de los 92 del partido del Labrit con el perfil del iPhone, 19 de
+      // noviembre de 2026. Si vuelve a dibujarse, three.js la sube otra vez)
+      const yo = this.player?.obj;
+      if (yo) { const usadas = texturasDe(this.scene, new Set(), yo); for (const t of texturasDe(yo)) if (!usadas.has(t)) t.dispose(); }
     } catch (e) { console.warn('campeonato: casas', e); }
     // y en el móvil, lo que queda (el frontón, sin el personaje del jugador, que no juega aquí), subido ya a la tarjeta
     // poco a poco mientras se elige partido: así no llega todo de golpe en la entrada a la cancha (rt.subePoco). Los
