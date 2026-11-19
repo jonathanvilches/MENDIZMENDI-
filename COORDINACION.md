@@ -135,6 +135,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche (4), la hizo la ventana principal, por el encargo del autor (capturas de Elige frontón, Ajustes y Perfil:
+  «adaptarlas al nuevo diseño y optimizar»): `master` hasta `c96764b2`. Entran Elige frontón con cartas de foto (las
+  canchas de `src/assets/frontones-juego`), y Perfil y Ajustes en tarjetas por tema en columnas (`src/hub/ajustes.css`).
 - 19 nov, noche (3), la hizo la ventana principal, por el encargo del autor («cuando seleccionas un bloque hasta que se
   accede a dicho bloque al interior, tarda muchísimo»): `master` hasta `c803cb47`. Entra el menú de campeonatos sin
   esperar a compilar el frontón (main.js, runtime.js `diferir`/`preparaDiferido` y townDeportes.js `venuePrep`): con
