@@ -128,6 +128,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche, la hizo la ventana principal, por el encargo del autor (la captura de Torneos: «quiero un estilo card…
+  mucho más moderna, con una foto de estas que estás creando para los pelotaris»): `master` hasta `6bc7d4ad`. Entra
+  Torneos con las dos cartas de foto entera (`src/hub/torneos.css`): la de pelota con la portada de parejas de los
+  campeonatos, encuadrada por los dos pelotaris; la de fútbol, de momento con su lámina de siempre. Siguen sin subir los
+  jardines (rama `setos-sin-ver`).
 - 19 nov, noche, la hizo la ventana principal, por los avisos del autor («no me lleva al inicio de la misión»; «sobre todo
   en las bancadas de los pueblos… que las piernas tampoco sobresalgan de muretes»): `master` hasta `99522600`. Entran la
   barra de misiones (tocar otra vez la misión desplegada lleva a hacerla, `7b59d002`) y el público sentado encima del
