@@ -448,18 +448,26 @@ export class PelotaCourt {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
-    // un banco corrido de tablas de madera al borde de cada escalón (como en las gradas de los frontones de pueblo) y los
-    // sitios del público: sentado en el banco, con los pies en el escalón de abajo (o en el suelo, la primera fila), como
-    // en una silla. El sitio va en la forma de las butacas del Labrit (fronton.js lo adelanta y lo baja al sentarlo).
-    // Antes el banco iba en medio del escalón, a 8 cm del suelo, y se sentaban casi en cuclillas
-    const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.44, 0.06, L * 0.76);
+    // un banco corrido de tablas de madera en cada escalón (como en las gradas de los frontones de pueblo) y los sitios del
+    // público: sentado en el banco, con los pies en su mismo escalón, delante del banco, como en una silla. El sitio va en la
+    // forma de las butacas del Labrit (fronton.js lo adelanta 8 cm y pone los pies en el escalón).
+    // (BANCO A 28 CM DE SU ESCALÓN Y LOS PIES EN ÉL (19 de noviembre de 2026; el autor: «no solo en el Labrit, sobre todo en
+    // los pueblos, en las bancadas de los pueblos. Y que las piernas tampoco sobresalgan de muretes»). El banco iba al borde
+    // del escalón, a 48 cm del de abajo, donde apoyaban los pies; el público, de 1,24 m, solo se sienta bien a unos 28 cm,
+    // y quedaba hundido 12 cm en el banco, con los muslos saliendo por la cara del escalón. Ahora el banco va hacia el fondo
+    // del escalón, a la altura de las butacas del Labrit, con su pie metido hacia atrás para que las piernas queden por
+    // delante, y crowdAnim pone a cada uno con el culo justo encima. Antes de octubre iba en medio del escalón a 8 cm del
+    // suelo y se sentaban casi en cuclillas)
+    const ASIENTO_B = 0.28, benchM = M({ color: '#8a5a34', roughness: 0.7 }), banco = [];
     this.standSpots = [];
     if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
       const xe = W / 2 + CONTRA + i * 1.1, y = 0.42 * (i + 1);   // (el borde del escalón, del lado de la cancha, y su altura)
-      const b = new T.Mesh(benchG, benchM); b.position.set(xe + 0.21, y + 0.03, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b);
-      for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([xe + 0.48, y + 0.06, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
+      banco.push({ w: 0.42, h: 0.05, d: L * 0.76, x: xe + 0.62, y: y + ASIENTO_B - 0.025, z: L * 0.52 },   // (la tabla del asiento, de xe + 0,41 a xe + 0,83)
+        { w: 0.24, h: ASIENTO_B - 0.05, d: L * 0.76, x: xe + 0.7, y: y + (ASIENTO_B - 0.05) / 2, z: L * 0.52 });   // (su pie, metido 17 cm: las pantorrillas, por delante)
+      for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([xe + 0.66, y + ASIENTO_B, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
     }
-    if (!opts.labrit && !HALL && !CALLE) this.seated = true;   // (en la calle, de pie en la acera y en los balcones)
+    if (banco.length) { const b = new T.Mesh(boxesGeo(T, banco), benchM); b.castShadow = true; b.receiveShadow = true; b.name = 'bancos'; g.add(b); }
+    if (!opts.labrit && !HALL && !CALLE) { this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO_B; }   // (en la calle, de pie en la acera y en los balcones)
     this.extent = EST ? entornoExtent(EST, CONTRA) : { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
     if (EST && EST !== 'plaza') this.platform = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + (CALLE ? 1.5 : 0), z0: -0.8, z1: EXT + 0.4 };   // (se anda por la cancha, no por los edificios)
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 0.6 };   // por donde se entra a la cancha (esquina de la contracancha)
@@ -1009,8 +1017,10 @@ export class PelotaCourt {
       for (let k = 0; k < Gd.filas; k++) {
         const x0 = gx + k * Gd.fondo, top = 0.1 + k * Gd.sube;
         box(Gd.fondo, top, EXT + 0.8, hormigon, x0 + Gd.fondo / 2, top / 2, EXT / 2);
-        box(0.42, 0.42, EXT - 0.6, asiento[k % 2], x0 + Gd.fondo - 0.27, top + 0.21, EXT / 2);
-        for (let z = 1; z < EXT - 1; z += 0.7) this.standSpots.push([x0 + Gd.fondo - 0.27, top + 0.44, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
+        // (el banco, a 28 cm de su fila, la altura a la que se sienta bien el público de 1,24 m, como en las butacas del
+        // Labrit: a 42 cm se quedaban con los pies colgando en el aire; 19 de noviembre de 2026)
+        box(0.42, 0.28, EXT - 0.6, asiento[k % 2], x0 + Gd.fondo - 0.27, top + 0.14, EXT / 2);
+        for (let z = 1; z < EXT - 1; z += 0.7) this.standSpots.push([x0 + Gd.fondo - 0.27, top + 0.28, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
       }
       const xf = gx + Gd.filas * Gd.fondo, alto = M({ color: '#26324a', roughness: 0.9 });
       box(0.3, H + 1, EXT + 1.2, alto, xf + 0.15, (H + 1) / 2, EXT / 2);   // (la pared de detrás de la grada, oscura: lo que se ve es el público)
@@ -1039,8 +1049,9 @@ export class PelotaCourt {
         box(0.12, 0.08, EXT + 0.8, mad, xw - s * 0.15, y0 + 1.04, EXT / 2);   // (el pasamanos)
         box(0.12, H - y0 + 3, EXT + 1.2, fondoB, xw + s * (BL + 0.06), y0 + (H - y0 + 3) / 2 - 0.3, EXT / 2);   // (la pared del fondo del balcón)
         for (const z of [za, zb]) box(BL + 0.3, H - y0 + 3, 0.5, alto, xb - s * 0.15, y0 + (H - y0 + 3) / 2 - 0.3, z);   // (los extremos)
-        box(0.42, 0.06, EXT - 1.6, banco, xw + s * 0.95, y0 + 0.45, EXT / 2); box(0.06, 0.42, EXT - 1.6, banco, xw + s * 1.1, y0 + 0.22, EXT / 2);   // (el banco corrido)
-        for (let z = 1.4; z < EXT - 1.4; z += 0.72) this.standSpots.push([xw + s * 0.95, y0 + 0.48, z + (Math.random() - 0.5) * 0.12, s > 0 ? -Math.PI / 2 : Math.PI / 2]);
+        // (el banco corrido, a 28 cm del suelo del balcón: a 48, el público se quedaba con los pies colgando; 19 nov 2026)
+        box(0.42, 0.06, EXT - 1.6, banco, xw + s * 0.95, y0 + 0.25, EXT / 2); box(0.06, 0.22, EXT - 1.6, banco, xw + s * 1.1, y0 + 0.11, EXT / 2);
+        for (let z = 1.4; z < EXT - 1.4; z += 0.72) this.standSpots.push([xw + s * 0.95, y0 + 0.28, z + (Math.random() - 0.5) * 0.12, s > 0 ? -Math.PI / 2 : Math.PI / 2]);
       } }
     // el frontis y el rebote siguen delante y detrás de la galería, hasta el techo
     const fm = M({ color: th.wall, roughness: 0.9 });
@@ -1052,9 +1063,14 @@ export class PelotaCourt {
     // pintado del verde de las paredes, algo más claro (las fotos que pasó el autor), de 1,30 m, de 1,90 a 2,25 m. En la
     // galería, un banco corrido con una fila de público)
     const madera = MOD ? M({ color: '#8f979f', roughness: 0.4, metalness: 0.5 }) : BZ ? M({ color: '#3b3f46', roughness: 0.45, metalness: 0.5 }) : M({ color: '#a8744a', roughness: 0.75 }), losa = M({ color: '#9c968c', roughness: 0.95 }), PETO = TRINQ.PETO;
-    box(F, 0.12, EXT, losa, xe - F / 2, 0.06, EXT / 2);
-    box(0.4, 0.06, EXT - 1.2, madera, xe - F + 0.42, 0.45, EXT / 2); box(0.06, 0.4, EXT - 1.2, madera, xe - F + 0.3, 0.22, EXT / 2);   // (el banco corrido, contra la pared)
-    for (let z = 1.2; z < EXT - 1.2; z += 0.6) this.standSpots.push([xe - F + 0.42, 0.48, z + (Math.random() - 0.5) * 0.1, Math.PI / 2]);
+    // (el suelo de la galería, una tarima de 32 cm, como en las galerías de verdad, para que el público sentado se vea por
+    // encima del peto: con el banco a su altura, sobre la losa de 12 cm, solo asomaban las boinas; la pelota se queda en la
+    // red y no llega a él)
+    box(F, 0.32, EXT, losa, xe - F / 2, 0.16, EXT / 2);
+    // (el banco corrido, contra la pared, a 28 cm de la tarima de la galería: antes, a 36 cm de su suelo, el público se
+    // quedaba con los pies colgando; 19 de noviembre de 2026)
+    box(0.4, 0.06, EXT - 1.2, madera, xe - F + 0.42, 0.57, EXT / 2); box(0.06, 0.22, EXT - 1.2, madera, xe - F + 0.3, 0.43, EXT / 2);
+    for (let z = 1.2; z < EXT - 1.2; z += 0.6) this.standSpots.push([xe - F + 0.42, 0.6, z + (Math.random() - 0.5) * 0.1, Math.PI / 2]);
     if (MOD) box(0.04, Y1 + 0.05, EXT, M({ color: '#141a2c', roughness: 0.95 }), XL + 0.03, (Y1 + 0.05) / 2, EXT / 2);   // (en el moderno, la galería oscura por dentro, como en la foto azul)
     // el peto: el murete de delante de la galería, del color de las paredes, con su listón de madera
     const pt = canvasTex(T, 1024, 64, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 3000, 0.06); }, [EXT / 6, 1]);

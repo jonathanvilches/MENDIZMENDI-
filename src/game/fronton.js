@@ -577,9 +577,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
       // en cada tanto se levantan los de la camiseta del que lo gana, cada uno a su tiempo, y se vuelven a sentar: la
       // afición, chicos y chicas de colorado y de azul, crowd3d.js. Antes celebraban sin levantarse, con los brazos en
-      // alto, y eran vecinos de fiesta, de pastor y de calle. Cuánto se adelanta lo dice la grada: en las butacas
-      // con respaldo, la cadera sobre el asiento, 8 cm; en los bancos corridos al borde del escalón, 30, con los pies en el
-      // de abajo. Nadie atraviesa ni el escalón ni lo que tiene delante)
+      // alto, y eran vecinos de fiesta, de pastor y de calle. Cuánto se adelanta lo dice la grada: la cadera sobre el
+      // asiento, 8 cm, en las butacas y en los bancos, todos a 28 cm de donde apoyan los pies (court.js). Nadie atraviesa
+      // ni el escalón ni lo que tiene delante)
       // (el sitio de cada uno es el asiento; la figura va con los pies en su escalón, 2 cm por encima, y crowdAnim la sienta
       // con el culo justo encima del asiento, que la grada dice a qué altura está: C.asiento, del escalón a la cara de arriba)
       const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, alto = C.asiento ?? 0.42, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - alto + 0.02, z + Math.cos(ry) * ad, ry]) : wsp;
