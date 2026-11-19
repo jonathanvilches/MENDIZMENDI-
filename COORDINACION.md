@@ -17,31 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- **Sin publicar, porque el autor pidió cambiarlo** (19 nov, séptima ronda de elecciones: «Cámbialo»). Está en
-  `master` pero la web publicada no lo lleva: el esprint a mano y la cámara del fondo (`c2943be6`: el autor quiere los
-  botones mucho menos llamativos y que la cámara deje ver la pelota llegar al fondo y al rebote para poder golpearla); el
-  público nuevo de la grada (`6d07d896`, `2b84db42` y las manos y el aplauso de `9f7ce5d0`: «Cámbialo», sin nota); y el
-  plano de dron de la grada (`2f3b20e0`; nota sobre la grada: «las cámaras no se ponen ahí»). Rehecho el 19 nov por
-  la ventana principal: los planos de la grada tras un buen tanto salen ahora desde las cámaras de una retransmisión
-  (la principal, alta al fondo, y la de pie de cancha en la contracancha), sin meterse en la cancha; pendiente de que
-  el autor lo vea. Quien publique, que no lo meta sin su visto bueno.
-- **Botones del partido transparentes, pendientes de que el autor los vea** (19 nov, ventana principal): con el aro de
-  color y su latido. La equipación que iba con ellos ya no existe (abajo). Quien publique, que no lo meta sin su visto
-  bueno.
-- **Publicado el 19 nov, noche (ventana principal; el autor: «Quiero verlo en directo»)**: la web lleva ya, sobre lo de
-  la séptima ronda, el pelotari sin equipación (`0e0ca4c2`), el menú, sus secciones, Cómo jugar y la pausa con la pantalla
-  de juego (`fc61beaa`) y la frase de Joseba de los prismáticos (`6b3e7189`). La compilación se hizo con `master` (`fc61beaa`)
-  quitando lo que sigue sin visto bueno: el esprint y la cámara del fondo, el público nuevo y los planos de la grada
-  (`c2943be6`, `9f7ce5d0`, `2f3b20e0`, `2b84db42`, `6d07d896`, `e73da537`), los botones discretos y transparentes
-  (`8ec5c4a8`, `971f78ed`) y el rebote (`1f40a775`): esos archivos (`src/pelota/{court,game,hud,match,physics,rules}.js`,
-  `src/style.css`, `src/game/fronton.js`, el público y el mando) se dejaron como en la web de la séptima ronda.
-  Después, la misma noche (el autor: «El menú que sea carrusel, como has estado haciendo hasta ahora»), se publicó encima el
-  menú en carrusel (`51574a19`), compilado igual: con esos mismos archivos como en la web de la séptima ronda.
-  Y luego el anillo de las pantallas de pelota centrado también en el iPhone (`45f66f63`, `src/ui/pantalla.js`), igual.
-- **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
-  la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
-  ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
-  toma 2»). Quien publique, que no meta lo demás sin su visto bueno.
+- (nada: el 19 nov por la noche se publicó `master` entero, ver «Última publicación»)
 
 ## Peticiones entre ventanas
 
@@ -110,8 +86,14 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 19 nov, la hizo la ventana principal: lo de `master` hasta `c2943be6` que el autor aprobó («Sí, publica todo lo que me
-  vale»): los números de la pared izquierda, las rayas sin vibrar, el público algo menor, la dificultad rebajada, el
-  carrusel de campeonatos con las portadas más anchas y nítidas, la grada sin carteles de «¡Aupa…!» y la cámara de las
-  charlas más lejos. Compilado desde una rama temporal sin `c2943be6`, `2f3b20e0`, `2b84db42`, `6d07d896` ni las manos de
-  `9f7ce5d0` (ver «Listo para publicar»).
+- 19 nov, noche, la hizo la ventana principal, por orden del autor («Falta publicar el botón de sprint y el cambio de cámara
+  para restar el rebote. Revisa todo lo que falte… Y subir también los gestos y demás»): **`master` entero, sin quitar
+  nada**, hasta `64a8f617`. Entra lo que esperaba visto bueno: el esprint y la cámara del fondo (`c2943be6`), los botones
+  discretos y transparentes con el aro de color (`8ec5c4a8`, `971f78ed`), la cámara y el golpe tras el rebote
+  (`1f40a775`), el público nuevo con las manos y el aplauso (`6d07d896`, `2b84db42`, `9f7ce5d0`) y los planos de la
+  grada desde las cámaras de una retransmisión (`e73da537`); y además los carruseles de selección más rápidos
+  (`9a5aada9`) y las texturas que se sueltan al cargar solo el frontón (`64a8f617`). Vuelven también la grada sin carteles
+  de «¡Aupa…!» y la cámara de las charlas más lejos, que ya se habían publicado en la séptima ronda y que las tres
+  publicaciones anteriores de esa noche quitaron sin querer al dejar fuera `9f7ce5d0` entero. Desde ahora, si hay que
+  dejar algo fuera de una publicación, se quita solo lo que no tiene visto bueno, nunca un commit entero que lleve
+  también algo aprobado.
