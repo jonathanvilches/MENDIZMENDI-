@@ -21,6 +21,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor («todos los jugadores deben tener
+  el mismo tamaño y estar en la misma posición, centrado en la tarjeta», «cambia la de la chica que está en la esquina del
+  frontón» y «pon al personaje mucho más dentro del frontón»), en vuestro `src/game/torneo.js`: `encuadre()` ya no tiene
+  un zoom mínimo y usa para todas el mismo sitio de los pies, `PIE_PORTADA` (0,69), exportado; la llamada del carrusel es
+  `encuadre(it.fondo, AR_PORT)`. Hay una tabla nueva, `ALTO`, con el alto / ancho de las portadas que no son ni 1 ni 1,25
+  (`camara` y `promesas`, 2542 / 2048), y `FIGURA` tiene medidas nuevas para `camara` (portada rehecha: Oihana dentro
+  del frontón cubierto de Irañeta) y `promesas` (ampliada por arriba y por abajo).
 - **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor (captura del menú en el iPhone: «no
   se ilumina cuando está seleccionado el principal»), en vuestro `src/game/carrusel3d.js` el velo que apaga las portadas
   de los lados ya no es el `::after` con `--c3d` e `inherit` (Safari no lo recalculaba y cada velo se quedaba con el valor

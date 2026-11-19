@@ -54,23 +54,32 @@ const nitida = (k) => { const l = [FONDOS_M[k] && `${FONDOS_M[k]} 1280`, FONDOS_
 // portada de arriba abajo, centrada de lado y con los pies justo por encima del nombre. El autor, 17 de noviembre de
 // 2026: «que se vea más al pelotari o a la pelotari, no tanto fondo; y cuadra los pelotaris en la imagen». Antes se veía
 // la ilustración entera, con la figura pequeña en medio del frontón
-const FIGURA = { camara: [0.46, 0.735, 0.935], coleccion: [0.52, 0.555, 0.925], comarcas: [0.527, 0.655, 0.935], cuatro: [0.525, 0.447, 0.776],
+const FIGURA = { camara: [0.504, 0.541, 0.93], coleccion: [0.52, 0.555, 0.925], comarcas: [0.527, 0.655, 0.935], cuatro: [0.525, 0.447, 0.776],
   fiestas: [0.496, 0.66, 0.982], frontones: [0.544, 0.645, 0.98], gran: [0.497, 0.684, 0.912], invierno: [0.653, 0.572, 0.75], libre: [0.703, 0.51, 0.731],
-  mano: [0.486, 0.611, 0.812], parejas: [0.511, 0.607, 0.931], promesas: [0.502, 0.496, 0.862], retos: [0.472, 0.625, 0.915], trinquete: [0.518, 0.517, 0.93], valles: [0.545, 0.639, 0.943] };
+  mano: [0.486, 0.611, 0.812], parejas: [0.511, 0.607, 0.931], promesas: [0.502, 0.6166, 0.9826], retos: [0.472, 0.625, 0.915], trinquete: [0.518, 0.517, 0.93], valles: [0.545, 0.639, 0.943] };
 // LAS PORTADAS AMPLIADAS POR ABAJO (19 de noviembre de 2026; el autor, con el carrusel en el iPhone: «los personajes no
 // están cerrados en las cards»). En diez de las quince la figura tenía los pies pegados al borde de abajo de la imagen:
 // no quedaba suelo debajo para subirla y los pies acababan tapados por el nombre. A esas se les pintó con Higgsfield
 // (gpt_image_2_6, con la imagen aprobada de referencia) el suelo que seguía hacia la cámara, y encima va la original,
 // tal cual: ahora miden 2048 × 2560 (alto 1,25 veces el ancho) y lo de arriba es la imagen de siempre
 const AMPLIADA = new Set(['camara', 'coleccion', 'comarcas', 'fiestas', 'frontones', 'gran', 'parejas', 'retos', 'trinquete', 'valles']);
+// (y la de Promesas, ampliada por arriba y por abajo el 19 de noviembre de 2026, por la noche, para que su pelotari quepa
+// del mismo tamaño y en el mismo sitio que los demás: mide 2048 × 2542; su figura, ya medida en la imagen nueva)
+const ALTO = { camara: 2542 / 2048, promesas: 2542 / 2048 };
+// TODOS DEL MISMO TAMAÑO Y EN EL MISMO SITIO (19 de noviembre de 2026; el autor: «todos los jugadores deben tener el mismo
+// tamaño y estar en la misma posición, centrado en la tarjeta»). Antes, las tres con la figura más pequeña en su imagen
+// (el Invierno, el Manomanista y la de Pelota en casa) no se acercaban más de un límite y su pelotari salía menor que los
+// demás, y en las cartas con el nombre en dos líneas los pies subían. Ahora la figura de todas va de la cabeza, un 7 %
+// por debajo del borde de arriba, a los pies, a la misma altura en todas (PIE_PORTADA, por encima del nombre aunque ocupe
+// dos líneas), y en el centro de lado. Las portadas grandes (media/ y hd/, ver nitida) dan para acercarse así
+export const PIE_PORTADA = 0.69;
 /** El tamaño y la posición del fondo para encuadrar la figura de la portada k en una carta de proporción ar (alto /
- * ancho). pie: a qué altura de la carta van los pies (0,75 con el nombre en una línea; más arriba si ocupa dos). */
-export function encuadre(k, ar = 4 / 3, pie = 0.75) {
+ * ancho). pie: a qué altura de la carta van los pies (la misma en todas las portadas, PIE_PORTADA). */
+export function encuadre(k, ar = 4 / 3, pie = PIE_PORTADA) {
   const f = FIGURA[k]; if (!f) return null;
-  const ia = AMPLIADA.has(k) ? 1.25 : 1, cx = f[0], y0 = f[1] / ia, y1 = f[2] / ia, hf = y1 - y0;
-  // (lo que se ve de la imagen, en fracción de su alto: la figura, desde un 7 % por debajo del borde de arriba hasta
-  // los pies; sin acercar más que antes, que se vería borrosa: nunca menos de 635 px de alto de la imagen de 2048)
-  const hc = Math.min(0.98, Math.max(0.31 / ia, hf / (pie - 0.07))), wc = hc * ia / ar;
+  const ia = ALTO[k] || (AMPLIADA.has(k) ? 1.25 : 1), cx = f[0], y0 = f[1] / ia, y1 = f[2] / ia, hf = y1 - y0;
+  // (lo que se ve de la imagen, en fracción de su alto: la figura, desde un 7 % por debajo del borde de arriba hasta los pies)
+  const hc = Math.min(0.98, hf / (pie - 0.07)), wc = hc * ia / ar;
   const L = Math.min(Math.max(cx - wc / 2, 0), 1 - wc), T = Math.min(Math.max(y1 - hc * pie, 0), 1 - hc);
   return { size: `${(100 / wc).toFixed(1)}% auto`, pos: `${(wc < 1 ? L / (1 - wc) * 100 : 50).toFixed(1)}% ${(hc < 1 ? T / (1 - hc) * 100 : 50).toFixed(1)}%` };
 }
@@ -1260,7 +1269,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       { a: 'pelotaris', cls: 'cp-col', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris` },
     ].filter(Boolean);
     // (largo: los nombres de dos líneas, en letra algo menor, para que no tapen los pies del pelotari)
-    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo, AR_PORT, it.name.replace(/&nbsp;/g, ' ').length > 14 ? 0.69 : 0.75))}"${nitida(it.fondo)}` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo, AR_PORT))}"${nitida(it.fondo)}` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
     // (AR_PORT: alto / ancho de cada portada; más estrechas que el 4/3 de antes, para que quepan más a lo ancho)
     const eu = isEU(), CLAVE = 'herrizherri-pelota-carta';
     cssMenu(); cssCarrusel();

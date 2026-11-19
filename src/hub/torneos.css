@@ -2,7 +2,7 @@
    card, como hemos estado haciendo ahora, mucho más moderna, con una foto de estas que estás creando para los pelotaris y
    no esa antigua, y para fútbol de momento puedes dejar esa… se ha quedado anticuada»).
    Cada torneo es una carta entera de foto, como las portadas de los campeonatos (carrusel3d.js): la foto llena la carta;
-   en la de pelota, una portada de los pelotaris nuevos, con ellos de pies a cabeza a la derecha y en plano cerrado. Abajo
+   en las dos, la pareja de pies a cabeza, en el centro y del mismo tamaño, dentro del frontón o en el césped. Abajo
    a la izquierda, sobre un velo suave, el antetítulo, el título y los campeonatos; y abajo del todo, lo que se elige (el
    frontón o el club) y el botón de jugar. Arriba a la izquierda, lo tuyo (las txapelas o los partidos). Al pasar por
    encima, la carta se levanta y una luz cruza la foto, como en la portada de delante de los campeonatos. Con la
@@ -23,21 +23,9 @@
 #hub.juego .s2-foto { position: absolute; z-index: -3; display: block; max-width: none; margin: 0; pointer-events: none; transform-origin: 70% 70%;
   transition: transform .8s cubic-bezier(.2, .8, .3, 1), opacity .9s ease; }
 #hub.juego .s2:hover .s2-foto { transform: scale(1.03); }
-/* (la de fútbol: el estadio vacío de las láminas, de lado a lado, algo acercado para que el césped quede detrás de los pies
-   de la pareja en cualquier carta: --fx, el centro de lado; --gy, dónde empieza el césped, en partes del alto; --iar,
-   alto / ancho de la lámina. Tapa la carta entera y se corre lo justo, sin dejar huecos) */
-#hub.juego .s2-futbol { --iar: .5625; --fx: .55; --gy: .62; }
-#hub.juego .s2-enc { --H: max(130cqh, calc(100cqw * var(--iar))); --W: calc(var(--H) / var(--iar)); width: var(--W); height: var(--H); object-fit: fill;
-  left: clamp(calc(100cqw - var(--W)), calc(50cqw - var(--fx) * var(--W)), 0px); top: clamp(calc(100cqh - var(--H)), calc(46cqh - var(--gy) * var(--H)), 0px); }
-/* (y delante, la pareja de tu club, recortada: del mismo alto que los pelotaris de la otra carta y con los pies en el mismo
-   sitio, en el centro; la imagen acaba un 1,35 % por debajo de los pies. Con su sombra en el césped) */
-#hub.juego :is(.s2-duo, .s2-sombra) { --alto: .58; --pie: .68; position: absolute; z-index: -3; left: 50%; pointer-events: none; }
-#hub.juego .s2-duo { display: block; max-width: none; width: auto; height: calc(var(--alto) * 100cqh / .9865); top: calc(var(--pie) * 100cqh); transform: translate(-50%, -98.65%); }
-#hub.juego .s2-sombra { top: calc(var(--pie) * 100cqh); width: calc(var(--alto) * 100cqh); height: calc(var(--alto) * 10cqh); transform: translate(-50%, -55%);
-  background: radial-gradient(closest-side, rgba(0, 0, 0, .42), rgba(0, 0, 0, 0)); }
-/* (la de pelota, una portada de los pelotaris nuevos, encuadrada por ellos: --fx, --fy1 y --fh dicen dónde están en la
-   foto (el centro de lado, los pies y lo que miden de alto, en partes de su ancho y de su alto), --medio, la mitad de lo
-   que ocupan de ancho, y --iar, alto / ancho de la foto. Miden --alto de la carta, en el centro (--cx; el autor: «todos
+/* (las dos, una foto de Higgsfield con la pareja dentro del frontón o en el césped del estadio (assets/torneos), encuadrada
+   por ella: --fx, --fy1 y --fh dicen dónde está en la foto (el centro de lado, los pies y lo que mide de alto, en partes de
+   su ancho y de su alto), --medio, la mitad de lo que ocupa de ancho, y --iar, alto / ancho de la foto. Miden --alto de la carta, en el centro (--cx; el autor: «todos
    los jugadores deben tener el mismo tamaño y estar en la misma posición, centrado en la tarjeta») y con los pies en
    --pie, por encima del título; y la foto nunca deja un hueco: si se pasaría de un borde, se corre lo justo) */
 #hub.juego .s2-fig { --alto: .58; --cx: .5; --pie: .68; --H: calc(var(--alto) * 100cqh / var(--fh)); --W: calc(var(--H) / var(--iar));
@@ -46,7 +34,7 @@
   top: clamp(calc(100cqh - var(--H)), calc(var(--pie) * 100cqh - var(--fy1) * var(--H)), 0px); }
 /* (los pies, por encima del título: en las cartas bajas, como en el móvil tumbado, el texto y la barra ocupan más parte
    de la carta, así que los pelotaris, algo más pequeños y más arriba) */
-@container (max-height: 360px) { #hub.juego :is(.s2-fig, .s2-duo, .s2-sombra) { --alto: .5; --pie: .58; } }
+@container (max-height: 360px) { #hub.juego .s2-fig { --alto: .5; --pie: .58; } }
 
 /* el velo: muy suave y solo donde va el texto (abajo, y algo más a la izquierda), nunca opaco del todo */
 #hub.juego .s2::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;

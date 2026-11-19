@@ -81,10 +81,14 @@ import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
-import fotoPelota from '../assets/pelota/fondos/parejas.webp';
-import fotoPelotaM from '../assets/pelota/fondos/media/parejas.webp';
-import fotoPelotaHd from '../assets/pelota/fondos/hd/parejas.webp';
-import { duoSrc } from '../futbol/jugadorFig.js';   // (la pareja de tu club, en la carta de fútbol de Torneos)
+// (las fotos de las dos cartas de Torneos: la pareja de pelotaris dentro del frontón y la de fútbol en el césped del estadio,
+// de Higgsfield, en tres tamaños; assets/torneos)
+import fotoPelota from '../assets/torneos/pelota.webp';
+import fotoPelotaM from '../assets/torneos/media/pelota.webp';
+import fotoPelotaHd from '../assets/torneos/hd/pelota.webp';
+import fotoFutbol from '../assets/torneos/futbol.webp';
+import fotoFutbolM from '../assets/torneos/media/futbol.webp';
+import fotoFutbolHd from '../assets/torneos/hd/futbol.webp';
 import { ATRAS_SVG } from '../ui/pantalla.js';
 import { carrusel3d, CSS_CARRUSEL3D, reanima } from '../game/carrusel3d.js';
 
@@ -479,7 +483,6 @@ export class Hub {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
     let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
-    const sadar = levelById('pamplona');
     // (las dos cartas, iguales y una al lado de la otra, de foto entera: lo que se elige es el frontón, que abre la lista por
     // comarcas, o tu club, con el botón de jugar al lado. En horizontal se ven las dos enteras sin desplazar; en vertical,
     // una debajo de la otra)
@@ -490,19 +493,17 @@ export class Hub {
     const carta = (cls, foto, stat, kick, tit, tg, row) => `<article class="s2 ${cls}">${foto}<span class="sp-stat">${stat}</span>
         <div class="s2-pie"><div class="s2-txt"><small class="s2-kick">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
         <div class="s2-bar">${row}</div></div></article>`;
-    // (la de pelota: una portada de los pelotaris nuevos de los campeonatos (parejas, assets/pelota/fondos), en el tamaño que
-    // pida la pantalla (896, 1280 o 2048 px de ancho) y encuadrada por ellos: dónde están en la foto, sacado de FIGURA en
-    // game/torneo.js, y la mitad de lo que ocupan de ancho, medida en la foto (la portada es 1,25 veces más alta que ancha). Miden unos dos tercios de la carta: la foto se ve unas
-    // dos veces y media el alto de la carta, de ahí el ancho que se pide)
-    const FIG = { fx: 0.511, fy1: 0.7448, fh: 0.2592, medio: 0.125, iar: 1.25 }, ancho = Math.round(0.58 / FIG.fh / FIG.iar * 80);
-    const fotoP = `<img class="s2-foto s2-fig" src="${fotoPelotaM}" srcset="${fotoPelota} 896w, ${fotoPelotaM} 1280w, ${fotoPelotaHd} 2048w" sizes="(orientation: portrait) ${Math.round(ancho * 0.9)}vw, ${ancho}vh" alt="" decoding="async" style="--fx:${FIG.fx};--fy1:${FIG.fy1};--fh:${FIG.fh};--medio:${FIG.medio};--iar:${FIG.iar}">`;
-    // (la de fútbol: el estadio de las láminas de deporte, sin nadie, y delante la pareja de tu club (el chico y la chica con
-    // su equipación, las mismas de las portadas de equipo del fútbol; sin club, la de Osasuna), del mismo alto y en el mismo
-    // sitio que los pelotaris de la de pelota: el autor, 19 de noviembre de 2026: «todos los jugadores deben tener el mismo
-    // tamaño y estar en la misma posición, centrado en la tarjeta», y para la de fútbol, «aprovecha las fotos que ya hay».
-    // Antes, la lámina del chico chutando)
-    const futFondo = laminaUrl('dep-estadio') || laminaUrl('dep-futbol') || townImg(sadar), duoF = duoSrc(CLUBS[p.futbolClub] ? p.futbolClub : 'osasuna');
-    const fotoF = `<img class="s2-foto s2-enc" src="${futFondo}" alt="" decoding="async">${duoF ? `<i class="s2-sombra" aria-hidden="true"></i><img class="s2-duo" src="${duoF}" alt="" decoding="async">` : ''}`;
+    // (las dos: una foto de Higgsfield con la pareja de cuerpo entero, la de pelotaris dentro de un frontón cubierto, con la
+    // pared y la grada detrás, y la de fútbol en el césped del estadio, delante de la portería; el autor, 19 de noviembre de
+    // 2026: «todos los jugadores deben tener el mismo tamaño y estar en la misma posición, centrado en la tarjeta» e
+    // «intenta integrar mejor con Higgsfield los jugadores de fútbol en el terreno de juego». Encuadradas por la pareja
+    // (torneos.css, .s2-fig): fx, el centro de lado; fy1, los pies; fh, lo que mide de alto, en partes del alto de la foto;
+    // medio, la mitad de lo que ocupa de ancho; e iar, alto / ancho de la foto. Miden lo mismo en las dos cartas y la foto se
+    // ve unas dos veces el alto de la carta, de ahí el ancho que se pide)
+    const fig = ([s, m, hd], w, F) => { const ancho = Math.round(0.58 / F.fh / F.iar * 80);
+      return `<img class="s2-foto s2-fig" src="${m}" srcset="${s} ${w[0]}w, ${m} ${w[1]}w, ${hd} ${w[2]}w" sizes="(orientation: portrait) ${Math.round(ancho * 0.9)}vw, ${ancho}vh" alt="" decoding="async" style="--fx:${F.fx};--fy1:${F.fy1};--fh:${F.fh};--medio:${F.medio};--iar:${F.iar}">`; };
+    const fotoP = fig([fotoPelota, fotoPelotaM, fotoPelotaHd], [1000, 1600, 2800], { fx: 0.5, fy1: 0.583, fh: 0.4292, medio: 0.104, iar: 0.7764 });
+    const fotoF = fig([fotoFutbol, fotoFutbolM, fotoFutbolHd], [1000, 1600, 2500], { fx: 0.5, fy1: 0.5923, fh: 0.4528, medio: 0.115, iar: 0.6264 });
     // (las cifras van en negrita y parten la frase en trozos que el traductor no reconoce: en euskera se escribe aquí)
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `

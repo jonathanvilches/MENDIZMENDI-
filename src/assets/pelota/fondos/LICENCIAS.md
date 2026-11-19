@@ -46,8 +46,19 @@ con esa misma licencia.
 | `libre.webp` | Partido libre | Areso | [Areso - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Areso_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Jokin |
 | `frontones.webp` | Frontones | Mendaza | [Frontón de Mendaza.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_de_Mendaza.jpg) | Mentxuwiki | CC BY-SA 4.0 | Maialen |
 | `retos.webp` | Retos | Mirafuentes | [Mirafuentes - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Mirafuentes_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Ekaitz |
-| `camara.webp` | Pelota en casa | Fontellas | [Fontellas - Frontón 1.jpg](https://commons.wikimedia.org/wiki/File:Fontellas_-_Front%C3%B3n_1.jpg) | Zarateman | CC0 | Oihana |
+| `camara.webp` | Pelota en casa | Irañeta (cubierto) | [Irañeta - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Ira%C3%B1eta_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Oihana |
 | `coleccion.webp` | Pelotaris | Urroz de Santesteban | [Urroz de Santesteban - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Urroz_de_Santesteban_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Amaia |
+
+El 19 de noviembre de 2026, por la noche, se rehízo `camara.webp`: en la de Fontellas la pelotari quedaba pequeña en
+una esquina de la calle y el frontón no se reconocía (el autor: «cambia la de la chica que está en la esquina del
+frontón. Todos los pelotaris tienen que tener en el fondo un frontón real»). La nueva es el frontón cubierto de Irañeta,
+calcado de su foto, con Oihana de brazos cruzados en el centro. Esa misma noche se rehízo otra vez (el autor: «pon al
+personaje mucho más dentro del frontón. Ahí está como muy pequeña con respecto al frontón, la perspectiva no está bien»
+y «en la nueva imagen no se ve de fondo el frontón»): Oihana dentro de la cancha, delante del frontis y junto a la pared
+izquierda, con la cámara a la altura del pecho, y luego ampliada alrededor con Higgsfield (más suelo, más pared y el
+tejado de madera) para que quepa del mismo tamaño y en el mismo sitio que los demás; 2048 × 2542. Y `promesas.webp` se amplió por
+arriba y por abajo (la herramienta de ampliar de Higgsfield, sin tocar lo de dentro) para que su pelotari quepa del
+mismo tamaño y en el mismo sitio que los demás.
 
 Las del 16 de noviembre, dibujadas en el estilo del juego, están en entrega/pelota-fondos-dibujados-16nov; las de antes,
 sin pelotari, en entrega/pelota-fondos-anteriores. En entrega/pelota-fondos-reales-17nov/alternativas quedan otras
