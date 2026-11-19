@@ -2382,42 +2382,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   recuerda en el perfil (`pelotaYo`). La ficha con tu nombre sobre tu pelotari (`match.js` `sobreTi`) solo sale 3,2 s al
   ir a sacar cada tanto. Las muestras del golpe arrancan saltándose el silencio que el mp3 lleva delante y Safari no
   quita (`pelota/audio.js` `golpe`, `INICIO`).
-- **La equipación de tu pelotari** (`src/pelota/kit.js`, `src/pelota/equipacion.js`, `KIT` en `actors/npcOutfit.js`, los
-  tacos en `actors/sinTacos.js`; 18 y 19 de noviembre de 2026; el autor: «que se pueda personalizar tacos, muñequeras,
-  zapatillas completas», «elimina cambiar el color del pelo», «que se apliquen los colores perfectos, el contorno perfecto
-  de todos los elementos»): el jugador elige el color de las zapatillas (enteras), de las muñequeras y de los tacos, y lo
-  lleva el pelotari con el que juegue, el suyo o uno de los del juego, en todos los partidos; los rivales van como siempre.
-  **Ni faja ni pelo**: el fajín en 3D de Meshy y las zapatillas nuevas quedan en la rama `borrador-equipacion` hasta que
-  se rehagan los personajes. Se guarda en el perfil (`settings.pelotaKit`; `KIT_PIEZAS`: `zap`, `mun` y `taco`). No se
-  tocan los modelos: se pinta en el sombreador (`outfitTint` recibe `shoes` y `wrist`; `tacosColor`, el de los tacos), y
-  cada pieza se reconoce por dónde cae en el cuerpo en la pose de reposo, medido en el esqueleto de cada modelo
-  (`kitMedidas`: los 22 vienen ajustados a su caja y no miden lo mismo):
-  - la zapatilla: todo lo que hay por debajo del tobillo, de un solo color, con una raya algo más oscura donde iría la
-    suela;
-  - los tacos (la venda y los tacos de las manos): se separan de la piel por el tono. En cada modelo se mide en su textura,
-    bajo los puntos de las manos y la muñeca, el valle entre los dos montones (la piel, rosada o morena, de 10 a 22 grados;
-    la venda, dorada, de 30 a 50; en los de piel más morena, como Amaia o Ane, el valle sube a 28-31) y el color de su piel
-    (la mediana de lo que cae de su lado): `medirManos`, `uTono`, `uPiel`. Todo lo de color de venda de la mano pasa al
-    color elegido, casi liso, con el borde suave alrededor del valle; la piel que asoma entre los trozos de venda (Ane) se
-    queda. Antes solo valía el beis claro y los tacos dorados se quedaban sin pintar, a manchas;
-  - las muñequeras, separadas de los tacos por una franja de piel (el autor: «hay que separar entre tacos y muñequera»):
-    con muñequera, los tacos se cortan en línea recta al 16 % del antebrazo (`TACOS_HASTA`), luego va la piel y luego la
-    muñequera, del 24 al 42 % (`MUN_DESDE`, `MUN_HASTA`), de un color liso con canales muy suaves y los bordes rectos. Sin
-    muñequera, los tacos llegan hasta donde acaba la venda de cada modelo (`VENDA`, medido en sus texturas: entre el 27 y
-    el 60 % del antebrazo) y ahí se cortan en línea recta. Lo que queda más allá del corte con color de venda pasa al de
-    la piel (`kitCorte`; con muñequera, aunque los tacos vayan como vienen: `tacosColor(ch, color, true)`). Los tacos no
-    pintan encima de la muñequera (`kitMun`): las dos marcas las deja `KIT` en el mismo sombreador y las lee `sinTacos`.
-  Los pelotaris con la equipación se pintan por las dos caras (`side = DoubleSide`): Meshy dejó trozos de piel con los
-  triángulos del revés, que eran manchas por las que se veía el fondo (en Ander, en la frente y junto a la boca).
-  `ponKitColores(U, colores)` cambia los colores de un pelotari ya teñido sin rehacer el material.
-  La pantalla «Equipación» enseña el pelotari en 3D con lo elegido y las tres filas de colores, sin pestañas. El pelotari
-  se mueve mientras se elige (el autor: «quiero que el pelotari se mueva y haga movimientos de pelota»): en guardia,
-  golpe de derecha y de izquierda, pasos de lado, el golpe bajo, la volea, la dejada y el saque, uno tras otro (`BAILE`).
-  No tiene lienzo WebGL propio: cada fotograma se dibuja con el renderizador que ya hay (`util/offscreen.js`) y se copia a
-  su lienzo, unas 30 veces por segundo (24 en el móvil; nada con la pestaña oculta); `offscreenCanvas(dest)` lo copia en
-  ese lienzo y reutiliza la memoria de la lectura. Se gira arrastrando. Se abre desde «Elige tu pelotari» (botón
-  «Equipación») y desde el cuadro del campeonato una vez empezado. Las cartas, que son dibujos, no la enseñan todavía.
-  Comprobado en la pantalla de la equipación (Jon, Ander) y en un partido, a 1280×720 y a 844×390.
+- **Sin personalización del pelotari** (19 de noviembre de 2026, noche; el autor: «Deja el personaje como estaba en un
+  principio… Olvídate de la personalización, elimínalo todo»). La equipación (elegir el color de las zapatillas, las
+  muñequeras y los tacos, con su pantalla «Equipación» y la muñequera en 3D) se ha quitado entera: fuera
+  `src/pelota/kit.js` y `src/pelota/equipacion.js`, el botón «Equipación» de «Elige tu pelotari» y del cuadro del
+  campeonato, y lo que pintaba en el partido (`fronton.js` `rigPelotari`). `actors/npcOutfit.js`, `actors/sinTacos.js`,
+  `actors/hairColor.js` y `util/offscreen.js` vuelven a como estaban antes de la equipación (el 18 de noviembre, antes de
+  `a502991f`): los pelotaris salen con su ropa, sus zapatillas y su venda de siempre, y el de colorado solo con la
+  camiseta teñida. Lo que se guardó en el perfil (`settings.pelotaKit`) ya no se lee. Las pruebas del fajín y la
+  zapatilla de Meshy siguen en la rama `borrador-equipacion`, sin uso.
 - **La pantalla de juego** (`src/ui/pantalla.js`: `ptCabecera`, `ptPie`, `cssPantalla`; 18 de noviembre de 2026; el
   autor, con una captura del móvil en la que la portada, el texto y «Jugar» se tocaban: «hay muy poco espacio», y que se
   ordene todo como los juegos de deportes del móvil). Es la disposición de las pantallas a pantalla entera, con los
@@ -2427,7 +2400,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la derecha los botones, el principal el último y el más grande. De pie, el pie se apila y el título se ajusta al ancho.
   La tarjeta del panel lleva `pt-pant` (sin marco, a pantalla entera, en columna) o `pt-libre` (solo sin marco, para las
   que traen su rejilla), y `neon.css` no les pone la sombra de ventana. La llevan el menú de pelota, «Elige tu pelotari»,
-  «Elige tu frontón», Frontones, la Equipación y el cuadro del campeonato (que pierde el botón «Salir» de abajo: quedan
+  «Elige tu frontón», Frontones y el cuadro del campeonato (que pierde el botón «Salir» de abajo: quedan
   dos botones con sitio). Y el fútbol (`futbol/liga.js`): su menú, «Elige tu club» y la liga llevan el botón de atrás en
   su cabecera (`ptAtras`, `head(S, sub, info, atras)`), sin «Salir» ni «Volver» abajo, y sin marco.
   En el inicio (`hub/consola.css`), con el móvil tumbado: la fila de comarcas ya no pisa la raya de inicio del iPhone

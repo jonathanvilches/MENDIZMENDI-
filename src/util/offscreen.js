@@ -12,7 +12,7 @@ import * as THREE from 'three';
 
 const W = 960, H = 720;
 let R = null, cw = W, ch = H, gen = 0, idle = null;
-let HOST = null, RT = null, last = null, rtIdle = null, noMSAA = false, rbuf = null, imgW = null;
+let HOST = null, RT = null, last = null, rtIdle = null, noMSAA = false;
 // ¿no hay nada dibujado? (alfa a cero en una muestra de píxeles)
 const blank = (buf) => { for (let i = 3; i < buf.length; i += 4 * 97) if (buf[i] > 8) return false; return true; };
 const HS = 512;   // tamaño de la textura fuera de pantalla del modo anfitrión
@@ -20,7 +20,7 @@ const HS = 512;   // tamaño de la textura fuera de pantalla del modo anfitrión
 export const offscreenGen = () => gen;
 /** Libera el renderizador oculto (su contexto WebGL y todo lo que subió a la tarjeta). En móvil cada contexto pesa mucho. */
 export function releaseOffscreen() {
-  clearTimeout(rtIdle); RT?.dispose(); RT = null; last = null; rbuf = null; imgW = null;   // (la textura del modo anfitrión y lo último leído)
+  clearTimeout(rtIdle); RT?.dispose(); RT = null; last = null;   // (la textura del modo anfitrión y lo último leído)
   clearTimeout(idle); if (!R) return; try { R.dispose(); R.forceContextLoss(); } catch (e) { } R.domElement.width = R.domElement.height = 1; R = null;
 }
 /** Usa el renderizador del juego para las imágenes pequeñas (null: vuelve al renderizador oculto propio). */
@@ -51,8 +51,7 @@ const FACADE = {
       RT.viewport.set(0, 0, w, h); RT.scissor.set(0, 0, w, h); RT.scissorTest = true;
       r.setRenderTarget(RT); r.toneMapping = this.tone; r.toneMappingExposure = 1; r.autoClear = false;
       r.setClearColor(this.clr, this.alpha); r.clear(); r.shadowMap.needsUpdate = true; r.render(scene, cam);
-      // (la memoria de la lectura se reutiliza: el pelotari de la equipación se lee a cada fotograma)
-      let buf = rbuf?.length === w * h * 4 ? rbuf : (rbuf = new Uint8Array(w * h * 4)); r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
+      let buf = new Uint8Array(w * h * 4); r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
       // en algunos iPhone la lectura de una textura con suavizado sale vacía (los retratos de los diálogos no aparecían):
       // si no hay nada dibujado, se repite sin suavizado y ya se queda así
       if (!noMSAA && this.alpha === 0 && blank(buf)) {
@@ -60,7 +59,7 @@ const FACADE = {
         RT.texture.colorSpace = THREE.SRGBColorSpace; RT.texture.internalFormat = 'RGBA8'; RT.isXRRenderTarget = true;
         RT.viewport.set(0, 0, w, h); RT.scissor.set(0, 0, w, h); RT.scissorTest = true;
         r.setRenderTarget(RT); r.setClearColor(this.clr, this.alpha); r.clear(); r.render(scene, cam);
-        r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
+        buf = new Uint8Array(w * h * 4); r.readRenderTargetPixels(RT, 0, 0, w, h, buf);
       }
       last = { buf, w, h };
     } finally {
@@ -86,17 +85,14 @@ export function offscreen(w, h, tone = THREE.ACESFilmicToneMapping) {
   R.toneMapping = tone; R.toneMappingExposure = 1;
   return R;
 }
-// lienzo 2D con lo último que se ha dibujado (sólo la zona usada). dest: un lienzo del mismo tamaño en el que dibujarlo,
-// en vez de uno nuevo (lo que se dibuja a cada fotograma, como el pelotari de la equipación: sin un lienzo y una imagen
-// nuevos cada vez)
-export function offscreenCanvas(dest = null) {
-  const c = dest || document.createElement('canvas');
+// lienzo 2D con lo último que se ha dibujado (sólo la zona usada)
+export function offscreenCanvas() {
+  const c = document.createElement('canvas');
   if (last) {
     // modo anfitrión: los píxeles leídos de la textura (de abajo arriba y con el color multiplicado por la opacidad,
     // como en un lienzo WebGL) se pasan a un lienzo 2D normal
-    const { buf, w, h } = last; if (c.width !== w) c.width = w; if (c.height !== h) c.height = h;
-    const g = c.getContext('2d'), img = dest && imgW?.width === w && imgW.height === h ? imgW : g.createImageData(w, h), d = img.data;
-    if (dest) imgW = img;
+    const { buf, w, h } = last; c.width = w; c.height = h;
+    const g = c.getContext('2d'), img = g.createImageData(w, h), d = img.data;
     for (let y = 0; y < h; y++) {
       const s0 = (h - 1 - y) * w * 4, d0 = y * w * 4;
       for (let x = 0; x < w * 4; x += 4) {
@@ -107,8 +103,7 @@ export function offscreenCanvas(dest = null) {
     g.putImageData(img, 0, 0);
     return c;
   }
-  if (c.width !== cw) c.width = cw; if (c.height !== ch) c.height = ch;
-  const g = c.getContext('2d'); if (dest) g.clearRect(0, 0, cw, ch);
-  g.drawImage(R.domElement, 0, 0, cw, ch, 0, 0, cw, ch);
+  c.width = cw; c.height = ch;
+  c.getContext('2d').drawImage(R.domElement, 0, 0, cw, ch, 0, 0, cw, ch);
   return c;
 }

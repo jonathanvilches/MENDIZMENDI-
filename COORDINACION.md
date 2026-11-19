@@ -7,7 +7,7 @@ ya no vale, se borra.
 
 | Ventana | Lleva | Archivos suyos |
 | --- | --- | --- |
-| **Principal** (coordinación) | Juntar lo de todas, compilar y publicar la web; la personalización de los pelotaris (equipación) y las cartas animadas; las voces, de momento solo Otsagabia (el autor, 18 nov) | `docs/`, la rama `main`, `CLAUDE.md`, `COORDINACION.md`, `src/assets/voz/`, `src/game/vozVecinos.js`, `src/assets/frontones*/`, `src/pelota/kit.js`, `src/pelota/equipacion.js`, `src/ui/pantalla.js`, `public/videos/figuras/` |
+| **Principal** (coordinación) | Juntar lo de todas, compilar y publicar la web; las cartas animadas y el rediseño de las pantallas del menú (Cómo jugar, pausa, menú y Torneos); las voces, de momento solo Otsagabia (el autor, 18 nov) | `docs/`, la rama `main`, `CLAUDE.md`, `COORDINACION.md`, `src/assets/voz/`, `src/game/vozVecinos.js`, `src/assets/frontones*/`, `src/ui/pantalla.js`, `public/videos/figuras/` |
 | **Pelota · interfaz** (rótulos, animaciones de texto, carruseles, pantallas de frontón) | Todo lo que se ve encima del partido y los menús de pelota | `src/pelota/hud.js`, `src/pelota/vs.js`, `src/pelota/ficha.js`, `src/game/torneo.js`, `src/game/carrusel3d.js`, `entrega/interfaz-pelota/` |
 | **Pelota · personajes** (los 10 pelotaris de siempre, público, jueces, vecinos del mismo estilo) | Modelos 3D y cómo se mueven | `src/actors/`, `src/assets/meshy*/`, `src/assets/chicas/`, `tools/blender/`, `tools/meshy-*`, `tools/chicas/` |
 | **Otsagabia · locución** | Cerrada. Solo retoques de voces de Otsagabia si el autor los pide | `src/assets/voz/vecinos/ochagavia/`, `entrega/voces-ochagavia-pendientes.md` |
@@ -25,14 +25,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   la ventana principal: los planos de la grada tras un buen tanto salen ahora desde las cámaras de una retransmisión
   (la principal, alta al fondo, y la de pie de cancha en la contracancha), sin meterse en la cancha; pendiente de que
   el autor lo vea. Quien publique, que no lo meta sin su visto bueno.
-- **Equipación sin faja ni pelo, con el pelotari en movimiento, y botones transparentes, pendiente de que el autor lo
-  vea** (19 nov, noche, ventana principal; el autor: «elimina cambiar el color del pelo», «quiero que el pelotari se mueva
-  y haga movimientos de pelota», «que se apliquen los colores perfectos, el contorno perfecto de todos los elementos»,
-  «cuidado con las manchas negras», «hay que separar entre tacos y muñequera»): zapatillas enteras, muñequeras y tacos,
-  con el color limpio, el borde recto y una franja de piel entre los tacos y la muñequera; el
-  pelotari hace golpes mientras eliges; sin las manchas de la cara de Ander. Y los botones del partido, transparentes con
-  el aro de color y su latido. El fajín y las zapatillas de Meshy quedan en la rama `borrador-equipacion`. Quien
-  publique, que no lo meta sin su visto bueno.
+- **Botones del partido transparentes, pendientes de que el autor los vea** (19 nov, ventana principal): con el aro de
+  color y su latido. La equipación que iba con ellos ya no existe (abajo). Quien publique, que no lo meta sin su visto
+  bueno.
+- **Sin equipación** (19 nov, noche, ventana principal; el autor: «Deja el personaje como estaba en un principio…
+  Olvídate de la personalización, elimínalo todo»): fuera la pantalla «Equipación» y sus colores; los pelotaris, como
+  antes del 18 nov. Este sí se puede publicar: es lo que pidió el autor.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
   ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
@@ -40,21 +38,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
-- **De Principal a Pelota · personajes** (19 nov, noche): por encargo directo del autor (la equipación: «tacos,
-  muñequeras, zapatillas completas», «elimina cambiar el color del pelo», «el contorno perfecto de todos los
-  elementos», «cuidado con las manchas negras»), toco vuestros:
-  - `src/actors/npcOutfit.js`: el `KIT` pinta la zapatilla entera y la muñequera separada de los tacos por una franja de
-    piel (`TACOS_HASTA`, `MUN_DESDE`, `MUN_HASTA`; sin muñequera, los tacos hasta el final de la venda de cada modelo,
-    `VENDA`), y deja `kitMun` y `kitCorte` para los tacos. Los `pelotari_<nombre>` teñidos con
-    `outfitTint` se pintan por las dos caras (`DoubleSide`): tienen trozos de piel del revés que eran agujeros (Ander).
-    Si os parece, ponedlo en `loadMeshy` para todos los pelotaris, también los que no se tiñen. Ya no hay fajín ni
-    `uSole`, `uToe`, `uLace`, `uSash`, `uPwaist` ni `uNudo`. Al volver a teñir, la copia del material suelta
-    `userData.sinTacos`.
-  - `src/actors/sinTacos.js`: la venda se separa de la piel por el tono, con el valle medido en la textura de cada modelo
-    (`medirManos`, que también da el color de la piel; antes `pielDe`), y respeta `kitMun` y `kitCorte`;
-    `tacosColor(ch, color, siempre)`. Con herramienta (sin tacos) también coge ya los tacos dorados.
-  - `src/actors/hairColor.js`: queda como estaba (sin `medirPelo`); el pelo ya no se elige.
-  Partid de lo de `master`.
+- **De Principal a Pelota · personajes** (19 nov, noche): por orden directa del autor («Deja el personaje como estaba en
+  un principio… elimínalo todo»), `src/actors/npcOutfit.js`, `src/actors/sinTacos.js` y `src/actors/hairColor.js` vuelven
+  a como estaban antes de la equipación (`a502991f^`): sin `KIT`, sin `tacosColor`, sin `ponKitColores` y sin el
+  `DoubleSide` de los teñidos. Partid de lo de `master`.
+- **De Principal a Pelota · interfaz** (19 nov, noche): por la misma orden, en vuestro `src/game/torneo.js` ya no está el
+  botón «Equipación» de «Elige tu pelotari» ni el del cuadro del campeonato (`abreEquipacion` ya no existe), y en
+  `src/game/townDeportes.js` tampoco su `act === 'kit'`. Partid de lo de `master`.
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («minimalistas y transparentes,
   con los bordes de color y las animaciones»), en vuestro `src/pelota/hud.js` los botones del partido son
   transparentes, con el aro de color en `::before` (`--anillo`: GOLPE #ff3fb4, CORTADA #ff6fb8, DEJADA #7d7bff,
@@ -64,12 +54,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   quitan mucha atención visual»), en vuestro `src/pelota/hud.js` los botones del partido son ahora discretos: bloque
   «Botones discretos» (fondo casi transparente, aro fino en `::before` con su color en `--anillo`), sin el latido de
   `.pel-hit.ready`, la palanca y su pista más apagadas; en `src/style.css`, `.pel-hk` más tenue. Partid de lo de `master`.
-- **De Principal a Pelota · personajes** (19 nov, tarde): por encargo directo del autor, la equipación nueva toca
-  vuestros `src/actors/npcOutfit.js` (`KIT`: zapatilla de cuatro colores y muñequeras; el fajín ya no se pinta, solo la
-  camiseta por dentro, y `kitMedidas` lee `FAJIN` de `src/pelota/fajin.js`, que es el fajín en 3D de Meshy colgado del
-  hueso `Hips`) y `src/actors/sinTacos.js` (`tacosColor`, el color de los tacos; las copias del material conservan su
-  `onBeforeCompile`). Si cambiáis los huesos (`Hips`, `LeftUpLeg`, pies y manos) o la ropa de los `pelotari_<nombre>`,
-  avisad: el fajín y lo pintado se miden en ellos.
 - **De Principal a Otsagabia · locución** (19 nov): por elección del autor («Vale, la toma 2»), Joseba ya dice la frase
   de los prismáticos en sus dos versiones: `inaki-08.mp3` (móvil) e `inaki-09.mp3` (teclado) en
   `src/assets/voz/vecinos/ochagavia/` y sus dos líneas en `manifiesto.json`.
@@ -104,8 +88,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   entero en el móvil tumbado y el menú en nueve columnas).
 - **De Principal a Pelota · personajes**: las figuras animadas de las cartas están rehechas desde las figuras nuevas, las
   22 (`public/videos/figuras/`, `src/ui/videos.js`). Si cambiáis el dibujo de un pelotari, avisad aquí: su animada hay
-  que rehacerla. Y la equipación del jugador (zapatillas, muñequeras y faja) se pinta en `src/actors/npcOutfit.js`
-  (`KIT`, `kitMedidas`), midiendo el esqueleto de cada `pelotari_<nombre>`: si cambiáis sus huesos o su ropa, avisad.
+  que rehacerla.
   Los vecinos y su calidad son vuestros (el autor, 18 nov: «los vecinos los están haciendo en otro chat»).
 
 ## Última publicación
