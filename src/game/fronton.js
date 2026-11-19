@@ -554,7 +554,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (juntos, como en un partido de verdad: primero las filas de abajo y el centro de la cancha, donde se ve el juego, con
       // algún hueco; repartidos al azar por toda la grada, la misma gente parecía una grada vacía)
       let z0 = Infinity, z1 = -Infinity, y0 = Infinity; for (const q of all) { z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); y0 = Math.min(y0, q[1]); }
-      const zc = z0 + (z1 - z0) * 0.45, sp0 = all.length <= cap ? all.slice() : all.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 7]).sort((a, b) => a[1] - b[1]).slice(0, cap).map(r => r[0]);
+      // (el centro del grupo, como mucho a 10 m del frontis: la cámara del partido, detrás de la cancha, ve la grada desde
+      // el frontis hasta unos 19 m. En el Labrit, con el centro a la mitad de la grada, los 16 del móvil quedaban todos
+      // detrás de la cámara y la grada se veía vacía; medido el 19 de noviembre de 2026 en el Labrit y en Atarrabia)
+      const zc = Math.min(z0 + (z1 - z0) * 0.45, z0 + 10), sp0 = all.length <= cap ? all.slice() : all.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 7]).sort((a, b) => a[1] - b[1]).slice(0, cap).map(r => r[0]);
       // (18 de noviembre de 2026, noche; el autor, tras ver su grabación: «me hace falta más espacio entre los espectadores.
       // Ahora mismo solo veo bultos… Prefiero que haya menos gente más definida y que se vean los movimientos de cómo se
       // levantan y cómo celebran»). La grada, al tresbolillo: en cada fila, un asiento sí y otro no, y la fila siguiente
