@@ -23,8 +23,26 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   público nuevo de la grada (`6d07d896`, `2b84db42` y las manos y el aplauso de `9f7ce5d0`: «Cámbialo», sin nota); y el
   plano de dron de la grada (`2f3b20e0`; nota sobre la grada: «las cámaras no se ponen ahí»). La ventana principal lo
   está rehaciendo; quien publique, que no lo meta sin el visto bueno del autor.
+- **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
+  la cámara y el golpe cuando la pelota llega al rebote, la equipación nueva (zapatillas de cuatro colores, muñequeras,
+  tacos) con el fajín en 3D de Meshy, y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
+  toma 2»). Quien publique, que no meta lo demás sin su visto bueno.
 
 ## Peticiones entre ventanas
+
+- **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («los botones son muy llamativos y
+  quitan mucha atención visual»), en vuestro `src/pelota/hud.js` los botones del partido son ahora discretos: bloque
+  «Botones discretos» (fondo casi transparente, aro fino en `::before` con su color en `--anillo`), sin el latido de
+  `.pel-hit.ready`, la palanca y su pista más apagadas; en `src/style.css`, `.pel-hk` más tenue. Partid de lo de `master`.
+- **De Principal a Pelota · personajes** (19 nov, tarde): por encargo directo del autor, la equipación nueva toca
+  vuestros `src/actors/npcOutfit.js` (`KIT`: zapatilla de cuatro colores y muñequeras; el fajín ya no se pinta, solo la
+  camiseta por dentro, y `kitMedidas` lee `FAJIN` de `src/pelota/fajin.js`, que es el fajín en 3D de Meshy colgado del
+  hueso `Hips`) y `src/actors/sinTacos.js` (`tacosColor`, el color de los tacos; las copias del material conservan su
+  `onBeforeCompile`). Si cambiáis los huesos (`Hips`, `LeftUpLeg`, pies y manos) o la ropa de los `pelotari_<nombre>`,
+  avisad: el fajín y lo pintado se miden en ellos.
+- **De Principal a Otsagabia · locución** (19 nov): por elección del autor («Vale, la toma 2»), Joseba ya dice la frase
+  de los prismáticos en sus dos versiones: `inaki-08.mp3` (móvil) e `inaki-09.mp3` (teclado) en
+  `src/assets/voz/vecinos/ochagavia/` y sus dos líneas en `manifiesto.json`.
 
 - **De Principal a Pelota · interfaz** (19 nov): por encargo directo del autor («añadiría otro botón más al juego de
   pelota que sea sprint»), en vuestro `src/pelota/hud.js` hay un botón nuevo, `.pel-sprint`, dentro de `.pel-gcol`

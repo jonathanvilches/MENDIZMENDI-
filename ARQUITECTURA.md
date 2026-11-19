@@ -1143,6 +1143,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   retrocediendo a tope, los pies al 52 % de media (antes rozaban el borde, 96 %, corriendo a 5,4 m/s). En el mando, el
   esprint va en el gatillo derecho y la dejada pasa a la K (`mando/contextos.js`); en el móvil como mando, el botón
   ESPRINT encima de GOLPE (`public/mando/movil.js`).
+- **Botones del partido discretos** (`pelota/hud.js`, «Botones discretos»; `style.css`, `.pel-hk`; 19 de noviembre de
+  2026; el autor: «los botones son muy llamativos y quitan mucha atención visual»). Casi transparentes, con un aro fino
+  blanco (`::before`, color en `--anillo`) y la letra con sombra: GOLPE, algo de rosa, se aviva un poco cuando la pelota
+  está a tu alcance y ya no late; ESPRINT solo se colorea mientras lo mantienes y, sin energía, se apaga; la palanca y
+  la ayuda de las teclas, también más apagadas.
+- **La pelota que llega al rebote: la cámara y el golpe** (`pelota/match.js`, «LA CÁMARA DEL REBOTE», `fondoK`;
+  `pelota/court.js`, `camZRebote`, `suelo-tras-rebote`, `pared-tras-rebote`; `pelota/physics.js` y `rules.js`,
+  `BACK_UP`, `BACK_UP_H`; 19 de noviembre de 2026; el autor: «que podamos golpear si la pelota rebota en la pared de
+  atrás. Que se pueda golpear y seguir jugando» y «la cámara debería cambiar para ver cómo la pelota llega hasta el
+  final o al rebote»). *La cámara*: si la pelota es tuya y va al fondo (ya rebotada, o botada pasado el 25,5, o un
+  golpe que la predicción manda al rebote, `deepShot`), la cámara se va, con un fundido, detrás de tu pelotari y por
+  detrás de la pared del rebote (que se vuelve transparente: `reboteSeeThrough`), más alta y mirando a la cancha, y
+  abre algo el campo; al golpear, vuelve. En los cubiertos no pasa de 4,6 m tras el rebote (`camZRebote`); allí, detrás,
+  hay suelo y la pared izquierda sigue (sin ellos, por las esquinas se veía el vacío, sobre todo en el móvil tumbado,
+  que ve más a los lados). *El golpe*: la pelota que tocaba el rebote después de botar salía casi rodando y se podía
+  golpear durante una o dos décimas. Ahora, si da en el rebote por debajo de 1,8 m (`BACK_UP_H`) y sube despacio, sale
+  hacia arriba con 3,6 m/s (`BACK_UP`, menos cuanto más alta da): unas siete décimas de margen, 4 o 5 m hacia
+  delante. Medido sin pantalla con el partido de verdad: 21 de 21 pelotas al rebote se pudieron devolver (antes, 14 de
+  24).
 - **Las manos del público y el aplauso** (`actors/crowdAnim.js`, `manoA`, `MANOS`, `mMuslo`, `mPalma`, `mCuelga`,
   `mezcla`; 19 de noviembre de 2026; el autor: «todos los espectadores tienen las manos con las palmas hacia arriba;
   deben estar con las palmas hacia abajo o apoyadas en las rodillas» y «casi lo más importante son los aplausos»).
@@ -2372,6 +2391,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`util/offscreen.js`): ni bucle ni otro contexto WebGL. Se abre desde «Elige tu pelotari» (botón «Equipación») y desde
   el cuadro del campeonato una vez empezado (antes de la primera ronda, ese sitio es de «Pelotari»). Las cartas, que son
   dibujos, no la enseñan todavía.
+  *Nueva entera el 19 de noviembre* (el autor, el 18: «zapatillas nuevas y fajines y muñequeras, y los tacos también de
+  colores… que se puedan cambiar los cordones, la suela, la puntera… la faja es muy fina y va más abajo»): la zapatilla
+  lleva cuatro colores (`zap`, `suela`, `punt`, `cord` en `KIT_PIEZAS`), pintados en `KIT` por su eje del tobillo a la
+  base de los dedos; las muñequeras, con sus canales; y los tacos de las manos, en `actors/sinTacos.js`
+  (`tacosColor`). La pantalla tiene dos pestañas (`KIT_GRUPOS`) y, en la de las zapatillas, una vista de cerca que sigue
+  al pie izquierdo al girar. *El fajín ya no se pinta*: es una pieza en 3D hecha por Meshy (`src/pelota/fajin.js`,
+  `assets/pelota/fajin.glb`; el autor: «el fajín más abajo y no intentes hacerlo tú, que lo haga Meshy»). De cuatro
+  propuestas de Meshy (20 créditos cada una), dos eran un anillo cerrado y se quedó la del nudo prieto con dos puntas
+  cortas; simplificada a 4.400 triángulos, sin textura. `ponFajin(root, color)` lo mide en el cuerpo de cada pelotari
+  en la pose de reposo (lo ancho y lo hondo del tronco a la altura del fajín, sin los brazos), lo estira para abrazar
+  esa cadera (`FAJIN.HOLGURA`), le da una banda fina (`FAJIN.BANDA`, el 3 % del alto), alarga las puntas
+  (`FAJIN.PUNTAS`), pone el nudo en la cadera izquierda algo adelantado (`FAJIN.NUDO`) y lo cuelga del hueso de la
+  cadera, en sus unidades (`boneInverses` y `bindMatrix`), así que se mueve con ella al correr y agacharse. Va algo por
+  debajo de donde iba el pintado (`FAJIN.ALTO`: un 10 % del camino entre donde nacen las piernas y el hueso de la
+  cadera). En `KIT` queda solo la camiseta metida por dentro, a la altura de ese fajín (`kitMedidas` lee `FAJIN`).
+  Comprobado en la pantalla de la equipación y en un partido, a 1280×720 y a 844×390.
 - **La pantalla de juego** (`src/ui/pantalla.js`: `ptCabecera`, `ptPie`, `cssPantalla`; 18 de noviembre de 2026; el
   autor, con una captura del móvil en la que la portada, el texto y «Jugar» se tocaban: «hay muy poco espacio», y que se
   ordene todo como los juegos de deportes del móvil). Es la disposición de las pantallas a pantalla entera, con los
