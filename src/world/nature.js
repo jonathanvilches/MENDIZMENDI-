@@ -15,6 +15,7 @@ import { VIENTO } from './viento.js';
 import { creaArbol, esqueleto, ESPECIES } from './arbol.js';
 import { COPAS, pintaCopas } from './sombraCopas.js';
 import { TEXA } from './texturasArboles.js';
+import { CELDAS as CELDA_FLOR, tarjeta as tarjetaFlor } from './flores.js';
 
 // (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
 // (uWind: la fuerza del viento, la misma para todo el pueblo: world/viento.js)
@@ -910,6 +911,7 @@ export class Nature {
     // cultivos y todo lo que viene detrás queda donde estaba)
     makeBush(rnd).dispose();
     const Sb = esqueleto('bush', mulberry32(211)), g = creaArbol('bush', mulberry32(212), 1, Sb), gDet = creaArbol('bush', mulberry32(213), 2, Sb);
+    this._mataG = g;   // (la misma mata para los jardines y setos del casco, buildGardens)
     // helechos: frondas arqueadas en roseta (el material las recorta en folíolos); unas más largas y tumbadas, otras
     // jóvenes más derechas, y algunas ya doradas como el helecho común en otoño
     const fronds = [], cBase = new THREE.Color('#2f6a26'), cTip = new THREE.Color('#86bd4e'), cOld = new THREE.Color('#a8893f');
@@ -979,11 +981,29 @@ export class Nature {
     // (dentro de la planta de una casa, aunque no tenga choque: en Pamplona alguna mata salía dentro de una)
     const enCasa = (x, z) => (TOWN.houses || []).some(h => { if (!h.w || !h.d) return false; const c = Math.cos(h.ry || 0), s = Math.sin(h.ry || 0), dx = x - h.x, dz = z - h.z; return Math.abs(dx * c - dz * s) < h.w / 2 + 0.3 && Math.abs(dx * s + dz * c) < h.d / 2 + 0.3; });
     const rnd = mulberry32(778), P0 = PLACES.plaza;
-    const verde = ['#3a6428', '#7fae45'];
-    const flor = [['#b3245f', '#ff6fae'], ['#4f4fb8', '#9bb4ff'], ['#c2410c', '#ff9a3d'], ['#e8e3ef', '#ffffff'], ['#7a3fb0', '#c79bff'], ['#c81e3a', '#ff5a6e']];
-    // (una mata verde con flores por encima: dos copas, la de color algo más pequeña y asomando)
-    const geos = [makeBush(rnd), ...flor.map(([a, b]) => mergeKeep([blobCanopy(rnd, [[0, 0.62, 0, 0.78]], 0, verde[0], verde[1], 1, 0.6), blobCanopy(rnd, [[0.12, 0.82, 0.06, 0.6], [-0.3, 0.7, -0.18, 0.46]], -1, a, b, 1, 0.75)]))];
-    const lists = geos.map(() => []), q = this.quality, cap = q === 'low' ? 380 : q === 'mid' ? 700 : 1000, cel = new Set();
+    // (19 de noviembre de 2026; el autor: «los setos no son ramas ni hojas individuales, son bloques raros… los setos que
+    // hay en los pueblos». Eran bolas de hojas, con otra bola de color encima para las de flor. Ahora son la mata de las
+    // ramas y las hojas una a una del valle (arbol.js, «bush»), y las de flor llevan sus flores pintadas (las de las
+    // macetas, flores.js) asomando por fuera de la copa: rojas, rosas, blancas, lilas o naranjas)
+    const gB = this._mataG; if (!gB) return;
+    gB.computeBoundingBox(); const bb = gB.boundingBox, cx = (bb.min.x + bb.max.x) / 2, cz = (bb.min.z + bb.max.z) / 2, cy = (bb.min.y + bb.max.y) / 2;
+    const rx = (bb.max.x - bb.min.x) / 2, rz = (bb.max.z - bb.min.z) / 2, ry = (bb.max.y - bb.min.y) / 2;
+    const COLORES = [CELDA_FLOR.rojo, CELDA_FLOR.rosa, CELDA_FLOR.blanco, CELDA_FLOR.lila, CELDA_FLOR.naranja];
+    const o3 = new THREE.Object3D(), nrm = new THREE.Vector3();
+    const floresDe = (cel, rf) => {
+      const cards = [];
+      for (let i = 0; i < 16; i++) {
+        const a = rf() * Math.PI * 2, e = 0.25 + rf() * 1.05, w = 0.26 + rf() * 0.12;
+        nrm.set(Math.cos(e) * Math.cos(a), Math.sin(e), Math.cos(e) * Math.sin(a));
+        o3.position.set(cx + nrm.x * rx * 0.9, cy + nrm.y * ry * 0.9 - w * 0.35, cz + nrm.z * rz * 0.9);
+        o3.lookAt(o3.position.x + nrm.x, o3.position.y + nrm.y * 0.4, o3.position.z + nrm.z); o3.updateMatrix();
+        const t = tarjetaFlor(w, w * 0.85, cel); t.applyMatrix4(o3.matrix); cards.push(t.toNonIndexed());
+      }
+      const g = mergeGeometries(cards); const n = g.attributes.position.count, col = new Float32Array(n * 3).fill(1);
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals(); return g;
+    };
+    const rf = mulberry32(779), flores = COLORES.map(c => floresDe(c, rf));
+    const lists = flores.map(() => []), todas = [], q = this.quality, cap = q === 'low' ? 380 : q === 'mid' ? 700 : 1000, cel = new Set();
     let n = 0;
     for (let k = 0; k < cap * 14 && n < cap; k++) {
       const x = P0.x + (rnd() - 0.5) * 560, z = P0.z + (rnd() - 0.5) * 560;
@@ -992,14 +1012,20 @@ export class Nature {
       const p = pathQuery(x, z); if (p.d < p.w + 1.2) continue;
       if (!isFree(x, z, 0.9) || isFree(x, z, 3.6) || onPlatform(x, z, 1) || enCasa(x, z)) continue;   // (pegadas a una pared, una tapia o un árbol; nunca dentro de una casa)
       cel.add(c); n++;
-      lists[rnd() < 0.4 ? 0 : 1 + Math.floor(rnd() * flor.length)].push({ x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 });
+      const b = { x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 }; todas.push(b);
+      if (rnd() >= 0.4) lists[Math.floor(rnd() * COLORES.length)].push(b);
     }
-    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
+    const matB = [this.matCorteza.roble, this.matHojas];
+    const matF = snowable(windMaterial({ map: TEX.flores, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.85 }), 0.65, 0.2, 0.8);
     const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
-    geos.forEach((g, i) => {
+    // (cada una algo distinta de ancho y de alto, como las del valle; la de la jardinería, algo más recortada y baja)
+    const place = (b) => { if (b.m) return b.m; const h = Math.abs(Math.sin(b.x * 12.9898 + b.z * 78.233) * 43758.5453) % 1, kx = 0.95 + h * 0.2, k = b.s * 0.9;
+      b.m = m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.06, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.set(k * kx, k * 0.82, k * (2 - kx))).clone(); return b.m; };
+    for (const b of todas) { b.col = addCircle(b.x, b.z, 0.34 * b.s, { bush: true }); MATAS.push(b); }
+    for (const { im, items } of this.addChunked(todas, gB, null, matB, place, { name: 'jardin' })) items.forEach((b, i) => { (b.inst ||= []).push([im, i]); b.medio = [im, i]; });
+    flores.forEach((g, i) => {
       const list = lists[i]; if (!list.length) return;
-      for (const b of list) { b.col = addCircle(b.x, b.z, 0.34 * b.s, { bush: true }); MATAS.push(b); }
-      for (const { im, items } of this.addChunked(list, g, null, matB, (b) => m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.08, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.setScalar(b.s)), { name: 'jardin' })) items.forEach((b, i) => (b.inst ||= []).push([im, i]));
+      for (const { im, items } of this.addChunked(list, g, null, matF, place, { name: 'jardin-flor' })) items.forEach((b, j) => (b.inst ||= []).push([im, j]));
     });
   }
   // El suelo del bosque: troncos caídos con musgo (no se atraviesan) y corrillos de setas, la roja de puntos blancos
