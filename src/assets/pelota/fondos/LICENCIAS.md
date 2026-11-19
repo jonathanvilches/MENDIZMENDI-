@@ -16,6 +16,13 @@ carrusel solo para la portada de delante, ver `src/game/carrusel3d.js`). Las de 
 del repositorio (commit `dfaa214c` y anteriores). `mano.webp` sale de la versión recompuesta que quedó en el juego y
 `cuatro.webp`, de la del pelotari grande (commit `dfaa214c`).
 
+El 19 de noviembre de 2026 se ampliaron por abajo diez de ellas (`camara`, `coleccion`, `comarcas`, `fiestas`,
+`frontones`, `gran`, `parejas`, `retos`, `trinquete` y `valles`): la figura tenía los pies pegados al borde de abajo y en
+la carta del carrusel el nombre le tapaba las piernas (el autor: «los personajes no están cerrados en las cards»). Con
+Higgsfield (gpt_image_2_6, con cada imagen aprobada de referencia) se pintó el suelo que sigue hacia la cámara, y encima
+va la imagen de siempre, tal cual, píxel a píxel: ahora miden 2048 × 2560 (y 1280 × 1600 y 896 × 1120). Las cuadradas
+de antes están en el historial del repositorio.
+
 El autor pidió el 17 de noviembre que fueran «frontones reales», calcados «centímetro a centímetro» de fotografías, y
 que para las portadas hubiera «frontones grandes, frontones cubiertos»; dijo «me valen el Ogueta y el Beotibar». El
 Ogueta está en Vitoria y el Beotibar en Tolosa. Las dos fotos del Navarra Arena que mandó no tienen licencia libre y no
