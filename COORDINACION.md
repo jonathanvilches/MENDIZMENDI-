@@ -17,20 +17,12 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- **NO PUBLICAR hasta que el autor dé el visto bueno** (18 nov, noche: «enséñame todo antes de publicar»). En `master`,
-  sin compilar en `docs/`: el partido de pelota (números de la pared izquierda legibles, rayas del suelo que no vibran,
-  público un 9 % menor, dificultad rebajada) y el carrusel de campeonatos (portadas más anchas, nombre grande, anillo de
-  borde a borde, fondo con profundidad) y la grada del partido con menos gente, cada espectador suelto y en 3D, y con
-  el movimiento de levantarse, celebrar y sentarse (`actors/crowdAnim.js`, nuevo, de Principal); y las quince portadas
-  del carrusel de campeonatos regeneradas a 2048 px, con tres tamaños y la nítida solo en la de delante
-  (`assets/pelota/fondos/{media,hd}`, `carrusel3d.js` «LA IMAGEN NÍTIDA», `torneo.js` `nitida`); y el plano de dron
-  de la grada tras un buen tanto (`match.js` `dronGrada`, `game.js` `pausaTanto`, `hud.js` `.pel-root.dron`, de
-  Principal por encargo directo del autor); y la cámara de las charlas con los vecinos, más lejos (`camera.js`
-  `charla`); y el público con las manos sobre los muslos y la palma hacia abajo, el aplauso nuevo y la grada sin
-  pancartas de «¡Aupa…!» (`actors/crowdAnim.js`, `game/fronton.js`, 19 nov); y el esprint a mano de la pelota (botón
-  ESPRINT y Mayúsculas, también en el mando: `pelota/game.js`, `match.js`, `hud.js`, `rules.js`, `mando/contextos.js`,
-  `public/mando/`) con la cámara que deja ver el golpe al fondo (`match.js` `encuadra`, 19 nov). Si otra ventana
-  necesita publicar lo suyo, que pregunte antes al autor.
+- **Sin publicar, porque el autor pidió cambiarlo** (19 nov, séptima ronda de elecciones: «Cámbialo»). Está en
+  `master` pero la web publicada no lo lleva: el esprint a mano y la cámara del fondo (`c2943be6`: el autor quiere los
+  botones mucho menos llamativos y que la cámara deje ver la pelota llegar al fondo y al rebote para poder golpearla); el
+  público nuevo de la grada (`6d07d896`, `2b84db42` y las manos y el aplauso de `9f7ce5d0`: «Cámbialo», sin nota); y el
+  plano de dron de la grada (`2f3b20e0`; nota sobre la grada: «las cámaras no se ponen ahí»). La ventana principal lo
+  está rehaciendo; quien publique, que no lo meta sin el visto bueno del autor.
 
 ## Peticiones entre ventanas
 
@@ -70,6 +62,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, 15:46 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `1ad608c5` (la
-  «pantalla de juego» en pelota y fútbol: atrás arriba, contenido con aire y botón grande abajo; y el inicio en el móvil
-  tumbado: comarcas por encima de la raya de inicio y el menú con todas las secciones a la vista).
+- 19 nov, la hizo la ventana principal: lo de `master` hasta `c2943be6` que el autor aprobó («Sí, publica todo lo que me
+  vale»): los números de la pared izquierda, las rayas sin vibrar, el público algo menor, la dificultad rebajada, el
+  carrusel de campeonatos con las portadas más anchas y nítidas, la grada sin carteles de «¡Aupa…!» y la cámara de las
+  charlas más lejos. Compilado desde una rama temporal sin `c2943be6`, `2f3b20e0`, `2b84db42`, `6d07d896` ni las manos de
+  `9f7ce5d0` (ver «Listo para publicar»).
