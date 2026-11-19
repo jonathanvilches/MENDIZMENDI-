@@ -1,8 +1,8 @@
 // La pantalla de la equipación de tu pelotari (pelota/kit.js): a un lado, el pelotari en 3D con lo que llevas elegido; al
-// otro, dos pestañas: las zapatillas, con sus cuatro colores (zapatilla, suela, puntera y cordones), y el fajín, las
-// muñequeras y los tacos (el autor, 18 de noviembre de 2026: «que se puedan cambiar los cordones, la suela, la
-// puntera»). Cada toque se ve al momento en el pelotari y se guarda; se le da la vuelta arrastrando. En la pestaña de las
-// zapatillas la vista se acerca a los pies, que de cuerpo entero los cordones no se ven.
+// otro, tres pestañas: las zapatillas (la zapatilla y la suela), el fajín, las muñequeras y los tacos, y el pelo (el
+// autor, 19 de noviembre de 2026: «solo la suela y la zapatilla… el fajín, las zapatillas, las muñequeras y el pelo se
+// pueden cambiar»). Cada toque se ve al momento en el pelotari y se guarda; se le da la vuelta arrastrando. En la pestaña
+// de las zapatillas la vista se acerca a los pies y en la del pelo, a la cabeza.
 // El pelotari no se anima ni tiene su propio lienzo WebGL: es una imagen que se vuelve a dibujar cuando cambia algo (un
 // color, el giro, la pestaña), con el renderizador que ya hay (util/offscreen.js). Así no gasta nada mientras se mira, y
 // en el móvil no se abre un contexto más.
@@ -12,10 +12,11 @@ import { ptCabecera, ptPie, cssPantalla } from '../ui/pantalla.js';
 import { loadMeshy, GlbChar, MESHY_GAIT, hasMeshy } from '../actors/glbChar.js';
 import { outfitTint, ponKitColores } from '../actors/npcOutfit.js';
 import { tacosColor } from '../actors/sinTacos.js';
-import { ponFajin } from './fajin.js';
+import { ponFajin, ponZapatillas } from './prendas.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
 import { aspectoDe, aspectoTuyo } from './aspectos.js';
 import { KIT_COLORES, KIT_PIEZAS, KIT_GRUPOS, kitTuyo, ponKit, kitColores } from './kit.js';
+const paleta = (p) => p.colores || KIT_COLORES;
 
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 const W = 384, H = 512;
@@ -51,9 +52,11 @@ const claro = (hex) => { const n = parseInt(hex.slice(1), 16); return (0.299 * (
 async function maniqui(aspecto) {
   const gl = await loadMeshy(aspecto.modelo);
   const c = new GlbChar(gl, MESHY_GAIT); c.root.scale.setScalar(gl.userData.fit || 1);
-  const K0 = kitColores(), U = outfitTint(c.root, aspecto.modelo, K0);
+  const K0 = kitColores(); let U = outfitTint(c.root, aspecto.modelo, K0), pelo = K0.hair;
   tacosColor(c, K0.taco);
-  await ponFajin(c.root, K0.sash).catch(e => console.warn('fajín', e));   // (el fajín, en 3D: pelota/fajin.js)
+  // (el fajín y las zapatillas, en 3D: pelota/prendas.js)
+  await ponFajin(c.root, K0.sash).catch(e => console.warn('fajín', e));
+  await ponZapatillas(c.root, K0.shoes, K0.sole).catch(e => console.warn('zapatillas', e));
   c.update(0.3);   // (de pie, en su postura de reposo)
   const scene = new THREE.Scene();
   scene.add(new THREE.HemisphereLight('#fff6e8', '#5a5060', 2.2));
@@ -71,11 +74,14 @@ async function maniqui(aspecto) {
   // (dos vistas: de cuerpo entero; y, para las zapatillas, una de cerca y algo desde arriba, que sigue a la zapatilla
   // izquierda al girarlo, con la otra asomando: de cuerpo entero los cordones y la puntera no se distinguen)
   const hueso = (re) => { let b = null; c.root.traverse(o => { if (!b && o.isBone && re.test(o.name)) b = o; }); return b; };
-  const tob = hueso(/LeftFoot$/), ded = hueso(/LeftToeBase$/), pA = new THREE.Vector3(), pB = new THREE.Vector3();
+  const tob = hueso(/LeftFoot$/), ded = hueso(/LeftToeBase$/), cab = hueso(/Head$/), pA = new THREE.Vector3(), pB = new THREE.Vector3();
   const mira = (zona) => {
     if (zona === 'zap') {
       if (tob && ded) { tob.getWorldPosition(pA); ded.getWorldPosition(pB); pA.lerp(pB, 0.55); pA.y = caja.min.y + alto * 0.045; } else pA.set(0, caja.min.y + alto * 0.045, 0);
       cam.position.set(pA.x, pA.y + alto * 0.2, pA.z + d * 0.3); cam.lookAt(pA);
+    } else if (zona === 'pelo' && cab) {
+      // (el pelo: la cabeza de cerca, algo desde arriba, que sigue a la cabeza al girarlo)
+      cab.getWorldPosition(pA); pA.y += alto * 0.05; cam.position.set(pA.x, pA.y + alto * 0.06, pA.z + d * 0.32); cam.lookAt(pA);
     } else { cam.position.set(0, cy, d); cam.lookAt(0, cy, 0); }
   };
   return {
@@ -84,7 +90,12 @@ async function maniqui(aspecto) {
       const R = offscreen(W, H, THREE.NeutralToneMapping); R.setClearColor(0x000000, 0); R.clear(); R.render(scene, cam);
       return offscreenCanvas();
     },
-    pon(col) { ponKitColores(U, col); tacosColor(c, col.taco); ponFajin(c.root, col.sash).catch(e => console.warn('fajín', e)); },
+    pon(col) {
+      // (el pelo cambia el material: se vuelve a teñir entero, soltando el de antes)
+      if ((col.hair || null) !== (pelo || null)) { pelo = col.hair; const viejos = []; c.root.traverse(o => { if (o.isSkinnedMesh && o.material?.userData?.own) viejos.push(o.material); }); U = outfitTint(c.root, aspecto.modelo, col); for (const m of viejos) m.dispose(); }
+      ponKitColores(U, col); tacosColor(c, col.taco);
+      ponFajin(c.root, col.sash).catch(e => console.warn('fajín', e)); ponZapatillas(c.root, col.shoes, col.sole).then(() => this.redibuja?.()).catch(e => console.warn('zapatillas', e));
+    },
     fin() { eje.remove(c.root); try { c.dispose(); } catch (e) { /* ya suelto */ } },
   };
 }
@@ -99,14 +110,14 @@ export function abreEquipacion({ nombre = '', kicker = '' } = {}) {
     const K = kitTuyo();
     const sinDe = (p) => eu ? p.sinEu || 'Gabe' : p.sinEs || 'Sin';
     const fila = (p) => `<div class="eq-fila" data-g="${p.grupo}"><b>${esc(eu ? p.eu : p.es)} <i data-n="${p.k}"></i></b>
-      <div class="eq-colores" role="radiogroup" aria-label="${esc(eu ? p.eu : p.es)}" data-k="${p.k}">${p.sin ? `<button type="button" class="eq-sw eq-sin" role="radio" data-c="" aria-label="${esc(sinDe(p))}" title="${esc(sinDe(p))}"></button>` : ''}${KIT_COLORES.map(c => `<button type="button" class="eq-sw" role="radio" data-c="${c.id}" style="--c:${c.c};--m:${claro(c.c) ? '#1d1b24' : '#fff'}" aria-label="${esc(eu ? c.eu : c.es)}" title="${esc(eu ? c.eu : c.es)}"></button>`).join('')}</div></div>`;
+      <div class="eq-colores" role="radiogroup" aria-label="${esc(eu ? p.eu : p.es)}" data-k="${p.k}">${p.sin ? `<button type="button" class="eq-sw eq-sin" role="radio" data-c="" aria-label="${esc(sinDe(p))}" title="${esc(sinDe(p))}"></button>` : ''}${paleta(p).map(c => `<button type="button" class="eq-sw" role="radio" data-c="${c.id}" style="--c:${c.c};--m:${claro(c.c) ? '#1d1b24' : '#fff'}" aria-label="${esc(eu ? c.eu : c.es)}" title="${esc(eu ? c.eu : c.es)}"></button>`).join('')}</div></div>`;
     // (la pantalla de juego: atrás arriba a la izquierda, el pelotari y los colores en medio y «Listo» abajo a la derecha)
     const r = lgPanel(`${ptCabecera({ a: 'ok', atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker || (eu ? 'Zure pilotaria' : 'Tu pelotari')), titulo: eu ? 'Ekipazioa' : 'Equipación' })}
       <div class="eq-cuerpo pt-medio" data-notr>
         <div class="eq-vista"><canvas class="eq-cv" width="${W}" height="${H}" role="img" aria-label="${eu ? 'Zure pilotaria' : 'Tu pelotari'}"></canvas><span class="eq-espera">${eu ? 'Prestatzen…' : 'Preparando…'}</span></div>
         <div class="eq-filas"><div class="eq-tabs" role="tablist">${KIT_GRUPOS.map((g, i) => `<button type="button" class="eq-tab" role="tab" data-g="${g.k}" aria-selected="${i === 0}">${esc(eu ? g.eu : g.es)}</button>`).join('')}</div>${KIT_PIEZAS.map(fila).join('')}</div>
       </div>
-      ${ptPie({ info: `<div class="c3-que"><b>${eu ? 'Oinetakoak, gerrikoa, eskumuturrekoak eta takoak' : 'Zapatillas, fajín, muñequeras y tacos'}</b><span>${eu ? 'Arrastatu pilotaria biratzeko' : 'Arrastra el pelotari para girarlo'}</span></div>`, botones: `<button type="button" class="lg-btn go" data-a="ok">${eu ? 'Prest' : 'Listo'}</button>` })}`);
+      ${ptPie({ info: `<div class="c3-que"><b>${eu ? 'Oinetakoak, gerrikoa, eskumuturrekoak, takoak eta ilea' : 'Zapatillas, fajín, muñequeras, tacos y pelo'}</b><span>${eu ? 'Arrastatu pilotaria biratzeko' : 'Arrastra el pelotari para girarlo'}</span></div>`, botones: `<button type="button" class="lg-btn go" data-a="ok">${eu ? 'Prest' : 'Listo'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'eq-pant', 'pt-pant');
     const cv = r.querySelector('.eq-cv'), g2 = cv.getContext('2d'), vista = r.querySelector('.eq-vista');
     let M = null, giro = -0.35, pend = 0, vivo = true, grupo = KIT_GRUPOS[0].k;
@@ -114,11 +125,11 @@ export function abreEquipacion({ nombre = '', kicker = '' } = {}) {
     const pide = () => { if (!pend) pend = requestAnimationFrame(dibuja); };
     const marca = () => { const k = kitTuyo(); for (const p of KIT_PIEZAS) {
       r.querySelectorAll(`[data-k="${p.k}"] .eq-sw`).forEach(b => b.setAttribute('aria-checked', String(b.dataset.c === k[p.k])));
-      const c = KIT_COLORES.find(x => x.id === k[p.k]); r.querySelector(`[data-n="${p.k}"]`).textContent = c ? (eu ? c.eu : c.es) : sinDe(p); } };
+      const c = paleta(p).find(x => x.id === k[p.k]); r.querySelector(`[data-n="${p.k}"]`).textContent = c ? (eu ? c.eu : c.es) : sinDe(p); } };
     // (las pestañas: solo las filas de la suya, y la vista del pelotari que le toca)
     const pestana = (g) => { grupo = g; r.querySelectorAll('.eq-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.g === g))); r.querySelectorAll('.eq-fila').forEach(f => { f.hidden = f.dataset.g !== g; }); pide(); };
     marca();
-    if (hasMeshy(aspecto.modelo)) maniqui(aspecto).then(m => { if (!vivo) return m.fin(); M = m; r.querySelector('.eq-espera')?.remove(); dibuja(); }).catch(e => { console.warn('equipación', e); const s = r.querySelector('.eq-espera'); if (s) s.textContent = ''; });
+    if (hasMeshy(aspecto.modelo)) maniqui(aspecto).then(m => { if (!vivo) return m.fin(); M = m; M.redibuja = pide; r.querySelector('.eq-espera')?.remove(); dibuja(); }).catch(e => { console.warn('equipación', e); const s = r.querySelector('.eq-espera'); if (s) s.textContent = ''; });
     // girarlo: arrastrando de lado
     let arr = null;
     vista.addEventListener('pointerdown', (e) => { arr = { x: e.clientX, g: giro, id: e.pointerId }; try { vista.setPointerCapture(e.pointerId); } catch (er) { /* sin captura */ } });

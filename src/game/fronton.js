@@ -6,7 +6,7 @@ import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarI
 import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { tacosColor } from '../actors/sinTacos.js';
-import { ponFajin } from '../pelota/fajin.js';
+import { ponFajin, ponZapatillas } from '../pelota/prendas.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { entornoExtent } from '../pelota/entorno.js';
@@ -69,7 +69,9 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
     // (de colorado, la camiseta teñida; y, si es el tuyo, tu equipación: zapatillas, fajín, muñequeras y tacos, pelota/kit.js)
     if (model === 'pelotari_rojo' || kit) outfitTint(r.char.root, A.modelo, { shirt: model === 'pelotari_rojo' ? COLORADO : null, ...(kit || {}) });
     if (kit?.taco) tacosColor(r.char, kit.taco);
-    if (kit?.sash) await ponFajin(r.char.root, kit.sash).catch(e => console.warn('fajín', e));   // (el fajín, en 3D: pelota/fajin.js)
+    // (el fajín y las zapatillas, en 3D: pelota/prendas.js)
+    if (kit?.sash) await ponFajin(r.char.root, kit.sash).catch(e => console.warn('fajín', e));
+    if (kit?.shoes) await ponZapatillas(r.char.root, kit.shoes, kit.sole).catch(e => console.warn('zapatillas', e));
     return corre(r);
   } catch (e) { console.warn('pelotari', A.modelo, e); }
   if (girl && hasChica('pelotari')) try {
