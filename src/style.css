@@ -419,7 +419,7 @@ html:not(.tactil) :is(.fb-btns, .enc-btns, #bino .bbtn),
    el golpe y se enciende cuando llegas a la pelota) */
 .con-mando .pel-btns { pointer-events: none; }
 .con-mando .pel-hit { width: 72px; height: 72px; font-size: var(--fs-sm); opacity: .92; }
-.pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; text-transform: none; opacity: .85; }
+.pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; text-transform: none; opacity: .6; }
 .pel-drop .pel-hk, .pel-sprint .pel-hk { bottom: 8px; }
 html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl, html:not(.con-mando) .pel-drop:has(.pel-hk) > span, html:not(.con-mando) .pel-sprint:has(.pel-hk) > span { transform: translateY(-5px); }
 .con-mando .pel-hk { display: none; }   /* (con el mando, GOLPE es su botón: la tecla sobra) */

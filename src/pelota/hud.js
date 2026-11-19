@@ -190,17 +190,15 @@ const CSS = `
 .pel-teclas kbd{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;background:linear-gradient(#fff,#e9e3f6);color:#2a1650;font:900 var(--fs-sm)/1 'MZ Texto',sans-serif;box-shadow:0 2px 0 #9a86c8}
 html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-stick{position:absolute;left:0;bottom:0;width:calc(46vw / var(--z, 1));height:calc(62dvh / var(--z, 1));pointer-events:auto;touch-action:none}
-.pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
-.pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
-.pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
+.pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.34);background:rgba(8,4,18,.2);display:none}
+.pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.5)}
+.pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:120px;height:120px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.4);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.55;padding:8px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
 /* (botones lisos, sin canto ni sombra: la cara con un degradado suave y, al pulsar, se encogen un poco. Antes llevaban un
    canto semitransparente debajo que parecía una sombra mal puesta) */
 .pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:none;transition:transform .08s,filter .08s}
 .pel-btn:active,.pel-btn.down{transform:scale(.94);filter:brightness(.92)}
 .pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 1px 0 rgba(74,10,94,.45);background:linear-gradient(180deg,#ff7fdc 0%,#f43ad6 100%)}
-.pel-hit.ready{animation:pel-pulse .5s infinite alternate}
-@keyframes pel-pulse{from{box-shadow:0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 0 0 14px rgba(255,220,80,0)}}
 /* (cortada y dejada, con la misma letra: antes la cortada iba un tamaño más pequeña) */
 .pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);border:0;background:linear-gradient(180deg,#6440b8 0%,#432189 100%)}
 .pel-bcol{display:flex;flex-direction:column;align-items:center;gap:10px}
@@ -209,9 +207,6 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
    encima de él, no sobre él */
 .pel-gcol{display:flex;flex-direction:column;align-items:center;gap:10px;--esp:68px}
 .pel-sprint{width:var(--esp);height:var(--esp);font-size:var(--fs-xs);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);transition:transform .08s,filter .08s,background-color .12s,color .12s,opacity .2s}
-.pel-root .pel-sprint{background:rgba(12,5,30,.86);--anillo:#ffc63d}
-.pel-root .pel-sprint.on{background:#ffc63d;color:#2a1300;text-shadow:none;--anillo:#fff}
-.pel-root .pel-sprint.no{opacity:.45}
 .pel-gcol .pel-hit .pel-pw{bottom:calc(100% + var(--esp) + 22px)}
 .pel-cut{background:linear-gradient(180deg,#ff5fae 0%,#d93088 100%)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
@@ -559,10 +554,19 @@ body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pe
    · Menús (presentación, opciones y pausa): cabecera gruesa en cursiva con su raya magenta, volver y cerrar en un botón
      redondo blanco, y lo elegido con borde blanco y una marca de oro en la esquina, en vez de un relleno lila. */
 .pel-root .pel-btn{position:relative}
-.pel-root .pel-btn::before{content:'';position:absolute;inset:5px;border-radius:50%;border:3px solid var(--anillo,#fff);pointer-events:none}
-.pel-root .pel-hit{background:#e0147e;--anillo:#fff}
-.pel-root .pel-drop{background:rgba(12,5,30,.86);--anillo:#5d5bff}
-.pel-root .pel-cut{background:rgba(12,5,30,.86);--anillo:#ff3d9a}
+/* Botones discretos (19 de noviembre de 2026; el autor: «los botones son muy llamativos y quitan mucha atención
+   visual»). Todos de cristal oscuro casi transparente, con un filo fino blanco y la letra blanca: el partido se ve a
+   través. GOLPE, el único con algo de color (un velo magenta) y un filo algo más marcado; cuando la pelota está a tiro, el
+   velo y el filo se encienden un poco, sin latir (antes latía en amarillo). La cortada y la dejada, sin aro de color. El
+   esprint, con un velo de oro mientras corres a tope. El aro de la carga, al pulsar, sigue como estaba: es lo que se mira.
+   Antes: GOLPE magenta macizo, y los demás casi negros con aros gruesos de color. */
+.pel-root .pel-btn{color:rgba(255,255,255,.94);text-shadow:0 1px 2px rgba(0,0,0,.55);background:rgba(8,4,18,.3);--anillo:rgba(255,255,255,.34);transition:transform .08s,filter .08s,background-color .2s,opacity .2s}
+.pel-root .pel-btn::before{content:'';position:absolute;inset:3px;border-radius:50%;border:1.5px solid var(--anillo);pointer-events:none;transition:border-color .2s}
+.pel-root .pel-hit{background:rgba(224,20,126,.24);--anillo:rgba(255,255,255,.58)}
+.pel-root .pel-hit::before{border-width:2px}
+.pel-root .pel-hit.ready{background:rgba(224,20,126,.42);--anillo:rgba(255,255,255,.92)}
+.pel-root .pel-sprint.on{background:rgba(255,198,61,.32);--anillo:rgba(255,214,110,.9)}
+.pel-root .pel-sprint.no{opacity:.35}
 body.alto-contraste .pel-root .pel-btn::before{display:none}
 .pel-root .pel-call{--sk:0deg;padding-left:34px}
 .pel-root .pel-call::before{background:rgba(10,4,26,.94);box-shadow:none}
