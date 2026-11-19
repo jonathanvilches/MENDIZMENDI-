@@ -1,0 +1,111 @@
+/* PERFIL, AJUSTES Y ELIGE FRONTÓN CON LA IDENTIDAD NUEVA (19 de noviembre de 2026; el autor, con las capturas de las tres
+   pantallas: «estas páginas hay que modificarlas y adaptarlas al nuevo diseño y optimizar»).
+   La identidad de las cartas de Torneos (torneos.css): esquinas de 8 px, una raya neutra muy tenue, una sombra oscura y,
+   donde hay foto, la foto de fondo con un velo suave abajo. Y sin aire vacío: los ajustes van en tarjetas por tema que se
+   reparten en columnas, una tras otra, tantas como quepan (tres en el ordenador, dos en el móvil tumbado, una en vertical);
+   antes eran dos paneles altos y, en el material didáctico, uno solo con media pantalla vacía al lado. */
+
+/* ---------- las tarjetas de ajustes, en columnas ---------- */
+#hub .aj-cols { columns: 3 300px; column-gap: var(--hueco-m, 16px); margin-top: var(--esp, 16px); }
+#hub .aj-cols > * { break-inside: avoid; display: block; width: 100%; margin: 0 0 var(--hueco-m, 16px); }
+#hub .aj-card, #hub .aj-cols > .panel.creditos { background: rgba(21, 11, 46, .9); border: 0; outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px;
+  border-radius: 8px !important; box-shadow: var(--sombra-caja, 0 8px 20px rgba(4, 1, 12, .3)); backdrop-filter: none; -webkit-backdrop-filter: none; }
+#hub .aj-cols > .panel.creditos { margin-top: 0; }
+#hub .aj-card .aj-t { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 400 var(--fs-lg, 22px)/1 var(--f-display, 'MZ Display'), sans-serif;
+  text-transform: uppercase; letter-spacing: .01em; color: #fff; }
+#hub .aj-card .aj-t img, #hub .aj-card .aj-t svg { width: 26px; height: 26px; flex: none; }
+#hub .aj-card .set:last-of-type { border-bottom: 0; }
+#hub .aj-card .set-note:last-child { margin-bottom: 0; }
+#hub .aj-card .btn { width: 100%; justify-content: center; }
+#hub .aj-card .hint { margin: 8px 0 0; font-size: var(--fs-sm); color: var(--dim, #a097bd); }
+#hub .aj-card.pjugar { display: block; } #hub .aj-card.pjugar .btn + .set-note { margin-top: 6px; }
+#hub .aj-peligro .btn.danger { margin-top: 4px; }
+/* (la elección de tu pelotari, más apretada: 22 caras sin hacer la tarjeta enorme) */
+#hub .aj-card .p10 { grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 4px; }
+#hub .aj-card .p10 button { border-radius: 8px; padding: 4px 2px; }
+#hub .aj-card .p10 button small { font-size: 10px; }
+
+/* ---------- tu ficha de jugador, a lo ancho, como una carta de jugador ---------- */
+/* (sin foto detrás: las portadas de las comarcas y las láminas llevan su propio explorador, y salían dos personajes. Un
+   fondo de la paleta, con un halo detrás de tu personaje y la luz que cruza cada pocos segundos, como en las cartas de Torneos) */
+#hub .pf-hero { position: relative; isolation: isolate; overflow: hidden; margin-top: var(--esp, 16px); display: grid;
+  grid-template-columns: auto minmax(0, 1.1fr) minmax(0, 1fr); align-items: center; gap: clamp(12px, 2vw, 28px);
+  padding: clamp(12px, 2vw, 20px) clamp(14px, 2.4vw, 28px); border-radius: 8px;
+  background: radial-gradient(38% 120% at 9% 70%, rgba(255, 79, 216, .34), rgba(255, 79, 216, 0) 72%),
+    radial-gradient(45% 110% at 100% 0%, rgba(123, 47, 247, .4), rgba(123, 47, 247, 0) 70%), linear-gradient(115deg, #2c1063 0%, #1a0b3c 55%, #120827 100%);
+  outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px; box-shadow: var(--sombra-caja, 0 8px 20px rgba(4, 1, 12, .3)); }
+#hub .pf-hero::after { content: ''; position: absolute; z-index: -1; top: -20%; bottom: -20%; left: 0; width: 30%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .1), transparent); transform: translateX(-170%) skewX(-16deg); animation: s2-luz 6.4s ease-in-out 1.5s infinite; }
+@media (prefers-reduced-motion: reduce) { #hub .pf-hero::after { display: none; } }
+#hub .pf-fig { align-self: end; margin-bottom: calc(-1 * clamp(12px, 2vw, 20px)); }
+#hub .pf-fig img { display: block; height: clamp(170px, 30vh, 250px); width: auto; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5)); }
+#hub .pf-datos { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+#hub .pf-nombre { display: flex; flex-direction: column; gap: 6px; color: var(--mute); font: 800 var(--fs-xs, 12px)/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+#hub .pf-nombre input { font: 400 var(--fs-xl, 26px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; letter-spacing: .01em; padding: 8px 12px;
+  border-radius: 6px; border: 1px solid rgba(255, 255, 255, .14); background: rgba(9, 4, 20, .5); color: #fff; outline: none; width: 100%; -webkit-user-select: text; user-select: text; }
+#hub .pf-nombre input:focus { border-color: var(--cyan, #c9b2ff); box-shadow: 0 0 0 3px rgba(201, 178, 255, .25); }
+#hub .pf-hero .lvl { color: #fff; } #hub .pf-hero .lvl small { color: var(--mute); }
+#hub .pf-hero .btn { align-self: flex-start; }
+#hub .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#hub .pf-stats span { min-width: 0; padding: 6px 10px; border-radius: 6px; background: rgba(13, 6, 28, .58); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+#hub .pf-stats span img, #hub .pf-stats span svg { width: 22px; height: 22px; flex: none; }
+/* (en pantallas estrechas, lo de lo que llevas debajo, a lo ancho) */
+@media (max-width: 900px) {
+  #hub .pf-hero { grid-template-columns: auto minmax(0, 1fr); }
+  #hub .pf-stats { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  #hub .pf-fig { grid-row: span 1; margin-bottom: 0; align-self: center; }
+}
+/* (móvil tumbado: la ficha baja, el personaje más pequeño y lo tuyo en una fila de seis) */
+@media (orientation: landscape) and (max-height: 500px) {
+  #hub .pf-hero { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); padding: 10px 16px; gap: 14px; }
+  #hub .pf-stats { grid-column: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #hub .pf-fig { margin-bottom: -10px; align-self: end; } #hub .pf-fig img { height: 150px; }
+  #hub .pf-nombre input { font-size: var(--fs-lg, 22px); padding: 6px 10px; }
+  #hub .pf-datos { gap: 6px; } #hub .pf-hero .lvl small { display: none; }
+  #hub .pf-stats span { padding: 4px 8px; font-size: 12px; }
+}
+@media (max-width: 560px) {
+  #hub .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #hub .pf-fig img { height: 140px; }
+}
+
+/* ---------- Elige frontón: una carta de foto por frontón ---------- */
+#hub .frs-in { width: min(960px, 100%); max-height: min(720px, calc(calc(100dvh / var(--z, 1)) - 32px)); background: #150b2e; border: 0;
+  outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px; border-radius: 8px !important; }
+#hub .frs-head { border-bottom: 0; padding-bottom: 8px; }
+#hub .frs-list { padding-top: 8px; }
+#hub .frs-cartas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(8px, 1.4vw, 14px); }
+#hub .frc { position: relative; isolation: isolate; overflow: hidden; aspect-ratio: 16 / 10; display: block; width: 100%; padding: 0; border: 0; border-radius: 8px;
+  background: #0e0720; color: #fff; text-align: left; cursor: pointer; outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px;
+  box-shadow: 0 8px 20px rgba(4, 1, 12, .3); transition: transform .3s var(--muelle, cubic-bezier(.2, .9, .3, 1.15)), box-shadow .3s; }
+#hub .frc img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; max-width: none; object-fit: cover; transition: transform .7s cubic-bezier(.2, .8, .3, 1); }
+#hub .frc::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(9, 4, 20, 0) 40%, rgba(9, 4, 20, .38) 66%, rgba(9, 4, 20, .78) 100%); }
+#hub .frc:hover, #hub .frc:focus-visible { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(4, 1, 12, .45); }
+#hub .frc:hover img { transform: scale(1.05); }
+/* (el elegido: un velo rosa por dentro y su marca, como lo elegido en todo el juego: ui/neon.css) */
+#hub .frc.on { outline: 2px solid var(--gold, #ff7ac8); outline-offset: -2px; }
+#hub .frc.on::after { background: linear-gradient(180deg, rgba(255, 79, 216, .12) 0%, rgba(9, 4, 20, 0) 40%, rgba(9, 4, 20, .38) 66%, rgba(9, 4, 20, .78) 100%); }
+#hub .frc-pie { position: absolute; left: 12px; right: 12px; bottom: 10px; display: flex; flex-direction: column; gap: 3px; }
+#hub .frc-pie small { font: 800 11px/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--gold, #ff7ac8);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub .frc-pie b { font: 400 clamp(17px, 2.1vw, 26px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; letter-spacing: .01em; color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub .frc-tipo { position: absolute; top: 8px; left: 8px; padding: 4px 8px; border-radius: 4px; font: 800 10px/1.1 var(--f-cond, 'MZ Cond'), sans-serif; font-style: normal;
+  letter-spacing: .1em; text-transform: uppercase; color: #fff; background: rgba(13, 6, 28, .62); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+#hub .frc-ok { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%;
+  background: var(--gold, #ff7ac8); color: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, .4); }
+#hub .frc-ok svg { width: 16px; height: 16px; }
+/* (móvil tumbado: casi toda la pantalla, cinco por fila, y las nueve a la vista sin desplazar) */
+@media (orientation: landscape) and (max-height: 500px) {
+  #hub .frs { padding: 8px; }
+  #hub .frs-in { width: 100%; max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
+  #hub .frs-head { padding: 10px 56px 4px 16px; } #hub .frs-head h2 { font-size: var(--fs-lg, 22px); }
+  #hub .frs-list { padding: 6px 16px 12px; }
+  #hub .frs-cartas { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  #hub .frc-pie { left: 8px; right: 8px; bottom: 6px; } #hub .frc-pie small { font-size: 9px; } #hub .frc-pie b { font-size: 15px; }
+  #hub .frc-tipo { top: 5px; left: 5px; padding: 3px 5px; font-size: 8px; }
+  #hub .frc-ok { width: 22px; height: 22px; top: 5px; right: 5px; }
+}
+/* (en vertical, dos por fila) */
+@media (orientation: portrait) and (max-width: 640px) { #hub .frs-cartas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

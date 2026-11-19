@@ -4,7 +4,8 @@ import COMARCAS from '../data/comarcas.json';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import SETTLEMENTS from '../data/settlements.json';
-import { LEVELS, levelById, esSede, sedeDePueblo } from '../data/levels.js';
+import { LEVELS, levelById, esSede, sedeDePueblo, esExterior } from '../data/levels.js';
+import { canchaImg } from '../ui/frontonFotos.js';
 import { REAL_IDS, ATRIBUCION } from '../data/reales/index.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { showFicha, allFichas } from '../ui/ficha.js';
@@ -81,6 +82,7 @@ import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
+import './ajustes.css';   // (Perfil y Ajustes en tarjetas por tema, y Elige frontón con cartas de foto)
 // (las fotos de las dos cartas de Torneos: la pareja de pelotaris dentro del frontón y la de fútbol en el césped del estadio,
 // de Higgsfield, en tres tamaños; assets/torneos)
 import fotoPelota from '../assets/torneos/pelota.webp';
@@ -521,15 +523,23 @@ export class Hub {
   frontonBox(l = levelById(this.frontonId())) {
     return `<button class="sp-box sp-pick" data-frpick data-una-linea aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(l.name.split(' /')[0])}</b><small>${esc((comarca(l.comarca)?.name || '').replace(/^Comarca de /, ''))}</small></span><i class="sp-chev" aria-hidden="true"></i></button>`;
   }
+  // ELIGE FRONTÓN, CON CARTAS DE FOTO (19 de noviembre de 2026; el autor, con la captura de la ventana: «hay que modificarlas
+  // y adaptarlas al nuevo diseño»). Antes, un botón de texto por pueblo bajo el nombre de su comarca, con media ventana
+  // vacía. Ahora cada frontón es una carta con su cancha tal como se juega en los Campeonatos (src/assets/frontones-juego,
+  // ui/frontonFotos.js), y encima el pueblo, su comarca y si es al aire libre, cubierto o el Labrit; el elegido, con su
+  // marca. Las nueve caben a la vista: tres por fila en el ordenador y cinco en el móvil tumbado (ajustes.css)
   frontonPicker() {
     this.sound?.ui('open');
-    const cur = this.frontonId(), groups = COMARCAS.map(c => [c, LEVELS.filter(l => esSede(l.id) && l.comarca === c.id)]).filter(([, ts]) => ts.length);
+    const cur = this.frontonId(), sedes = COMARCAS.flatMap(c => LEVELS.filter(l => esSede(l.id) && l.comarca === c.id));
+    const tipo = (id) => esExterior(id) ? ['plaza', 'Al aire libre'] : id === 'pamplona' ? ['labrit', 'Labrit'] : ['cubierto', 'Cubierto'];
+    const carta = (l) => { const [k, t] = tipo(l.id), u = canchaImg(l.id, k) || townImg(l), on = l.id === cur, cm = (comarca(l.comarca)?.name || '').replace(/^Comarca de /, '');
+      return `<button type="button" class="frc${on ? ' on' : ''}" data-fronton="${l.id}" aria-pressed="${on}"><img src="${u}" alt="" decoding="async"><i class="frc-tipo">${t}</i>${on ? '<i class="frc-ok" aria-label="Elegido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>' : ''}<span class="frc-pie"><small>${esc(cm)}</small><b>${esc(l.name.split(' /')[0])}</b></span></button>`; };
     const s = el(`<div class="sheet frs"><div class="frs-in" role="dialog" aria-label="Elige frontón">
-      <div class="frs-head"><small class="kicker">Pelota a mano</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="frs-list">${groups.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div class="frs-grid">${ts.map(l => `<button class="fr-chip ${l.id === cur ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('')}</div></section>`).join('')}</div></div></div>`);
+      <div class="frs-head"><small class="kicker">Pelota a mano · Campeonatos</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
+      <div class="frs-list"><div class="frs-cartas">${sedes.map(carta).join('')}</div></div></div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
-    s.querySelector('.fr-chip.on')?.scrollIntoView({ block: 'nearest' });
+    s.querySelector('.frc.on')?.scrollIntoView({ block: 'nearest' });
   }
   // ---------- Mapa ----------
   // (en el didáctico, el mismo mapa 3D del inicio, en su propia sección: cada comarca lleva a su página y cada pueblo a la
@@ -1104,54 +1114,61 @@ export class Hub {
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; delete S.slowPc; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('herrizherri-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
+    // PERFIL Y AJUSTES, CON LA IDENTIDAD NUEVA (19 de noviembre de 2026; el autor, con las capturas de Perfil y de Ajustes:
+    // «estas páginas hay que modificarlas y adaptarlas al nuevo diseño y optimizar»). Arriba, tu ficha de jugador a lo
+    // ancho, como una carta de jugador: tu personaje, tu nombre, tu nivel y lo que llevas. Debajo, los ajustes
+    // repartidos en tarjetas por tema (juego, sonido, imagen, tu pelotari, cómo jugar, tu partida), en columnas que se
+    // llenan una tras otra: nada de media pantalla vacía. Las mismas tarjetas en el material didáctico (ajustes.css)
+    const tarjeta = (ic, t, cuerpo, cls = '') => `<div class="panel aj-card${cls ? ' ' + cls : ''}"><h2 class="aj-t">${I(ic, 26)} ${t}</h2>${cuerpo}</div>`;
     const mode = `<label class="set">Modo <select id="pMode"><option value="juego">Juego</option><option value="didactico">Material didáctico</option></select></label>
         <p class="set-note">${isDidactico() ? 'Solo el material para aprender, sin el juego: todo abierto para leer y estudiar.' : 'Con «Material didáctico» se oculta el juego y queda todo lo que se aprende, abierto para leer y estudiar. Tu partida no se borra.'}</p>`;
+    const idioma = `<label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>`;
+    const sonido = `<label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
+        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>`;
+    const sencilloSet = `<label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
+        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>`;
     if (isDidactico()) return `${cabeza('Material didáctico · Ajustes', 'gear', 'Ajustes')}
-      <section class="two"><div class="panel"><h2>${I('gear', 30)} Ajustes</h2>${mode}
-        <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
-        <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
-        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
-        <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.partida()}${this.creditos()}${this.diagnostico()}`;
+      <section class="aj-cols">${tarjeta('gear', 'Ajustes', mode + idioma)}${tarjeta('music', 'Sonido', sonido)}${tarjeta('peak', 'Imagen', sencilloSet)}${this.partida()}${this.creditos()}${this.diagnostico()}</section>`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `${cabeza('Tu partida · Perfil', 'gear', 'Perfil y ajustes')}
-      <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
-        <label>Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
-        <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
-        <div class="pstats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div>
-        <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div></div>
-      <div class="panel pjugar"><h2>${I('play', 30)} Cómo jugar</h2>
-        <button class="btn" id="pCj">${I('play', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>
-        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
-        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
-      </div>
-      <div class="panel pajustes"><h2>${I('gear', 30)} Ajustes</h2>${mode}
+      <section class="pf-hero"><div class="pf-fig"><img src="${avatarPortrait(p.avatar, 'hero')}" alt="" decoding="async"></div>
+        <div class="pf-datos"><label class="pf-nombre">Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
+          <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
+          <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div>
+        <div class="pstats pf-stats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div></section>
+      <section class="aj-cols">
+      ${tarjeta('gear', 'Juego', `${mode}
         <label class="set">Edad <select id="pAge">${EDADES.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}</select></label>
         <p class="set-note">${esc(EDADES.find(e => e.id === edadDe(p)).text)}. Cambiar de edad no borra nada de lo que ya has hecho.</p>
-        <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
-        <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
-        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
+        ${idioma}`)}
+      ${tarjeta('music', 'Sonido y comentarios', `${sonido}
+        <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Solo Mikel</option><option value="mujer">Solo Edurne</option><option value="no">Sin comentarios</option></select></label>
+        <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
+        <p class="set-note">En los partidos de pelota comentan Mikel y Edurne, en castellano: Mikel narra la jugada y Edurne, que jugó a pelota, la explica y cuenta historias del frontón y de los pelotaris. Con uno solo, solo sus frases.</p>`)}
+      ${tarjeta('pelota', 'Tu pelotari', `
+        ${/* (tu pelotari: uno de los 22 de siempre, 11 chicos y 11 chicas; pelota/aspectos.js. El autor, 18 de noviembre de 2026: «que en el juego puedas seleccionarlos») */ ''}
+        <div class="set set-p10"><span>En los partidos</span>
+          <div class="p10" id="pP10" role="radiogroup" aria-label="Tu pelotari">${ASPECTOS.map(a => `<button type="button" role="radio" data-p10="${a.id}" aria-checked="${a.id === aspectoTuyo().id}" title="${esc(a.es)}"><img src="${a.cara}" alt="" draggable="false"><small>${esc(a.es)}</small></button>`).join('')}</div></div></div>
+        <p class="set-note">Los 22 pelotaris del juego: todos juegan igual, cambia el aspecto. En tus cartas y en la cancha sales con el que elijas.</p>
+        ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
+        <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}`)}
+      ${tarjeta('peak', 'Imagen', `
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid"${MOVIL_JUSTO ? ' disabled' : ''}>Media</option><option value="high"${MOVIL_JUSTO ? ' disabled' : ''}>Alta</option></select></label>
+        ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
+        ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
         <label class="set">Efectos de imagen <input type="checkbox" id="pPost" ${postElegido() ? 'checked' : ''}></label>
         <p class="set-note">Bruma en el valle, sombras de nubes, resplandor de las luces y color de cada hora. Solo con calidad Media o Alta; si el juego va justo, se apagan solos.</p>
         <label class="set">Textos grandes <input type="checkbox" id="pGrandes" ${accesible().grandes ? 'checked' : ''}></label>
         <label class="set">Alto contraste <input type="checkbox" id="pContraste" ${accesible().contraste ? 'checked' : ''}></label>
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
-        <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Solo Mikel</option><option value="mujer">Solo Edurne</option><option value="no">Sin comentarios</option></select></label>
-        <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
-        ${/* (tu pelotari: uno de los 22 de siempre, 11 chicos y 11 chicas; pelota/aspectos.js. El autor, 18 de noviembre de 2026: «que en el juego puedas seleccionarlos») */ ''}
-        <div class="set set-p10"><span>Tu pelotari en los partidos</span>
-          <div class="p10" id="pP10" role="radiogroup" aria-label="Tu pelotari">${ASPECTOS.map(a => `<button type="button" role="radio" data-p10="${a.id}" aria-checked="${a.id === aspectoTuyo().id}" title="${esc(a.es)}"><img src="${a.cara}" alt="" draggable="false"><small>${esc(a.es)}</small></button>`).join('')}</div></div>
-        <p class="set-note">Los 22 pelotaris del juego: todos juegan igual, cambia el aspecto. En tus cartas y en la cancha sales con el que elijas.</p>
-        ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
-        <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}
-        <p class="set-note">En los partidos de pelota comentan Mikel y Edurne, en castellano: Mikel narra la jugada y Edurne, que jugó a pelota, la explica y cuenta historias del frontón y de los pelotaris. Con uno solo, solo sus frases.</p>
-        ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
-        ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
-        <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
-        <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.partida()}${this.creditos()}${this.diagnostico()}`;
+        ${sencilloSet}`)}
+      ${tarjeta('play', 'Cómo jugar', `
+        <button class="btn" id="pCj">${I('play', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>
+        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
+        <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>`, 'pjugar')}
+      ${this.partida()}${this.creditos()}${this.diagnostico()}
+      ${tarjeta('close', 'Empezar de cero', `<p class="set-note">Borra todo lo que llevas en este aparato: misiones, sellos, cartas y campeonatos. No se puede deshacer.</p><button class="btn danger" id="pReset">Borrar todo el progreso</button>`, 'aj-peligro')}</section>`;
   }
   // llevar la partida a otro aparato o a la app nueva (util/traspaso.js): copiar el código aquí y pegarlo allí
   partida() {
