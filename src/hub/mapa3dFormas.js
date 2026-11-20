@@ -164,6 +164,16 @@ export function losa(P, alto, paso, org = null) {
     const ny = Math.max(0.05, nor[v * 3 + 1]), dx = -nor[v * 3] / ny * 2.6, dz = -nor[v * 3 + 2] / ny * 2.6, luz = Math.max(0, (0.6 * dx + 0.62 + 0.5 * dz) / Math.hypot(dx, 1, dz));
     col[v * 3] = col[v * 3 + 1] = col[v * 3 + 2] = 0.45 + 0.88 * luz;
   }
+  // (y en el verde, lo cóncavo y lo convexo de cada punto, a unos 750 m: la altura media de alrededor menos la suya, en
+  // unidades del mundo; más de cero, vaguada, donde se guarda el suelo y crece la hierba; menos, cresta, donde el suelo se
+  // va y asoma la roca. Va en el verde del color, que el relieve no usaba: el rojo es la sombra. Se saca de una rejilla
+  // propia, del mismo tamaño sea cual sea la malla, para que no cambie al pasar a la fina. 20 de noviembre de 2026, el
+  // autor: «las montañas no suelen estar llenas del todo de verde»)
+  { const cs = 0.12, k = 3, gx0 = x0 - k * cs, gz0 = z0 - k * cs, gnx = Math.ceil((x1 - x0) / cs) + 2 * k + 2, gnz = Math.ceil((z1 - z0) / cs) + 2 * k + 2, Hg = new Float32Array(gnx * gnz);
+    for (let j = 0; j < gnz; j++) for (let i = 0; i < gnx; i++) Hg[j * gnx + i] = alto(gx0 + i * cs, gz0 + j * cs);
+    const cv = (i, j) => { i = Math.max(k, Math.min(gnx - 1 - k, i)); j = Math.max(k, Math.min(gnz - 1 - k, j)); const o = j * gnx + i; return (Hg[o - k] + Hg[o + k] + Hg[o - k * gnx] + Hg[o + k * gnx]) * 0.25 - Hg[o]; };
+    for (let v = 0; v < nV; v++) { const fx = (pos[v * 3] - gx0) / cs, fz = (pos[v * 3 + 2] - gz0) / cs, i = Math.floor(fx), j = Math.floor(fz), u = fx - i, w = fz - j;
+      col[v * 3 + 1] = (cv(i, j) * (1 - u) + cv(i + 1, j) * u) * (1 - w) + (cv(i, j + 1) * (1 - u) + cv(i + 1, j + 1) * u) * w; } }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return { g, hmax, malla: { x0, z0, paso } };
 }

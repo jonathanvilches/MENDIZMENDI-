@@ -3628,6 +3628,28 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tienen todas su grabación; sin voz quedan las que llevan una cuenta o un nombre (unas 120 grabaciones cortas, una por
   número), los paseantes y, a falta de aprobar sus voces nuevas, Maite e Itziar. La Lamia, el Basajaun, el Bobo, el
   Zarratrako y los danzantes de Muskilda siguen con el cuerpo antiguo (`COSTUME` en `actors/npcGlb.js`).
+- **Los montes: verde, roca y textura donde toca** (20 de noviembre de 2026; el bloque `#ifndef LIGERO` de la isla en
+  `RELIEVE_FS` y `surcos()` en `hub/mapa3dSombreadores.js`, la curvatura en el verde del color en `losa` de
+  `hub/mapa3dFormas.js`). El autor: «me sigue faltando textura en las islas flotantes [...] de los montes, en la hierba» y
+  «las montañas no suelen estar llenas del todo de verde [...] qué zonas son más rocosas». Reglas, como los montes de
+  Navarra: la roca sale en lo más pendiente, en las crestas y por encima de unos 1.250 a 1.750 m (Larra, Anie, la Mesa de
+  los Tres Reyes); menos en las vaguadas, bajo el bosque y en el norte atlántico (Baztan, Bidasoa: verde casi hasta las
+  cumbres), más en el sur; y donde la ortofoto ya es gris sin verde. Su color, caliza clara en el Pirineo y las sierras,
+  arenisca más oscura en el norte, marga ocre en el sur, con la luz del relieve, la de la foto, estratos a rodales, canales y
+  espolones y grano de piedra. Al pie, pedregal en lenguas. La hierba, más pajiza en las solanas, más honda en las umbrías,
+  jugosa en las vaguadas, rala en las crestas; helechales pardos en la media ladera del norte. En las paredes de roca la
+  nieve solo queda en las canales.
+  - La pendiente es la de verdad: la de la malla dividida por la exageración (`uExa` × 2.076 m por unidad, unas 6,85
+    veces); con la de la malla todo el monte pasaba de 45° y salía roca en todas partes. Los umbrales están medidos en el
+    relieve del juego, que a unos 200 m suaviza mucho: en el Pirineo el 90 % de las laderas no pasa de 16° y casi ninguna de
+    20°; en Baztan, el 90 % de 12°. Las paredes empiezan hacia los 11° del relieve, que en la isla se ven de más de 50°.
+  - La pendiente sale de la normal suave de la malla (`vNo`), no de la del triángulo, que dejaba ver los triángulos; en la
+    orilla bajada, que la malla no sabe, la del triángulo. Los surcos van con tres rumbos fijos que se funden según el de la
+    pendiente: con el rumbo de cada punto las coordenadas giraban y salían remolinos como huellas dactilares.
+  - Crestas y vaguadas: en `losa`, una rejilla propia de 0,12 unidades con la altura media a unos 750 m menos la del punto,
+    en el canal verde del color (el rojo es la sombra), igual en la malla gruesa y en la fina.
+  - Los dibujos que siguen la distancia (surcos, grano, manchas, piedra) se funden entre dos tamaños, y el segundo es
+    exactamente el primero del tamaño siguiente: con desfases distintos saltaban al acercarse.
 - **Isla: frondosidad sin árboles, raíces y musgo en 3D** (16 de noviembre de 2026; `ARBOLES_ISLA` en `hub/mapa3d.js`,
   «la frondosidad» de `RELIEVE_FS` en `hub/mapa3dSombreadores.js`, `ponColgantes` en `hub/mapa3dIsla.js`): el autor no quería
   árboles de polígonos en la isla («desde el ángulo de la cámara no se verían árboles, se vería frondosidad») y veía el musgo

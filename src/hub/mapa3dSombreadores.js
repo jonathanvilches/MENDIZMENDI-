@@ -98,15 +98,15 @@ float orilla(vec2 xz, float y) {
   if (uOrKo > 0.0) { vec2 u = (xz - uOrRo.xy) / uOrRo.zw; if (u.x > 0.0 && u.y > 0.0 && u.x < 1.0 && u.y < 1.0) { vec4 o = texture2D(uOrTo, u); y -= o.g * uOrKo * max(0.0, y - uOrB); } }
   return y; }
 `;
-const relieveVS = (antes, alt) => `${antes}varying vec2 vXZ; varying float vH, vSom, vOr;
+const relieveVS = (antes, alt) => `${antes}varying vec2 vXZ; varying float vH, vSom, vOr, vCv; varying vec4 vNo;
 #include <fog_pars_vertex>
-void main() { vec3 p0 = position; vOr = 0.0; ${alt} vXZ = p0.xz; vH = p0.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(p0, 1.0); gl_Position = projectionMatrix * mvPosition;
+void main() { vec3 p0 = position; vOr = 0.0; vCv = 0.0; vNo = vec4(normal, 0.0); ${alt} vXZ = p0.xz; vH = p0.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(p0, 1.0); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
 // (vOr: cuánto ha bajado el terreno en la orilla de una isla, para darle la luz de su pendiente nueva)
 // (aAmp: en lo que crece una isla para que sus montes salgan enteros, mapa3dAmplia.js, donde el relieve ya no es el de los
 // datos ni el del sombreado del mapa: allí la luz, como en la orilla, de la propia malla)
-export const RELIEVE_VS = relieveVS('attribute float aFino, aAmp; uniform float uFinoK; ' + ORILLA, 'p0.y += aFino * uFinoK; { float y0 = p0.y; p0.y = orilla(p0.xz, p0.y); vOr = max(clamp((y0 - p0.y) * 0.8, 0.0, 1.0), aAmp); }');
+export const RELIEVE_VS = relieveVS('attribute float aFino, aAmp; uniform float uFinoK; ' + ORILLA, 'p0.y += aFino * uFinoK; vCv = color.g; { float y0 = p0.y; p0.y = orilla(p0.xz, p0.y); vNo.w = clamp((y0 - p0.y) * 0.8, 0.0, 1.0); vOr = max(vNo.w, aAmp); }');
 // (la sombra de las nubes que pasan despacio por encima de Navarra y de lo que la rodea, en unidades del mundo: manchas
 // grandes y blandas, de unos diez kilómetros, que van hacia el este con el viento del oeste)
 export const NUBES = `uniform float uT;
@@ -145,7 +145,7 @@ vec3 ortoFuera(vec3 o, vec2 sv, vec2 ou) { if (uEntK <= 0.0) return o; float d =
   vec2 eu = vec2((sv.x + 628.0) / 2000.0, 1.0 - (sv.y + 360.0) / 1520.0); return mix(pow(max(texture2D(uEnt, eu).rgb, 0.0), vec3(0.4545)), o, d); }
 `;
 export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
-varying vec2 vXZ; varying float vH, vSom, vOr;
+varying vec2 vXZ; varying float vH, vSom, vOr, vCv; varying vec4 vNo;
 #ifdef CALLES
 uniform sampler2D uCalles; uniform vec4 uCallesR;
 #endif
@@ -155,6 +155,14 @@ ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+// (los surcos de una ladera, en unidades del mapa: crestas y vaguadas finas, alargadas a lo largo de d, torcidas)
+float surco1(vec2 p, vec2 d, float f) { vec2 q = vec2(dot(p, vec2(-d.y, d.x)), dot(p, d)) * f; return 1.0 - abs(2.0 * ruido(vec2(q.x, q.y * 0.18)) - 1.0); }
+// (ladera abajo, por el rumbo dn de la pendiente: tres rumbos fijos, a 60°, que se funden según lo cerca que está cada uno.
+// Con el rumbo de cada punto, las coordenadas giraban con él y salían remolinos como huellas dactilares)
+float surcos(vec2 p, vec2 dn, float f) { vec2 d2 = vec2(dn.x * dn.x - dn.y * dn.y, 2.0 * dn.x * dn.y);
+  float w0 = max(0.0, d2.x + 0.5), w1 = max(0.0, dot(d2, vec2(-0.5, 0.866)) + 0.5), w2 = max(0.0, dot(d2, vec2(-0.5, -0.866)) + 0.5); w0 *= w0; w1 *= w1; w2 *= w2;
+  float r = 0.0; if (w0 > 0.0) r += w0 * surco1(p, vec2(1.0, 0.0), f); if (w1 > 0.0) r += w1 * surco1(p, vec2(0.5, 0.866), f); if (w2 > 0.0) r += w2 * surco1(p, vec2(-0.5, 0.866), f);
+  return r / max(w0 + w1 + w2, 1e-4); }
 // (la frondosidad: la masa de copas del bosque vista desde lo alto, bultos redondos con su lado al sol, su lado en sombra y
 // huecos oscuros entre ellos, sin árboles sueltos; q, en copas)
 float copa(vec2 q) { return ruido(q) * 0.62 + ruido(q * 2.31 + 3.7) * 0.38; }
@@ -295,7 +303,97 @@ void main() {
       c *= mix(1.0, fr, min(1.0, kb * 1.1));
     }
   }
+  float rocaK = 0.0;   // (la roca del monte, para que la nieve no tape las paredes)
 #ifndef LIGERO
+  // (la textura de la isla, desde la vista de una comarca y el vuelo de dron: el autor, el 20 de noviembre de 2026, «me sigue
+  // faltando textura en las islas flotantes de cada comarca. Textura de los montes, en la hierba», y luego: «las montañas no
+  // suelen estar llenas del todo de verde [...] qué zonas son más rocosas, que haya ese contraste de texturas». Como son los
+  // montes de Navarra: el verde se queda en lo llano, en las vaguadas y en las umbrías, donde hay suelo; la roca sale en las
+  // paredes de más de unos 35°, en las crestas, por encima del bosque (unos 1.600 m en el Pirineo: Larra, Anie, la Mesa de
+  // los Tres Reyes) y en los cortados de las sierras calizas (Urbasa, Andia, Aralar, Leyre, las foces); al pie de las
+  // paredes, el pedregal en lenguas; en las solanas, la hierba más seca y pajiza, y en el norte atlántico, verde casi hasta
+  // las cumbres, con peñas sueltas y helechales pardos en media ladera; en el sur, más roca y tierra ocre)
+  if (uTex > 0.0 && uOrtoK > 0.0) {
+    // (la pendiente, de la normal suave de la malla, la de cada vértice repartida: con la de cada triángulo se veían los
+    // triángulos del relieve. En la orilla bajada, que la malla no sabe, y donde no hay normal, la del triángulo)
+    vec3 pw = vec3(vXZ.x, vH, vXZ.y), nf = normalize(cross(dFdx(pw), dFdy(pw))); if (nf.y < 0.0) nf = -nf;
+    float lno = length(vNo.xyz); vec3 nn = lno > 0.5 ? normalize(mix(vNo.xyz / lno, nf, smoothstep(0.02, 0.3, vNo.w))) : nf; if (nn.y < 0.0) nn = -nn;
+    // (la pendiente de verdad: el relieve está exagerado unas 6,85 veces (uExa, en unidades del mundo por metro, por los 2.076 m
+    // que mide una unidad), y en la malla casi todo el monte pasaba de 45°, y salía roca en todas partes)
+    float pdt = clamp(length(nn.xz) / max(nn.y, 0.05), 0.0, 40.0) / max(uExa * 2076.0, 1.0), bq2 = texture2D(uBosque, (sv - uBosqueR.xy) / uBosqueR.zw).r;
+    float lum2 = dot(c, vec3(0.299, 0.587, 0.114)), sat2 = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b)), verde = smoothstep(-0.03, 0.05, c.g - c.r);
+    float cvm = vCv / max(uExa, 1e-6), cre = smoothstep(35.0, 90.0, -cvm), vag = smoothstep(30.0, 80.0, cvm);   // (en metros: cresta y vaguada; el 10 % más marcado del Pirineo y de Baztan)
+    float atl = 1.0 - smoothstep(120.0, 300.0, sv.y), med = smoothstep(380.0, 600.0, sv.y);
+    vec2 dn = normalize(nn.xz + vec2(1e-5));
+    float sol = dn.y * smoothstep(0.02, 0.1, pdt);   // (+1, ladera de cara al sur, la solana; -1, la umbría)
+    float fw = length(fwidth(sv)), o2 = 1.0 - smoothstep(0.3, 0.6, fw * 0.55), o3 = 1.0 - smoothstep(0.3, 0.6, fw * 1.7);
+    float n1 = ruido(sv * 0.16 + 3.1), n2 = mix(0.5, ruido(sv * 0.55 + 7.9), o2), n3 = mix(0.5, ruido(sv * 1.7 + 1.3), o3);
+    // (los surcos y las canales: ladera abajo, a unos 9 píxeles de uno a otro sea cual sea la distancia, dos tamaños que se
+    // funden; con rumbo fijo y fundidos según el de la pendiente, surcos())
+    float sur = 0.5;
+    if (pdt > 0.03) { float ls = log2(max(fw * 13.0, 1e-6)), ls0 = floor(ls), fs = smoothstep(0.3, 0.7, fract(ls)), f0 = exp2(-ls0);
+      vec2 sw = sv + (vec2(ruido(sv * 0.9 + 1.7), ruido(sv * 0.9 + 8.3)) - 0.5) * 0.6;
+      sur = mix(surcos(sw, dn, f0), surcos(sw, dn, f0 * 0.5), fs); }   // (el segundo, igual que el primero del tamaño siguiente: sin salto al cambiar)
+    // (dónde sale la roca: paredes, altura sobre el bosque y crestas; menos en las vaguadas, en el norte y bajo el bosque, que
+    // en Navarra cubre laderas muy pendientes; y lo que la foto ya trae gris y sin verde, que es roca o pedregal de verdad)
+    // (medido en el relieve del juego, que a unos 200 m suaviza mucho los cortados: en el Pirineo, la mitad de las laderas no
+    // pasa de 9°, el 90 % de 16° y casi ninguna de 20°; en Baztan, el 90 %, de 12°. Las paredes, en lo más pendiente, desde unos
+    // 11° del relieve, que en la isla, exagerada, se ven de más de 50°; y sobre el bosque)
+    float rP = smoothstep(0.2, 0.34, pdt), rA = smoothstep(1250.0, 1750.0, m) * smoothstep(0.06, 0.2, pdt);
+    float base = max(rP, rA) + cre * (0.55 * smoothstep(0.08, 0.22, pdt) + 0.3 * rA);
+    base *= (1.0 - 0.55 * vag) * mix(1.0, 0.7, atl) * mix(1.0, 1.2, med) * (1.0 + 0.25 * sol);
+    base *= 1.0 - 0.8 * bq2 * (1.0 - smoothstep(0.3, 0.42, pdt));
+    float fotoR = (1.0 - smoothstep(0.0, 0.05, c.g - c.r)) * (1.0 - smoothstep(0.04, 0.1, sat2)) * smoothstep(0.12, 0.3, lum2);   // (gris de verdad: el helechal y el brezo, pardos, tienen más color)
+    base += fotoR * 0.45 * smoothstep(0.06, 0.18, pdt);
+    float roca = smoothstep(0.42, 0.62, base + (n1 * 0.3 + n2 * 0.35 + n3 * 0.35 - 0.5) * 0.75 + (sur - 0.5) * 0.35) * smoothstep(0.05, 0.25, base);   // (borde roto, que sube por los espolones y baja por las canales)
+    // (su color: caliza clara en el Pirineo y las sierras; arenisca y granito, más oscuros, en el norte; margas ocres en el sur;
+    // donde la foto ya es roca, la suya. Con la luz del relieve, estratos casi a nivel cada unos 28 m, ondulados, y las canales
+    // más oscuras que los espolones)
+    float lz = 1.0 + (s - 1.0) * 0.95;
+    vec3 tono = mix(mix(vec3(0.64, 0.6, 0.52), vec3(0.5, 0.48, 0.44), atl), vec3(0.66, 0.57, 0.45), med);
+    tono = mix(tono, c / max(lz, 0.4) * 1.15, fotoR * 0.5);
+    float ba = m / 60.0 + (ruido(sv * 0.35) - 0.5) * 3.0 + (n3 - 0.5) * 1.2, fe = (1.0 - smoothstep(0.2, 0.45, fwidth(ba))) * smoothstep(0.4, 0.7, n2);   // (los estratos, a rodales)
+    float est = mix(0.5, smoothstep(0.2, 0.8, abs(fract(ba) - 0.5) * 2.0), fe);
+    vec3 rc = tono * lz * (0.93 + 0.12 * est) * (0.74 + 0.44 * sur) * (0.86 + 0.28 * n3);
+    rc *= mix(1.0, clamp(lum2 / 0.3, 0.6, 1.4), 0.45);   // (con las luces y sombras de la foto debajo: si no, parecía una mancha pegada)
+    // (y su grano: piedra rota y grietas a unos 5 píxeles, dos tamaños que se funden; sin él, la roca salía lisa como yeso)
+    if (roca > 0.01) { float lr = log2(max(fw * 5.0, 1e-5)), lr0 = floor(lr), fq = smoothstep(0.3, 0.7, fract(lr)); vec2 r1 = sv * exp2(-lr0), r2 = r1 * 0.5;
+      float gq = mix(ruido(r1) * 0.6 + ruido(r1 * 2.3 + 1.1) * 0.4, ruido(r2) * 0.6 + ruido(r2 * 2.3 + 1.1) * 0.4, fq);
+      rc *= 0.8 + 0.4 * gq * gq + 0.1 * smoothstep(0.7, 0.85, gq); }
+    // (el pedregal: al pie de las paredes, en lo de 25 a 40°, por encima del bosque y en lo alto, en lenguas ladera abajo; más
+    // claro que la pared y de grano menudo)
+    float can = smoothstep(0.14, 0.22, pdt) * (1.0 - smoothstep(0.3, 0.38, pdt)) * max(rA * 1.2, smoothstep(700.0, 1200.0, m) * 0.6) * (1.0 - bq2) * mix(1.0, 0.5, atl);
+    can *= smoothstep(0.5, 0.68, n2 * 0.6 + sur * 0.5) * (1.0 - roca);
+    c = mix(c, tono * 1.08 * lz * (0.88 + 0.24 * n3), can * 0.6);
+    c = mix(c, rc, roca * 0.85 * uTex);
+    // (y la nieve, en lo alto: en lo tendido se queda; en las laderas de roca, solo en las canales, y los espolones, desnudos,
+    // se ven oscuros sobre lo blanco, como el Pirineo en invierno)
+    rocaK = roca * smoothstep(0.12, 0.26, pdt) * smoothstep(0.4, 0.62, sur * 0.7 + n3 * 0.3);
+    // (la hierba, según el sitio: en la solana, más seca y pajiza; en la umbría, más verde y honda; en las vaguadas, más
+    // jugosa; en las crestas, rala y amarillenta; y en el norte, los helechales pardo rojizos de media ladera)
+    float pasto = verde * (1.0 - roca) * (1.0 - 0.5 * bq2) * uTex;
+    c = mix(c, c * vec3(1.1, 1.02, 0.8), max(sol, 0.0) * 0.4 * pasto * (1.0 - 0.5 * atl));
+    c = mix(c, c * vec3(0.9, 1.0, 0.92), max(-sol, 0.0) * 0.35 * pasto);
+    c = mix(c, c * vec3(0.9, 1.04, 0.88), vag * 0.4 * pasto);
+    c = mix(c, c * vec3(1.1, 1.03, 0.84), cre * 0.35 * pasto);
+    float hel = atl * smoothstep(250.0, 450.0, m) * (1.0 - smoothstep(900.0, 1150.0, m)) * smoothstep(0.06, 0.14, pdt) * (1.0 - smoothstep(0.3, 0.4, pdt)) * pasto * (1.0 - bq2);
+    c = mix(c, c * vec3(1.3, 0.92, 0.62), hel * smoothstep(0.55, 0.72, n2 * 0.55 + n1 * 0.45) * 0.55);
+    // (y los surcos en la ladera verde, menos marcados donde hay bosque, que los tapa)
+    float kl = smoothstep(0.06, 0.2, pdt) * (1.0 - 0.55 * bq2) * (1.0 - roca) * smoothstep(0.35, 0.6, n2 * 0.6 + n1 * 0.4) * uTex;   // (a rodales: no todo el monte peinado)
+    c *= mix(1.0, 0.86 + 0.26 * sur * sur, kl);
+    // (el grano del prado y de los pastos: matas a unos pocos píxeles, que se funden entre dos tamaños; algo de verde más
+    // hondo en las matas y algo más claro entre ellas, solo en lo verde y fuera del bosque)
+    float lg = log2(max(fw * 7.0, 1e-5)), lg0 = floor(lg), fg = smoothstep(0.3, 0.7, fract(lg));
+    vec2 q1 = sv * exp2(-lg0), q2 = q1 * 0.5;
+    float gr1 = ruido(q1) * 0.55 + ruido(q1 * 2.37 + 4.1) * 0.45, gr2 = ruido(q2) * 0.55 + ruido(q2 * 2.37 + 4.1) * 0.45, gr = mix(gr1, gr2, fg);
+    float kg = verde * (1.0 - 0.6 * bq2) * (1.0 - smoothstep(0.3, 0.45, pdt)) * (1.0 - roca) * uTex;
+    c *= 1.0 + (gr - 0.5) * 0.36 * kg;
+    c = mix(c, c * vec3(0.86, 0.96, 0.8), smoothstep(0.58, 0.78, gr) * kg * 0.7);
+    // (y a manchas mayores, de unos 30 píxeles: pasto, helechal y brezo, unos más claros y dorados y otros más hondos)
+    float lm = log2(max(fw * 30.0, 1e-5)), lm0 = floor(lm), fm = smoothstep(0.3, 0.7, fract(lm));
+    vec2 m1 = sv * exp2(-lm0), m2 = m1 * 0.5; float mm = mix(ruido(m1 + 2.2) * 0.6 + ruido(m1 * 2.1 + 6.3) * 0.4, ruido(m2 + 2.2) * 0.6 + ruido(m2 * 2.1 + 6.3) * 0.4, fm);
+    c = mix(c, c * mix(vec3(0.84, 0.95, 0.82), vec3(1.12, 1.06, 0.86), mm), verde * (1.0 - roca) * uTex * 0.55);
+  }
   if (uCerca > 0.0 && uTex > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
   // (donde la foto de la comarca, de 28 m, ya se ve más grande que un píxel de la pantalla, junto a la maqueta nítida de un
   // pueblo: grano de prado y matas en tres tamaños, de unos 20, 7 y 2,5 m, que crece a medida que la foto se estira. Antes
@@ -313,6 +411,7 @@ void main() {
   // Reyes, Orhi)
   { float pn = fwidth(vH) / (length(fwidth(vXZ)) + 1e-6);
     float nv = smoothstep(1250.0, 1480.0, m + (ruido(sv * 0.35) - 0.5) * 170.0) * (1.0 - 0.55 * smoothstep(0.8, 1.8, pn));
+    nv *= 1.0 - 0.85 * rocaK;   // (en las paredes de roca, la nieve no se queda: oscuras sobre lo blanco, como en el Pirineo en invierno)
     c = mix(c, vec3(0.93, 0.95, 1.0) * clamp(0.5 + 0.48 * s, 0.62, 1.12), nv); }
   // (el color, más vivo y más limpio: los verdes y ocres apagados, con algo más de color; las sombras, sin llegar al negro,
   // hacia un azul malva, como en los mapas de relieve dibujados (de cerca, en los valles entre montes, se veían negras); y
