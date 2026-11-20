@@ -103,7 +103,9 @@ async function BOT(SOLO) {
     if (M.type === 'race' && M.m.kind === 'almadia') { R.aparte = true; R.motivo = 'almadía: tools/almadia-movil.mjs'; continue; }
     let quieto = 0, ultima = firma(M), vueltas = 0; M.__prep = 0;
     try {
+      // (como mucho 6 minutos por misión: si no, una atascada paraba todo el recorrido; se apunta y se sigue)
       while (!M.done && vueltas++ < 90) {
+        if (performance.now() - t0m > 360000) { avisos.push(`ATASCADA ${M.type}: 6 min sin acabar (paso ${M.step}, ${M.count ?? 0}/${M.need ?? '-'})`); break; }
         g.tracked = M.i;
         if (M.type === 'harvest' && g.recetaCosecha?.(M.m)) { R.aparte = true; R.motivo = 'cosecha con tractor: tools/cosecha-vehiculo.mjs'; break; }
         const t = g.target(M);
