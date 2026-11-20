@@ -142,7 +142,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 ## Última publicación
 
 - 20 nov, mañana (segunda), la hizo la ventana principal, por el encargo del autor («revisa todo lo que falta por
-  añadir, mejorar, optimizar [...] y no pares hasta terminar»): `master` hasta `3af03644`. Entran el mapa del inicio sin
+  añadir, mejorar, optimizar [...] y no pares hasta terminar»): `master` hasta `193eab81`. Entran el mapa del inicio sin
   los arbolitos redondos ni los conos sueltos (`src/hub/mapa3d.js`, el bosque lo pinta el propio relieve) y los jardines
   del casco de todos los pueblos y de Otsagabia con la mata de verdad (tallos, ramillas y hojas) y flores de cinco pétalos
-  por encima (`src/world/nature.js`, buildGardens), en vez de las bolas de hojas.
+  por encima (`src/world/nature.js`, buildGardens), en vez de las bolas de hojas, y en el ordenador, al abrir el juego,
+  una ventana que pregunta si se quiere jugar con el móvil de mando (`src/mando/mando.js`, ofrecerMando: una vez por
+  sesión, en el mapa del inicio, con «Conectar el móvil», «Ahora no» y «No volver a preguntar»).
