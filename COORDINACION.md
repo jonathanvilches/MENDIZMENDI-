@@ -141,6 +141,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, mañana, la hizo la ventana principal, por el encargo del autor («va lento cuando estás seleccionando en los
+  carruseles», «en todas las partidas puedas tener tu propio caballo [...] una selección de caballos, al igual que la de
+  perros, ya no está el perro» y «diferentes medios de transporte [...] un caballo, un tractor, una bici»): `master` hasta
+  `7fa44171`. Entran los fondos difuminados sin filtro (`src/ui/fondoSuave.js`: los bloques del menú de pelota, en menos
+  de un segundo), elegir montura (caballo de Burguete, pottoka o burro; `src/game/companeros.js`, en la mochila y en la
+  pausa) y llamarla, el perro y la montura también en Otsagabia, y un tractor libre y una bici con cesta en cada pueblo.
 - 20 nov, madrugada, la hizo la ventana principal, por el encargo del autor («quiero el frontón vacío», «la pantalla de
   selección de campeonatos cambia cuando entras y cuando sales del campeonato es otro carrusel» y «sigue sin funcionar lo
   de las misiones que pulses y vaya al principio de la misión»): `master` hasta `d67b5b70`. Entran las dos fotos nuevas
