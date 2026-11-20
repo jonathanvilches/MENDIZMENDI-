@@ -2412,17 +2412,36 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   comarcas y la pantalla que estamos jugando actualmente. Ese diseño hay que cambiarlo». Ahora es una cabecera de juego
   como la del menú: sin cajas ni cápsulas, el texto suelto sobre el mapa con una sombra de texto (`--hb-ts`) y, detrás, un
   velo fino que baja del borde de arriba en cinco tramos, del 50 % a nada (`.m3d::after`, hasta 64 px por debajo de la
-  fila). De izquierda a derecha: el botón redondo y oscuro del menú en la esquina, como los de la cámara (donde en el menú
-  está el de volver); tu retrato dentro del aro de la experiencia (`--xp` en `.yo-c`, `renderChip` de `hub.js`) con el
-  nivel en una pastilla, y tu nombre en la letra de los títulos con el rango en rosa (todo es el mismo botón, `.yo-m` va
-  primero con `order`); tras una raya tenue, Navarra descubierta (`mapaHTML` de `inicio.js`: rótulo rosa, las comarcas
-  terminadas en la letra de los títulos, la barra de un tramo por comarca que se llena con sus sellos, `.tt-seg`, y los
-  sellos aparte, `.tt-sel`; el círculo del mapa, `.tt-ic`, ya no se ve); y a la derecha la próxima parada (foto en tarjeta
-  de 8 px, rótulo rosa, el pueblo en la letra de los títulos y JUGAR en pastilla con el degradado). En el móvil tumbado,
-  sin nombre, sin rótulo de Navarra y sin sellos, con la foto cuadrada y el botón de jugar redondo; de pie, la misión baja
-  encima de las comarcas y allí sí lleva su panel oscuro. La sombra de caja de `neon.css` va con `!important` y un
-  selector de dos ids (`#lane #toast`): para quitarla, `#hub#hub.juego`. Los botones de la cámara, la ayuda y la ficha del
-  jugador en la cabecera del menú siguen el mismo lenguaje.
+  fila). Solo dos cosas: el botón redondo y oscuro del menú en la esquina, como los de la cámara (donde en el menú está el
+  de volver), y tu retrato dentro del aro de la experiencia (`--xp` en `.yo-c`, `renderChip` de `hub.js`) con el nivel en
+  una pastilla, y tu nombre en la letra de los títulos con el rango en rosa (todo es el mismo botón, `.yo-m` va primero
+  con `order`). En el inicio, tocar el retrato o el nombre abre «Tu progreso» (abajo); tocar las rayas abre el menú. La
+  sombra de caja de `neon.css` va con `!important` y un selector de dos ids (`#lane #toast`): para quitarla,
+  `#hub#hub.juego`. Los botones de la cámara, la ayuda y la ficha del jugador en la cabecera del menú siguen el mismo
+  lenguaje.
+- **Tu progreso, el panel de control de la partida** (`s_progreso` de `hub.js`, `src/hub/progreso.css`, en el menú como
+  «Progreso»). El 20 de noviembre, el autor: «En la pantalla principal [...] no hace falta que ponga 0 o 12 comarcas. Todo
+  eso que salga en un panel de control, en un dashboard». Fuera del mapa Navarra descubierta (las comarcas terminadas y
+  los sellos). El panel, con la identidad de Perfil y Torneos (tarjetas oscuras de 8 px con raya neutra tenue, rótulos
+  rosas en letra estrecha, cifras en la letra de los títulos, barras con el degradado): arriba tú (retrato con el aro de
+  la experiencia, nivel, rango y barra de experiencia) y tres cifras (comarcas terminadas con un tramo por comarca, sellos
+  de pueblo, misiones hechas); luego las 12 comarcas, cada una con su insignia, sellos, misiones y barra, que llevan a la
+  comarca (`data-comarca`); y al final lo reunido (insignias, pasaporte, álbum, txapelas), que lleva a su pantalla. En el
+  móvil tumbado las cifras van de dos en dos y las comarcas en tres columnas.
+- **La próxima parada, abajo a la derecha** (`misionHTML` de `inicio.js`, `.m3-mision` en `barra-inicio.css`). El autor,
+  el mismo día: «el botón de la derecha arriba [...] hay que hacerlo de otra manera». Deja la esquina de arriba y se pone
+  al final de la fila de comarcas, a su misma altura (60 px; 50 px en el móvil tumbado): una tarjeta de 300 px (un 34 %
+  como mucho) con la foto del pueblo de fondo, un velo que va del 55 % a la izquierda al 22 %, el rótulo rosa «Próxima
+  parada», el pueblo en la letra de los títulos y la pastilla JUGAR con el degradado; en el móvil tumbado, sin rótulo y
+  con el botón redondo. La fila de comarcas y su flecha se apartan lo que ocupa la tarjeta (`:has(.m3-mision)`); con una
+  comarca, una ficha o una colección abiertas, la fila vuelve a ocupar todo el ancho. De pie, la tarjeta va a lo ancho
+  encima de la fila.
+- **Iconos de jugar y pausa** (`src/assets/icons3d/*/play.webp` y `pause.webp`, `ICONS.play` de `icons.js`). El autor
+  los veía «demasiado bruscos, demasiado toscos» con la identidad. En los juegos de móvil los iconos ilustrados son para
+  objetos y lugares; los de control (jugar, pausa) son glifos blancos y limpios sobre la base del botón. Ahora: triángulo
+  blanco de puntas redondeadas y dos barras blancas redondeadas, con una sombra suave, hechos a 128, 256 y 512 px. La pausa
+  ya no está en la lista de excluidos de `BAKED` (`icon3d.js`), así que el botón de menú del pueblo y el de pausa del
+  partido usan el glifo nuevo.
 - **El menú, sus secciones, Cómo jugar y la pausa con la pantalla de juego** (19 de noviembre de 2026, noche; el autor,
   con cuatro capturas del móvil: «tenemos que cambiar el diseño de estas páginas para ajustarlas al nuevo diseño e
   identidad»). Las cuatro siguen ahora la disposición de las pantallas de pelota (arriba, el botón redondo de volver, el
@@ -2821,6 +2840,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   nombre de la comarca sí se ve desde el principio. La raya de la trashumancia
   se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
   graba la animación fotograma a fotograma con un reloj propio.
+  Sin parones al empezar el vuelo de dron (vídeo del iPhone del 20 de noviembre de 2026, 16:46: «va como a golpes, a
+  trompicones, ajustando el plano de cámara»). La cuenta de la cámara ya era suave (la subida de despeje, `subida`, se
+  queda en 0 durante el dron): los golpes eran fotogramas perdidos, por tres causas. (1) Un material transparente de dos
+  caras tiene dos programas (cara de atrás y cara de delante) y `compilarAsync` de `src/util/compilar.js` solo estrenaba
+  el último: el otro se compilaba en mitad del vuelo, de 185 a 396 ms parado a los 1,5 s del clic. Ahora estrena todos los
+  de `programs`. (2) `medirTapas` leía el tamaño de los paneles cada 0,4 s después de haber escrito en la página, y eso
+  obliga al navegador a recolocarlo todo en ese mismo fotograma: ahora mide al principio de `pinta()`, antes de escribir.
+  (3) Cada nombre que aparecía se medía uno a uno entre escrituras; ahora se miden juntos, antes del bucle de etiquetas.
   El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola
   línea que comparten las dos (988 tramos, cada uno en dos comarcas justas y ninguno en tres), el borde de fuera es un
   único anillo cerrado de 1.733 tramos y su área es la suma de las doce (250.104 unidades, sin huecos ni solapes); y
