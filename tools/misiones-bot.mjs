@@ -76,7 +76,7 @@ async function BOT(SOLO) {
     return best;
   };
   const habla = async (M) => { junto(M.host); await g.talk(M.host); tick(4); };
-  const firma = (M) => [M.step, M.count, M.tstep || 0, M.done, M.prep, M.seqOk, M.fair?.pens?.filter(p => p.visto).length, M.cos?.fase].join('/');
+  const firma = (M) => [M.step, M.count, M.tstep || 0, M.done, M.prep, M.seqOk, M.fair?.pens?.filter(p => p.visto).length, M.cos?.fase, M.type === 'summit' ? JSON.stringify(g.P.bag) : ''].join('/');
   const esHost = (t, M) => t && M.host && Math.hypot(t.x - M.host.pos.x, t.z - M.host.pos.z) < 0.5;
 
   for (const M of g.missions) {
@@ -158,6 +158,8 @@ async function BOT(SOLO) {
           await habla(M);
         }
         await espera(20);
+        // (si el juego está en una escena —la cima, la criatura que aparece, el baile, una ficha—, a que termine, hasta 2 min)
+        for (let k = 0, t0e = performance.now(); k < 1000 && performance.now() - t0e < 120000 && (P.frozen || g.follow.cinematic || g.ui.busy || g.mode !== 'play'); k++) { tick(2); await espera(60); }
         const f = firma(M);
         if (f === ultima) { if (++quieto >= 6) { R.motivo = `atascada en el paso ${M.step} (${M.count}/${M.need ?? '-'})`; break; } } else { quieto = 0; ultima = f; }
       }

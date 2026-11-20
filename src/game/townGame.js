@@ -707,7 +707,9 @@ export class TownGame {
   target(M = this.missions[this.tracked]) {
     if (!M || M.done) return null;
     const at = (a) => a ? { x: a.pos.x, z: a.pos.z, h: a.obj.userData.H + 0.7 } : null;
-    if (M.step === 0) return at(M.host);
+    // (en el paso 0, al vecino que la da; salvo en la subida al monte con la mochila por llenar, que lleva a la fuente y al
+    // puesto de productos: antes la flecha seguía apuntando a la guía y no se sabía adónde ir. Revisión de misiones, 20 nov)
+    if (M.step === 0 && !(M.type === 'summit' && M.prep)) return at(M.host);
     const P = this.player.pos;
     const nearest = (list) => { let b = null, bd = 1e9; for (const t of list) { const d = Math.hypot(t.x - P.x, t.z - P.z); if (d < bd) { bd = d; b = t; } } return b; };
     switch (M.type) {
@@ -718,7 +720,7 @@ export class TownGame {
         if (M.step === 3 && M.lair) return { x: M.lair.x, z: M.lair.z, h: 3 };
         return at(M.host);
       }
-      case 'summit': { if (M.step === 0 && M.prep) { if (this.supplyOk()) return at(M.host); const P = this.P.bag; if ((P.agua || 0) < 1 && TOWN.fountain) return { x: TOWN.fountain.x, z: TOWN.fountain.z, h: 2.5 }; if (this.stall) return { x: this.stall.x, z: this.stall.z, h: 3 }; }
+      case 'summit': { if (M.step === 0 && M.prep) { if (this.supplyOk()) return at(M.host); const P = this.P.bag; if ((P.agua || 0) < 1 && TOWN.fountain) return { x: TOWN.fountain.x, z: TOWN.fountain.z, h: 2.5 }; if (this.stall) return { x: this.stall.a?.pos.x ?? this.stall.x, z: this.stall.a?.pos.z ?? this.stall.z, h: 3 }; }   // (a la tendera, que es con quien se habla: el centro del puesto le quedaba a 4 m)
         if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
       case 'process': case 'harvest': if (M.cos) { const d = this.tractorDestino(M); if (d) return d; } if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
