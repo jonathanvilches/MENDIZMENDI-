@@ -127,21 +127,25 @@ function exComarcaHTML(p, id) {
 const VER = (txt) => `<i class="m3-vr" title="${txt}">${I('book', 16)}</i>`;
 // (los sellos de una comarca en las tarjetas de abajo: una barra con un tramo por pueblo, los conseguidos en dorado)
 const barraSellos = (n, de) => `<span class="m3-pr" aria-hidden="true">${Array.from({ length: de }, (_, k) => `<i class="${k < n ? 'ok' : ''}"></i>`).join('')}</span>`;
-// lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
-// comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
-// zoom hasta tu personaje en el pueblo. Ancha y baja, a un lado, para no tapar el pueblo que se está formando
+// lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, el
+// sello de su comarca y su nombre, su escudo, las misiones en iconos a lo ancho, la siguiente con su icono y el botón de
+// empezar, que hace el zoom hasta tu personaje en el pueblo. Desde el 20 de noviembre de 2026, más ancha que alta y con
+// más imagen que texto. El autor: «la card [...] quizá hay que hacerla un poco más larga, quizá es demasiado estrecha» y
+// «hay que utilizar más imágenes para que no sea tanto texto [...] imágenes, avatares que tenemos, escudos»
 function fichaHTML(p, l) {
-  const t = townProgress(p, l), nombre = esc(corto(l)), ms = OPC.misiones(l);
+  const t = townProgress(p, l), nombre = esc(corto(l)), ms = OPC.misiones(l), c = comarca(l.comarca);
   const txt = l.bosque ? 'Explorar' : t.stamp ? 'Volver a jugar' : t.done ? 'Seguir misión' : 'Empezar misión';
-  const img = townImg(l, true);
-  return `${img ? `<span class="ft-fondo"><img src="${img}" alt="" decoding="async"></span>` : ''}<span class="ft-n"><small>${esc(comarca(l.comarca)?.name || '')}</small><b>${nombre}</b></span>
+  const img = townImg(l, true), E = !l.bosque && OPC.escudo?.(l), sig = !DD && ms.find(m => !m.done);
+  const go = DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`;
+  return `${img ? `<span class="ft-fondo"><img src="${img}" alt="" decoding="async"></span>` : ''}
+    <span class="ft-cab"><img class="ft-sello" src="${stampImg(l.comarca)}" alt="" decoding="async"><span class="ft-n"><small>${esc(c?.name || '')}</small><b>${nombre}</b></span>${E ? `<img class="ft-esc${E.visto ? '' : ' bloq'}" src="${E.src}" alt="" decoding="async" title="${E.visto ? 'Su escudo' : 'Escudo por descubrir'}">` : ''}</span>
     ${ms.length && !DD ? misionesHTML(ms, t) : ''}
-    ${DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`}`;
+    <span class="ft-pie">${sig ? `<span class="ft-sig" style="--mc:${sig.mc || '#c9b8ff'}"><i>${I(sig.icon || 'star', 20)}</i><span><small>Siguiente</small><b>${esc(sig.title)}</b></span></span>` : ''}${go}</span>`;
 }
-// (las misiones del pueblo en su ficha: cuántas van con su barra y una casilla igual para cada una en una o dos filas
-// parejas, hechas con su color y la siguiente marcada; sin más texto: es la ficha corta para empezar a jugar)
+// (las misiones del pueblo en su ficha: cuántas van con su barra y una casilla igual para cada una, a lo ancho en una fila
+// (dos si son muchas), hechas con su color y la siguiente marcada; sin más texto)
 function misionesHTML(ms, t) {
-  const sig = ms.find(m => !m.done), cols = ms.length > 8 ? Math.ceil(ms.length / 2) : ms.length, pct = Math.round(100 * t.done / Math.max(1, t.total));
+  const sig = ms.find(m => !m.done), cols = ms.length > 12 ? Math.ceil(ms.length / 2) : ms.length, pct = Math.round(100 * t.done / Math.max(1, t.total));
   return `<span class="ft-ms"><span class="ft-ms-h"><b>Misiones</b><em>${t.done}/${t.total}</em></span><i class="ft-ms-bar"><u style="width:${pct}%"></u></i>
     <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" style="--mc:${m.mc || '#c9b8ff'}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
 }

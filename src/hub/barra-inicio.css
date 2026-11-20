@@ -11,8 +11,10 @@
    nombre, «Tu progreso» (hub.js).
    Y desde la noche del 20, el autor: «no hace falta que ponga 0 o 12 comarcas. Todo eso que salga en un panel de control,
    en un dashboard» (Navarra descubierta, fuera: ahora en «Tu progreso», progreso.css) y «el botón de la derecha arriba [...]
-   hay que hacerlo de otra manera»: la próxima parada baja al final de la fila de las comarcas, abajo a la derecha, donde los
-   juegos de móvil ponen el botón de jugar, en una tarjeta con la foto del pueblo, su nombre y el botón de jugar.
+   hay que hacerlo de otra manera»: la próxima parada, en una tarjeta con la foto del pueblo, su nombre y el botón de jugar.
+   Esa misma noche, más tarde: «me gusta que esté arriba a la derecha con el diseño que has puesto ahora [...] Y abajo, el
+   carrusel de comarcas»: la tarjeta sube a la esquina de arriba a la derecha, a la altura de la cabecera, y la fila de las
+   comarcas vuelve a ocupar todo el ancho de abajo.
    La última hoja del menú (hub.js): manda sobre consola.css, inicio.css y neon.css */
 #hub.juego {
   --hb-in: calc(var(--hud-h) - 8px);
@@ -52,8 +54,8 @@
 #hub.juego[data-screen="home"] .yo-t small { color: var(--rosa); font: 700 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 #hub.juego[data-screen="home"] .yo-xp { display: none; }
 
-/* ---------- la próxima parada: una tarjeta con la foto del pueblo al final de la fila de las comarcas ---------- */
-#hub.juego .m3d .m3-mision { --mh: 60px; top: auto; bottom: calc(var(--hud-b) + 6px); left: auto; right: calc(var(--hud-r) + var(--sr, 0px)); width: 300px; max-width: 34%; height: var(--mh);
+/* ---------- la próxima parada: una tarjeta con la foto del pueblo, arriba a la derecha, a la altura de la cabecera ---------- */
+#hub.juego .m3d .m3-mision { --mh: 60px; top: calc(var(--hud-t) + var(--hud-h) / 2 - var(--mh) / 2); bottom: auto; left: auto; right: calc(var(--hud-r) + var(--sr, 0px)); width: 300px; max-width: 34%; height: var(--mh);
   display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tt go"; align-items: center; column-gap: 10px; padding: 6px 6px 6px 16px !important;
   border: 0 !important; border-radius: 10px !important; background: rgba(21, 11, 46, .9) !important; outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px; overflow: hidden; animation: none;
   -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -71,10 +73,47 @@
 #hub.juego .m3d .m3-mision .mm-go:hover { background: var(--cta); filter: brightness(1.08); transform: none; }
 #hub.juego .m3d .m3-mision .mm-go > :is(svg, img) { width: 16px; height: 16px; }
 #hub.juego .m3d .m3-mision .mm-go small { display: none; }
-/* (y la fila de las comarcas se acaba antes, para dejarle su sitio; con una comarca elegida o una colección, la tarjeta no
-   está y la fila vuelve a llegar al borde) */
-#hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: calc(var(--hud-r) + var(--sr, 0px) + min(300px, 34%) + 10px); }
-#hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) + var(--sr, 0px) + min(300px, 34%) + 2px); }
+
+/* ---------- la ficha del pueblo en el mapa: más ancha que alta y con más imagen que texto (20 de noviembre de 2026, el
+   autor: «la card [...] quizá hay que hacerla un poco más larga, quizá es demasiado estrecha» y «hay que utilizar más
+   imágenes para que no sea tanto texto [...] avatares que tenemos, escudos»). La portada de fondo, como la que gusta;
+   arriba, el sello de la comarca, el nombre y el escudo del pueblo (en silueta si aún no se ha descubierto); en medio, las
+   misiones a lo ancho; abajo, la siguiente misión con su icono y el botón de jugar, a su derecha. Cada pieza con su
+   margen: nada toca el borde ni a otra ---------- */
+#hub.juego .m3d .m3-ft { width: min(560px, calc(100vw - 32px)); gap: 14px; padding: 18px 20px; }
+#hub.juego .m3d .m3-ft > .ft-cab { grid-area: 1 / 1; } #hub.juego .m3d .m3-ft > .ft-ms { grid-area: 2 / 1; } #hub.juego .m3d .m3-ft > .ft-pie { grid-area: 3 / 1; }
+#hub.juego .m3d .ft-cab { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 12px; min-width: 0; }
+#hub.juego .m3d .ft-sello { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px rgba(13, 6, 28, .85), 0 0 0 3px color-mix(in srgb, var(--c, #fff) 70%, transparent), 0 6px 14px rgba(4, 1, 12, .45); }
+#hub.juego .m3d .ft-cab .ft-n { min-width: 0; }
+#hub.juego .m3d .ft-esc { width: 54px; height: 64px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(4, 1, 12, .55)); }
+#hub.juego .m3d .ft-esc.bloq { filter: brightness(0) invert(1) drop-shadow(0 4px 10px rgba(4, 1, 12, .6)); opacity: .4; }
+#hub.juego .m3d .ft-ms-g { grid-template-columns: repeat(var(--n, 8), minmax(0, 40px)); justify-content: start; gap: 8px; }
+#hub.juego .m3d .ft-pie { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 14px; min-width: 0; }
+#hub.juego .m3d .ft-pie > .ft-go:only-child { grid-column: 1 / -1; }
+#hub.juego .m3d .ft-sig { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 10px; min-width: 0; padding: 6px 12px 6px 6px; border-radius: 8px;
+  background: rgba(13, 6, 28, .72); border: 1px solid rgba(255, 255, 255, .12); }
+#hub.juego .m3d .ft-sig > i { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 6px; background: color-mix(in srgb, var(--mc) 45%, rgba(13, 6, 28, .7)); border: 1px solid var(--mc); }
+#hub.juego .m3d .ft-sig > i :is(svg, img) { width: 22px; height: 22px; }
+#hub.juego .m3d .ft-sig > span { display: grid; gap: 4px; min-width: 0; }
+#hub.juego .m3d .ft-sig small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .m3d .ft-sig b { color: #fff; font: 700 var(--fs-sm)/1.15 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub.juego .m3d .ft-pie .ft-go { min-height: 48px; padding: 0 22px; }
+/* (el móvil tumbado: lo mismo, más compacto; sin la barra de las misiones, que ya cuentan sus casillas) */
+@media (max-height: 520px) {
+  #hub.juego .m3d .m3-ft { width: min(440px, 56vw); gap: 8px; padding: 10px 12px; }
+  #hub.juego .m3d .ft-cab { column-gap: 8px; }
+  #hub.juego .m3d .ft-sello { width: 32px; height: 32px; }
+  #hub.juego .m3d .ft-esc { width: 36px; height: 44px; }
+  #hub.juego .m3d .ft-ms-g { grid-template-columns: repeat(var(--n, 8), minmax(0, 30px)); gap: 5px; }
+  #hub.juego .m3d .ft-pie { column-gap: 8px; }
+  #hub.juego .m3d .ft-sig { padding: 4px 8px 4px 4px; column-gap: 8px; } #hub.juego .m3d .ft-sig > i { width: 28px; height: 28px; } #hub.juego .m3d .ft-sig > i :is(svg, img) { width: 18px; height: 18px; }
+  #hub.juego .m3d .ft-sig small { font-size: 10px; } #hub.juego .m3d .ft-sig b { font-size: 12px; }
+  #hub.juego .m3d .ft-pie .ft-go { min-height: 38px; padding: 0 14px; }
+}
+/* (el móvil de pie: la ficha abajo, a lo ancho; el botón, debajo de la siguiente misión si no caben) */
+@media (max-width: 640px) and (min-height: 521px) {
+  #hub.juego .m3d .ft-pie { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
+}
 
 /* ---------- y lo demás del mapa con el mismo lenguaje: los botones de la cámara y la ayuda, sin raya alrededor ---------- */
 #hub.juego .m3d :is(.m3-pad, .m3-pad2, .m3-ayuda) { border-color: transparent; background: rgba(17, 8, 38, .86); box-shadow: 0 10px 26px rgba(4, 1, 12, .36); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -94,17 +133,13 @@
   #hub.juego[data-screen="home"] .hub-menu-btn { gap: 8px; padding: 0; }
   #hub.juego[data-screen="home"] .hub-menu-btn .yo-m svg { width: 20px; height: 20px; }
   #hub.juego[data-screen="home"] .yo-n { min-width: 18px; height: 14px; bottom: -4px; font-size: 11px; line-height: 14px; }
-  #hub.juego .m3d .m3-mision { --mh: 50px; width: 220px; max-width: 36%; bottom: calc(var(--hud-b) + 3px); padding-left: 12px !important; column-gap: 8px; }
+  #hub.juego .m3d .m3-mision { --mh: 46px; width: 220px; max-width: 36%; padding-left: 12px !important; column-gap: 8px; }
   #hub.juego .m3d .m3-mision .mm-tt small { font-size: 11px; letter-spacing: .12em; }
   #hub.juego .m3d .m3-mision .mm-tt b { font-size: 18px; }
   #hub.juego .m3d .m3-mision .mm-go { width: calc(var(--mh) - 12px); padding: 0; justify-content: center; border-radius: 50% !important; }
   #hub.juego .m3d .m3-mision .mm-go span { display: none; }
-  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: calc(var(--hud-r) + var(--sr, 0px) + min(220px, 36%) + 8px); }
-  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) + var(--sr, 0px) + min(220px, 36%) + 2px); }
 }
-/* (el móvil de pie: la tarjeta, de lado a lado encima de las comarcas, y la fila de las comarcas, entera) */
+/* (el móvil de pie: la tarjeta, de lado a lado debajo de la cabecera) */
 @media (max-width: 760px) and (min-height: 521px) {
-  #hub.juego .m3d .m3-mision { left: var(--hud-l); right: var(--hud-r); width: auto; max-width: none; bottom: calc(var(--hud-b) + var(--railh) + 8px); }
-  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: var(--hud-r); }
-  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) - 8px); }
+  #hub.juego .m3d .m3-mision { left: var(--hud-l); right: var(--hud-r); width: auto; max-width: none; top: calc(var(--hud-t) + var(--hud-h) + 10px); }
 }

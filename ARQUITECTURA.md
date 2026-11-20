@@ -3628,6 +3628,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tienen todas su grabación; sin voz quedan las que llevan una cuenta o un nombre (unas 120 grabaciones cortas, una por
   número), los paseantes y, a falta de aprobar sus voces nuevas, Maite e Itziar. La Lamia, el Basajaun, el Bobo, el
   Zarratrako y los danzantes de Muskilda siguen con el cuerpo antiguo (`COSTUME` en `actors/npcGlb.js`).
+- **Inicio: próxima parada arriba, cámara que sube con la isla y ficha del pueblo ancha** (20 de noviembre de 2026, noche;
+  `barra-inicio.css`, `fichaHTML` de `hub/inicio.js`, `opcInicio().escudo` de `hub/hub.js`, `mueve` en el bucle de
+  `hub/mapa3d.js`). La tarjeta de la próxima parada vuelve arriba a la derecha, a la altura de la cabecera, con el diseño de
+  foto, nombre y botón de jugar; la fila de las comarcas ocupa todo el ancho de abajo. Mientras la isla sube o baja, la
+  altura a la que mira la cámara la sigue con un paso de 40 en vez de 4: antes la isla subía en pantalla hasta +0,12 y la
+  cámara la alcanzaba después («le sobrepasa la comarca»); medido, ahora se queda quieta en el encuadre. La ficha del
+  pueblo pasa de 380 a 560 px de ancho (440 en el móvil tumbado) y lleva más imagen: el sello de la comarca, el escudo del
+  pueblo (en silueta blanca si aún no se ha descubierto), las misiones a lo ancho en una fila y, abajo, la siguiente
+  misión con su icono y el botón de jugar a su derecha.
 - **Los montes: verde, roca y textura donde toca** (20 de noviembre de 2026; el bloque `#ifndef LIGERO` de la isla en
   `RELIEVE_FS` y `surcos()` en `hub/mapa3dSombreadores.js`, la curvatura en el verde del color en `losa` de
   `hub/mapa3dFormas.js`). El autor: «me sigue faltando textura en las islas flotantes [...] de los montes, en la hierba» y

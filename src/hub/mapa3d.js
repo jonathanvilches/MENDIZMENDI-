@@ -2266,7 +2266,12 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (y con la órbita, poco a poco, a su cara de arriba: encuadreIsla)
     if (ci?.isla) ci.mira = (ci.mira || 0) + ((ci.vistaAlta ? 1 : 0) - (ci.mira || 0)) * (1 - Math.exp(-dt * 1.6));
     const hyIsla = fi ? hyMira(ci, ci.py, ci.sy, ci.isla.k, ci.mira || 0) : 0;
-    v.hy += (0.8 + (hs - 0.8) * kh + (hyIsla - 0.8 - (hs - 0.8) * kh) * fi - v.hy) * (1 - Math.exp(-dt * 4));   // (con la isla en el aire, la cámara mira a su mitad)
+    // (y mientras la isla sube o baja, la cámara va con ella a su mismo paso: con el seguimiento lento de siempre (4) se quedaba
+    // atrás y la isla se le salía por arriba del encuadre. El autor, el 20 de noviembre de 2026: «cuando la Tierra se despega y
+    // sale hacia arriba, la cámara tiene que ir a la misma velocidad. A veces la cámara va más lenta, sube más lenta y le
+    // sobrepasa la comarca»)
+    const mueve = ci?.isla ? Math.min(1, Math.abs(ci.isla.v || 0) * 3 + ((ci.isla.k || 0) > 0.002 && (ci.isla.k || 0) < 0.995 ? 1 : 0)) : 0;
+    v.hy += (0.8 + (hs - 0.8) * kh + (hyIsla - 0.8 - (hs - 0.8) * kh) * fi - v.hy) * (1 - Math.exp(-dt * (4 + 36 * mueve)));   // (con la isla en el aire, la cámara mira a su mitad)
     camPos(v, cam.position);
     // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
     // mete por medio, sube por la ladera lo justo, como un dron, y cuando ya no hace falta baja despacio. Antes, en el vuelo
