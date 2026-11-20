@@ -71,7 +71,7 @@ async function BOT(SOLO) {
   const compruebaLlegar = (M, x, z, que) => { const k = M.i + ':' + Math.round(x) + ',' + Math.round(z); if (vistos.has(k)) return; vistos.add(k); const r = llega(x, z); if (r === 'no') avisos.push(`INALCANZABLE ${M.type} · ${que} (${Math.round(x)}, ${Math.round(z)})`); };
   const ve = (x, z, h) => { P.place(x, z, h ?? P.heading); P.frozen = false; tick(4); };
   const junto = (a, d = 1.6) => { const h = a.heading || 0; ve(a.pos.x + Math.sin(h) * d, a.pos.z + Math.cos(h) * d, h + Math.PI); };
-  const usaCerca = async (filtro = (it) => it.kind !== 'npc' && it.kind !== 'walker' && it.kind !== 'pet' && it.kind !== 'seat' && it.kind !== 'bell' && it.kind !== 'fountain' && it.kind !== 'flora') => {
+  const usaCerca = async (filtro = (it) => it.kind !== 'npc' && it.kind !== 'walker' && it.kind !== 'pet' && it.kind !== 'seat' && it.kind !== 'bell' && it.kind !== 'fountain' && it.kind !== 'flora' && it.kind !== 'shop') => {
     let best = null, bd = 1e9;
     for (const it of g.interactables(P.pos)) { if (!filtro(it)) continue; const d = Math.hypot(it.x - P.pos.x, it.z - P.pos.z); if (d < it.r && d < bd) { bd = d; best = it; } }
     if (best) { await conTope(g.interact(best), 'usar ' + (best.label || best.kind)); tick(4); }
@@ -83,7 +83,7 @@ async function BOT(SOLO) {
     if (!hecho) {
       const abierto = [...document.querySelectorAll('button')].filter(b => b.offsetParent && /seguir|cerrar|continuar|vale|salir|aceptar|entendido/i.test(b.textContent)).map(b => b.textContent.trim()).slice(0, 4);
       avisos.push(`SE QUEDA ESPERANDO (30 s) al ${que}${abierto.length ? ' · botones a la vista: ' + abierto.join(', ') : ''} · modo ${g.mode}${g.ui.busy ? ' · ui ocupada' : ''}`);
-      for (const b of document.querySelectorAll('button')) if (b.offsetParent && /seguir|cerrar|continuar|vale|aceptar|entendido/i.test(b.textContent)) b.click();
+      for (const b of document.querySelectorAll('button')) if (b.offsetParent && (/seguir|cerrar|continuar|vale|aceptar|entendido/i.test(b.textContent) || b.matches('.mg-overlay [data-close]'))) b.click();
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
     }
     return r;
