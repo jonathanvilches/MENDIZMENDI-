@@ -513,7 +513,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
 diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
     m.customProgramCacheKey = () => crece ? 'mapa-arboles-fino2' : 'mapa-arboles2'; return m; };
-  { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
+  // (desde el 20 de noviembre de 2026, sin estos arbolitos: el autor, «quitar las circunferencias tipo arbolito de las
+  // comarcas». Las bolas y los conos sueltos salían como puntos y círculos encima del relieve; el bosque ya lo pinta el
+  // propio terreno, con sus copas de luz y sombra (RELIEVE_FS, mapa3dSombreadores.js, «la frondosidad»), igual que en la
+  // isla. El código se queda, apagado, por si hiciera falta)
+  const ARBOLES_MAPA = false;
+  if (ARBOLES_MAPA) { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
     const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
     for (const c of C) {
       const b = c.mesh.geometry.boundingBox, L = [];
