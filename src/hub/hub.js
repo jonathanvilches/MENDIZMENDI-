@@ -92,6 +92,7 @@ import fotoFutbolM from '../assets/torneos/media/futbol.webp';
 import fotoFutbolHd from '../assets/torneos/hd/futbol.webp';
 import { ATRAS_SVG } from '../ui/pantalla.js';
 import { carrusel3d, CSS_CARRUSEL3D, reanima } from '../game/carrusel3d.js';
+import { fondoSuave } from '../ui/fondoSuave.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -326,7 +327,11 @@ export class Hub {
     const secScreen = this.nav.some(n => n[0] === screen) && this.navHidden(screen);
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'home') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
-    if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
+    // (la foto de la comarca, ya reducida, en gris y algo oscura, ui/fondoSuave.js: con el desenfoque de CSS, el navegador
+    // la volvía a desenfocar en cada fotograma de los carruseles del menú. Si no se puede, la de siempre con su filtro)
+    if (this.bgc !== bgc) { this.bgc = bgc; const u = comarcaCover(bgc, true), B = $('.bgimg', this.root);
+      fondoSuave(u, { ancho: 96, gris: 1, brillo: 0.85 }).then(d => { if (this.bgc !== bgc) return; B.style.backgroundImage = `url(${d})`; B.classList.add('suave'); })
+        .catch(() => { if (this.bgc !== bgc) return; B.classList.remove('suave'); B.style.backgroundImage = `url(${u})`; }); }
     // (el botón de tu retrato cambia de sitio al abrir o cerrar una sección: se desliza desde donde estaba, con transform)
     const mb = this.root.querySelector('.hub-menu-btn'), mb0 = mb?.getBoundingClientRect();
     this.root.dataset.screen = screen;

@@ -15,6 +15,7 @@ import { armsReady } from '../ui/escudoImg.js';
 import { infoCard } from '../ui/minigames.js';
 import { isEU, tr } from '../i18n.js';
 import { laminaUrl } from '../ui/laminas.js';
+import { fondoSuave } from '../ui/fondoSuave.js';
 import { pasakaMenu, pasakaReward } from '../ui/pasaka.js';
 import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { showChampion } from '../ui/champion.js';
@@ -330,7 +331,10 @@ export class PuebloDeportes {
     let el = document.querySelector('.sport-bg');
     if (!el && on) {
       el = document.createElement('div'); el.className = 'sport-bg gx-bg';
-      const u = laminaUrl('dep-fronton'); if (u) { const i = document.createElement('i'); i.style.backgroundImage = `url("${u}")`; el.appendChild(i); }
+      // (la lámina ya reducida, ui/fondoSuave.js, sin filtro: con el desenfoque de CSS el carrusel de campeonatos iba a
+      // 1-4 fotogramas por segundo; si no se puede reducir, la de siempre con su filtro)
+      const u = laminaUrl('dep-fronton'); if (u) { const i = document.createElement('i'); el.appendChild(i);
+        fondoSuave(u, { ancho: 32, saturacion: 1.1 }).then(d => { i.style.backgroundImage = `url("${d}")`; i.classList.add('suave'); }).catch(() => { i.style.backgroundImage = `url("${u}")`; }); }
       document.body.appendChild(el);
     }
     // (ya: delante al momento, sin fundido; el siguiente cambio ya funde)

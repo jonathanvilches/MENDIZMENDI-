@@ -23,6 +23,8 @@
 /* (la foto de la comarca, en gris debajo del velo morado: así el fondo es siempre morado y nunca sale marrón con las
    fotos de tierra, como las Bardenas) */
 .hub-bg .bgimg { position: absolute; inset: -32px; background: #1f0a48 center/cover; filter: blur(7px) grayscale(1) brightness(.85); transform: translate(calc(var(--px, 0) * -12px), calc(var(--py, 0) * -8px)) scale(1.04); transition: background-image .6s, transform var(--d-panel) var(--ease); }
+/* (ya reducida y en gris, ui/fondoSuave.js: sin filtro, que costaba un desenfoque en cada fotograma) */
+.hub-bg .bgimg.suave { filter: none; }
 .hub-bg::after { content: ''; position: absolute; inset: 0; background:
   linear-gradient(180deg, rgba(26, 8, 58, .6) 0%, rgba(24, 8, 54, .82) 40%, rgba(18, 6, 40, .94) 100%),
   radial-gradient(120% 80% at 50% 0%, transparent 40%, rgba(0, 0, 0, .45) 100%); }

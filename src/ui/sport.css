@@ -39,6 +39,12 @@
 .sport-bg { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .25s; }
 .sport-bg.on, .sport-bg.tapa { opacity: 1; } .sport-bg.ya { transition: none; }   /* (tapa: sigue delante, pero el juego ya dibuja detrás: game/llegadas.js) */
 .sport-bg > i { position: absolute; inset: -48px; z-index: -1; background: center / cover no-repeat; filter: blur(18px) saturate(1.1); opacity: .32; }
+/* (ya reducida, ui/fondoSuave.js: sin el desenfoque de CSS, que con el carrusel de campeonatos delante dejaba la página a
+   1-4 fotogramas por segundo) */
+.sport-bg > i.suave { filter: none; }
+/* (y sin el brillo que cruza: el fondo queda casi siempre debajo de un panel opaco, que ya lleva el suyo, y aun sin verse se
+   repintaba a pantalla entera en cada fotograma; medido con el carrusel de campeonatos: de 31 a 54 fotogramas por segundo) */
+.sport-bg::after { display: none; animation: none; }
 
 /* ---------- títulos y rótulos */
 .gx-kick { display: inline-flex; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
