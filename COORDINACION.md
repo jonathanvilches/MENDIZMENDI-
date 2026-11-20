@@ -201,6 +201,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (17), la hizo la ventana principal, por encargo del autor: `master` hasta `1b7ca209`. La posada: en cada
+  pueblo, también en Otsagabia, una casa con letrero y farol donde, de noche, se puede dormir hasta la mañana.
 - 20 nov, noche (16), la hizo la ventana principal, por encargo del autor: `master` hasta `7d2b32cb`. La bici, entera: la
   horquilla y el manillar en su sitio (se dibujaban más atrás y la rueda de delante iba suelta), con cadena, guardabarros,
   luces, manetas y varillas en la cesta.
