@@ -115,8 +115,10 @@ export class PelotaAudio {
     g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
   }
-  /** Un golpe de la pelota con su sonido de frontón (tools/sonidos/golpes-pelota.py: fabricado a partir de lo medido en
-   *  el vídeo de un entrenamiento que pasó el autor el 17 de noviembre de 2026, con la sala de un frontón cubierto): una
+  /** Un golpe de la pelota con su sonido de frontón (desde el 20 de noviembre de 2026, golpes de verdad recortados del
+   *  vídeo de un frontón cubierto que pasó el autor, «te dejo por aquí el sonido de la pelota para que afines el que ya
+   *  tenemos»: la mano, el frontis, la pared y el bote, con su cola de sala y sin el fondo del vídeo; antes, fabricados con
+   *  tools/sonidos/golpes-pelota.py a partir de lo medido en otro vídeo, el del 17 de noviembre): una
    *  de sus tres variantes, distinta de la anterior, algo más aguda y fuerte cuanto más fuerte el golpe. false si aún no
    *  ha llegado, y entonces suena el sintetizado de antes */
   golpe(tipo, v) {
