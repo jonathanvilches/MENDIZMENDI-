@@ -141,6 +141,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, madrugada, la hizo la ventana principal, por el encargo del autor («quiero el frontón vacío», «la pantalla de
+  selección de campeonatos cambia cuando entras y cuando sales del campeonato es otro carrusel» y «sigue sin funcionar lo
+  de las misiones que pulses y vaya al principio de la misión»): `master` hasta `d67b5b70`. Entran las dos fotos nuevas
+  de Torneos (frontón vacío, parejas a la par, sin ampliaciones), «Elige frontón» de Torneos con el mismo carrusel que
+  dentro del campeonato, y la barra de misiones que lleva a cualquier misión con el segundo toque (también en Otsagabia).
 - 19 nov, noche (4), la hizo la ventana principal, por el encargo del autor (capturas de Elige frontón, Ajustes y Perfil:
   «adaptarlas al nuevo diseño y optimizar»): `master` hasta `c96764b2`. Entran Elige frontón con cartas de foto (las
   canchas de `src/assets/frontones-juego`), y Perfil y Ajustes en tarjetas por tema en columnas (`src/hub/ajustes.css`).
