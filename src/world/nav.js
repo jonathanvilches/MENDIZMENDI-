@@ -5,15 +5,15 @@
 // miran (no hace falta recorrer todo el mapa al cargar).
 import { freeFast } from './colliders.js';
 import { groundHeight, waterLevelAt } from './heightfield.js';
-import { HALF, pathQuery, fieldInfo } from './layout.js';
+import { HALF, pathQuery, fieldInfo, MOD } from './layout.js';
 
 // (solo el pueblo y sus alrededores: 600 m de lado; fuera, los vecinos no pasean)
 const NH = Math.min(HALF, 300), CELL = 1, N = Math.round(NH * 2 / CELL) + 1;
-let STATE = null, G = null, STAMP = null, SHUT = null, FROM = null, stampN = 1;
+let STATE = null, G = null, STAMP = null, SHUT = null, FROM = null, stampN = 1, FORCE = null;
 const R = 0.42;   // medio ancho de una persona (con algo de holgura)
 
 /** Se llama al cambiar de pueblo: olvida lo calculado. */
-export function resetNav() { STATE = null; QUEUE.length = 0; }
+export function resetNav() { STATE = null; FORCE = null; QUEUE.length = 0; }
 /** Olvida solo las casillas de un rectángulo (se han quitado árboles o matas): se vuelven a mirar cuando hagan falta. */
 export function olvidaZona(xa, za, xb, zb) {
   if (!STATE) return;
@@ -23,11 +23,39 @@ export function olvidaZona(xa, za, xb, zb) {
 const idx = (i, j) => j * N + i;
 const toCell = (v) => Math.round((v + NH) / CELL);
 const toWorld = (i) => -NH + i * CELL;
+// (los puentes de los pueblos de verdad: un tablero estrecho, de 1,6 a 2,4 m entre pretiles, y casi siempre en diagonal.
+// Con casillas de 1 m y casi medio metro de holgura a cada lado no quedaba ninguna casilla libre seguida y el puente salía
+// cortado: en Ituren, el Marizeneko dejaba toda la otra orilla sin camino, ni para la ruta del minimapa ni para el perro.
+// Su eje, con tres metros más por cada cabeza para llegar a la calle, se pisa siempre, en una cadena de casillas unidas
+// por los lados; 20 de noviembre de 2026)
+function pasos() {
+  const F = new Set(), pon = (i, j) => { if (i > 0 && j > 0 && i < N - 1 && j < N - 1) F.add(idx(i, j)); };
+  for (const P of MOD?.real?.puentes || []) {
+    if (!P.pts || P.pts.length < 2) continue;
+    const L = P.pts.map(q => ({ x: q[0], z: q[1] }));
+    const cabeza = (a, b) => { const dx = a.x - b.x, dz = a.z - b.z, d = Math.hypot(dx, dz) || 1; return { x: a.x + dx / d * 3, z: a.z + dz / d * 3 }; };
+    L.unshift(cabeza(L[0], L[1])); L.push(cabeza(L[L.length - 1], L[L.length - 2]));
+    // (y en cada punta, un cuadro de 3 × 3 casillas, para que la cadena empalme con la calle aunque esta llegue en ángulo)
+    for (const q of [L[0], L[L.length - 1]]) { const i = toCell(q.x), j = toCell(q.z); for (let a = -1; a <= 1; a++) for (let c = -1; c <= 1; c++) pon(i + a, j + c); }
+    let pi = null, pj = null;
+    for (let k = 0; k < L.length - 1; k++) {
+      const a = L[k], b = L[k + 1], n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 0.25));
+      for (let t = 0; t <= n; t++) {
+        const i = toCell(a.x + (b.x - a.x) * t / n), j = toCell(a.z + (b.z - a.z) * t / n);
+        if (pi !== null && i !== pi && j !== pj) pon(i, pj);   // (un paso en diagonal: también la del lado)
+        pon(i, j); pi = i; pj = j;
+      }
+    }
+  }
+  return F;
+}
 // estado de una casilla: 0 sin mirar, 1 bloqueada, 2..255 coste (2 = calle)
 function cell(i, j) {
   if (i < 1 || j < 1 || i >= N - 1 || j >= N - 1) return 1;
   const k = idx(i, j); let s = STATE[k];
   if (s) return s;
+  if (!FORCE) FORCE = pasos();
+  if (FORCE.has(k)) { STATE[k] = 2; return 2; }
   const x = toWorld(i), z = toWorld(j);
   if (!freeFast(x, z, R)) s = 1;
   else {
