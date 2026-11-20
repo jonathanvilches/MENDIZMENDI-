@@ -64,10 +64,13 @@ async function BOT(SOLO) {
   // ¿se llega andando desde la entrada? (la rejilla de los caminos cubre ±300 m; más allá no se puede decir)
   const llega = (x, z) => {
     if (Math.abs(x) > 295 || Math.abs(z) > 295) return 'lejos';
-    let q = null; for (let r = 0; r <= 4 && !q; r += 0.5) for (let a = 0; a < 6.28 && !q; a += 0.4) { const X = x + Math.cos(a) * r, Z = z + Math.sin(a) * r; if (nav.walkable(X, Z)) q = { x: X, z: Z }; }
-    if (!q) return 'no';
-    const path = nav.findPath(inicio.x, inicio.z, q.x, q.z, 200000);
-    return path && path.length ? 'si' : 'no';
+    // (las casillas pisables de alrededor, de la más cercana a la más lejana, hasta 3 m: la primera podía caer en el hueco de
+    // una puerta o en un callejón cerrado, con la calle a un paso, y salía INALCANZABLE sin serlo; Isaba y Roncal)
+    const qs = [], vistas = new Set();
+    for (let r = 0; r <= 3; r += 0.5) for (let a = 0; a < 6.28; a += 0.4) { const X = Math.round(x + Math.cos(a) * r), Z = Math.round(z + Math.sin(a) * r), k = X + ',' + Z; if (!vistas.has(k)) { vistas.add(k); if (nav.walkable(X, Z)) qs.push({ x: X, z: Z }); } }
+    if (!qs.length) return 'no';
+    for (const q of qs.slice(0, 10)) { const path = nav.findPath(inicio.x, inicio.z, q.x, q.z, 200000); if (path && path.length) return 'si'; }
+    return 'no';
   };
   const vistos = new Set();
   const compruebaLlegar = (M, x, z, que) => { const k = M.i + ':' + Math.round(x) + ',' + Math.round(z); if (vistos.has(k)) return; vistos.add(k); const r = llega(x, z); if (r === 'no') avisos.push(`INALCANZABLE ${M.type} · ${que} (${Math.round(x)}, ${Math.round(z)})`); };
