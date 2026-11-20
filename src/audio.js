@@ -28,11 +28,14 @@ const GRAB = {
   relincho: ['caballo-relincho'], resoplido: ['caballo-resoplido'],
   burro: ['burro'], gallina: ['gallina-1', 'gallina-2', 'gallina-3'], gorriones: ['gorriones-1', 'gorriones-2', 'gorriones-3'], pez: ['pez-1', 'pez-2', 'pez-3', 'pez-4'], pezSalto: ['pez-salto'],
   piedra: ['paso-piedra-1', 'paso-piedra-2', 'paso-piedra-3', 'paso-piedra-4', 'paso-piedra-5', 'paso-piedra-6'], agua: ['paso-agua-1', 'paso-agua-2', 'paso-agua-3', 'paso-agua-4'],
+  // (los cencerros grabados de las figuras de carnaval y del Zarratrako, hechos con los efectos de ElevenLabs en noviembre
+  // de 2026: el autor, «estaría bien extraer sonidos para cuando se escuchen los cencerros de los personajes, de las leyendas»)
+  cencerro: ['cencerro-1', 'cencerro-2', 'cencerro-3'],
   click: ['ui-click'], open: ['ui-abre'], coin: ['ui-moneda'], card: ['ui-carta'], error: ['ui-error'], magia: ['ui-magia'], fanfarria: ['ui-fanfarria'],
 };
 // (lo fuerte que va cada uno: los grabados vienen a −3 dB de pico; así quedan como los sintetizados, algo por encima)
 const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, resoplido: 0.3, burro: 0.26, gallina: 0.2, gorriones: 0.16, pez: 0.22, pezSalto: 0.22, click: 0.22, open: 0.22, coin: 0.2, card: 0.2, error: 0.14, magia: 0.22, fanfarria: 0.24 };
-const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido', 'burro', 'gallina', 'gorriones', 'pez', 'pezSalto'];
+const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido', 'burro', 'gallina', 'gorriones', 'pez', 'pezSalto', 'cencerro'];
 export class Sound {
   constructor() {
     this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.42;   // (la música, con más protagonismo: 0,32 antes; y los efectos, más bajos, sfx)
@@ -194,14 +197,31 @@ export class Sound {
    *  de la música. El cencerro de siempre (cowbell) solo llegaba a 45 m, a 30 m ya casi no se oía y, con la música más alta
    *  desde noviembre, quedaba tapado: el autor, 17 de noviembre de 2026, «se han eliminado cosas muy necesarias, como que
    *  se escuchen los cencerros en Ochagavía para encontrar al Zarratrako». n: golpes seguidos */
+  // (desde el 20 de noviembre de 2026, el cencerro grabado y la música apartada mientras se buscan: el autor, «escucha los
+  // cencerros de Zarratraco y no se escuchan los cencerros, no puedo saber hacia dónde ir». El sintetizado, si aún no está)
   cencerroGuia(pos, n = 3) {
     if (!this.ctx) return; const ctx = this.ctx, s = this.spatial(pos, 220);
-    const g = ctx.createGain(); g.gain.value = 0.26 + 1.05 * s.gain;
+    this.buscaCencerros();
+    const L = GRAB.cencerro.map(k => carga(ctx, k).buf).filter(Boolean);
+    const g = ctx.createGain(); g.gain.value = L.length ? 0.2 + 0.62 * s.gain : 0.26 + 1.05 * s.gain;
     const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
     if (p) { p.pan.value = s.pan; g.connect(p); p.connect(this.sfx); const vg = ctx.createGain(); vg.gain.value = 0.3 + (1 - s.gain) * 0.35; p.connect(vg); vg.connect(this.verb); } else g.connect(this.sfx);
+    if (L.length) {   // (un trozo del grabado: tantos golpes como pide, uno cada 0,4 s, y un poco más agudo si está cerca)
+      const b = L[(this.cenU = ((this.cenU || 0) + 1 + Math.floor(Math.random() * (L.length - 1))) % L.length)], src = ctx.createBufferSource();
+      src.buffer = b; src.playbackRate.value = (0.95 + Math.random() * 0.08) * (n >= 3 ? 1 : 1.03); src.connect(g);
+      src.start(ctx.currentTime, 0, Math.min(b.duration, 0.42 * n + 0.45)); return;
+    }
     const f = 540 + Math.random() * 70;
     for (let i = 0; i < n; i++) { const t = i * 0.16 + Math.random() * 0.03, k = 1 - i * 0.12;
       this.tone(f, 0.6, 'square', 0.06 * k, g, t); this.tone(f * 1.48, 0.5, 'triangle', 0.065 * k, g, t); this.tone(f * 2.71, 0.3, 'sine', 0.04 * k, g, t); this.tone(f * 0.5, 0.35, 'sine', 0.05 * k, g, t); }
+  }
+  /** Un cencerro grabado que se oye de cerca (n golpes, hasta 70 m), sin apartar la música: los de las figuras de carnaval
+   *  que pasan, y los del desfile. false si aún no está el grabado */
+  cencerroCerca(pos, n = 2, v = 0.6) {
+    if (!this.ctx) return false; const L = GRAB.cencerro.map(k => carga(this.ctx, k).buf).filter(Boolean); if (!L.length) return false;
+    const o = this.out(pos, 70, v, 0.25); if (!o) return true;
+    const b = L[Math.floor(Math.random() * L.length)], src = this.ctx.createBufferSource(); src.buffer = b; src.playbackRate.value = 0.92 + Math.random() * 0.14; src.connect(o);
+    src.start(this.ctx.currentTime, Math.random() * 0.3, Math.min(b.duration, 0.42 * n + 0.4)); return true;
   }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   bird(pos) {
@@ -226,7 +246,7 @@ export class Sound {
   creature(who, kind, pos) {
     if (!this.ctx) return; const o = this.out(pos, 70, kind === 'call' ? 0.9 : 0.55, 0.7); if (!o) return;
     if (who === 'lamia') { this.tone(620, 1.1, 'sine', 0.08, o, 0, 0.2, kind === 'call' ? 980 : 700); this.tone(930, 0.9, 'sine', 0.04, o, 0.15, 0.3, 860); }
-    else if (who === 'momotxorro') { for (let i = 0; i < (kind === 'call' ? 4 : 2); i++) this.cowbell(pos, 0.6); if (kind === 'call') this.noiseBurst(0.3, 300, 0.6, 0.35, o); }
+    else if (who === 'momotxorro') { if (!this.cencerroCerca(pos, kind === 'call' ? 4 : 2, kind === 'call' ? 0.75 : 0.5)) for (let i = 0; i < (kind === 'call' ? 4 : 2); i++) this.cowbell(pos, 0.6); if (kind === 'call') this.noiseBurst(0.3, 300, 0.6, 0.35, o); }
     else { this.tone(62, kind === 'call' ? 1.2 : 0.8, 'sawtooth', 0.12, o, 0, 0.15, 48); this.noiseBurst(kind === 'call' ? 0.9 : 0.5, 180, 0.5, 0.3, o, 0, 'lowpass'); }
   }
   cricket() { if (!this.ctx) return; for (let i = 0; i < 3; i++) this.tone(4200, 0.03, 'sine', 0.015, this.sfx, i * 0.05); }
@@ -284,6 +304,8 @@ export class Sound {
   musicTick() {
     const ctx = this.ctx;
     this.quietAmbient();
+    if (this.buscando && ctx.currentTime > this.buscandoHasta) { this.buscando = false;   // (ya no suenan cencerros: la música vuelve)
+      if (this.musicBus && this.musicOn && this.mood !== 'none' && (this.duckUntil || 0) <= ctx.currentTime) { const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, 0.8); } }
     if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); this.frases?.tick(0.25, false); return; }
     this.pistas?.pausa(false);
     // (de paseo por un pueblo no suena la canción de continuo: frases sueltas y el ambiente. La canción vuelve con lo que
@@ -311,7 +333,15 @@ export class Sound {
   /** Lo fuerte que suena la música ahora: mientras habla el comentarista, algo más de la mitad, para que no lo tape */
   // (antes a un tercio, y en el partido, a 0,14 mientras se jugaba: con el comentarista hablando casi todo el rato, la
   // música no se oía en el iPhone. Ahora a 0,24 jugando y a 0,55 de eso cuando habla, noviembre de 2026)
-  volMus() { return this.musVol * (this.hablando ? 0.55 : 1); }
+  volMus() { return this.musVol * (this.hablando ? 0.55 : 1) * (this.buscando ? 0.35 : 1); }
+  /** Mientras suenan los cencerros que hay que seguir, la música baja a un tercio para que se oigan y se sepa hacia dónde
+   *  ir; vuelve sola 4 s después del último (musicTick) */
+  buscaCencerros() {
+    if (!this.ctx) return; this.buscandoHasta = this.ctx.currentTime + 4;
+    if (this.buscando) return; this.buscando = true;
+    if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
+    const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, 0.25);
+  }
   /** El comentarista empieza (on) o acaba de hablar: la música baja deprisa y vuelve despacio (pelota/voz.js). También
    *  lo oye el sonido del partido (pelota/audio.js, con su propio contexto), que baja el público y los aplausos */
   voz(on) {

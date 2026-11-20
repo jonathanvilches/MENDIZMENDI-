@@ -79,3 +79,13 @@ Los golpes de la pelota (`pelota-mano-*`, `pelota-frontis-*`, `pelota-bote-*` y 
 ## Música retirada
 
 «Minstrel Guild», de Kevin MacLeod (CC BY 4.0), sonó en los partidos de pelota del 9 al 10 de noviembre de 2026. Se quitó a petición del autor del juego (era medieval y no la había elegido él); el partido suena con la épica de Torneos.
+
+### Cencerros (20/11/2026)
+
+Hechos con los efectos de sonido de ElevenLabs (modelo eleven_text_to_sound_v3), en la cuenta del dueño del proyecto, a
+petición suya. Recortados y normalizados a −3 dB de pico.
+
+| Archivos | Uso en el juego |
+|---|---|
+| cencerro-1 a cencerro-3 | Los cencerros que hay que seguir para encontrar al Zarratrako en Otsagabia y a las figuras de carnaval de los pueblos; los de los momotxorros que pasan |
+| cencerros-desfile | El desfile de momotxorros por las calles de Altsasu al encontrar los tres |
