@@ -13,6 +13,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { TOWN } from '../world/townBuilder.js';
 import { addBox, addCircle, isFree, rectFree } from '../world/colliders.js';
 import { clearTrees, clearBushes } from '../world/nature.js';
+import { walkable, olvidaZona } from '../world/nav.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from '../ui/minigames.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
@@ -24,6 +25,25 @@ import { oficioImg } from '../ui/escudoImg.js';
 import { showFicha } from '../ui/ficha.js';
 import { SETAS, SETAS_BUENAS, SETAS_MALAS } from '../data/setas.js';
 export const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
+
+// casillas a las que se llega andando desde (x0, z0), a menos de R m (la rejilla de caminos, world/nav.js); null si
+// alrededor del punto no hay ninguna casilla pisable
+function alcance(x0, z0, R) {
+  const N = 2 * R + 1, vis = new Uint8Array(N * N), ix = (x, z) => (Math.round(z - z0) + R) * N + (Math.round(x - x0) + R);
+  let s = null;
+  for (let r = 0; r <= 3 && !s; r++) for (let dx = -r; dx <= r && !s; dx++) for (let dz = -r; dz <= r && !s; dz++) if (walkable(x0 + dx, z0 + dz)) s = [Math.round(x0 + dx), Math.round(z0 + dz)];
+  if (!s) return null;
+  const q = [s]; vis[ix(s[0], s[1])] = 1;
+  while (q.length) {
+    const [x, z] = q.pop();
+    for (const [u, v] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const X = x + u, Z = z + v; if (Math.abs(X - x0) > R || Math.abs(Z - z0) > R) continue;
+      const k = ix(X, Z); if (vis[k]) continue; vis[k] = 2;
+      if (walkable(X, Z)) { vis[k] = 1; q.push([X, Z]); }
+    }
+  }
+  return (x, z) => Math.abs(x - x0) <= R && Math.abs(z - z0) <= R && vis[ix(x, z)] === 1;
+}
 
 export class PuebloActividades {
   // ---------- Recoger objetos ----------
@@ -125,9 +145,21 @@ export class PuebloActividades {
     let pool = this.fauna.animals.filter(a => a.kind === kind && Math.hypot(a.pos.x - pen.x, a.pos.z - pen.z) < 160);
     if (pool.length < M.need) pool = this.fauna.animals.filter(a => a.kind === 'sheep');
     this.herd = pool.slice(0, M.need);
-    // colocar el rebaño a una distancia razonable del redil
+    // delante de la puerta (al sur o al norte, world/townBuilder.js), ni árboles ni matas que la tapen
+    const gs = pen.gate || 1, zg = pen.gz ?? pen.z + pen.d / 2, ry = gs > 0 ? 0 : Math.PI;
+    clearTrees(pen.x, zg, 6, 7, ry); clearBushes(pen.x, zg, 6, 7, ry); olvidaZona(pen.x - 5, zg, pen.x + 5, zg + gs * 9);
+    // colocar el rebaño a una distancia razonable del redil, del lado de la puerta y solo donde se llega andando hasta ella
+    // (la rejilla de caminos): que ni la cuadra ni una casa ni el agua dejen a ninguno sin camino
+    const llega = alcance(pen.x, zg + gs * 2.5, 46), fuera = (x, z) => Math.abs(x - pen.x) > pen.w / 2 + 2 || Math.abs(z - pen.z) > pen.d / 2 + 2;
+    const sirve = (x, z) => fuera(x, z) && (!llega || llega(x, z));
     this.herd.forEach((s, i) => {
-      const a = i / this.herd.length * 1.6 - 0.8, sp = this.spot({ x: pen.x + Math.sin(a) * 18, z: pen.z + pen.d / 2 + 16 + Math.cos(a) * 6 }, 4);
+      const a = i / this.herd.length * 1.6 - 0.8;
+      let sp = this.spot({ x: pen.x + Math.sin(a) * 18, z: zg + gs * (16 + Math.cos(a) * 6) }, 4, true, 1.6, sirve);
+      // (si ahí no hay sitio con camino, por los lados del redil y más lejos)
+      for (let k = 0; k < 24 && llega && !sirve(sp.x, sp.z); k++) {
+        const b = (k % 8) / 8 * Math.PI * 2 + a, r = 14 + Math.floor(k / 8) * 8;
+        sp = this.spot({ x: pen.x + Math.sin(b) * r, z: pen.z + Math.cos(b) * r }, 4, true, 1.6, sirve);
+      }
       s.follow = null; s.pos.set(sp.x, groundHeight(sp.x, sp.z), sp.z); s.home = { x: sp.x, z: sp.z }; s.range = 4; s.fleeDist = kind === 'cow' ? 5 : 4.2; s.run = kind === 'cow' ? 2.4 : 2.8; s.herd = true; s.penned = false; s.bounds = null;
     });
     this.herdM = M;

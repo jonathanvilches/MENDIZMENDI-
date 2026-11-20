@@ -184,7 +184,7 @@ export class TownGame {
         M.steps = m.kind === 'almadia' && MOD.real?.presas ? () => ['Habla con ' + host(), 'Baja el Esca en la almadía hasta el puente medieval']
           : () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'observe': M.title = m.title || 'Observa'; M.icon = 'binoculars'; M.need = m.n || 3; M.species = [].concat(m.species || []);
-        M.steps = () => ['Habla con ' + host(), `Con los prismáticos, encuentra ${M.species.map(faunaName).join(' o ').toLowerCase() || 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
+        M.steps = () => ['Habla con ' + host(), M.step === 1 && M.obsLejos ? `Sigue la flecha hasta donde viven los animales (${M.count}/${M.need})` : `Con los prismáticos, encuentra ${M.species.map(faunaName).join(' o ').toLowerCase() || 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;   // (M.obsLejos lo pone target(), que ya busca el animal más cercano en cada fotograma)
       case 'tradition': M.title = m.title || 'Tradición'; M.icon = m.kind === 'angel' ? 'angel' : 'music';
         M.steps = () => ['Habla con ' + host(), m.kind === 'angel' ? 'Prepara la bajada: repite la secuencia' : 'Repite la melodía']; break;
       case 'summit': { const pk = M.peak = MOUNTAINS.find(x => x.id === m.peak); M.title = `Sube al ${pk?.name || 'monte'}`; M.icon = 'peak'; M.need = 4;
@@ -257,7 +257,7 @@ export class TownGame {
       case 'visit': { const S = P.spawn, dx = P.plaza.x - S.x, dz = P.plaza.z - S.z, d = Math.hypot(dx, dz) || 1; return { x: S.x + (dx * 12 - dz * 3) / d, z: S.z + (dz * 12 + dx * 3) / d }; }   // (el guía, a 12 pasos de la llegada hacia el pueblo)
       case 'process': return m.gather?.near ? near(m.gather.near) : P.market;
       case 'harvest': return P.fields;
-      case 'herd': return TOWN.pen ? { x: TOWN.pen.x, z: TOWN.pen.z + TOWN.pen.d / 2 + 4 } : P.farm;
+      case 'herd': return TOWN.pen ? { x: TOWN.pen.x, z: (TOWN.pen.gz ?? TOWN.pen.z + TOWN.pen.d / 2) + (TOWN.pen.gate || 1) * 4 } : P.farm;
       case 'dance': case 'carnival': case 'tradition': return { x: P.plaza.x + (M.i % 2 ? 7 : -7), z: P.plaza.z + 6 };
       case 'trade': return m.kind === 'aizkolari' || m.kind === 'carbonero' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
@@ -733,7 +733,9 @@ export class TownGame {
       case 'figure': return M.step === 1 && M.memo ? { x: M.memo.x, z: M.memo.z, h: 3 } : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
       case 'race': if (M.step === 1) { const g = this.gates.find(g => g.next); return g ? { x: g.x, z: g.z, h: 4.4 } : null; } return at(M.host);
-      case 'observe': if (M.step === 1) { const t = this.obsNearest(M); return t ? { x: t.pos.x, z: t.pos.z, h: 0, noArrow: true } : null; } return at(M.host);
+      // (lejos, más allá de lo que alcanzan los prismáticos, la flecha de siempre hasta acercarse: en Orreaga los animales
+      // del hayedo están a 400 m del guarda y no había nada que llevase hasta ellos; cerca, sin flecha: se buscan mirando)
+      case 'observe': if (M.step === 1) { const t = this.obsNearest(M); M.obsLejos = !!t && this.obsLejos(t); if (!t) return null; return M.obsLejos ? { x: t.pos.x, z: t.pos.z, h: 2 } : { x: t.pos.x, z: t.pos.z, h: 0, noArrow: true }; } return at(M.host);
     }
     return at(M.host);
   }

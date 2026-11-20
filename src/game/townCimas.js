@@ -400,10 +400,14 @@ export class PuebloCimas {
     for (const o of pano ? pano.birdObs() : this.fauna.observables()) {
       if (M.species.length && !M.species.includes(o.id)) continue;
       const k = o.obj?.uuid || o.id + ':' + Math.round(o.pos.x) + ',' + Math.round(o.pos.z); if (this.obsSeen?.has(k)) continue;
-      const d = Math.hypot(o.pos.x - P.x, o.pos.z - P.z); if (d < bd) { bd = d; b = o; }
+      // (la ardilla que aún no se ha visto nunca está en 0,0,0: cuenta donde está su árbol)
+      const q = o.ref?.tree && !o.pos.x && !o.pos.z ? { ...o, pos: { x: o.ref.tree.x, y: o.ref.tree.y || 0, z: o.ref.tree.z } } : o;
+      const d = Math.hypot(q.pos.x - P.x, q.pos.z - P.z); if (d < bd) { bd = d; b = q; }
     }
     return b;
   }
+  // ¿más lejos de lo que alcanzan los prismáticos? (110 m los animales de tierra, 320 las aves que vuelan alto)
+  obsLejos(t) { const P = this.player.pos; return Math.hypot(t.pos.x - P.x, t.pos.z - P.z) > (t.far ? 300 : 95); }
   // ficha del cuaderno de campo al anotar un animal
   async fieldCard(id, first, M) {
     const F = FAUNA[id]; if (!F) return;

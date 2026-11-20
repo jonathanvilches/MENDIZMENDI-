@@ -14,6 +14,12 @@ const R = 0.42;   // medio ancho de una persona (con algo de holgura)
 
 /** Se llama al cambiar de pueblo: olvida lo calculado. */
 export function resetNav() { STATE = null; QUEUE.length = 0; }
+/** Olvida solo las casillas de un rectángulo (se han quitado árboles o matas): se vuelven a mirar cuando hagan falta. */
+export function olvidaZona(xa, za, xb, zb) {
+  if (!STATE) return;
+  const i0 = Math.max(0, toCell(Math.min(xa, xb))), i1 = Math.min(N - 1, toCell(Math.max(xa, xb))), j0 = Math.max(0, toCell(Math.min(za, zb))), j1 = Math.min(N - 1, toCell(Math.max(za, zb)));
+  for (let j = j0; j <= j1; j++) STATE.fill(0, idx(i0, j), idx(i1, j) + 1);
+}
 const idx = (i, j) => j * N + i;
 const toCell = (v) => Math.round((v + NH) / CELL);
 const toWorld = (i) => -NH + i * CELL;

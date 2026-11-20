@@ -282,7 +282,12 @@ function buildFarm(B, fam) {
       addBox((xa + xb) / 2, (za + zb) / 2, 0.3, len, ang);
     }
   };
-  rail(x0, z0, x1, z0); rail(x1, z0, x1, z1); rail(x0, z1, x0, z0); rail(x0, z1, pen.x - gate / 2, z1); rail(pen.x + gate / 2, z1, x1, z1);
+  // la puerta, al lado más despejado (sur o norte): siempre al sur, en Aribe y en Etxalar la cuadra quedaba justo delante y
+  // las ovejas no encontraban por dónde entrar (noviembre de 2026). pen.gate: +1 al sur (z1), −1 al norte (z0); pen.gz, su línea
+  const libre = (zl, sg) => { let n = 0; for (const dx of [-2, 0, 2]) for (const dz of [1.5, 3.5, 5.5, 7.5]) if (isFree(pen.x + dx, zl + sg * dz, 0.6)) n++; return n; };
+  pen.gate = libre(z0, -1) > libre(z1, 1) ? -1 : 1; pen.gz = pen.gate > 0 ? z1 : z0;
+  const zp = pen.gz, zc = pen.gate > 0 ? z0 : z1;   // (zp: la de la puerta; zc: la cerrada)
+  rail(x0, zc, x1, zc); rail(x1, z0, x1, z1); rail(x0, z1, x0, z0); rail(x0, zp, pen.x - gate / 2, zp); rail(pen.x + gate / 2, zp, x1, zp);
   TOWN.pen = pen;
   TOWN.farm = { x: f.x, z: f.z, door: { x: f.x + Math.sin(ry) * 5.5, z: f.z + Math.cos(ry) * 5.5 } };
   for (let i = 0; i < 4; i++) { const x = f.x - dir.x * (10 + i * 3), z = f.z - dir.z * (10 + i * 3) + 4; if (isFree(x, z, 1.2)) { B.add('paint', colored(new THREE.CylinderGeometry(0.8, 0.8, 1.2, 14), '#d8b865'), M(x, terrainHeight(x, z) + 0.8, z, 0, 0, Math.PI / 2)); addCircle(x, z, 0.9); } }

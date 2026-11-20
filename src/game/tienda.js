@@ -148,6 +148,9 @@ export class Tienda {
           </div></div>`;
       };
       paint();
+      // (con Escape también se sale, como de las fichas: en el ordenador no había forma de salir sin el ratón)
+      const tecla = (e) => { if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); o.querySelector('[data-close]')?.click(); } };
+      addEventListener('keydown', tecla, true);
       o.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.tab) { tab = b.dataset.tab; said = tab === 'trade' ? '¿Qué traes? Aquí todo se aprovecha: con la leche hacemos cuajada y queso, con la lana, abarcas y jerseys.' : tab === 'buy' ? 'Todo es de aquí, de los vecinos del valle.' : said; g.sound?.ui?.('click'); paint(); return; }
@@ -161,7 +164,7 @@ export class Tienda {
           const k = b.dataset.sell; P.bag.goods[k]--; if (!P.bag.goods[k]) delete P.bag.goods[k]; P.coins += GOODS[k].v; saveProfile();
           said = `¡Eskerrik asko! ${GOODS[k].name} a cambio de ${GOODS[k].v} txanpon. Ahora puedes llevarte comida.`; g.sound?.ui?.('coin'); tab = 'buy'; paint(); return;
         }
-        if (b.hasAttribute('data-close')) { o.remove(); g.player.frozen = false; g.mode = prev === 'mini' ? 'play' : prev; g.mochila.paint?.(); res(); }
+        if (b.hasAttribute('data-close')) { removeEventListener('keydown', tecla, true); o.remove(); g.player.frozen = false; g.mode = prev === 'mini' ? 'play' : prev; g.mochila.paint?.(); res(); }
       });
       document.body.appendChild(o);
     });

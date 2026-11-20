@@ -45,7 +45,9 @@ await b.close();
 
 // ---------- lo que se ejecuta dentro de la página ----------
 async function BOT(SOLO) {
-  const g = window.__game, nav = await import('/src/world/nav.js');
+  // (los módulos del propio juego, main.js: importados aquí por su cuenta, con el servidor de pruebas en marcha y algún
+  // archivo tocado, son otra copia vacía: sin choques, sin el redil)
+  const g = window.__game, nav = window.__nav || await import('/src/world/nav.js');
   window.__autoWin = true;
   const espera = (ms) => new Promise(r => setTimeout(r, ms));
   const avisos = [], misiones = [];
@@ -130,20 +132,24 @@ async function BOT(SOLO) {
             await espera(1800);
           }
         } else if (M.type === 'herd' && g.herd) {
-          // (por detrás de cada animal, hacia la puerta del redil)
-          const T = (await import('/src/world/townBuilder.js')).TOWN.pen;
-          const x0 = T.x - T.w / 2, x1 = T.x + T.w / 2, z0 = T.z - T.d / 2, z1 = T.z + T.d / 2;
+          // (por detrás de cada animal, hacia la puerta del redil, siguiendo el camino: la puerta da al sur o al norte,
+          // world/townBuilder.js, y entre el animal y ella puede haber la cuadra o una casa)
+          const T = (window.__townB || (await import('/src/world/townBuilder.js')).TOWN).pen, gs = T.gate || 1, zg = T.gz ?? T.z + T.d / 2, puerta = { x: T.x, z: zg + gs * 2.5 };
+          const dentroCasi = (X, Z) => Math.abs(X - T.x) < T.w / 2 && (Z - T.z) * gs < T.d / 2 + 0.5 && (Z - T.z) * gs > -T.d / 2;
           for (const s of g.herd.filter(s => !s.penned)) {
+            let camino = null, edad = 0;
             for (let k = 0, t0h = performance.now(); k < 600 && !s.penned && performance.now() - t0h < 120000; k++) {
-              // (como un pastor: si está delante de la puerta, hacia dentro; si no, primero delante de la puerta, rodeando el cercado)
               let tx, tz; const X = s.pos.x, Z = s.pos.z;
-              if (X > x0 && X < x1 && Z > z0 && Z < z1 + 0.5) { tx = T.x; tz = T.z; }
-              else if (Z > z1 + 0.5) { if (Math.abs(X - T.x) < 1.2) { tx = T.x; tz = T.z; } else { tx = T.x; tz = z1 + 3; } }
-              else { const lado = X < T.x ? x0 - 4 : x1 + 4; if (Math.abs(X - lado) > 1.5) { tx = lado; tz = Z; } else { tx = lado; tz = z1 + 4; } }
+              if (dentroCasi(X, Z) || Math.hypot(X - puerta.x, Z - puerta.z) < 2) { tx = T.x; tz = T.z; }
+              else {
+                if (!camino || ++edad > 30) { camino = nav.findPath(X, Z, puerta.x, puerta.z, 60000) || [puerta]; edad = 0; }
+                while (camino.length > 1 && Math.hypot(camino[0].x - X, camino[0].z - Z) < 2) camino.shift();
+                tx = camino[0].x; tz = camino[0].z;
+              }
               const dx = tx - X, dz = tz - Z, l = Math.hypot(dx, dz) || 1;
               P.place(X - dx / l * 1.6, Z - dz / l * 1.6, Math.atan2(dx, dz)); P.frozen = false; tick(3);
             }
-            if (!s.penned) { avisos.push(`herd: un animal no entra al redil (queda en ${Math.round(s.pos.x)}, ${Math.round(s.pos.z)}; redil en ${Math.round(T.x)}, ${Math.round(T.z)}, puerta al sur)`); break; }
+            if (!s.penned) { avisos.push(`herd: un animal no entra al redil (queda en ${Math.round(s.pos.x)}, ${Math.round(s.pos.z)}; redil en ${Math.round(T.x)}, ${Math.round(T.z)}, puerta al ${gs > 0 ? 'sur' : 'norte'})`); break; }
           }
           tick(3);
         } else if (M.type === 'dance' && M.step === 1) {
@@ -155,7 +161,10 @@ async function BOT(SOLO) {
           if (g.mode !== 'bino') g.toggleBinoculars();
           for (let k = 0; k < 30 && M.step === 1; k++) {
             let o = null;
-            if (M.type === 'observe') { o = g.obsNearest(M); if (!o) { tick(10); continue; } }
+            if (M.type === 'observe') { o = g.obsNearest(M); if (!o) { tick(10); continue; }
+              // (fuera del alcance de los prismáticos: primero hacia él, como con la flecha, hasta unos 50 m)
+              const dd = Math.hypot(o.pos.x - P.pos.x, o.pos.z - P.pos.z);
+              if (dd > 95 && !o.far) { if (g.mode === 'bino') g.toggleBinoculars(); compruebaLlegar(M, o.pos.x, o.pos.z, 'animal que observar'); const k = 50 / dd; ve(o.pos.x + (P.pos.x - o.pos.x) * k, o.pos.z + (P.pos.z - o.pos.z) * k); tick(6); if (g.mode !== 'bino') g.toggleBinoculars(); tick(8); o = g.obsNearest(M); if (!o) continue; } }
             else { const obs = g.panoOn ? g.monteObs(g.pano.eye) : g.monteObs({ x: P.pos.x, y: P.pos.y + 1.55, z: P.pos.z }); o = obs.find(q => !q.seen); if (!o) break; }
             const eye = g.panoOn ? g.pano.eye : { x: P.pos.x, y: P.pos.y + 1.55, z: P.pos.z }, at = o.monte && o.pin && !o.pano ? o.pin.position : { x: o.pos.x, y: o.pos.y + (o.h || 0.5), z: o.pos.z };
             const dx = at.x - eye.x, dy = at.y - eye.y, dz = at.z - eye.z; g.binoYaw = Math.atan2(dx, dz); g.binoPitch = Math.atan2(dy, Math.hypot(dx, dz));

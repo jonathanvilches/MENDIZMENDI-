@@ -509,7 +509,9 @@ export function createRealTownLevel(def, D) {
     const lejos = (x, z) => Math.pow(x ** 4 + z ** 4, 0.25) > 440 - 60;
     const delante = (x, z, ux, uz) => { let n = 0; for (const b of CASAS) { const dx = b.x - x, dz = b.z - z; if (dx * ux + dz * uz > 4 && dx * dx + dz * dz < 1e4) n++; } return n; };
     const prueba = (x, z, extra) => {
-      if (!inner(x, z) || lejos(x, z)) return null;
+      // (y dentro de los 300 m que cubre la rejilla de caminos, world/nav.js: en Ituren la entrada caía a 308 m y desde allí ni el
+      // perro sabía llevarte a ningún sitio)
+      if (!inner(x, z) || lejos(x, z) || Math.max(Math.abs(x), Math.abs(z)) > 285) return null;
       const vd = vgrid(VD, x, z); if (vd < 15 || vd > 45) return null;
       const dP = Math.hypot(x - PL.x, z - PL.z); if (dP < 30) return null;
       const sl = slopeAt(x, z); if (sl > 0.16 || riverInfo(x, z).edge < 5 || occupied(x, z, 3)) return null;
