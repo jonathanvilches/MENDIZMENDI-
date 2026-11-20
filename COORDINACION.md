@@ -201,6 +201,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (16), la hizo la ventana principal, por encargo del autor: `master` hasta `7d2b32cb`. La bici, entera: la
+  horquilla y el manillar en su sitio (se dibujaban más atrás y la rueda de delante iba suelta), con cadena, guardabarros,
+  luces, manetas y varillas en la cesta.
 - 20 nov, noche (15), la hizo la ventana principal, por encargo del autor: `master` hasta `2896d4b7`. En Altsasu, al
   encontrar los tres momotxorros, el final es de miedo: salen muchos más de todas las calles, te rodean y se dispersan, con
   luz y niebla rojas, farolas que parpadean y un zumbido con latido.
