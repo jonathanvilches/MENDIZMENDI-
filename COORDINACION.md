@@ -189,6 +189,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (12), la hizo la ventana principal, por encargo del autor: `master` hasta `2bf14292`. La carrera de los
+  pelotaris, más orgánica: zancadas más largas y menos pasos por segundo (antes hasta siete u ocho), el tronco algo hacia
+  delante y las palmas hacia el muslo, de canto, en vez de hacia arriba. Vuelven los golpes de pelota recortados de la
+  grabación del frontón que pasó el autor. Y sin los planos de la grada tras un buen tanto: de cerca, los vecinos se veían mal.
 - 20 nov, noche (11), la hizo la ventana principal, por encargo del autor: `master` hasta `386ab0a0`. La próxima parada,
   otra vez arriba a la derecha (con su foto y el botón de jugar) y las comarcas a todo el ancho de abajo; la cámara sube al
   mismo paso que la isla y ya no se le escapa por arriba; la ficha del pueblo en el mapa, más ancha, con el sello de la
