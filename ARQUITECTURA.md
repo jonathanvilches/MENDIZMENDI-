@@ -2819,8 +2819,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   se cierra cada vez más deprisa hasta la punta (`ANI`, 13 anillos; en cono recto se veía un tallo fino bajo una losa). La
   punta no queda en el centro sino corrida a un lado (`ladoX`, `ladoZ`), cuelga más por tres o cuatro sitios (`puntas`) y
   no baja lisa: tiene panzas y entrantes grandes y repisas a lo largo (`bulto`, de ruido), además de las estrías, que
-    se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. El canto (`canto`) cubre la orilla
-  con un labio de hierba, un fleco que cuelga, su tierra y la roca (ver «El borde de la isla, integrado», más abajo).
+    se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. Desde el 20 de noviembre de 2026
+  la isla es de una sola pieza: el canto (`canto`, el labio de hierba) ya no se ve, y el prado dobla sobre el borde y baja
+  por la propia panza (ver «La isla, de una sola pieza», más abajo; lo de «El borde de la isla, integrado» queda como
+  historia).
   La roca son fotos con su relieve (mapa de normales): la caliza de la panza, con grietas verticales, generada con
   Higgsfield (`caliza.webp`, desde el 14 de noviembre de 2026; antes «Marble Cliff 04» de Poly Haven), y la roca en
   estratos de las paredes del hueco, de Poly Haven, CC0 («Cliff Side») (`src/assets/isla`). `materialRoca` les da la luz en la propia isla, un sol de lado y la luz del cielo y la que rebota
@@ -2917,6 +2919,26 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   deshace en jirones, blanca hasta el final. Y lo que más apagaba el cielo no estaba en el mapa: el velo morado de
   encima (`#hub.juego .m3d::after`, en `consola.css`), de cuando el mapa era de noche, tapaba un tercio arriba y las
   esquinas. Se ha dejado en casi nada; lo de encima lleva su propio fondo.
+- **La isla, de una sola pieza** (`SUELO` en `ROCA_FS`, `SAL`, `YB` y `aTope` en `mapa3dIsla.js`; 20 de noviembre de
+  2026). El autor: «intenta diseñar todas las comarcas, todas las islas flotantes de una sola pieza», porque el labio del
+  borde «se nota que es un añadido, que no es parte orgánico de la tierra». Ya no hay labio: la tierra de arriba, la
+  hierba del borde y la roca son la misma pieza.
+  - El canto no se ve (`cantoM.visible = false`); sus raíces, matas y terrones siguen, colgados de la panza.
+  - La panza lleva el prado (`SUELO`, un `#define` de `rocaM`): el color del terreno justo dentro del borde (`aS`, `aH`,
+    `suelo()`, el mismo de la ortofoto) dobla sobre el filo y baja en lenguas desiguales, con mechones más largos, y se va
+    oscureciendo; debajo, la tierra (`uHumus`) y la roca. Justo bajo el filo lleva la luz de arriba, como un hombro
+    redondeado, y el color se toma algo movido y difuminado, a matas: tomado tal cual, cada columna bajaba con el color de su
+    punto del borde y salía a rayas verticales.
+  - Sin rendijas entre el terreno y la panza, que por ellas se veía el interior de la roca, una raya parda fina a lo largo de
+    todo el borde: (1) la altura del filo en la orilla va en coma flotante de 16 bits (`orT`): con 8 bits iba a saltos de
+    5 cm; (2) la panza empieza a la altura a la que de verdad se queda el terreno en el filo (`YB`, con `orillaEn`, la misma
+    cuenta que hace `ORILLA` en la tarjeta), no en `RIM`, que el terreno no llega a bajar del todo; más lo que el filo sube
+    entre punto y punto del borde, medido cada 4 cm del contorno; (3) el primer anillo se mete bajo el filo lo que el
+    contorno de verdad (`P`, por donde se corta el terreno) se mete por dentro de la recta entre dos puntos del borde, y un
+    poco más (`SAL`), así que el terreno lo tapa siempre; abierto hacia fuera, la rendija se veía por debajo del terreno;
+    (4) la cara de dentro de la panza que aún asome arriba se pinta de prado.
+  - Las raíces salen de la tierra bajo las lenguas de hierba, no del filo (desde el filo, sus cabezas oscuras hacían una
+    raya); raíces, terrones y cascadas, a la altura de `YB`.
 - **El borde de la isla, integrado** (`canto`, `FILAS`, `suelo` en `mapa3dIsla.js`; 14 de noviembre de 2026): con una foto
   de la isla muy de cerca, el autor: «los bordes de los mapas no están bien integrados. No tienen bordes»; y luego: «ese
   labio que has puesto en el contorno no tiene nada que ver con el verde del césped» y «no puede haber cambios de colores
