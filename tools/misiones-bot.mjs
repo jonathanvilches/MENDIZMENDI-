@@ -74,10 +74,21 @@ async function BOT(SOLO) {
   const usaCerca = async (filtro = (it) => it.kind !== 'npc' && it.kind !== 'walker' && it.kind !== 'pet' && it.kind !== 'seat' && it.kind !== 'bell' && it.kind !== 'fountain' && it.kind !== 'flora') => {
     let best = null, bd = 1e9;
     for (const it of g.interactables(P.pos)) { if (!filtro(it)) continue; const d = Math.hypot(it.x - P.pos.x, it.z - P.pos.z); if (d < it.r && d < bd) { bd = d; best = it; } }
-    if (best) { await g.interact(best); tick(4); }
+    if (best) { await conTope(g.interact(best), 'usar ' + (best.label || best.kind)); tick(4); }
     return best;
   };
-  const habla = async (M) => { junto(M.host); await g.talk(M.host); tick(4); };
+  // (ninguna acción espera más de 30 s: si el juego se queda esperando algo que no llega, se apunta y se cierra lo abierto)
+  const conTope = async (pr, que) => {
+    let hecho = false; const r = await Promise.race([Promise.resolve(pr).then(() => (hecho = true)), espera(30000)]);
+    if (!hecho) {
+      const abierto = [...document.querySelectorAll('button')].filter(b => b.offsetParent && /seguir|cerrar|continuar|vale|salir|aceptar|entendido/i.test(b.textContent)).map(b => b.textContent.trim()).slice(0, 4);
+      avisos.push(`SE QUEDA ESPERANDO (30 s) al ${que}${abierto.length ? ' · botones a la vista: ' + abierto.join(', ') : ''} · modo ${g.mode}${g.ui.busy ? ' · ui ocupada' : ''}`);
+      for (const b of document.querySelectorAll('button')) if (b.offsetParent && /seguir|cerrar|continuar|vale|aceptar|entendido/i.test(b.textContent)) b.click();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
+    }
+    return r;
+  };
+  const habla = async (M) => { junto(M.host); await conTope(g.talk(M.host), 'hablar con ' + (M.host?.name || 'el vecino')); tick(4); };
   const firma = (M) => [M.step, M.count, M.tstep || 0, M.done, M.prep, M.seqOk, M.fair?.pens?.filter(p => p.visto).length, M.cos?.fase, M.type === 'summit' ? JSON.stringify(g.P.bag) : ''].join('/');
   const esHost = (t, M) => t && M.host && Math.hypot(t.x - M.host.pos.x, t.z - M.host.pos.z) < 0.5;
 
