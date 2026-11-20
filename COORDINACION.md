@@ -197,6 +197,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (13), la hizo la ventana principal, por encargo del autor: `master` hasta `cfe3f826`. Los vecinos, casi
+  quietos al hablar: de frente a quien les habla, sin girar el cuerpo y con un gesto de brazo pequeño, también entre frase y
+  frase. Corriendo, la punta del pie en la línea de la rodilla. La ficha del pueblo en el mapa, más sencilla: fondo oscuro,
+  el escudo a la vista junto al nombre, las misiones sin caja y la siguiente misión en una línea junto al botón.
 - 20 nov, noche (12), la hizo la ventana principal, por encargo del autor: `master` hasta `2bf14292`. La carrera de los
   pelotaris, más orgánica: zancadas más largas y menos pasos por segundo (antes hasta siete u ocho), el tronco algo hacia
   delante y las palmas hacia el muslo, de canto, en vez de hacia arriba. Vuelven los golpes de pelota recortados de la
