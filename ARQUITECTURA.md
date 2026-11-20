@@ -2406,15 +2406,23 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   En el inicio (`hub/consola.css`), con el móvil tumbado: la fila de comarcas ya no pisa la raya de inicio del iPhone
   (`--hud-b` vale el margen seguro entero) y el menú principal enseña sus diecisiete secciones en nueve columnas y dos
   filas, sin que ninguna quede detrás de «Cómo jugar».
-- **La barra de arriba del mapa del inicio, en cápsulas** (`src/hub/barra-inicio.css`, la última hoja de `hub.js`; 20 de
-  noviembre de 2026, el autor con una captura del iPhone: «se han quedado anticuados»). Tres cápsulas oscuras a la misma
-  altura, sin borde ni desenfoque, con su sombra: tú (el retrato redondo dentro de un aro que se llena con la experiencia,
-  `--xp` en `.yo-c` desde `renderChip` de `hub.js`, el nivel en una pastilla con el degradado, nombre y rango si hay sitio
-  y el botón del menú, pastilla con las tres rayas y «MENÚ»); Navarra descubierta (`mapaHTML` de `inicio.js`: el mapa en
-  su círculo, las comarcas terminadas, una barra de un tramo por comarca que se llena con sus sellos, `.tt-seg`, y los
-  sellos aparte, `.tt-sel`; en el móvil tumbado, sin antetítulo ni sellos); y la próxima parada (foto en cápsula, el pueblo
-  en letra estrecha y JUGAR con el degradado; en el móvil, foto y botón redondos). Los botones de la cámara, la ayuda y la
-  ficha del jugador en la cabecera del menú siguen el mismo lenguaje, sin raya alrededor.
+- **La barra de arriba del mapa del inicio, una cabecera plana** (`src/hub/barra-inicio.css`, la última hoja de `hub.js`).
+  El 20 de noviembre de 2026 por la mañana el autor la vio anticuada (tres cajas de cristal con raya clara y desenfoque);
+  por la tarde fueron tres cápsulas oscuras sueltas, y por la noche: «No me gusta la barra que has añadido de menú,
+  comarcas y la pantalla que estamos jugando actualmente. Ese diseño hay que cambiarlo». Ahora es una cabecera de juego
+  como la del menú: sin cajas ni cápsulas, el texto suelto sobre el mapa con una sombra de texto (`--hb-ts`) y, detrás, un
+  velo fino que baja del borde de arriba en cinco tramos, del 50 % a nada (`.m3d::after`, hasta 64 px por debajo de la
+  fila). De izquierda a derecha: el botón redondo y oscuro del menú en la esquina, como los de la cámara (donde en el menú
+  está el de volver); tu retrato dentro del aro de la experiencia (`--xp` en `.yo-c`, `renderChip` de `hub.js`) con el
+  nivel en una pastilla, y tu nombre en la letra de los títulos con el rango en rosa (todo es el mismo botón, `.yo-m` va
+  primero con `order`); tras una raya tenue, Navarra descubierta (`mapaHTML` de `inicio.js`: rótulo rosa, las comarcas
+  terminadas en la letra de los títulos, la barra de un tramo por comarca que se llena con sus sellos, `.tt-seg`, y los
+  sellos aparte, `.tt-sel`; el círculo del mapa, `.tt-ic`, ya no se ve); y a la derecha la próxima parada (foto en tarjeta
+  de 8 px, rótulo rosa, el pueblo en la letra de los títulos y JUGAR en pastilla con el degradado). En el móvil tumbado,
+  sin nombre, sin rótulo de Navarra y sin sellos, con la foto cuadrada y el botón de jugar redondo; de pie, la misión baja
+  encima de las comarcas y allí sí lleva su panel oscuro. La sombra de caja de `neon.css` va con `!important` y un
+  selector de dos ids (`#lane #toast`): para quitarla, `#hub#hub.juego`. Los botones de la cámara, la ayuda y la ficha del
+  jugador en la cabecera del menú siguen el mismo lenguaje.
 - **El menú, sus secciones, Cómo jugar y la pausa con la pantalla de juego** (19 de noviembre de 2026, noche; el autor,
   con cuatro capturas del móvil: «tenemos que cambiar el diseño de estas páginas para ajustarlas al nuevo diseño e
   identidad»). Las cuatro siguen ahora la disposición de las pantallas de pelota (arriba, el botón redondo de volver, el
