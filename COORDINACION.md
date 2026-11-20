@@ -177,6 +177,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (10), la hizo la ventana principal, por encargo del autor: `master` hasta `388181eb`. Los montes de las
+  islas, con roca donde la hay en los de verdad: paredes, crestas y lo alto del Pirineo, pedregal al pie, menos en el norte
+  atlántico y bajo el bosque; la hierba, distinta en solanas, umbrías, vaguadas y crestas; surcos de ladera y grano de
+  piedra y de prado; nieve solo en las canales de las paredes. Solo en los aparatos que no van en modo ligero.
 - 20 nov, noche (9), la hizo la ventana principal, por encargo del autor: `master` hasta `c4ead6bd`. Las islas de las 12
   comarcas, de una sola pieza: sin el labio de hierba del borde, el prado dobla sobre el filo y baja por la panza en
   lenguas, con el color del terreno; y sin la raya parda fina que asomaba a lo largo del borde (rendijas entre el terreno y
