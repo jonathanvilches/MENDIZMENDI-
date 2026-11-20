@@ -117,7 +117,10 @@ export class PelotaAudio {
   }
   /** Un golpe de la pelota con su sonido de frontón (desde el 20 de noviembre de 2026, golpes de verdad recortados del
    *  vídeo de un frontón cubierto que pasó el autor, «te dejo por aquí el sonido de la pelota para que afines el que ya
-   *  tenemos»: la mano, el frontis, la pared y el bote, con su cola de sala y sin el fondo del vídeo; antes, fabricados con
+   *  tenemos»: la mano, el frontis, la pared y el bote; desde la tarde del 20, cada uno solo con su impacto, sin el golpe de
+   *  antes ni el de después que se colaban en algunos y sin la cola de 0,6 s que traía el ruido del vídeo, con una cola de
+   *  sala corta hecha a mano y las tres variantes de cada golpe igual de fuertes; el autor: «he visto fallos de sonido en el
+   *  golpeo, quizá al extraer el sonido se producen pequeños sonidos que no tienen nada que ver»; antes, fabricados con
    *  tools/sonidos/golpes-pelota.py a partir de lo medido en otro vídeo, el del 17 de noviembre): una
    *  de sus tres variantes, distinta de la anterior, algo más aguda y fuerte cuanto más fuerte el golpe. false si aún no
    *  ha llegado, y entonces suena el sintetizado de antes */
