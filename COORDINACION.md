@@ -147,10 +147,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 20 nov, mañana (segunda), la hizo la ventana principal, por el encargo del autor («revisa todo lo que falta por
-  añadir, mejorar, optimizar [...] y no pares hasta terminar»): `master` hasta `193eab81`. Entran el mapa del inicio sin
-  los arbolitos redondos ni los conos sueltos (`src/hub/mapa3d.js`, el bosque lo pinta el propio relieve) y los jardines
-  del casco de todos los pueblos y de Otsagabia con la mata de verdad (tallos, ramillas y hojas) y flores de cinco pétalos
-  por encima (`src/world/nature.js`, buildGardens), en vez de las bolas de hojas, y en el ordenador, al abrir el juego,
-  una ventana que pregunta si se quiere jugar con el móvil de mando (`src/mando/mando.js`, ofrecerMando: una vez por
-  sesión, en el mapa del inicio, con «Conectar el móvil», «Ahora no» y «No volver a preguntar»).
+- 20 nov, mediodía, la hizo la ventana principal, por el encargo del autor de la mañana (cencerros, carruseles,
+  Basajaun, Altsasu, golpe de la pelota y figuras pixeladas): `master` hasta `2d011202` (la web, en `1ff01139`). Entran
+  los cencerros grabados con ElevenLabs para el Zarratrako, los joaldunak y los momotxorros, con la música a un tercio
+  mientras se buscan (`src/audio.js`, cencerroGuia y buscaCencerros); el menú de un solo toque y el giro del carrusel que
+  no se frena en ordenadores lentos (`src/hub/hub.js`, `src/game/carrusel3d.js`, apuntado en «Peticiones»); los golpes
+  de pelota de verdad sacados del vídeo del autor (`src/assets/sonidos/pelota-*.mp3`); las figuras de los pelotaris sin
+  pixelar en el ordenador y la tele (`src/ui/videos.js`: la animada solo si no hay que estirarla); el Basajaun, la Lamia
+  y los vecinos de Otsagabia que pasean (`src/game/game.js`), y la comparsa de carnaval que sale por las calles al
+  encontrar todas las figuras, en Altsasu momotxorros con luces rojas y cencerros (`src/game/townLeyendas.js`).
