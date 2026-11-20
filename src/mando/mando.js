@@ -51,6 +51,16 @@ const CSS = `
 .mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;text-decoration:none}
 @media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,calc(50dvh / var(--z, 1)))}}
 .mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) 'MZ Texto',sans-serif;cursor:pointer;opacity:.75}
+.mnd-of .mnd-card{width:min(600px,100%);grid-template-columns:auto minmax(0,1fr);gap:16px 20px}
+.mnd-of-ico{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.08);color:#ff9bd8}
+.mnd-of-tx{display:grid;gap:8px;min-width:0}
+.mnd-of-tx small{color:#ff9bd8;font:800 var(--fs-xs,12px)/1 'MZ Texto',sans-serif;letter-spacing:.14em;text-transform:uppercase}
+.mnd-of .mnd-card h2{grid-column:auto;font-size:var(--fs-xl,26px);text-wrap:balance}
+.mnd-of .mnd-card .mnd-lead{grid-column:auto;line-height:1.45}
+.mnd-of .mnd-bts{align-items:center}
+.mnd-of .mnd-bts button.mnd-nunca{margin-right:auto;padding:8px 4px;border:0;background:none;color:#cbc2e0;font:700 var(--fs-sm,14px)/1.2 'MZ Texto',sans-serif;letter-spacing:0;text-transform:none;text-decoration:underline;text-underline-offset:3px}
+.mnd-of-ico svg{width:44px;height:44px;display:block}
+@media (max-width:520px){.mnd-of .mnd-card{grid-template-columns:1fr;justify-items:start}.mnd-of .mnd-bts button.mnd-nunca{order:3;margin:0}}
 .mnd-pill[hidden]{display:none}.mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}
 `;
 let cssOn = false;
@@ -271,6 +281,38 @@ export function abrirMando() {
     S.pill.onclick = () => abrirMando(); document.body.appendChild(S.pill);
   }
   pinta(); empezar();
+}
+/** Al abrir el juego en el ordenador, una vez por sesión, se pregunta si se quiere jugar con el móvil de mando (el autor:
+ *  «hay que hacer que salte un pop-up al principio del juego para saber si queremos conectarlo en el ordenador, el mando
+ *  del móvil»). No sale con un móvil de siempre (ese se conecta solo: esperarMovil), con el mando ya puesto, ni a quien
+ *  marcó «No volver a preguntar». `puede` dice si es buen momento (en el mapa del inicio y con el jugador ya hecho); si hay
+ *  otra ventana encima, se espera a que se cierre. */
+const NO_OFRECER = 'herrizherri-mando-noofrecer', OFRECIDO = 'herrizherri-mando-ofrecido';
+export function ofrecerMando(puede = () => true) {
+  if (typeof __AF__ !== 'undefined' && __AF__) return;
+  try { if (localStorage.getItem(NO_OFRECER) || sessionStorage.getItem(OFRECIDO)) return; } catch (e) { return; }
+  let n = 0;
+  const intenta = () => {
+    if (S.estado === 'ok' || S.auto || S.ui || guardado()?.emparejado) return;
+    const ocupado = document.querySelector('.onb, .mg-overlay, .mnd-ov, .lam-view, .lang-pick, [role="dialog"][aria-modal="true"]');
+    if (!puede() || ocupado) { if (++n < 40) setTimeout(intenta, 1500); return; }
+    try { sessionStorage.setItem(OFRECIDO, '1'); } catch (e) { }
+    css();
+    const o = S.ui = el(`<div class="mnd-ov mnd-of" role="dialog" aria-modal="true" aria-labelledby="mndOfT" tabindex="-1"><div class="mnd-card">
+      <div class="mnd-of-ico" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="13" width="40" height="22" rx="5"/><path d="M14 20v8M10 24h8"/><circle cx="32" cy="21.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="37" cy="26.5" r="1.6" fill="currentColor" stroke="none"/><path d="M41 19v10" stroke-width="2" opacity=".55"/></svg></div>
+      <div class="mnd-of-tx"><small>Antes de jugar</small><h2 id="mndOfT">¿Juegas con el móvil de mando?</h2>
+        <p class="mnd-lead">Tu móvil puede ser el mando del juego: escaneas un código con la cámara y se conecta por la wifi, sin instalar nada.</p></div>
+      <div class="mnd-bts"><button type="button" class="mnd-nunca" data-nunca>No volver a preguntar</button><button type="button" data-close>Ahora no</button><button type="button" class="go" data-si>Conectar el móvil</button></div></div></div>`);
+    document.body.appendChild(o);
+    o.addEventListener('click', (e) => {
+      if (e.target.closest('[data-si]')) { abrirMando(); return; }
+      if (e.target.closest('[data-nunca]')) { try { localStorage.setItem(NO_OFRECER, '1'); } catch (err) { } cierraPanel(); return; }
+      if (e.target === o || e.target.closest('[data-close]')) cierraPanel();
+    });
+    addEventListener('keydown', teclas, true);
+    o.focus({ preventScroll: true });   // (el foco, en la ventana: sin el anillo blanco en el botón)
+  };
+  setTimeout(intenta, 1200);
 }
 /** Termina la sesión: el móvil deja de mandar y el código deja de valer. */
 export function terminar() {

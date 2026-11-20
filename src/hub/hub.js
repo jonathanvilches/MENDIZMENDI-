@@ -212,7 +212,10 @@ export class Hub {
     const mb = this.root.querySelector('[data-mando]');
     if (!TACTIL && !(typeof __AF__ !== 'undefined' && __AF__) && !isDidactico()) {
       mb.hidden = false; mb.onclick = () => import('../mando/mando.js').then(m => m.abrirMando());
-      (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js').then(m => m.esperarMovil()); import('qrcode-generator'); }, { timeout: 4000 });   // (y, si ya se conectó un móvil, se le espera)
+      (window.requestIdleCallback || setTimeout)(() => { import('../mando/mando.js').then(m => { m.esperarMovil();
+        // (y, si no, se pregunta una vez si se quiere jugar con el móvil de mando: en el mapa del inicio y con el jugador hecho)
+        // (quien empieza ya lo ve en «¿Cómo quieres jugar?», así que a él no se le pregunta esta vez)
+        if (profile().name) m.ofrecerMando(() => this.visible && this.screen === 'home' && !this.sheet && !!profile().name && !isDidactico() && langChosen() && !this.root.classList.contains('menu-on')); }); import('qrcode-generator'); }, { timeout: 4000 });   // (y, si ya se conectó un móvil, se le espera)
     }
     // el modo didáctico (util/modo.js): se elige en la primera pantalla o en Ajustes, o con ?didactico=1 (?didactico=0, quitarlo)
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');
