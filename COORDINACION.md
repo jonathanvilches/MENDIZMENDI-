@@ -21,6 +21,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (20 nov, noche): por encargo del autor («antes de que salgan los pelotaris siempre
+  hay como una escena antigua»), `src/pelota/match.js` ya no abre la pantalla VS (`vs.js`) antes del partido: de la
+  elección de material va directo al sorteo; la final sigue con su entrada. `vs.js` solo se usa si `window.__vsVieja`.
+  Si lo retiráis del todo, nada más depende de él en el partido.
 - **De Principal a Pelota · personajes** (20 nov, noche, aún más tarde): por encargo directo del autor, dos cambios más
   en lo vuestro. (1) `src/actors/glbChar.js`: «al hablar… hacen un movimiento de oscilación demasiado exagerado» y «los
   movimientos de la mano… que sea más sutil». `calmaHabla` (nuevo) calma la charla de los vecinos hueso a hueso (cadera
@@ -197,6 +201,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (14), la hizo la ventana principal, por encargo del autor: `master` hasta `4fd4760d`. Los cencerros
+  vuelven a oírse (y con ellos pasos, animales y ambientes: el bus de efectos llevaba desde el 11 de noviembre sin salida).
+  El avisador de proximidad de los cencerros, una píldora pequeña arriba, también en el Zarratrako de Ochagavía, que se
+  aparta de la barra de misiones. En el partido de pelota, fuera la pantalla VS vieja: de la elección de material, directo
+  al sorteo del saque.
 - 20 nov, noche (13), la hizo la ventana principal, por encargo del autor: `master` hasta `cfe3f826`. Los vecinos, casi
   quietos al hablar: de frente a quien les habla, sin girar el cuerpo y con un gesto de brazo pequeño, también entre frase y
   frase. Corriendo, la punta del pie en la línea de la rodilla. La ficha del pueblo en el mapa, más sencilla: fondo oscuro,
