@@ -165,13 +165,18 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   // escalinata: los peldaños que haga falta hasta el suelo de delante, y cada uno macizo hasta el suelo (en Tudela la
   // catedral queda metro y medio por encima de la plaza: la escalinata de cuatro acababa a casi un metro del suelo,
   // flotando, y no se subía a la puerta, donde espera el sabio)
-  const zE = style === 'cathedral' ? 4.5 : 1.3, gE = (k) => { const f = toW(x, z, ry, 0, L / 2 + zE + k * 1.1); return terrainHeight(f.x, f.z); };
-  let nE = 4; while (nE < 12 && y + 0.3 - 0.3 * (nE - 1) - gE(nE - 0.4) > 0.3) nE++;
+  // (y si la ladera baja casi al ritmo de los peldaños de 1,1 m —Leitza: la iglesia en un alto, la puerta 3,5 m por encima
+  // del suelo—, más empinada: peldaños de medio metro de huella, que se suben igual, hasta tocar el suelo)
+  const zE = style === 'cathedral' ? 4.5 : 1.3, gE = (d) => { const f = toW(x, z, ry, 0, L / 2 + zE + d); return terrainHeight(f.x, f.z); };
+  const cuantos = (run, max) => { for (let n = 4; n <= max; n++) if (y + 0.3 - 0.3 * (n - 1) - gE((n - 1) * run + run * 0.6) <= 0.15) return n; return 0; };   // (el último, a ras: a 30 cm, con la ladera que sigue bajando, el paso al suelo ya no se daba)
+  let run = 1.1, nE = cuantos(1.1, 12); if (!nE) { run = 0.5; nE = cuantos(0.5, 32) || 32; }
   for (let i = 0; i < nE; i++) {
-    const zc = zE + i * 1.1, top = 0.3 - i * 0.3, base = Math.min(top - 0.3, gE(i) - y - 0.1), w = Math.max(3.2, 8 - i * 0.6);
-    B.add('ashlar', box(w, top - base, 1.2), MM(F, M(0, (top + base) / 2, zc)));
-    stepFrom(F, 0, top, zc, w / 2, 0.6);   // (cada peldaño es suelo: se sube la escalinata)
+    const zc = zE + i * run, top = 0.3 - i * 0.3, base = Math.min(top - 0.3, gE(i * run) - y - 0.1), w = Math.max(3.2, 8 - i * 0.6);
+    B.add('ashlar', box(w, top - base, run + 0.1), MM(F, M(0, (top + base) / 2, zc)));
+    stepFrom(F, 0, top, zc, w / 2, (run + 0.1) / 2);   // (cada peldaño es suelo: se sube la escalinata)
   }
+  // (el sitio de la escalinata, reservado: que no se construya una casa encima; se pisa)
+  if (nE > 4) boxCol(x, z, ry, 0, L / 2 + zE + (nE - 1) * run / 2, 8.4, (nE - 1) * run + run + 0.4, { ghost: true });
   addBox(x, z, W + 3, L + 2, ry, { solidView: true });
   if (style === 'cathedral') boxCol(x, z, ry, W / 2 + 7, -L / 2 + 10, 12, 16);
   const door = toW(x, z, ry, 0, L / 2 + (style === 'cathedral' ? 8 : 5));
