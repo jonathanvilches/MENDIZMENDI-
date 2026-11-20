@@ -169,6 +169,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (4), la hizo la ventana principal, por la auditoría de misiones («no termines ni pares hasta tener todo
+  solucionado»): `master` hasta `e8f0b3fd`. Entran la fuente de beber de fundición en las plazas con kiosco (Pamplona,
+  Tudela: sin ella no se llenaba la cantimplora y «Sube al Ezkaba» no empezaba), la explanada de delante de los castillos
+  transitable en la rejilla de caminos (Marcilla, Cortes, Javier, Olite: no había ruta a la guía ni al patio) y la
+  escalinata de la iglesia que baja hasta el suelo, más empinada en las laderas y sin pisar casas (Tudela, Leitza, Isaba:
+  la puerta, con el sabio y la visita, quedaba en alto sin paso). Los 38 pueblos completan sus misiones con el jugador
+  automático (cosecha y almadía, con sus pruebas propias).
 - 20 nov, noche (3), la hizo la ventana principal, por el encargo del autor («al diseño de esta barra de arriba, de los
   elementos del menú y demás, también hay que darle una vuelta de diseño porque se han quedado anticuados») y la
   auditoría de misiones: `master` hasta `1e13ba69`. Entran la barra de arriba del mapa en cápsulas (retrato con el aro de
