@@ -20,6 +20,14 @@
 #pausa-pueblo .pz-top { flex: none; display: flex; align-items: center; gap: 16px; min-height: 44px; padding: 0; }
 #pausa-pueblo .pz-atras { flex: none; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer; transition: background .15s; }
 #pausa-pueblo .pz-atras:hover, #pausa-pueblo .pz-atras:focus-visible { background: rgba(255, 255, 255, .18); } #pausa-pueblo .pz-atras svg { width: 22px; height: 22px; }
+/* (tu montura y tu perro, arriba a la derecha, en el hueco que deja el título: dos botones de píldora; en pantallas muy
+   estrechas, solo el icono) */
+#pausa-pueblo .pz-comp { margin-left: auto; display: flex; gap: 8px; flex: none; }
+#pausa-pueblo .pz-pill { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px 0 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .08); color: #fff; font: 700 clamp(13px, 2.4vh, 15px)/1 var(--f-ui, sans-serif); cursor: pointer; transition: background .15s, border-color .15s; -webkit-tap-highlight-color: transparent; }
+#pausa-pueblo .pz-pill:hover, #pausa-pueblo .pz-pill:focus-visible { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .3); }
+#pausa-pueblo .pz-pill > :is(img, svg) { width: 24px; height: 24px; flex: none; }
+@media (max-width: 520px) { #pausa-pueblo .pz-pill { padding: 0 10px; } #pausa-pueblo .pz-pill span { display: none; } }
 #pausa-pueblo .pz-tit { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 #pausa-pueblo .pz-tit small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #pausa-pueblo .pz-tit h2 { margin: 0; flex: none; color: #fff; text-shadow: none; font: 400 clamp(20px, 5.4vh, 36px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; }
@@ -41,7 +49,7 @@
 #pausa-pueblo .pz-fila.peligro .pz-et small { color: #e79bb0; }
 @media (max-height: 520px) { #pausa-pueblo .pz-et small { display: none; } }
 /* (lo del pueblo que queda detrás, el marcador, el minimapa y sus botones, no se transparenta: la pausa va sola) */
-body:has(> #pausa-pueblo) #hud { visibility: hidden; }
+body:has(> #pausa-pueblo) :is(#hud, .av-cor, .av-anillo) { visibility: hidden; }   /* (y los corazones y el anillo de la aventura) */
 /* (la flecha de cada fila, a la derecha, como en los menús de los juegos de deportes) */
 #pausa-pueblo .pz-fl { flex: none; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .08) center / 14px no-repeat
   url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E"); }

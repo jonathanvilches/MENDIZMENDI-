@@ -850,7 +850,8 @@ export class UI {
     const aj = (txt, sub) => `<span class="pz-et"><b>${txt}</b><small>${sub}</small></span>`;
     const X = '<svg class="pz-x" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
     const s = this.screen(`<header class="pz-top"><button type="button" class="pz-atras close" aria-label="Seguir jugando" title="Seguir jugando (Esc)">${ATRAS_SVG}</button>
-      <div class="pz-tit"><small>${sitio}${this.hora ? ` · ${esc(this.hora)}` : ''}</small><h2>Pausa</h2></div></header>
+      <div class="pz-tit"><small>${sitio}${this.hora ? ` · ${esc(this.hora)}` : ''}</small><h2>Pausa</h2></div>
+      ${(g.monturaPropia || g.perro) && !g.campeonato ? `<div class="pz-comp" aria-label="Tus compañeros">${g.monturaPropia ? `<button type="button" class="pz-pill" id="mMont" title="Elige caballo, pottoka o burro, o llámala">${I('horse', 24)}<span>Tu montura</span></button>` : ''}${g.perro ? `<button type="button" class="pz-pill" id="mDog" title="Elige raza o ve sin perro">${I('dog', 24)}<span>Tu perro</span></button>` : ''}</div>` : ''}</header>
       <div class="pz-medio">
         <section class="pz-col" aria-label="Partida"><h3>Partida</h3>
           ${fila('mBook', I('book', 26), 'Cuaderno', 'Tus misiones y sus pasos')}${fila('mHome', I('plaza', 26), `Ir a la plaza de ${sitio}`, 'Vuelve al centro del pueblo')}${fila('mExit', I('map', 26), town ? 'Volver a la comarca' : 'Salir al mapa de Navarra', 'La partida queda guardada')}${this.input.touch ? '' : fila('mPad', I('control', 26), 'Usar el móvil como mando', 'Con un código QR, sin instalar nada')}${town ? '' : fila('mReset', X, 'Borrar partida del valle', 'Empieza el valle desde cero', ' peligro')}
@@ -876,6 +877,9 @@ export class UI {
     // el texto de la misión y, en el ordenador, con C)
     $('#mBook', s).onclick = () => this.openBook();
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
+    // (tu montura y tu perro, también desde aquí, arriba a la derecha: en Otsagabia no hay mochila)
+    const mm = $('#mMont', s); if (mm) mm.onclick = () => { this.closeModal(); import('./game/companeros.js').then(m => m.eligeMontura(g)); };
+    const md = $('#mDog', s); if (md) md.onclick = () => { this.closeModal(); g.perro?.choose(); };
     // (fundido a negro por encima de la pausa, que ya no se toca, y detrás, el menú: antes se cerraba la pausa y asomaba
     // un momento el pueblo antes del fundido)
     $('#mExit', s).onclick = () => { g.save(); s.style.pointerEvents = 'none'; this.fadeOut().then(() => { this.closeModal(); g.onExit?.(); this.fadeIn(); }); };

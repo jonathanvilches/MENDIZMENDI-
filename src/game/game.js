@@ -22,6 +22,11 @@ import { Pajarillos } from '../world/pajarillos.js';
 import { Colada } from '../world/colada.js';
 import { QUALITY } from '../util/quality.js';
 import { hablaVecino, callaVecino, narra } from './vozVecinos.js';
+import { Perro } from './perro.js';
+import { Montura, MONTURAS, tipoMontura } from './montura.js';
+import { profile } from './profile.js';
+import { navTick, resetNav } from '../world/nav.js';
+import { groundHeight } from '../world/heightfield.js';
 const ORDEN_MIS = ['bienvenida', 'escudos', 'zarratrako', 'pelota', 'ovejas', 'irati', 'lamia', 'basajaun', 'muskilda'];   // (el orden de la barra y de seguir la siguiente)
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
@@ -127,6 +132,11 @@ export class Game {
     }
     // perro del pastor
     this.dog = this.fauna.dog; this.dog.home = { x: PLACES.borda.x + 8, z: PLACES.borda.z + 6 };
+    // tu perro y tu montura, como en los demás pueblos (perro.js, montura.js; 20 de noviembre de 2026, el autor: «en
+    // todas las partidas puedas tener tu propio caballo [...] al igual que la de perros, ya no está el perro»). El perfil
+    // es el de siempre (la raza, ir con perro o sin él, la montura elegida); la montura sale junto a ti al empezar
+    this.P = profile(); resetNav();
+    try { this.perro = new Perro(this); } catch (e) { console.warn('perro', e); }
     this.spawnEguz();
     // estado de misiones guardado: todas se pueden hacer en cualquier orden (también en partidas antiguas)
     const qs = this.state.quests;
@@ -305,6 +315,10 @@ export class Game {
       if (it.kind !== 'eguz' && it.kind !== 'litter') o.position.y = terrainHeight(it.x, it.z) + 0.8 + Math.sin(this.elapsed * 2) * 0.15;
       if (it.kind === 'eguz' && Math.random() < dt * 2) this.particles.emit(o.position, { n: 1, color: '#ffe38a', speed: 0.4, size: 0.18, life: 1.2, gravity: -0.5, spread: 0.6 });
     }
+    // tu perro (te sigue y, si se lo pides, te enseña el camino: los caminos se calculan aquí, poco a poco) y tu montura
+    try { navTick(2); this.perro?.update(dt); } catch (e) { }
+    if (!this.montura && !this.sinMontura && this.mode === 'play' && this.elapsed > 1.5) this.creaMontura();
+    this.montura?.quieta(dt, P);
     // Minijuegos y modos
     if (this.herd) this.updateHerding();
     if (this.zarra) this.updateZarratrako(dt);
@@ -379,6 +393,10 @@ export class Game {
     // el frontón está abierto siempre: con la misión de Kike activa es el peloteo; si no, un partido libre
     list.push({ kind: 'fronton', x: PLACES.fronton.x + 2, z: PLACES.fronton.z, r: 3, label: 'Jugar a pelota' });
     const mi = LANDMARKS.mirador; list.push({ kind: 'mirador', x: mi.x + 1.8, z: mi.z - 1.3, r: 2, label: 'Mirar por el catalejo' });
+    // (tu montura: montarla, o bajarte si vas en ella; montado, bajar es lo único que se ofrece)
+    const M = this.montura, Pl = this.player;
+    if (M && Pl.vehiculo === M) return [{ kind: 'desmontar', x: Pl.pos.x, z: Pl.pos.z, r: 99, label: M.T.bajar }];
+    if (M && !Pl.vehiculo) list.push({ kind: 'montar', x: M.x, z: M.z, r: 2.6, label: M.T.subir });
     return list;
   }
   updateInteraction() {
@@ -395,6 +413,7 @@ export class Game {
     if (this.input.consume('f') && this.state.hasBino) this.toggleBinoculars();
     if (this.input.consume('c')) this.ui.openBook();
     if (this.input.consume('m')) this.ui.openMap();
+    if (this.input.consume('h')) this.perro?.help();
     if (this.input.consume('escape')) this.ui.openMenu();
   }
   // cualquier fallo dentro de una interacción (diálogo, prueba, minijuego) no deja el juego congelado: se anota,
@@ -425,6 +444,8 @@ export class Game {
     } finally { this.player.frozen = false; this.mode = 'play'; a.talking = 0; }
   }
   async interact(it) {
+    if (it.kind === 'montar') return this.montura?.sube(this.player);
+    if (it.kind === 'desmontar') return this.montura?.baja();
     this.sound.ui('click');
     if (it.kind === 'musico') return this.tocarCon(it.a);
     if (it.kind === 'npc') return this.talk(it.a);
@@ -789,7 +810,9 @@ export class Game {
   }
   startPelota() {
     const q = this.q('pelota'), rally = q.state === 'active' && q.step === 1;
+    this.perro?.away();   // (el perro no entra en la cancha: se queda en casa hasta acabar, como en los demás pueblos)
     playPelota(this, this.ensureFronton(), this.npcs.kike, { mode: rally ? 'rally' : 'match', target: rally ? 6 : 5 }).then(async (r) => {
+      this.perro?.release();
       if (rally && r.win) return this.winPelota();
       if (rally && !r.quit) this.ui.toast(r.best ? `¡Casi! Llegaste a ${r.best} seguidas. Habla con Kike para volver a intentarlo` : '¡Casi! Habla con Kike para volver a intentarlo', 'pelota');
       if (!rally && r.win) this.ui.toast(`¡${r.you} a ${r.cpu}! Has ganado a Kike`, 'trophy');
@@ -951,7 +974,37 @@ export class Game {
     this.state.introDone = true; this.save();
     this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón de hablar' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
   }
+  // ---------- Tu montura y tu perro ----------
+  /** Lo que el perro busca cuando le pides ayuda: lo de la misión que sigues */
+  target() { const t = this.questTarget(); return t && !t.noArrow ? { x: t.x, z: t.z } : null; }
+  /** ¿Cabe algo de radio r en (x, z)? (sin chocar y fuera del agua) */
+  libreEn(x, z, r = 1.4) { return isFree(x, z, r) && waterLevelAt(x, z) < groundHeight(x, z) - 0.05; }
+  /** La montura, junto a ti (a un lado y un poco por delante; el primer sitio libre de cerca a lejos) */
+  creaMontura(tipo = tipoMontura(this.P)) {
+    const P = this.player, h = P.heading ?? 0;
+    for (const r of [5, 7, 9, 12, 16]) for (const da of [Math.PI / 2, -Math.PI / 2, 1, -1, 2.2, -2.2, 0, Math.PI]) {
+      const x = P.pos.x + Math.sin(h + da) * r, z = P.pos.z + Math.cos(h + da) * r;
+      if (this.libreEn(x, z, 1.6)) { try { this.montura = new Montura(this, tipo, x, z, h); } catch (e) { console.warn('montura', e); this.sinMontura = true; } return this.montura; }
+    }
+    this.sinMontura = true; return null;
+  }
+  monturaPropia() { return this.montura || null; }
+  llamaMontura() {
+    const m = this.montura, P = this.player; if (!m) return false;
+    const nombre = m.T.nombre[0].toUpperCase() + m.T.nombre.slice(1);
+    if (P.vehiculo === m) { this.ui.toast(`Ya vas en ${m.T.nombre}`, 'horse', 1800); return false; }
+    if (!m.llama(P, (x, z) => this.libreEn(x, z, m.T.r + 0.6))) { this.ui.toast(`${nombre} no encuentra por dónde llegar: prueba en un sitio más abierto`, 'horse', 3200); return false; }
+    if (m.tipo === 'burro') this.sound?.rebuzno?.(m.A.pos); else this.sound?.relincho?.(m.A.pos);
+    this.ui.toast(`${nombre} viene hacia ti`, 'horse', 2400); return true;
+  }
+  cambiaMontura(tipo) {
+    if (!MONTURAS[tipo]) return; const old = this.montura, P = this.player;
+    if (old?.tipo === tipo) return this.llamaMontura();
+    if (old) { if (P.vehiculo === old) old.baja(); const { x, z, heading } = old; old.dispose(); try { this.montura = new Montura(this, tipo, x, z, heading); } catch (e) { this.montura = null; return; } this.llamaMontura(); }
+    else { this.sinMontura = false; this.creaMontura(tipo); }
+  }
   teleport(x, z) {
+    this.player.vehiculo?.baja();   // (si ibas montado, te bajas antes: si no, la montura te devolvía a su sitio)
     let X = x, Z = z;
     for (let k = 1; k < 40 && (!isFree(X, Z, 0.6) || waterLevelAt(X, Z) > terrainHeight(X, Z) - 0.1); k++) { const a = k * 2.4, r = 1.5 + k * 0.5; X = x + Math.cos(a) * r; Z = z + Math.sin(a) * r; }
     this.player.place(X, Z, this.player.heading); this.follow.snap(this.player);

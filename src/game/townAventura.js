@@ -8,13 +8,17 @@
 //    kutxas, un corazón más.
 //  · Los corazones: una caída desde muy alto quita uno; sentarse en un banco los devuelve. Sin corazones, se vuelve a
 //    la plaza con todos. Nadie se hace daño de verdad: es un susto.
-//  · Una montura junto a la entrada (caballo de Burguete en la montaña, burro en la Zona Media y la Ribera).
+//  · Tu montura junto a la entrada: la que hayas elegido (caballo de Burguete, pottoka o burro; montura.js) o, si no has
+//    elegido, la de la comarca. Se llama desde la mochila y viene trotando. Y para moverse por el pueblo, también un
+//    tractor libre y una bici aparcados cerca (conducir.js; 20 de noviembre de 2026, el autor: «diferentes medios de
+//    transporte, como son un caballo, un tractor, una bici, para poder desplazarnos por el pueblo»).
 //  · Las pistas llegan cuando hacen falta y una sola vez: al trepar, al caer desde un alto, al nadar.
 // Todo se guarda en el perfil de siempre, en un campo nuevo (aventura) que no toca los demás.
 import * as THREE from 'three';
 import { AventuraHud } from '../ui/aventuraHud.js';
 import { Capa } from './planeo.js';
-import { Montura } from './montura.js';
+import { Montura, MONTURAS, MONTURA_FICHA, tipoMontura } from './montura.js';
+import { Vehiculo } from './conducir.js';
 import { PLACES, BOUNDARY } from '../world/layout.js';
 import { TOWN } from '../world/townBuilder.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
@@ -22,6 +26,11 @@ import { freeFast } from '../world/colliders.js';
 import { saveProfile, addXP } from './profile.js';
 import { VIENTO } from '../world/viento.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+
+/** ¿Cabe algo de radio r en (x, z)? Dentro del mundo, sin chocar con nada y fuera del agua */
+const libreEn = (x, z, r = 1.2) => Math.pow(x ** 4 + z ** 4, 0.25) < BOUNDARY - 12 && freeFast(x, z, r) && waterLevelAt(x, z) < groundHeight(x, z) - 0.05;
+/** ¿Es llano? (para aparcar: el tractor y la bici, en un sitio sin cuesta) */
+const llano = (x, z, r) => { const h = groundHeight(x, z); return Math.abs(groundHeight(x + r, z) - h) < r * 0.3 && Math.abs(groundHeight(x - r, z) - h) < r * 0.3 && Math.abs(groundHeight(x, z + r) - h) < r * 0.3 && Math.abs(groundHeight(x, z - r) - h) < r * 0.3; };
 
 export const AV = { kutxas: 5, cadaAtalayas: 2, cadaKutxas: 8, maxAguante: 5, maxCorazon: 3, corazones: 3 };
 /** El campo de la aventura en el perfil (se crea vacío la primera vez; lo demás del perfil no se toca). */
@@ -79,14 +88,14 @@ export class PuebloAventura {
   aventuraInicia() {
     if (this.campeonato || this.av) return;
     const P = this.player, D = aventuraDe(this.P), id = this.def.id, M = mejorasDe(this.P);
-    const A = this.av = { hud: new AventuraHud(), capa: null, cor: AV.corazones + M.corazon, corMax: AV.corazones + M.corazon, kutxas: [], atalaya: null, montura: null, t: 0, cae: 0 };
+    const A = this.av = { hud: new AventuraHud(), capa: null, cor: AV.corazones + M.corazon, corMax: AV.corazones + M.corazon, kutxas: [], atalaya: null, montura: null, vehs: [], t: 0, cae: 0 };
     P.aguanteMax = 1 + 0.2 * M.aguante; P.aguante = P.aguanteMax; P.agotado = false;
     P.onModo = (m, antes) => this.aventuraModo(m, antes);
     P.onCaida = () => this.aventuraGolpe();
     P.onRescate = () => { P.place(P.lastSafe.x, P.lastSafe.z, P.heading + Math.PI); P.aguante = Math.min(P.aguanteMax, 0.35); P.agotado = false; this.follow.snap?.(P); this.ui.whisper('¡Uf! Sin fuerzas para nadar. Has vuelto a la orilla.', 4200); };
     let s = 0; for (const ch of id) s = (s * 31 + ch.charCodeAt(0)) >>> 0; s = s % 2147483646 + 1;
     const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    const pl = PLACES.plaza, libre = (x, z, r = 1.2) => Math.pow(x ** 4 + z ** 4, 0.25) < BOUNDARY - 12 && freeFast(x, z, r) && waterLevelAt(x, z) < groundHeight(x, z) - 0.05;
+    const pl = PLACES.plaza, libre = libreEn;
     // la atalaya: el alto más alto a una distancia razonable de la plaza, lejos de las casas
     { let best = null, bh = -1e9;
       for (let r = 80; r <= 250; r += 14) for (let a = 0; a < Math.PI * 2; a += 0.22) {
@@ -105,12 +114,26 @@ export class PuebloAventura {
         const o = hazKutxa(); o.position.set(x, groundHeight(x, z), z); o.rotation.y = rnd() * 6.28; o.visible = false; if (abiertas.includes(i)) o.userData.tapa.rotation.x = -1.1; this.scene.add(o);
         A.kutxas.push({ i, x, z, obj: o, abierta: abiertas.includes(i) });
       } }
-    // la montura, junto a donde se entra
-    { const tipo = ['ribera', 'ribera-alta', 'zona-media', 'tierra-estella', 'valdizarbe-novenera', 'sanguesa', 'pamplona'].includes(this.def.comarca) ? 'burro' : 'burguete';
+    // tu montura, junto a donde se entra (la que elegiste o, si no, la de la comarca)
+    { const tipo = tipoMontura(this.P, this.def.comarca);
       let sp = this.spot({ x: P.pos.x + 7 * Math.cos(P.heading), z: P.pos.z - 7 * Math.sin(P.heading) }, 6);
       // (si ese sitio no vale —una tapia, el río, una casa—, el primero libre dando vueltas a la entrada, de cerca a lejos)
       if (!sp || !libre(sp.x, sp.z, 1.4)) { sp = null; for (let r = 6; r <= 22 && !sp; r += 4) for (let k = 0; k < 10 && !sp; k++) { const a = P.heading + Math.PI / 2 + k * Math.PI / 5, x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r; if (libre(x, z, 1.6) && !this.nearHouses(x, z, 3)) sp = { x, z }; } }
       if (sp) { try { A.montura = new Montura(this, tipo, sp.x, sp.z, P.heading); } catch (e) { console.warn('montura', e); } } }
+    // el tractor (sin remolque) y la bici, aparcados cerca de la entrada, en un sitio llano y libre: el tractor al otro
+    // lado que la montura y la bici un poco más adelante. dx, a la derecha; dz, hacia delante
+    { const h = P.heading, sn = Math.sin(h), cs = Math.cos(h), usados = A.montura ? [{ x: A.montura.x, z: A.montura.z, r: 1.6 }] : [];
+      // (y con sitio delante, mirando hacia donde se va: aparcados de cara a un poste o una tapia no podían arrancar)
+      const vale = (q, r, hh) => q && libre(q.x, q.z, r) && llano(q.x, q.z, r) && !this.nearHouses(q.x, q.z, r + 0.5) && !usados.some(u => Math.hypot(u.x - q.x, u.z - q.z) < u.r + r + 1) && Math.hypot(q.x - P.pos.x, q.z - P.pos.z) > r + 2
+        && [1.6, 3.2, 5].every(k => libre(q.x + Math.sin(hh) * r * k, q.z + Math.cos(hh) * r * k, r * 0.8));
+      const sitio = (dx, dz, r, hh) => {
+        const base = { x: P.pos.x + cs * dx + sn * dz, z: P.pos.z - sn * dx + cs * dz };
+        let q = vale(base, r, hh) ? base : null;
+        for (let rr = 4; rr <= 28 && !q; rr += 4) for (let k = 0; k < 12 && !q; k++) { const a = h + k * Math.PI / 6, c = { x: base.x + Math.sin(a) * rr, z: base.z + Math.cos(a) * rr }; if (vale(c, r, hh)) q = c; }
+        if (q) usados.push({ ...q, r }); return q;
+      };
+      const t = sitio(-9, 3, 2.2, h + 0.35); if (t) { try { A.vehs.push(new Vehiculo(this, 'tractor', t.x, t.z, h + 0.35, { apero: null, color: '#c8302a' })); } catch (e) { console.warn('tractor libre', e); } }
+      const b = sitio(5, 6, 0.9, h - 0.5); if (b) { try { A.vehs.push(new Vehiculo(this, 'bici', b.x, b.z, h - 0.5)); } catch (e) { console.warn('bici', e); } } }
   }
   /** Los puntos de interés del pueblo y su tamaño (lo usa también tools/puntos-interes.mjs). */
   aventuraPuntos() {
@@ -175,13 +198,14 @@ export class PuebloAventura {
     const A = this.av, P = this.player; if (!A || this.pelotaMatch) return;
     if (P.vehiculo === A.montura && A.montura) { list.push({ kind: 'desmontar', x: P.pos.x, z: P.pos.z, r: 99, label: A.montura.T.bajar }); return; }
     if (A.montura && !P.vehiculo && ok(A.montura.x, A.montura.z)) list.push({ kind: 'montar', x: A.montura.x, z: A.montura.z, r: 2.6, label: A.montura.T.subir });
+    if (!P.vehiculo) for (const V of A.vehs) if (ok(V.x, V.z)) list.push({ kind: 'subir', V, x: V.x, z: V.z, r: V.T.r + (V.tipo === 'bici' ? 1.8 : 2.6), label: V.T.subir });
     if (A.atalaya && ok(A.atalaya.x, A.atalaya.z)) list.push({ kind: 'atalaya', x: A.atalaya.x, z: A.atalaya.z, r: 4, label: A.atalaya.vista ? 'Marcar otra kutxa desde la atalaya' : 'Subir a la atalaya' });
     for (const k of A.kutxas) if (!k.abierta && ok(k.x, k.z)) list.push({ kind: 'kutxa', k, x: k.x, z: k.z, r: 2.2, label: 'Abrir la kutxa' });
   }
   /** Devuelve true si la acción era de la aventura. */
   aventuraActua(it) {
     const A = this.av, D = aventuraDe(this.P), id = this.def.id; if (!A) return false;
-    if (it.kind === 'montar') { A.montura?.sube(this.player); this.faunaVista?.({ burguete: 'caballo', burro: 'burro' }[A.montura?.tipo]); const T = A.montura?.T; if (T?.saber && !aventuraDe(this.P).pistas['saber-' + A.montura.tipo]) this.aventuraPista('saber-' + A.montura.tipo, T.saber, 6400); else this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
+    if (it.kind === 'montar') { A.montura?.sube(this.player); this.faunaVista?.(MONTURA_FICHA[A.montura?.tipo]?.fauna); const T = A.montura?.T; if (T?.saber && !aventuraDe(this.P).pistas['saber-' + A.montura.tipo]) this.aventuraPista('saber-' + A.montura.tipo, T.saber, 6400); else this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
     if (it.kind === 'desmontar') { A.montura?.baja(); return true; }
     if (it.kind === 'kutxa') {
       const k = it.k; if (k.abierta) return true;
@@ -216,10 +240,30 @@ export class PuebloAventura {
     if (A.atalaya?.vista) for (const k of A.kutxas) if (!k.abierta) { const mia = D.marcas[id] === k.i; out.push({ x: k.x, z: k.z, icon: mia ? 'pin' : 'sparkle', color: mia ? '#e03c3c' : '#ffd166', small: !mia, title: mia ? 'Tu marca: una kutxa' : 'Kutxa', text: 'Un cofre escondido. Solo se ve de cerca', go: true }); }
     return out;
   }
+  /** Tu montura en este pueblo (para la mochila y la pausa) */
+  monturaPropia() { return this.av?.montura || null; }
+  /** La llamas: viene trotando a tu lado (si está lejos, aparece cerca primero) */
+  llamaMontura() {
+    const m = this.av?.montura, P = this.player; if (!m) { this.ui.toast('Aquí no hay sitio para tu montura', 'horse', 2400); return false; }
+    if (P.vehiculo === m) { this.ui.toast(`Ya vas en ${m.T.nombre}`, 'horse', 1800); return false; }
+    if (!m.llama(P, (x, z) => libreEn(x, z, m.T.r + 0.6))) { this.ui.toast(`${m.T.nombre[0].toUpperCase() + m.T.nombre.slice(1)} no encuentra por dónde llegar: prueba en un sitio más abierto`, 'horse', 3200); return false; }
+    if (m.tipo === 'burro') this.sound?.rebuzno?.(m.A.pos); else this.sound?.relincho?.(m.A.pos);
+    this.ui.toast(`${m.T.nombre[0].toUpperCase() + m.T.nombre.slice(1)} viene hacia ti`, 'horse', 2400);
+    return true;
+  }
+  /** Cambia de montura: la nueva sale donde estaba la otra y viene hacia ti */
+  cambiaMontura(tipo) {
+    const A = this.av; if (!A || !MONTURAS[tipo]) return;
+    const old = A.montura, P = this.player; if (old?.tipo === tipo) return this.llamaMontura();
+    let x = P.pos.x + 3, z = P.pos.z + 3, h = P.heading;
+    if (old) { if (P.vehiculo === old) old.baja(); x = old.x; z = old.z; h = old.heading; old.dispose(); }
+    try { A.montura = new Montura(this, tipo, x, z, h); } catch (e) { console.warn('montura', e); A.montura = null; return; }
+    this.llamaMontura();
+  }
   aventuraFin() {
     const A = this.av; if (!A) return; this.av = null;
     const P = this.player; P.onModo = P.onCaida = P.onRescate = null; P.puedeAventura = false;
-    A.hud.dispose(); A.capa?.dispose(); A.montura?.dispose();
+    A.hud.dispose(); A.capa?.dispose(); A.montura?.dispose(); for (const V of A.vehs) V.dispose();
     // (y se sueltan sus geometrías y la tela de la banderola: como salen de la escena antes de recoger el pueblo, nadie más
     // las soltaba, y en cada viaje se quedaban en la gráfica la atalaya y su banderola, y en la memoria los cofres; tras
     // muchos viajes eso suma y en el iPhone puede cerrar la página. La madera, PINTADO, es de todos y se queda)

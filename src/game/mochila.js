@@ -6,6 +6,8 @@ import { GEAR, GEAR_ORDER, FOOD } from '../data/equipo.js';
 import { iconSVG } from '../ui/icons.js';
 import { infoCard } from '../ui/minigames.js';
 import { esc } from '../util/html.js';
+import { eligeMontura } from './companeros.js';
+import { MONTURA_FICHA, aLa } from './montura.js';
 
 
 export class Mochila {
@@ -98,6 +100,10 @@ export class Mochila {
           // (los dos botones van juntos: si no caben al lado del selector, bajan los dos a la fila de abajo, nunca uno solo)
           + `<div class="bp-grp">${on ? `<button class="btn" data-a="dog">${iconSVG('compass', 22)}<span>Enséñame el camino</span></button>` : ''}<button class="btn" data-a="breed">${iconSVG('dog', 22)}<span>${on ? 'Cambiar de perro' : 'Elegir perro'}</span></button></div>`
         : `<p class="bp-note">Aquí vas sin perro.</p>`;
+      // (tu montura: llamarla, que viene trotando, y cambiarla por otra; la del pueblo, si la hay)
+      const Mt = g.monturaPropia?.(), montado = !!Mt && g.player.vehiculo === Mt;
+      const mountLine = Mt ? `<span class="bp-mt"><i style="--c:${MONTURA_FICHA[Mt.tipo].c};--p:${MONTURA_FICHA[Mt.tipo].p}"></i><b>${esc(MONTURA_FICHA[Mt.tipo].titulo)}</b></span><div class="bp-grp">${montado ? '' : `<button class="btn" data-a="llama">${iconSVG('horse', 22)}<span>Llamar ${esc(aLa(Mt.T.nombre))}</span></button>`}<button class="btn" data-a="montura">${iconSVG('horse', 22)}<span>Cambiar de montura</span></button></div>`
+        : `<button class="btn" data-a="montura">${iconSVG('horse', 22)}<span>Elegir montura</span></button>`;
       const water = this.has('cantimplora') ? `<div class="drops" role="img" aria-label="${P.bag.agua} de 3 tragos">${[0, 1, 2].map(i => `<span class="${i < P.bag.agua ? 'on' : ''}">${iconSVG('water', 24)}</span>`).join('')}</div><button class="btn" data-a="drink" ${P.bag.agua ? '' : 'disabled'}>${iconSVG('canteen', 22)}<span>Beber</span></button>`
         : `<p class="bp-note" data-vm="no">Bebe en la fuente de una plaza: te darán una cantimplora.</p>`;
       const foods = food.length ? `<div class="bp-food">${food.map(([k, n]) => `<button class="fooditem" data-f="${k}" title="${esc(FOOD[k].fact)}">${iconSVG(FOOD[k].icon, 34)}<b>${esc(FOOD[k].name)}</b><span>×${n} · +${FOOD[k].e}</span></button>`).join('')}</div>`
@@ -109,6 +115,7 @@ export class Mochila {
         ${P.energy < 25 ? '<p class="bp-warn">¡Come o bebe algo!</p>' : ''}
         <div class="bp-rows">
           <section class="bp-sec"><h4>Perro</h4><div class="bp-line">${dogLine}</div></section>
+          <section class="bp-sec"><h4>Montura</h4><div class="bp-line">${mountLine}</div></section>
           <section class="bp-sec"><h4>Agua</h4><div class="bp-line">${water}</div></section>
           <section class="bp-sec"><h4>Comida</h4><div class="bp-line">${foods}</div></section>
           <section class="bp-sec"><h4>Equipo</h4><div class="bp-line">${gear}</div></section>
@@ -124,6 +131,8 @@ export class Mochila {
       if (b.dataset.a === 'close') return close();
       if (b.dataset.a === 'dog') { close(); return g.perro.help(); }
       if (b.dataset.a === 'breed') { close(); return g.perro.choose(); }
+      if (b.dataset.a === 'llama') { close(); return g.llamaMontura?.(); }
+      if (b.dataset.a === 'montura') { close(); return eligeMontura(g); }
       if (b.dataset.a === 'dogoff') { if (g.perro.dog) { g.perro.setOn(false); draw(); } return; }
       if (b.dataset.a === 'dogon') { if (!g.perro.dog) { g.perro.setOn(true); draw(); } return; }
       if (b.dataset.a === 'drink') { this.drink(); g.ui.toast('¡Glu, glu! +22 de energía', 'water', 1600); }

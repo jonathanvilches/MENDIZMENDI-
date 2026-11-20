@@ -12,16 +12,21 @@ import { clamp, damp } from '../util/math.js';
 
 // vmax y atras en m/s; giro, lo que gira a la velocidad de giro plena (rad/s); r, el radio con el que choca; dist, la
 // distancia de la cámara; asiento, dónde va el conductor (en el modelo, que mira a +z); alto, a qué altura mira la cámara
+// (bici, 20 de noviembre de 2026: para moverse por el pueblo sin motor, con su cesta de mimbre; ancho, de dónde se mira
+// la cuesta a los lados para inclinarlo: la bici no se ladea con el suelo, se inclina en las curvas; sin motor ni polvo)
 export const VEHICULOS = {
+  bici: { vmax: 6.2, atras: 0.9, giro: 1.9, r: 0.55, dist: 6.6, asiento: [0, 0.86, -0.24], alto: 0.55, largo: 0.5, ancho: 0, motor: false, polvo: false, nombre: 'la bici', subir: 'Subir a la bici', bajar: 'Bajar de la bici' },
   tractor: { vmax: 7.5, atras: 3, giro: 1.1, r: 1.5, dist: 11, asiento: [0, 1.4, -0.72], alto: 0.6, largo: 2.2, nombre: 'el tractor', subir: 'Subir al tractor', bajar: 'Bajar del tractor' },
   cosechadora: { vmax: 5, atras: 2.2, giro: 0.75, r: 2.4, dist: 15, asiento: [0, 3.32, 1.55], alto: 1.8, largo: 3.4, nombre: 'la cosechadora', subir: 'Subir a la cosechadora', bajar: 'Bajar de la cosechadora' },
 };
 const X = new THREE.Vector3(1, 0, 0), _q = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _ax = new THREE.Vector3(), _v = new THREE.Vector3();
 
 export class Vehiculo {
-  constructor(game, tipo, x, z, heading = 0) {
+  constructor(game, tipo, x, z, heading = 0, o = {}) {
     this.g = game; this.tipo = tipo; this.T = VEHICULOS[tipo];
-    this.obj = tipo === 'tractor' ? tractorModel('#c8302a', 'trailer') : combineModel();
+    // (apero: el remolque del tractor de la cosecha; el tractor libre del pueblo va sin él, o: { apero: null })
+    this.obj = tipo === 'bici' ? biciModel(o.color) : tipo === 'tractor' ? tractorModel(o.color || '#c8302a', 'apero' in o ? o.apero : 'trailer') : combineModel();
+    this.fase = 0; this.lean = 0; this.giroV = 0;
     this.obj.traverse(o => { if (o.isMesh) o.castShadow = true; });
     game.scene.add(this.obj);
     this.x = x; this.z = z; this.heading = heading; this.speed = 0; this.polvo = 0;
@@ -30,13 +35,16 @@ export class Vehiculo {
   }
   /** Coloca el modelo en (x, z), sobre el suelo e inclinado según la cuesta, y gira las ruedas lo recorrido */
   place(dist) {
-    const T = this.T, s = Math.sin(this.heading), c = Math.cos(this.heading), L = T.largo, W = 1.2;
+    const T = this.T, s = Math.sin(this.heading), c = Math.cos(this.heading), L = T.largo, W = T.ancho ?? 1.2;
     const hf = groundHeight(this.x + s * L, this.z + c * L), hb = groundHeight(this.x - s * L, this.z - c * L);
-    const hr = groundHeight(this.x - c * W, this.z + s * W), hl = groundHeight(this.x + c * W, this.z - s * W);
-    this.y = (hf + hb + hr + hl) / 4;
+    const hr = W ? groundHeight(this.x - c * W, this.z + s * W) : 0, hl = W ? groundHeight(this.x + c * W, this.z - s * W) : 0;
+    this.y = W ? (hf + hb + hr + hl) / 4 : (hf + hb) / 2;
     this.obj.position.set(this.x, this.y, this.z);
-    this.obj.rotation.set(Math.atan2(hb - hf, 2 * L) * 0.9, this.heading, Math.atan2(hl - hr, 2 * W) * 0.9, 'YXZ');
+    this.obj.rotation.set(Math.atan2(hb - hf, 2 * L) * 0.9, this.heading, W ? Math.atan2(hl - hr, 2 * W) * 0.9 : this.lean, 'YXZ');
     for (const [w, r] of this.obj.userData.wheels || []) w.rotation.x += dist / r;
+    // (la bici: los pedales giran con lo recorrido, y el manillar con la rueda de delante, hacia donde se gira)
+    const U = this.obj.userData; if (U.biela) { this.fase += dist / 0.31 * 0.5; U.biela.rotation.x = this.fase; for (const pd of U.pedales) pd.rotation.x = -this.fase; }
+    if (U.frente) U.frente.rotation.y = this.giroV;
     this.collider.x = this.x; this.collider.z = this.z;
   }
   /** Un punto del modelo (en sus coordenadas, mirando a +z) en el mundo */
@@ -76,15 +84,40 @@ export class Vehiculo {
     // (el eje del personaje pasado al espacio de cada hueso, con la pose de este fotograma)
     const turn = (b, a) => { if (!b) return; _qc.identity(); for (let o = b; o && o !== c.root; o = o.parent) _qc.premultiply(o.quaternion); _ax.copy(X).applyQuaternion(_qc.invert()); b.quaternion.multiply(_q.setFromAxisAngle(_ax, a)); };
     this.postAntes = c.post;
-    c.post = (cc, dt) => { turn(ul, -1.45); turn(ur, -1.45); turn(ll, 1.5); turn(lr, 1.5); turn(al, -0.9); turn(ar, -0.9); turn(fl, -0.5); turn(fr, -0.5); };
     P.obj.position.set(0, 0, 0); P.obj.rotation.set(0, 0, 0); P.obj.updateMatrixWorld(true);
     this.alturaCadera = hips.getWorldPosition(_v).y / Math.max(1e-3, P.obj.scale.y || 1);
+    if (this.tipo === 'bici') this.pedalea(P, c, B, turn);
+    else c.post = (cc, dt) => { turn(ul, -1.45); turn(ur, -1.45); turn(ll, 1.5); turn(lr, 1.5); turn(al, -0.9); turn(ar, -0.9); turn(fl, -0.5); turn(fr, -0.5); };
     this.sentado = c;
+  }
+  // en la bici: el cuerpo un poco adelante, las manos al manillar y cada pie en su pedal. Las piernas, con las dos medidas
+  // del muslo y de la espinilla del personaje (en reposo) y la posición del pedal en cada momento: el ángulo de la cadera y
+  // el de la rodilla salen del triángulo cadera-rodilla-tobillo (la rodilla, siempre hacia delante)
+  pedalea(P, c, B, turn) {
+    const S = P.obj.scale.y || 1, w = (b) => b.getWorldPosition(new THREE.Vector3()).divideScalar(S);
+    const hip = w(B.mixamorigHips), ul = w(B.mixamorigLeftUpLeg), kl = w(B.mixamorigLeftLeg), fl = B.mixamorigLeftFoot ? w(B.mixamorigLeftFoot) : null;
+    const L1 = ul.distanceTo(kl), L2 = fl ? kl.distanceTo(fl) : L1 * 1.05, bajaCad = hip.y - ul.y;
+    const T = this.T, asY = T.asiento[1], asZ = T.asiento[2], BB = [0.3, -0.05], R = 0.16;
+    const pierna = (sup, inf, fase) => {
+      // (el tobillo, un poco por encima y por detrás del pedal: el pedal va bajo la planta)
+      const py = BB[0] - Math.cos(fase) * R + 0.07, pz = BB[1] + Math.sin(fase) * R - 0.05;
+      const hy = asY + 0.12 - bajaCad, hz = asZ;
+      const dy = (hy - py) / S, dz = (pz - hz) / S, D = Math.min(L1 + L2 - 1e-3, Math.max(Math.abs(L1 - L2) + 1e-3, Math.hypot(dy, dz)));
+      const phi = Math.atan2(dz, dy), a = Math.acos(Math.min(1, Math.max(-1, (L1 * L1 + D * D - L2 * L2) / (2 * L1 * D))));
+      const k = Math.acos(Math.min(1, Math.max(-1, (L1 * L1 + L2 * L2 - D * D) / (2 * L1 * L2))));
+      turn(sup, -(phi + a) - 0.18); turn(inf, Math.PI - k);   // (-0.18: el tronco va inclinado hacia delante; la pierna, un poco menos)
+    };
+    c.post = () => {
+      turn(B.mixamorigSpine, 0.18); turn(B.mixamorigSpine1, 0.06);
+      pierna(B.mixamorigLeftUpLeg, B.mixamorigLeftLeg, this.fase); pierna(B.mixamorigRightUpLeg, B.mixamorigRightLeg, this.fase + Math.PI);
+      turn(B.mixamorigLeftArm, -1.0); turn(B.mixamorigRightArm, -1.0); turn(B.mixamorigLeftForeArm, -0.45); turn(B.mixamorigRightForeArm, -0.45);
+    };
   }
   levanta(P) { if (this.sentado) { this.sentado.post = this.postAntes || null; this.sentado = null; } }
   // el ruido del motor: dos osciladores graves, filtrados, que suben de tono y de fuerza con la velocidad
   motor(on) {
     const S = this.g.sound, ctx = S?.ctx;
+    if (this.T.motor === false) return;   // (la bici, sin motor)
     if (!on) { if (this.mot) { const t = ctx.currentTime; this.mot.g.gain.setTargetAtTime(0, t, 0.15); const m = this.mot; setTimeout(() => { try { m.o1.stop(); m.o2.stop(); } catch (e) { } }, 600); this.mot = null; } return; }
     if (!ctx || this.mot) return;
     try {
@@ -102,7 +135,11 @@ export class Vehiculo {
     this.speed = damp(this.speed, quiere, Math.abs(quiere) > Math.abs(this.speed) ? 1.4 : 2.8, dt);
     if (Math.abs(this.speed) < 0.02 && !f) this.speed = 0;
     // (gira según lo que avanza: parado no gira; marcha atrás, al revés)
-    this.heading -= s * T.giro * clamp(this.speed / 2.5, -1, 1) * dt;
+    // (la bici, además, gira algo parada: se gira con la mano, y así nunca se queda encajada de cara a una pared)
+    const kg = clamp(this.speed / 2.5, -1, 1);
+    this.heading -= s * T.giro * (T.ancho === 0 ? Math.sign(kg || 1) * Math.max(Math.abs(kg), 0.45) : kg) * dt;
+    // (la bici: el manillar gira hacia el lado y, en marcha, se inclina hacia dentro de la curva)
+    if (T.ancho === 0) { this.giroV = damp(this.giroV, -s * 0.45, 8, dt); this.lean = damp(this.lean, s * 0.32 * clamp(this.speed / T.vmax, 0, 1), 5, dt); }
     let nx = this.x + Math.sin(this.heading) * this.speed * dt, nz = this.z + Math.cos(this.heading) * this.speed * dt;
     const r = resolve(nx, nz, T.r, this.collider);
     if (Math.hypot(r.x - nx, r.z - nz) > 0.02) this.speed *= 0.6;   // (choca: frena)
@@ -124,7 +161,7 @@ export class Vehiculo {
     // el motor, según la velocidad y el acelerador
     if (this.mot) { const t = g.sound.ctx.currentTime, k = Math.abs(this.speed) / T.vmax; this.mot.o1.frequency.setTargetAtTime(34 + k * 34 + Math.abs(f) * 6, t, 0.1); this.mot.o2.frequency.setTargetAtTime(17 + k * 17, t, 0.1); this.mot.g.gain.setTargetAtTime(0.05 + k * 0.05 + Math.abs(f) * 0.02, t, 0.1); }
     // polvo detrás, al correr
-    if (Math.abs(this.speed) > 2.5 && (this.polvo -= dt) <= 0) {
+    if (T.polvo !== false && Math.abs(this.speed) > 2.5 && (this.polvo -= dt) <= 0) {
       this.polvo = 0.12; const b = this.local(0, 0.3, this.tipo === 'tractor' ? -0.9 : -2.8, _v);
       g.particles?.emit({ x: b.x, y: b.y, z: b.z }, { n: 3, color: ['#c9b58c', '#b39d73'], speed: 0.8, size: 0.5, life: 0.9, gravity: -0.3, spread: 1.2 });
     }
@@ -134,4 +171,69 @@ export class Vehiculo {
     this.motor(false); removeMover(this.collider);
     this.obj.parent?.remove(this.obj);   // (sus mallas no se tiran: las comparten las máquinas de los campos, agro.js)
   }
+}
+
+// ---------- la bici ----------
+// De diseño propio: cuadro de paseo (barra baja), ruedas de radios, sillín, manillar con puños y una cesta de mimbre
+// delante. Mira a +z; las ruedas, en userData.wheels como las del tractor (place las gira con lo recorrido); la biela con
+// los pedales, en userData.biela, y lo que gira con el manillar (horquilla, rueda de delante, manillar y cesta), en
+// userData.frente. Las piezas son de todos: se hacen una vez y se comparten
+let BICI = null;
+function piezasBici() {
+  if (BICI) return BICI;
+  const M = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, roughness: 0.55, metalness: 0.2, ...o });
+  BICI = {
+    cubierta: new THREE.TorusGeometry(0.29, 0.024, 8, 28), llanta: new THREE.TorusGeometry(0.27, 0.01, 6, 28), radio: new THREE.CylinderGeometry(0.0035, 0.0035, 0.54, 4),
+    buje: new THREE.CylinderGeometry(0.022, 0.022, 0.1, 10), tubo: new THREE.CylinderGeometry(1, 1, 1, 8), caja: new THREE.BoxGeometry(1, 1, 1),
+    goma: M('#1e1c1b', { roughness: 0.9, metalness: 0 }), cromo: M('#c9ccd1', { roughness: 0.3, metalness: 0.8 }), negro: M('#2a2725', { roughness: 0.7 }),
+    mimbre: M('#b88a4e', { roughness: 0.95, metalness: 0 }), cuadro: new Map(),
+  };
+  return BICI;
+}
+export function biciModel(color = '#2f7d6b') {
+  const K = piezasBici(), g = new THREE.Group(), R = 0.31;
+  const mat = K.cuadro.get(color) || (K.cuadro.set(color, new THREE.MeshStandardMaterial({ color, roughness: 0.45, metalness: 0.35 })), K.cuadro.get(color));
+  const tubo = (a, b, r, m = mat, padre = g) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), t = new THREE.Mesh(K.tubo, m), d = B.clone().sub(A);
+    t.scale.set(r, d.length(), r); t.position.copy(A).addScaledVector(d, 0.5); t.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()); padre.add(t); return t; };
+  const caja = (p, s, m, padre = g) => { const b = new THREE.Mesh(K.caja, m); b.position.set(...p); b.scale.set(...s); padre.add(b); return b; };
+  const rueda = (z, padre) => {
+    const w = new THREE.Group(); w.position.set(0, R, z); padre.add(w);
+    const t = new THREE.Mesh(K.cubierta, K.goma); t.rotation.y = Math.PI / 2; w.add(t);
+    const l = new THREE.Mesh(K.llanta, K.cromo); l.rotation.y = Math.PI / 2; w.add(l);
+    for (let i = 0; i < 8; i++) { const rd = new THREE.Mesh(K.radio, K.cromo); rd.rotation.x = i * Math.PI / 8; w.add(rd); }
+    const b = new THREE.Mesh(K.buje, K.cromo); b.rotation.z = Math.PI / 2; w.add(b);
+    return w;
+  };
+  const wheels = [[rueda(-0.5, g), R]];
+  // el cuadro (barra baja, de paseo): tubo del sillín, tubo bajo, vainas y tirantes hasta el eje de atrás
+  const BB = [0, 0.3, -0.05], ST = [0, 0.8, -0.2], HB = [0, 0.6, 0.38], HT = [0, 0.82, 0.33];
+  tubo(BB, ST, 0.02); tubo(BB, HB, 0.022); tubo([0, 0.42, -0.1], [0, 0.72, 0.36], 0.017);
+  for (const x of [-0.045, 0.045]) { tubo([x, 0.3, -0.05], [x, R, -0.5], 0.012); tubo([x, 0.74, -0.19], [x, R, -0.5], 0.011); }
+  tubo(ST, [0, 0.86, -0.23], 0.013, K.cromo);
+  caja([0, 0.875, -0.25], [0.12, 0.045, 0.24], K.negro);   // el sillín
+  // el guardabarros de atrás, con su luz roja
+  caja([0, R + 0.32, -0.62], [0.06, 0.012, 0.22], mat).rotation.x = 0.55;
+  // lo de delante, que gira con el manillar
+  const F = new THREE.Group(); F.position.set(0, 0, 0.36); g.add(F);
+  const f = (p) => [p[0], p[1], p[2] - 0.36];
+  tubo(f(HB), f(HT), 0.024);
+  for (const x of [-0.04, 0.04]) tubo(f([x, 0.6, 0.38]), f([x, R, 0.5]), 0.012, K.cromo);
+  wheels.push([rueda(0.14, F), R]);
+  tubo(f(HT), f([0, 0.95, 0.3]), 0.014, K.cromo);
+  tubo(f([-0.26, 0.96, 0.27]), f([0.26, 0.96, 0.27]), 0.012, K.cromo);
+  for (const x of [-0.27, 0.27]) caja(f([x, 0.96, 0.25]), [0.03, 0.03, 0.09], K.negro, F);
+  // la cesta de mimbre, en el manillar
+  const C = caja(f([0, 0.84, 0.5]), [0.3, 0.18, 0.22], K.mimbre, F);
+  caja([0, 0.5, 0], [1.06, 0.12, 1.06], K.mimbre, C);
+  // la biela y los pedales (giran con lo recorrido; los pedales, al revés, para quedarse planos)
+  const bi = new THREE.Group(); bi.position.set(...BB); g.add(bi); const pedales = [];
+  for (const s of [-1, 1]) {
+    const brazo = caja([s * 0.07, -s * 0.08, 0], [0.018, 0.16, 0.025], K.cromo, bi);
+    const pd = new THREE.Group(); pd.position.set(s * 0.1, -s * 0.16, 0); bi.add(pd); caja([0, 0, 0], [0.09, 0.02, 0.06], K.negro, pd); pedales.push(pd);
+    void brazo;
+  }
+  const plato = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.008, 6, 20), K.cromo); plato.rotation.y = Math.PI / 2; plato.position.x = 0.06; bi.add(plato);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+  g.userData.wheels = wheels; g.userData.biela = bi; g.userData.pedales = pedales; g.userData.frente = F;
+  return g;
 }

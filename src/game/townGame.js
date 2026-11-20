@@ -871,6 +871,7 @@ export class TownGame {
     this.goingM = true;
     try {
       await this.ui.fadeOut(); if (this.disposed) return;
+      this.player.vehiculo?.baja();   // (montado o en la bici, te bajas: si no, el vehículo te devolvía a su sitio)
       const s = this.spot(dest, t ? 3 : 2.2); this.player.place(s.x, s.z, Math.atan2(dest.x - s.x, dest.z - s.z));
       this.follow.yaw = this.player.heading + Math.PI; this.follow.snap(this.player);
       if (!M.done) this.tracked = M.i;
@@ -1141,7 +1142,7 @@ export class TownGame {
   mapHouses() { return TOWN.houses; }
   save() { saveProfile(); }
   applySettings() { const S = this.P.settings; this.sound.setMusic(S.music); this.sound.setVolume(S.volume); this.sky.speed = 24 / (16 * 60) * (S.timeSpeed ?? 1); }
-  teleport(x, z) { const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
+  teleport(x, z) { this.player.vehiculo?.baja(); const s = this.spot({ x, z }, 3); this.player.place(s.x, s.z, 0); this.follow.snap(this.player); }
   dispose() {
     // (lo que estaba a medias —el menú de pelota, el cuadro del torneo, un partido preparándose— se para: el pueblo
     // nuevo no debe recibir sus ventanas ni sus controles)

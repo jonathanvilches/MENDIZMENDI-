@@ -762,6 +762,9 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .gitem svg, .gitem img { flex: none; width: 30px; height: 30px; }
 .gitem b { font: 800 var(--fs-xs)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; text-align: center; text-wrap: balance; }
 .gitem.locked { opacity: .55; } .gitem:hover { border-color: #ff7ac8; }
+/* (tu montura en la mochila: el círculo de su pelaje, como en «Elige tu montura», y su nombre) */
+.bp-mt { display: inline-flex; align-items: center; gap: 10px; font-size: var(--fs-md); }
+.bp-mt i { width: 34px; height: 34px; flex: none; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--p) 0 30%, var(--c) 31%); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .25); }
 .bp-note { margin: 0; max-width: 52ch; font-size: var(--fs-sm); line-height: 1.5; color: var(--mute); }
 /* (en vertical o en una pantalla estrecha, el rótulo encima de su fila) */
 @media (max-width: 599px), (orientation: portrait) {
@@ -776,6 +779,10 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .breeds i { grid-row: span 2; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, var(--p) 0 30%, var(--c) 31%); box-shadow: inset 0 0 0 3px rgba(0, 0, 0, .25); }
 .breeds b { font-size: var(--fs-md); } .breeds small { font-size: var(--fs-sm); opacity: .85; line-height: 1.3; }
 @media (max-width: 520px) { .breeds { grid-template-columns: 1fr; } }
+/* (elegir montura: son tres, en una fila de tres, sin hueco al lado de la última; en vertical, una debajo de otra) */
+.monturapick .mg-card { max-width: 780px; }
+.monturapick .breeds { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 620px) { .monturapick .breeds { grid-template-columns: 1fr; } }
 .dogpick-foot { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; width: 100%; } .dogpick-foot .btn { flex: 1 1 160px; max-width: 260px; }
 
 /* listado de castillos al terminar una visita y montes desde el mirador */
