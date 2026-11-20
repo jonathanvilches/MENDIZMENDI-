@@ -309,7 +309,12 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
       // (cada lado se pasa un poco al otro: los puntos que caen justo en el borde, el de la isla y el de sus vecinas, bajan
       // del todo. Con el corte limpio en la muga, la imagen los mezclaba a medias y quedaban de pie, como pinchos)
       const den = !!((xs.length - p) & 1), denH = amplia ? !!((xsH.length - pH) & 1) : den, cruza = 1 - ss(px * 1.2, px * 2.6, d), cruzaH = 1 - ss(px * 1.2, px * 2.6, dh);
-      const r = d > WM ? 0 : den ? 1 - ss(0, WI[k], d) : cruza, g = dh > WM ? 0 : denH ? cruzaH : 1 - ss(0, WO[kh], dh), o = (j * tw + i);
+      // (dentro, el terreno sigue bajando hasta el mismo borde, redondeado como la loma que se asoma a un cortado: con la curva
+      // en S de antes, llegaba al borde ya llano y alrededor de toda la isla quedaba una repisa verde lisa, del mismo ancho y
+      // color, que se leía como una pieza añadida. El autor, el 20 de noviembre de 2026: «se construye lo que es todo el labio
+      // del borde, que se nota que es un añadido, que no es parte orgánico de la tierra». Ahora baja más deprisa cerca del
+      // borde y se junta sin escalón con el terreno de dentro)
+      const r = d > WM ? 0 : den ? (1 - Math.min(1, d / WI[k])) ** 2 : cruza, g = dh > WM ? 0 : denH ? cruzaH : 1 - ss(0, WO[kh], dh), o = (j * tw + i);
       OD[o * 4] = Math.round(r * 255); OD[o * 4 + 1] = Math.round(g * 255); OD[o * 4 + 2] = Math.round(Math.min(1, RIM[k] / 12) * 255); OD[o * 4 + 3] = 255;
       OF[o * 3] = r; OF[o * 3 + 1] = g; OF[o * 3 + 2] = RIM[k];
     } }
