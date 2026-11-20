@@ -397,6 +397,44 @@ export function mallaPublico(F, cap, cerca = true) {
 }
 
 /**
+ * Las dos posturas de los retratos del resto de la grada (crowd3d.js), sacadas de las de aquí (20 de noviembre de 2026;
+ * el autor, con la vista de dron sobre la grada: «la posición de reposo no es con las manos en las rodillas, están como
+ * medio aplaudiendo, pero tampoco aplauden cuando se genera la acción»). Los retratos se hacían con su propia postura de
+ * sentado, que solo bajaba un poco los brazos y dejaba los antebrazos levantados, con las manos delante del pecho; y al
+ * celebrar, la del pelotari que celebra. Ahora son estas: sentado y tranquilo, con las manos sobre los muslos (el primer
+ * cuadro de «quieto»), y de pie aplaudiendo, con las palmas juntas (el primero de «aplaudePie»), con los pies donde los
+ * tenía sentado. Por figura, [{ geometry, map }, { geometry, map }], la malla ya en esa postura; null si alguna figura no
+ * se puede (de varias piezas o varios materiales): entonces van las de antes.
+ */
+export function posturasRetrato(set = 'aficion', culoObj = null) {
+  return cocinaPublico(set, culoObj).then(F => {
+    if (F.some(f => f.geo.groups.length || Array.isArray(f.mat) || !f.tex?.image?.data)) return null;
+    return F.map(f => { const C = f.clips; return [C.quieto, C.aplaudePie || C.salta].map(c => ({ geometry: posada(f, c.f0), map: f.mat.map || null })); });
+  });
+}
+// la malla de una figura en el cuadro «fila»: lo que hace el sombreador (pielM), aquí en números, una vez
+function posada(f, fila) {
+  const g0 = f.geo, P = g0.attributes.position.array, N = g0.attributes.normal.array, H = g0.attributes.aHueso.array, Wt = g0.attributes.aPeso.array;
+  const D = f.tex.image.data, off = fila * f.tex.image.width * 4, n = P.length / 3, pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const px = P[i * 3], py = P[i * 3 + 1], pz = P[i * 3 + 2], qx = N[i * 3], qy = N[i * 3 + 1], qz = N[i * 3 + 2];
+    let x = 0, y = 0, z = 0, nx = 0, ny = 0, nz = 0;
+    for (let k = 0; k < 4; k++) {
+      const w = Wt[i * 4 + k]; if (!w) continue;
+      const o = off + H[i * 4 + k] * 12;   // (cada hueso, tres puntos de la textura: las tres primeras filas de su matriz)
+      x += w * (D[o] * px + D[o + 1] * py + D[o + 2] * pz + D[o + 3]); y += w * (D[o + 4] * px + D[o + 5] * py + D[o + 6] * pz + D[o + 7]); z += w * (D[o + 8] * px + D[o + 9] * py + D[o + 10] * pz + D[o + 11]);
+      nx += w * (D[o] * qx + D[o + 1] * qy + D[o + 2] * qz); ny += w * (D[o + 4] * qx + D[o + 5] * qy + D[o + 6] * qz); nz += w * (D[o + 8] * qx + D[o + 9] * qy + D[o + 10] * qz);
+    }
+    const l = Math.hypot(nx, ny, nz) || 1;
+    pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z; nor[i * 3] = nx / l; nor[i * 3 + 1] = ny / l; nor[i * 3 + 2] = nz / l;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('uv', g0.attributes.uv.clone());
+  if (g0.attributes.color) g.setAttribute('color', g0.attributes.color.clone());
+  g.setIndex(g0.index.clone()); return g;
+}
+
+/**
  * El público sentado del frontón. spots = [[x, y, z, ry], …] (el sitio del sentado, como en crowd3d). Devuelve un grupo
  * con .tick(t, ánimo, zFoco, cámara), .cheer(on, lado, segundos), .listo y .dispose, como crowd3d.
  * kc: cuántos van con la figura entera (los más cercanos a la cámara); el resto, con la de lejos, que se mueve igual.

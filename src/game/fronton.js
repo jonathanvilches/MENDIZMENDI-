@@ -18,7 +18,7 @@ import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
 import { crowd3d, preparaPublico } from '../actors/crowd3d.js';
-import { crowdAnim, cocinaPublico } from '../actors/crowdAnim.js';
+import { crowdAnim, cocinaPublico, posturasRetrato } from '../actors/crowdAnim.js';
 import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -482,7 +482,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (y las figuras del público y sus retratos: si no, la grada salía vacía los primeros segundos de la presentación)
     // (sentado, el público animado de crowdAnim.js; de pie en las plazas, el de antes)
     // (con la altura de su asiento, la misma que luego pide crowdAnim: si no, se cocinaban dos veces)
-    if (fronton.court?.seated) { const a = fronton.court.asiento; cocinaPublico('aficion', a != null ? (a - 0.02) / (ALTO_AFICION / 1.5) : null).catch(() => {}); preparaPublico('aficion', true); } else preparaPublico('aficion', false);   // (sentados: también los retratos del resto de la grada)
+    if (fronton.court?.seated) { const a = fronton.court.asiento, culo = a != null ? (a - 0.02) / (ALTO_AFICION / 1.5) : null; cocinaPublico('aficion', culo).catch(() => {}); preparaPublico('aficion', true, posturasRetrato('aficion', culo)); } else preparaPublico('aficion', false);   // (sentados: también los retratos del resto de la grada)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
@@ -575,7 +575,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // cada uno, el retrato de la misma figura desde el ángulo en que se ve, y se levantan en cada tanto). Así cabe un
       // frontón lleno sin perder la fluidez: los animados, como antes, en el móvil 16 enteros (8 en el más justo), y los
       // retratos casi no cuestan
-      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60, NA = Math.min(sp.length, muyLigero ? 12 : ligero ? 28 : QUALITY === 'mid' ? 60 : 100);
+      // (cuántos con su esqueleto y sus movimientos: en el móvil 64, antes 28. Con 28, en la vista de dron sobre la grada casi
+      // todos eran retratos quietos; el autor, 20 de noviembre de 2026: «se ve claramente que los espectadores no tienen
+      // movimiento». Los que pasan de kc van con la figura de lejos, unos 1.000 triángulos cada uno, y se dibujan todos los
+      // de una figura de una vez: 36 más son unos 36.000 triángulos)
+      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60, NA = Math.min(sp.length, muyLigero ? 24 : ligero ? 64 : QUALITY === 'mid' ? 90 : 140);
       const orden = sp.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 3]).sort((a, b) => a[1] - b[1]).map(r => r[0]);
       const spA = orden.slice(0, NA), spF = orden.slice(NA);
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
@@ -603,7 +607,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // la cara y se mueve igual)
       if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc, asiento: C.asiento != null ? C.asiento - 0.02 : null }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated;
         // (y el resto de la grada, con su retrato: en el mismo grupo, con el mismo reloj y las mismas celebraciones)
-        if (wspF2.length) { const resto = crowd3d(wspF2, 'aficion', ALTO_AFICION, { sit, all3d: true, kc: 1 }); seated.add(resto);
+        if (wspF2.length) { const resto = crowd3d(wspF2, 'aficion', ALTO_AFICION, { sit, all3d: true, kc: 1, posturas: sit ? posturasRetrato('aficion', C.asiento != null ? (C.asiento - 0.02) / (ALTO_AFICION / 1.5) : null) : null }); seated.add(resto);
           const t0 = seated.tick, c0 = seated.cheer, d0 = seated.dispose, l0 = seated.listo;
           seated.tick = (t, ex, f, cam) => { t0(t, ex, f, cam); resto.tick(t, ex, f, cam); };
           seated.cheer = (on, lado, len, todos) => { c0(on, lado, len, todos); resto.cheer(on, lado, len); };

@@ -18,10 +18,18 @@ ya no vale, se borra.
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
 - Carruseles de un solo toque, también después de deslizar (`src/game/carrusel3d.js`, `src/hub/galeria.js`), las leyendas
-  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche. Los golpes de pelota limpios y el rótulo «¡Tanto y partido!» legible.
+  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche. Los golpes de pelota limpios, el rótulo «¡Tanto y partido!» legible y el público que se mueve y descansa con las manos en las rodillas.
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · personajes** (20 nov, tarde): por encargo directo del autor («en la vista de dron sobre los
+  espectadores se ve claramente que no tienen movimiento… su posición de reposo no es con las manos en las rodillas,
+  están como medio aplaudiendo, pero tampoco aplauden cuando se genera la acción»), en vuestros `src/actors/crowdAnim.js`
+  y `src/actors/crowd3d.js`: los retratos del resto de la grada se hacen ahora con las posturas de crowdAnim
+  (`posturasRetrato`: el primer cuadro de «quieto», con las manos sobre los muslos, y el de «aplaudePie», de pie con las
+  palmas juntas), pasadas a crowd3d con la opción `posturas` (sin el paso de 0,3 m hacia delante al levantarse: ya están
+  de pie donde tenían los pies). Antes los retratos usaban `sitPose`, que dejaba los antebrazos levantados. Y en
+  `src/game/fronton.js`, más animados: 64 en el móvil (antes 28), 24 en el más justo, 90 en calidad media y 140 en alta.
 - **De Principal a Pelota · interfaz** (20 nov, tarde): por encargo directo del autor, con una captura del iPhone del
   rótulo «¡Tanto y partido!» («no me gusta y es muy dura la legibilidad»), en vuestro `src/pelota/hud.js`: el final ya no
   es rosa intenso con el texto lila y la racha rosa encima; lleva la placa oscura de los demás avisos, el filo y el título

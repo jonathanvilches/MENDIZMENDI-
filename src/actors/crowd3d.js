@@ -258,10 +258,16 @@ function retratoMat(A, fila) {
 
 // las figuras de un conjunto, cada una quieta (pose 0) y celebrando (pose 1), como en las láminas. Sentadas, con
 // arriba = true, celebran sin levantarse, con los brazos en alto (en las gradas de escalones, de pie se metían en el de detrás)
-function bakeSet(set, sit, arriba = false) {
-  const key = set + (sit ? ':sit' : '') + (sit && arriba ? ':arriba' : '');
+// (posturas: las de crowdAnim.js, posturasRetrato, para los retratos del resto de la grada sentada; si llegan, las figuras
+// van con ellas y no con las de aquí: sentados con las manos sobre los muslos y, al celebrar, de pie aplaudiendo)
+function bakeSet(set, sit, arriba = false, posturas = null) {
+  const key = set + (sit ? ':sit' : '') + (sit && arriba ? ':arriba' : '') + (posturas ? ':anim' : '');
   if (baked.has(key)) return baked.get(key);
   const pr = (async () => {
+    const P = posturas ? await posturas.catch(e => { console.warn('posturas del público', e); return null; }) : null;
+    if (P) return P.map(par => { const poses = par.map(({ geometry, map }) => { const o = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ map })); o.updateMatrixWorld(true);
+      const g = bakeMesh(o); geometry.dispose(); o.material.dispose(); g.computeBoundingSphere(); g.userData.map = map; g.userData.pelo = false; return g; }); poses.camiseta = null; poses.anim = true; return poses; });
+    if (posturas) { baked.delete(key); return bakeSet(set, sit, arriba); }   // (sin ellas, las de siempre)
     const out = [];
     for (let f = 0; f < nFigs(set); f++) {
       const fig = figure(set, f), poses = [];
@@ -301,9 +307,9 @@ function bakeSet(set, sit, arriba = false) {
 /** Prepara antes de tiempo las figuras del público y sus retratos (fronton.js, mientras se cargan los pelotaris): el
  *  público esperaba a tenerlos para salir y, en el móvil, la presentación del partido recorría unos 5 s la grada vacía
  *  (noviembre de 2026). Es lo mismo que hace crowd3d al empezar, y se guarda: crowd3d lo encuentra hecho. */
-export function preparaPublico(set = 'aficion', sit = false) {
+export function preparaPublico(set = 'aficion', sit = false, posturas = null) {
   const Q = QUALITY;
-  return bakeSet(set, sit).then(G => retratos(G, set + (sit ? ':sit' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224)).catch(e => console.warn('público', e));
+  return bakeSet(set, sit, false, posturas).then(G => retratos(G, set + (sit ? ':sit' : '') + (G[0]?.anim ? ':anim' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224)).catch(e => console.warn('público', e));
 }
 /**
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
@@ -311,7 +317,7 @@ export function preparaPublico(set = 'aficion', sit = false) {
  */
 // (figuras: los que no van con la figura entera, con la figura simplificada en 3D y nunca con el retrato plano: para
 // gradas con poca gente, donde cada espectador se ve suelto)
-export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null, figuras = false } = {}) {
+export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null, figuras = false, posturas = null } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * nFigs(set));
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit, { lamina: !all3d });
@@ -349,10 +355,12 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, !tex ? MAT : g.userData.pelo ? [texMat(g.userData.map), MAT] : texMat(g.userData.map), k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
   let mid = null, far = null, capas = [], retrato = false;
   // (listo: cuando ya están las figuras en 3D; el partido espera a subir sus texturas antes de enseñar al público)
-  group.listo = bakeSet(set, sit, arriba).then(async G => {
+  let deAnim = false;   // (con las posturas de crowdAnim: de pie, ya delante del asiento, con los pies donde los tenía sentado)
+  group.listo = bakeSet(set, sit, arriba, sit && !arriba ? posturas : null).then(async G => {
+    deAnim = !!G[0]?.anim;
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
     // (todos en 3D: los de en medio y los del fondo, con su retrato; si no se puede, como antes, con la figura simplificada)
-    let A = null; if (all3d && K > KC && !figuras) try { A = await retratos(G, set + (sit ? ':sit' : '') + (arriba ? ':arriba' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224); } catch (e) { console.warn('retratos', e); }
+    let A = null; if (all3d && K > KC && !figuras) try { A = await retratos(G, set + (sit ? ':sit' : '') + (arriba ? ':arriba' : '') + (deAnim ? ':anim' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224); } catch (e) { console.warn('retratos', e); }
     if (A) {
       const geo = new THREE.PlaneGeometry(2 * A.R, A.H); geo.translate(0, A.H / 2, 0);
       mid = G.map((poses, f) => poses.map((g, p) => { const im = new THREE.InstancedMesh(geo, retratoMat(A, f * 2 + p), K - KC); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; }));
@@ -416,7 +424,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       if (im.count >= im.instanceMatrix.count) continue;   // (sin retratos, la figura de lejos tiene tope: los que pasan, sin dibujar)
       const jump = quietos || (sit && arriba) ? 0 : lev ? (pose ? A[i * 3] * 0.5 * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) : 0) : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
       // (el que se levanta a celebrar, de pie delante de su asiento: en el sitio del sentado quedaba dentro de él)
-      const sube = sit && !arriba && pose === 1 ? 0.3 : 0;
+      // (con las posturas de crowdAnim, no: ya está de pie donde tenía los pies, delante del asiento)
+      const sube = sit && !arriba && pose === 1 && !deAnim ? 0.3 : 0;
       m4.compose(v.set(s[0] + Math.sin(rot[i]) * sube, s[1] + jump, s[2] + Math.cos(rot[i]) * sube), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
       if (all3d) { const l = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898)); tc.setRGB(l, l, l); } else tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2]);
       im.setColorAt(im.count, tc); im.setMatrixAt(im.count++, m4);
