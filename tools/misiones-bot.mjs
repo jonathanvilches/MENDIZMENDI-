@@ -51,8 +51,12 @@ async function BOT(SOLO) {
   window.__autoWin = true;
   const espera = (ms) => new Promise(r => setTimeout(r, ms));
   const avisos = [], misiones = [];
-  // las charlas, leídas al momento (con una pregunta, se elige la primera: «Esperar a que anochezca»)
-  g.say = async (a, lines) => { for (const L of lines || []) if (L && typeof L === 'object' && L.choices && L.onChoice) L.onChoice(0); };
+  // las charlas, leídas al momento (con una pregunta, se elige la primera: «Esperar a que anochezca»; en las del sabio, la
+  // buena: contestando siempre la primera, la misión dependía de la suerte y salía ATASCADA sin serlo; Viana)
+  g.say = async (a, lines) => { for (const L of lines || []) if (L && typeof L === 'object' && L.choices && L.onChoice) {
+    let r = L.onChoice(0);
+    if (/^No era esa/.test(r?.[0]?.text || '')) for (let j = 1; j < L.choices.length; j++) { r = L.onChoice(j); if (/^¡Correcto!/.test(r?.[0]?.text || '')) break; }
+  } };
   // (un paso del juego sin dibujar: el jugador, la cámara, el pueblo, los caminos, el cielo y los animales; lo de
   // runtime.step menos lo que solo sirve para pintar, que en este navegador de pruebas es lo que más tarda)
   const rt = window.__rt, tick = (n = 6, dt = 1 / 30) => { for (let i = 0; i < n; i++) { try {
