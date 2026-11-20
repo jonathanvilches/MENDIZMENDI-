@@ -388,6 +388,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   icono va sobre un fondo sólido del color de su categoría (46 % del color sobre morado oscuro; hecha, 78 % con su marca;
   la que sigues, un aro blanco por dentro con `box-shadow`, porque los botones no llevan borde: `neon.css`). El panel
   que las recoge, casi opaco (90 %). Antes, con el 16 % del color, se veían apagadas y casi transparentes sobre el pueblo.
+- **Sin pantalla VS en el partido de pelota** (20 de noviembre de 2026, noche; `pelota/match.js`, `vsThenPlay`). El autor:
+  «antes de jugar el partido, antes de que salgan los pelotaris, siempre hay como una escena, yo creo que antigua, como un
+  bug que hay que eliminar». Era la pantalla VS (las dos cabezas grandes sobre azul y rosa, «Toca para empezar»), que se
+  abría con un momento a oscuras y repetía lo que ya enseñan el panel del partido y el sorteo de la chapa: las cartas de los
+  dos. Ahora, de la elección de material, directo al sorteo (en el peloteo, al saque); la final sigue con su «Gran final».
+  `window.__vsVieja` la vuelve a poner. El fútbol sigue usando `vs.js`.
 - **Placas de la pantalla VS** (`pelota/vs.js`, también la usa el fútbol; noviembre de 2026). Cada jugador tiene una sola
   placa con las esquinas de los paneles (10 px) y, dentro, separada 5 px del borde, su media en una caja clara de 6 px y
   al lado el nombre, el pueblo y las cifras. Antes eran dos cajas sueltas, la blanca montada 6 px sobre la oscura. Como

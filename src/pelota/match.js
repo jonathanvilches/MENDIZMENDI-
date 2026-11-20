@@ -477,13 +477,19 @@ export class PelotaMatch {
     const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); this.comInicio();
       if (!this.contado) { this.contado = true; try { localStorage.setItem('herrizherri-pelota-consejos', this.consejosN + 1); } catch (e) { /* sin almacenamiento */ } } };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     // (después de la presentación, el sorteo del saque con la chapa: saca el del color que sale)
-    const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
+    const sorteo = (directo = true) => { if (!this.active) return; this.tossChapa(directo).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
     const V = this.o.vsImg, g0 = this.game;
     if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
     // (en la final de un campeonato, la entrada de «Gran final» (granFinal.js): ya enfrenta a los dos con sus cartas, así
     // que en vez de la pantalla VS, de ahí al sorteo. Antes, un vuelo de cámara y unos focos que buscaban a los pelotaris
     // a oscuras: el autor los quitó, noviembre de 2026)
     if (this.o.final && !this.finalHecho && (!navigator.webdriver || window.__final)) { this.finalHecho = true; this.entradaFinal().then(() => { if (this.active) (g0.mode === 'match' ? sorteo : go)(); }); return; }
+    // (SIN LA PANTALLA VS desde el 20 de noviembre de 2026, por la noche. El autor: «antes de jugar el partido, antes de que
+    // salgan los pelotaris, siempre hay como una escena, yo creo que antigua, como un bug que hay que eliminar». Era la
+    // pantalla VS de antes (las dos cabezas grandes sobre azul y rosa, «Toca para empezar»), con un momento a oscuras al
+    // abrirse, y repetía lo que ya enseñan el panel del partido y el sorteo: las cartas de los dos. De la elección de material,
+    // directo al sorteo de la chapa (o al saque, en el peloteo). window.__vsVieja la vuelve a poner)
+    if (!window.__vsVieja) return g0.mode === 'match' ? sorteo(false) : go();
     const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
     const rt = splitName(this.names.rival).town || this.o.town || '';
     const line = [M ? (this.role === 'delantero' ? P.front : P.back) : this.cuatro ? (P.four || TEXT.es.pairs.four) : P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.o.fixedLevel ? '' : L[this.level]].filter(Boolean).join(' · ');
