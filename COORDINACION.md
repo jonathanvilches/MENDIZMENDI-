@@ -141,67 +141,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 20 nov, mañana, la hizo la ventana principal, por el encargo del autor («va lento cuando estás seleccionando en los
-  carruseles», «en todas las partidas puedas tener tu propio caballo [...] una selección de caballos, al igual que la de
-  perros, ya no está el perro» y «diferentes medios de transporte [...] un caballo, un tractor, una bici»): `master` hasta
-  `bd746ee8`. Entran los fondos difuminados sin filtro (`src/ui/fondoSuave.js`: los bloques del menú de pelota, en menos
-  de un segundo), elegir montura (caballo de Burguete, pottoka o burro; `src/game/companeros.js`, en la mochila y en la
-  pausa) y llamarla, el perro y la montura también en Otsagabia, un tractor libre y una bici con cesta en cada pueblo, y
-  con lluvia solo humean algunas chimeneas (`src/fx.js`, una docena como mucho).
-- 20 nov, madrugada, la hizo la ventana principal, por el encargo del autor («quiero el frontón vacío», «la pantalla de
-  selección de campeonatos cambia cuando entras y cuando sales del campeonato es otro carrusel» y «sigue sin funcionar lo
-  de las misiones que pulses y vaya al principio de la misión»): `master` hasta `d67b5b70`. Entran las dos fotos nuevas
-  de Torneos (frontón vacío, parejas a la par, sin ampliaciones), «Elige frontón» de Torneos con el mismo carrusel que
-  dentro del campeonato, y la barra de misiones que lleva a cualquier misión con el segundo toque (también en Otsagabia).
-- 19 nov, noche (4), la hizo la ventana principal, por el encargo del autor (capturas de Elige frontón, Ajustes y Perfil:
-  «adaptarlas al nuevo diseño y optimizar»): `master` hasta `c96764b2`. Entran Elige frontón con cartas de foto (las
-  canchas de `src/assets/frontones-juego`), y Perfil y Ajustes en tarjetas por tema en columnas (`src/hub/ajustes.css`).
-- 19 nov, noche (3), la hizo la ventana principal, por el encargo del autor («cuando seleccionas un bloque hasta que se
-  accede a dicho bloque al interior, tarda muchísimo»): `master` hasta `c803cb47`. Entra el menú de campeonatos sin
-  esperar a compilar el frontón (main.js, runtime.js `diferir`/`preparaDiferido` y townDeportes.js `venuePrep`): con
-  Lesaka, de 14 s a 8 en el ordenador de pruebas.
-- 19 nov, noche (2), la hizo la ventana principal, por el encargo del autor («repártelos un poco a lo largo de todo el
-  frontón para que en las fases vaya aumentando el número de espectadores… en la final tiene que haber un lleno
-  completo»): `master` hasta `463ce87b`. Entra el público por fases (fronton.js y `camp.fase` en townDeportes.js): un
-  cuarto de la grada en la primera ronda, cada vez más y lleno en la final; los de las mejores filas, animados, y el
-  resto con su retrato, que también se levanta en cada tanto.
-- 19 nov, noche, la hizo la ventana principal, por los encargos del autor («todos los pelotaris tienen que tener en el
-  fondo un frontón real… el mismo tamaño y la misma posición», «hay que eliminar la música mientras se está jugando a
-  pelota» e «intenta integrar mejor con Higgsfield los jugadores de fútbol en el terreno de juego»): `master` hasta
-  `245c72df`. Entran la portada nueva de Pelota en casa (Oihana dentro del frontón de Irañeta), el encuadre igual para
-  todas las portadas, las dos fotos nuevas de las cartas de Torneos (`src/assets/torneos`) y el partido de pelota sin
-  música. Siguen sin subir los jardines (rama `setos-sin-ver`).
-- 19 nov, noche, la hizo la ventana principal, por el encargo del autor (la captura de Torneos: «quiero un estilo card…
-  mucho más moderna, con una foto de estas que estás creando para los pelotaris»): `master` hasta `6bc7d4ad`. Entra
-  Torneos con las dos cartas de foto entera (`src/hub/torneos.css`): la de pelota con la portada de parejas de los
-  campeonatos, encuadrada por los dos pelotaris; la de fútbol, de momento con su lámina de siempre. Siguen sin subir los
-  jardines (rama `setos-sin-ver`).
-- 19 nov, noche, la hizo la ventana principal, por los avisos del autor («no me lleva al inicio de la misión»; «sobre todo
-  en las bancadas de los pueblos… que las piernas tampoco sobresalgan de muretes»): `master` hasta `99522600`. Entran la
-  barra de misiones (tocar otra vez la misión desplegada lleva a hacerla, `7b59d002`) y el público sentado encima del
-  banco en las gradas de pueblo y en los trinquetes (`99522600`). Siguen sin subir los jardines (rama `setos-sin-ver`).
-- 19 nov, noche, la hizo la ventana principal, por el aviso del autor (el menú en el iPhone: «no se ilumina cuando está
-  seleccionado el principal»): `master` hasta `0280d35a`, los carruseles con el velo nuevo, que también se ve bien en
-  Safari. Siguen sin subir los jardines de `src/world/nature.js` (rama `setos-sin-ver`), que aún no están vistos en pantalla.
-- 19 nov, más tarde, la hizo la ventana principal, por el aviso del autor («Los personajes no están cerrados en las cards.
-  Y todo va super lento»): `master` hasta `c943589e`. Entran las portadas de los campeonatos con el pelotari entero y en
-  plano cerrado (`c325f849`), el mando del móvil con los botones nuevos y el público sin figuras de lejos (`f7d39006`) y
-  el público sentado donde lo ve la cámara (`c943589e`). No entran los jardines nuevos de `src/world/nature.js`, que
-  aún no están vistos en pantalla y siguen sin subir.
-- 19 nov, noche, la hizo la ventana principal, por orden del autor («Falta publicar el botón de sprint y el cambio de cámara
-  para restar el rebote. Revisa todo lo que falte… Y subir también los gestos y demás»): **`master` entero, sin quitar
-  nada**, hasta `64a8f617`. Entra lo que esperaba visto bueno: el esprint y la cámara del fondo (`c2943be6`), los botones
-  discretos y transparentes con el aro de color (`8ec5c4a8`, `971f78ed`), la cámara y el golpe tras el rebote
-  (`1f40a775`), el público nuevo con las manos y el aplauso (`6d07d896`, `2b84db42`, `9f7ce5d0`) y los planos de la
-  grada desde las cámaras de una retransmisión (`e73da537`); y además los carruseles de selección más rápidos
-  (`9a5aada9`) y las texturas que se sueltan al cargar solo el frontón (`64a8f617`). Vuelven también la grada sin carteles
-  de «¡Aupa…!» y la cámara de las charlas más lejos, que ya se habían publicado en la séptima ronda y que las tres
-  publicaciones anteriores de esa noche quitaron sin querer al dejar fuera `9f7ce5d0` entero. Desde ahora, si hay que
-  dejar algo fuera de una publicación, se quita solo lo que no tiene visto bueno, nunca un commit entero que lleve
-  también algo aprobado.
-  Encima, la misma noche, los botones del partido con un relleno de su color (`hud.js`; el autor: «que no sean
-  transparentes del todo, porque si no, no se ven»). Y después, CORTADA turquesa y DEJADA azul (`cf6f74b6`), la tarjeta
-  de la misión que lleva directa a ella y menos bandadas de pájaros en los pueblos (`34f69b65`).
-  Y por último esa noche, los botones del partido en arco a la misma distancia, GOLPE más pequeño, sin botones con el
-  móvil de mando, y el descanso sin parar el partido (`56bebc51`).
-  Y el público sentado encima de las butacas, sin atravesarlas (`fc92fb23`).
+- 20 nov, mañana (segunda), la hizo la ventana principal, por el encargo del autor («revisa todo lo que falta por
+  añadir, mejorar, optimizar [...] y no pares hasta terminar»): `master` hasta `3af03644`. Entran el mapa del inicio sin
+  los arbolitos redondos ni los conos sueltos (`src/hub/mapa3d.js`, el bosque lo pinta el propio relieve) y los jardines
+  del casco de todos los pueblos y de Otsagabia con la mata de verdad (tallos, ramillas y hojas) y flores de cinco pétalos
+  por encima (`src/world/nature.js`, buildGardens), en vez de las bolas de hojas.
