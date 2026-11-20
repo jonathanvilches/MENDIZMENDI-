@@ -312,7 +312,7 @@ export class Hub {
     const an = nav.querySelector('.c3-anillo'); bs.forEach(b => { b.removeAttribute('style'); an.append(b); });
     const aqui = this.screen === 'comarca' ? 'home' : this.screen, i0 = Math.max(0, bs.findIndex(b => b.dataset.s === aqui));
     const info = $('.hub-info', this.root), ib = info.querySelector('b'), is = info.querySelector('span');
-    this.car = carrusel3d(nav.querySelector('.c3-escena'), { banda: true, ar: AR_MENU, inicio: i0, sonido: () => this.sound?.ui('click'),
+    this.car = carrusel3d(nav.querySelector('.c3-escena'), { banda: true, directo: true, ar: AR_MENU, inicio: i0, sonido: () => this.sound?.ui('click'),
       alCambiar: (i, b) => { const id = b?.dataset.s; ib.textContent = b?.querySelector('.c3-pie b')?.textContent || ''; is.textContent = this.MORE[id] || '';
         reanima(ib, is); } });
     nav.querySelectorAll('.c3-flecha').forEach((f, k) => f.addEventListener('click', (e) => { e.stopPropagation(); this.car?.paso(k ? 1 : -1); }));

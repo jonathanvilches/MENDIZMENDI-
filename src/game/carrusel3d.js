@@ -15,7 +15,8 @@ const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-re
  * @param {HTMLElement} escena el hueco del anillo (con un hijo .c3-anillo con las portadas, botones con data-a)
  * @param {object} o { inicio: índice de la portada de delante al abrir, alCambiar(i, boton), sonido(k), ar: alto / ancho de
  *   cada portada (4/3 de pie, como las de los campeonatos; 3/4 tumbadas, como las fotos de los frontones);
- *   banda: el anillo abierto de lado a lado de la pantalla, con el ángulo que quepa (ver mide) }
+ *   banda: el anillo abierto de lado a lado de la pantalla, con el ángulo que quepa (ver mide); directo: tocar una de los
+ *   lados la elige ya, sin traerla antes delante }
  * @returns {{ destroy(), actual(): HTMLElement, ir(k) }}
  */
 export function carrusel3d(escena, o = {}) {
@@ -141,8 +142,11 @@ export function carrusel3d(escena, o = {}) {
     last = performance.now();
     const tick = (now) => {
       raf = 0; if (!escena.isConnected) return;
-      const dt = Math.min(0.05, (now - last) / 1000); last = now;
-      if (!arr) { const k = reduce() ? 1 : 1 - Math.exp(-dt * 10); rot += (meta - rot) * k; if (Math.abs(meta - rot) < 0.002) rot = meta; }
+      // (el paso, con su tiempo de verdad hasta 0,2 s: con el tope de 0,05 de antes, en un ordenador que pinta pocos
+      // fotogramas el giro iba cuatro veces más lento y tardaba segundos en llegar; el autor, 20 de noviembre de 2026, «la
+      // selección de carruseles sigue yendo muy lento». Y algo más vivo: se asienta en medio segundo)
+      const dt = Math.min(0.2, (now - last) / 1000); last = now;
+      if (!arr) { const k = reduce() ? 1 : 1 - Math.exp(-dt * 13); rot += (meta - rot) * k; if (Math.abs(meta - rot) < 0.002) rot = meta; }
       pinta();
       if (arr || rot !== meta) raf = requestAnimationFrame(tick);
     };
@@ -188,7 +192,9 @@ export function carrusel3d(escena, o = {}) {
   anillo.addEventListener('click', (e) => {
     const b = e.target.closest('.c3-anillo > *'); if (!b) return;
     const k = T.indexOf(b);
-    if (k === frente || (typeof navigator !== 'undefined' && navigator.webdriver)) return;   // (sigue: lo elige quien escucha)
+    // (sigue: lo elige quien escucha. Con o.directo, también las de los lados se eligen al primer toque, sin traerlas
+    // antes delante: el menú del inicio, donde se entra a una sección de un toque)
+    if (k === frente || o.directo || (typeof navigator !== 'undefined' && navigator.webdriver)) return;
     e.stopPropagation(); e.preventDefault(); ir(k);
   }, true);
   const teclas = (e) => {

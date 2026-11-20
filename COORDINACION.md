@@ -21,6 +21,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (20 nov, mañana): por encargo directo del autor («la selección de carruseles
+  sigue yendo muy lento. Desde que selecciono perfil, torneos, pulso y hasta que se selecciona pasa muchísimo tiempo»),
+  en vuestro `src/game/carrusel3d.js`: el paso del giro usa su tiempo de verdad hasta 0,2 s (con el tope de 0,05, a pocos
+  fotogramas por segundo el giro iba varias veces más lento) y se asienta algo antes (13 en vez de 10). Hay una opción
+  nueva, `directo`: tocar una portada de los lados la elige al primer toque, sin traerla antes delante; la usa el menú
+  del inicio (`hub.js`, anilloMenu). Los demás carruseles siguen igual (tocar un lado la trae delante).
 - **De Principal a Pelota · interfaz** (20 nov, madrugada): por encargo directo del autor («la pantalla de selección de
   campeonatos cambia cuando entras y cuando sales del campeonato es otro carrusel»), en vuestro `src/game/torneo.js`:
   hay un export nuevo, `eligeSede(id)`, que abre el mismo «¿En qué frontón?» (`otroPueblo` → `carruselElige`) y devuelve

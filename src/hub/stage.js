@@ -29,12 +29,17 @@ export const rendererVivo = (r) => !!r && r === R;
 /** El mapa recupera el lienzo: suelta el escenario del selector de personaje, si se lo había llevado (mapa3d.js). */
 export function sueltaEscenario() { Stage.current?.dispose(); Stage.current = null; }
 let pendingCompile = null;
+// (los personajes ya cargados, con sus materiales vivos: al volver a abrir Perfil se reutilizan y sus sombreadores no se
+// vuelven a compilar. Antes se soltaban al salir y, al volver, el navegador los compilaba otra vez de golpe: 0,7 s con
+// la pantalla parada; el autor, 20 de noviembre de 2026, «desde que selecciono perfil [...] pasa muchísimo tiempo»)
+const FIGS = new Map();
+const sueltaFigs = () => { for (const f of FIGS.values()) { try { f.rig?.dispose?.(); } catch (e) { } } FIGS.clear(); };
 /** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL y el personaje). En el móvil, tener a la vez
  *  este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
 export function releaseStage() {
   // si aún está preparando sus shaders, se espera (soltar el renderizador a mitad hace fallar a three.js)
   if (pendingCompile) { pendingCompile.then(releaseStage, releaseStage); return; }
-  Stage.current?.dispose(); Stage.current = null;
+  Stage.current?.dispose(); Stage.current = null; sueltaFigs();
   if (R) { try { R.dispose(); R.forceContextLoss(); } catch (e) { } R.domElement.width = R.domElement.height = 1; R = null; }
 }
 
@@ -114,10 +119,11 @@ export class Stage {
   setAvatar(id) {
     const token = this.avatarToken = (this.avatarToken || 0) + 1;
     if (!isGlbAvatar(id)) { this.clearFig(); return; }
-    loadGlbAvatar(id).then(g => { if (this.avatarToken === token && this.alive !== false) this.useFig(id, this.glbFig(g, id)); })
+    const ya = FIGS.get(id); if (ya) { this.useFig(id, ya); return; }   // (el de la otra vez, ya compilado)
+    loadGlbAvatar(id).then(g => { if (this.avatarToken === token && this.alive !== false) { const f = this.glbFig(g, id); FIGS.set(id, f); this.useFig(id, f); } })
       .catch(e => { console.warn('avatar GLB', e); if (this.avatarToken === token) this.clearFig(); });
   }
-  clearFig() { if (this.fig && this.scene) this.scene.remove(this.fig); this.glbRig?.dispose?.(); this.glbRig = null; this.fig = this.anim = null; }
+  clearFig() { if (this.fig && this.scene) this.scene.remove(this.fig); this.glbRig = null; this.fig = this.anim = null; }   // (el personaje se queda guardado, FIGS)
   glbFig(gltf, id) {
     const rig = new GlbRig(gltf, id);
     let prevWave = 0;
@@ -130,11 +136,14 @@ export class Stage {
     return { fig: rig.obj, anim, H: box.max.y - box.min.y, rig };
   }
   useFig(id, { fig, anim, H: h, rig }) {
-    if (!this.scene) { rig?.dispose?.(); return; }   // (escenario ya soltado)
+    if (!this.scene) return;   // (escenario ya soltado; el personaje queda guardado, FIGS)
     if (this.fig) this.scene.remove(this.fig);
-    this.glbRig?.dispose(); this.glbRig = rig || null;
+    this.glbRig = rig || null;
     this.fig = fig; this.anim = anim;
-    this.scene.add(this.fig);
+    // (sus sombreadores, en paralelo y con las luces de esta escena antes de ponerlo en ella: sin esto, el primer dibujo con
+    // él los compilaba de golpe y paraba la pantalla. Mientras, la plataforma sola; la segunda vez ya están y sale al momento)
+    fig.visible = true; const sc = this.scene, pon = () => { if (this.fig === fig && this.scene === sc && fig.parent !== sc) sc.add(fig); };
+    try { compilarAsync(this.r, fig, this.cam, sc).then(pon, pon); } catch (e) { pon(); }
     this.H = h;
     this.setColor(castById(id)?.color || '#FFD700');
     this.pop = 0; this.wave = 1.4; this.yaw = 0;
@@ -181,8 +190,9 @@ export class Stage {
       if (this.r.domElement.parentNode === this.host) this.r.domElement.remove();
     }
     if (this.fig && this.scene) this.scene.remove(this.fig);
-    // se suelta el personaje: el menú guarda este escenario y, si no, seguía vivo durante la partida
-    this.glbRig?.dispose?.(); this.glbRig = null;
+    // (el personaje no se suelta aquí: queda guardado para la próxima vez, FIGS; al entrar a jugar se sueltan todos con el
+    // renderizador, releaseStage)
+    this.glbRig = null;
     this.fig = this.anim = null; this.scene = null;
   }
 }
