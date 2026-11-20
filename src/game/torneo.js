@@ -853,7 +853,7 @@ const comarcaDe = (id) => COMARCAS.find(c => c.id === levelById(id)?.comarca)?.n
 // con la tercera cortada por la derecha, y una rejilla que se cortaba por abajo.
 // items: [{ k, img, mosaico: [urls], real: [url, texto], small, name, linea }]; devuelve la k elegida o null)
 function carruselElige({ kicker, titulo, items, sel, ok, btn }) {
-  efCss(); cssCarrusel();
+  css(); efCss(); cssCarrusel();   // (css: el color de las portadas, el verde de cp-front; desde Torneos aún no estaba puesto)
   const eu = isEU();
   return new Promise(res => {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
@@ -974,6 +974,11 @@ function otroPueblo(here) {
   const items = ts.map(([c, l]) => { const n = l.name.split(' /')[0]; return { k: l.id, img: img(l), small: c.name, name: n, linea: [n, c.name] }; });
   return carruselElige({ kicker: eu ? 'Esku pilota' : 'Pelota a mano', titulo: eu ? 'Zein frontoitan?' : '¿En qué frontón?', items, sel: idDe(here), ok: eu ? 'Hemen jokatu' : 'Jugar aquí' });
 }
+/** El mismo carrusel, para Torneos (hub.js, el frontón de la carta de pelota): id, el pueblo elegido ahora. Devuelve el id
+ *  del pueblo elegido o null. Antes Torneos tenía su propia rejilla de cartas y dentro del campeonato salía este anillo; el
+ *  autor, 20 de noviembre de 2026: «la pantalla de selección de campeonatos cambia cuando entras y cuando sales del
+ *  campeonato es otro carrusel» */
+export const eligeSede = (id) => otroPueblo((levelById(id)?.name || '').split(' /')[0]);
 // «Cómo funciona» de cada campeonato (los de antes, de ocho, con su texto de siempre; los de ahora, ya en su idioma)
 function comoFunciona(T) {
   const pairs = T.kind === 'parejas', eu = isEU();

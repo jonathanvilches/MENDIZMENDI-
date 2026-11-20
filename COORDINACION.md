@@ -21,6 +21,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (20 nov, madrugada): por encargo directo del autor («la pantalla de selección de
+  campeonatos cambia cuando entras y cuando sales del campeonato es otro carrusel»), en vuestro `src/game/torneo.js`:
+  hay un export nuevo, `eligeSede(id)`, que abre el mismo «¿En qué frontón?» (`otroPueblo` → `carruselElige`) y devuelve
+  el id del pueblo elegido o null. Lo usa `hub.js` (Torneos, el frontón de la carta de pelota) en vez de su rejilla de
+  cartas, que se ha quitado. `carruselElige` llama además a `css()`: desde Torneos aún no estaba puesto y la portada de
+  delante brillaba en rosa en vez del verde de `cp-front`.
 - **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor («todos los jugadores deben tener
   el mismo tamaño y estar en la misma posición, centrado en la tarjeta», «cambia la de la chica que está en la esquina del
   frontón» y «pon al personaje mucho más dentro del frontón»), en vuestro `src/game/torneo.js`: `encuadre()` ya no tiene

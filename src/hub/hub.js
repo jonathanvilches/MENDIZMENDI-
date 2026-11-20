@@ -4,8 +4,7 @@ import COMARCAS from '../data/comarcas.json';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import SETTLEMENTS from '../data/settlements.json';
-import { LEVELS, levelById, esSede, sedeDePueblo, esExterior } from '../data/levels.js';
-import { canchaImg } from '../ui/frontonFotos.js';
+import { LEVELS, levelById, esSede, sedeDePueblo } from '../data/levels.js';
 import { REAL_IDS, ATRIBUCION } from '../data/reales/index.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { showFicha, allFichas } from '../ui/ficha.js';
@@ -226,9 +225,9 @@ export class Hub {
     { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (mb.offsetWidth) this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
     // (el menú flotante: se abre y se cierra con su botón, con la X, tocando fuera o con Escape; al elegir una sección, se cierra)
     this.root.addEventListener('click', e => { if (e.target.closest('[data-menu]')) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
-    addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
+    addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay, .lg-root:not(.out)')) return;   // (con un carrusel del juego encima, «Elige frontón», el Escape es suyo)
       if (this.root.classList.contains('menu-on')) { e.stopImmediatePropagation(); this.menu(false); } else if (this.screen !== 'home') { e.stopImmediatePropagation(); this.go('home'); } }, true);
-    addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ((k !== 'q' && k !== 'e') || e.ctrlKey || e.metaKey || e.altKey || !this.visible || !this.root.classList.contains('juego') || this.screen === 'home' || this.root.classList.contains('menu-on') || e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
+    addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ((k !== 'q' && k !== 'e') || e.ctrlKey || e.metaKey || e.altKey || !this.visible || !this.root.classList.contains('juego') || this.screen === 'home' || this.root.classList.contains('menu-on') || e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('.sheet, .onb, .mg-overlay, .lg-root:not(.out)')) return;
       const v = this.vecinas(this.screen); if (v) { e.preventDefault(); this.go(v[k === 'q' ? 0 : 1][0]); } });
     // cómo jugar (en el ordenador, con el móvil de mando o en el móvil) e instalar el juego o la app Mando: siempre a mano
     // arriba (en el móvil de pie, en «Más»), salvo en el modo didáctico, que no se juega
@@ -483,6 +482,8 @@ export class Hub {
   frontonId() { const p = profile(); return esSede(this.frontonTown) ? this.frontonTown : sedeDePueblo(p.last || LEVELS[0].id); }
   s_sports() {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
+    // (el carrusel de «Elige frontón» vive con el juego, torneo.js: se trae ya, para que al tocar el frontón salga al momento)
+    if (!isDidactico()) import('../game/torneo.js').catch(() => {});
     let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     // (las dos cartas, iguales y una al lado de la otra, de foto entera: lo que se elige es el frontón, que abre la lista por
@@ -528,18 +529,19 @@ export class Hub {
   // vacía. Ahora cada frontón es una carta con su cancha tal como se juega en los Campeonatos (src/assets/frontones-juego,
   // ui/frontonFotos.js), y encima el pueblo, su comarca y si es al aire libre, cubierto o el Labrit; el elegido, con su
   // marca. Las nueve caben a la vista: tres por fila en el ordenador y cinco en el móvil tumbado (ajustes.css)
-  frontonPicker() {
-    this.sound?.ui('open');
-    const cur = this.frontonId(), sedes = COMARCAS.flatMap(c => LEVELS.filter(l => esSede(l.id) && l.comarca === c.id));
-    const tipo = (id) => esExterior(id) ? ['plaza', 'Al aire libre'] : id === 'pamplona' ? ['labrit', 'Labrit'] : ['cubierto', 'Cubierto'];
-    const carta = (l) => { const [k, t] = tipo(l.id), u = canchaImg(l.id, k) || townImg(l), on = l.id === cur, cm = (comarca(l.comarca)?.name || '').replace(/^Comarca de /, '');
-      return `<button type="button" class="frc${on ? ' on' : ''}" data-fronton="${l.id}" aria-pressed="${on}"><img src="${u}" alt="" decoding="async"><i class="frc-tipo">${t}</i>${on ? '<i class="frc-ok" aria-label="Elegido"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></i>' : ''}<span class="frc-pie"><small>${esc(cm)}</small><b>${esc(l.name.split(' /')[0])}</b></span></button>`; };
-    const s = el(`<div class="sheet frs"><div class="frs-in" role="dialog" aria-label="Elige frontón">
-      <div class="frs-head"><small class="kicker">Pelota a mano · Campeonatos</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="frs-list"><div class="frs-cartas">${sedes.map(carta).join('')}</div></div></div></div>`);
-    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
-    s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
-    s.querySelector('.frc.on')?.scrollIntoView({ block: 'nearest' });
+  // «Elige frontón» (el frontón de los campeonatos): el mismo carrusel 3D que «¿En qué frontón?» dentro del campeonato,
+  // torneo.js eligeSede, con las mismas portadas y el mismo orden. Hasta el 20 de noviembre de 2026, aquí una rejilla de
+  // cartas propia: el autor, «la pantalla de selección de campeonatos cambia cuando entras y cuando sales del campeonato
+  // es otro carrusel». (torneo.js va con el juego: se carga al abrirlo, y casi siempre ya está cargado)
+  async frontonPicker() {
+    if (this.eligiendo) return; this.eligiendo = true; this.sound?.ui('open');
+    try {
+      const { eligeSede } = await import('../game/torneo.js');
+      const k = await eligeSede(this.frontonId());
+      if (!k || k === this.frontonId() || !this.visible) return;
+      this.frontonTown = k; this.sound?.ui('click');
+      const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true);
+    } catch (e) { console.warn('elige frontón', e); } finally { this.eligiendo = false; }
   }
   // ---------- Mapa ----------
   // (en el didáctico, el mismo mapa 3D del inicio, en su propia sección: cada comarca lleva a su página y cada pueblo a la
