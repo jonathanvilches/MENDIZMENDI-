@@ -169,6 +169,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche, la hizo la ventana principal, por el encargo del autor («cuando recogemos basura para el Basajaun la
+  línea amarilla no se elimina»): `master` hasta `583cdc93`. Entra solo eso: al recoger una basura, la flecha y la luz
+  amarilla dejan de señalarla y pasan a la siguiente, y con la quinta van al Basajaun (`src/game/game.js`, pickItem y
+  questTarget).
 - 20 nov, tarde, la hizo la ventana principal, por el encargo del autor (carruseles, golpes, rótulo final, público):
   `master` hasta `455103f5`. Entran los carruseles de un solo toque, también la carta de los lados y después de deslizar
   (`src/game/carrusel3d.js`, `src/hub/galeria.js`); los golpes de pelota limpios, solo el impacto y una cola de sala corta
