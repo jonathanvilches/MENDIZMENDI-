@@ -80,7 +80,11 @@ const ACTIVOS = new Set();
 // la sustituye si basta para lo que ocupa; si luego crece (otra ventana, otra pantalla), vuelve la fija
 // (lo que miden, 320 × 480, con holgura: se dejan estirar hasta un 45 %, que en una figura que se mueve no se nota y, sin
 // ella, en un móvil de densidad 3 la carta de delante del anillo de «Elige tu pelotari» se quedaba siempre con la fija)
-const FIG = [320 * 1.45, 480 * 1.45];
+// (en el ordenador y en la tele, sin estirar nada: estiradas, en pantalla grande se veían pixeladas; el autor, 20 de
+// noviembre de 2026, «en la versión escritorio, en la versión televisión, las animaciones de los pelotaris se pixelan».
+// Allí, si la animada no llega, va la fija, que tiene definición de sobra y respira, sport.css gx-respira)
+const FINO = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches, HOLGURA = FINO ? 1.04 : 1.45;
+const FIG = [320 * HOLGURA, 480 * HOLGURA];
 const ROF = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((es) => { for (const e of es) figura(e.target); }) : null;
 function figura(im) {
   if (!im.isConnected) { ROF?.unobserve(im); return; }
