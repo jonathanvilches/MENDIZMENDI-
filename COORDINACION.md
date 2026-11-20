@@ -169,6 +169,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (3), la hizo la ventana principal, por el encargo del autor («al diseño de esta barra de arriba, de los
+  elementos del menú y demás, también hay que darle una vuelta de diseño porque se han quedado anticuados») y la
+  auditoría de misiones: `master` hasta `1e13ba69`. Entran la barra de arriba del mapa en cápsulas (retrato con el aro de
+  la experiencia y MENÚ, Navarra descubierta con una barra de un tramo por comarca, la próxima parada con JUGAR) y la
+  ficha del menú con el mismo lenguaje (`src/hub/barra-inicio.css`, `hub.js`, `inicio.js`), y los puentes estrechos y en
+  diagonal que la rejilla de caminos ya cruza (Ituren llega a la otra orilla; `src/world/nav.js`).
 - 20 nov, noche (2), la hizo la ventana principal, dentro de la auditoría de misiones que pidió el autor («vete poco a
   poco y comienza a resolver todo lo que queda»): `master` hasta `b507fcc7`. Entran el redil con la puerta hacia el lado
   libre y los animales del rebaño puestos donde hay camino hasta ella (Aribe y Etxalar ya se terminan;
