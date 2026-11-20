@@ -542,6 +542,17 @@ export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0
       const wL = new THREE.Quaternion().setFromUnitVectors(F2.P.clone().sub(K2.P).normalize(), sol.lo).multiply(K2.W);
       R[s + 'L'].b.quaternion.copy(wU.clone().invert().multiply(wL));
       R[s + 'P'].b.quaternion.copy(wL.clone().invert().multiply(F.W)); scene.updateMatrixWorld(true);
+      // (y la punta del pie, en la línea de la rodilla. El autor, 20 de noviembre por la noche: «cuando corres, los pies, la
+      // punta del pie es perpendicular a la rodilla, no va hacia los lados. Eso es lo que da la sensación extraña». Con la
+      // pierna recogida bajo el cuerpo y la rodilla al frente, el pie seguía con el giro de la carrera de Meshy, 25 a 70°
+      // hacia fuera en el apoyo. Se gira sobre la espinilla hasta que la punta mira adonde la rodilla, con 6° hacia fuera)
+      { const K3 = mundo(R, s + 'L', inv).P, F3 = mundo(R, s + 'P', inv), T3 = mundo(R, s + 'T', inv).P, sh = F3.P.clone().sub(K3).normalize();
+        const kf = pol.clone().normalize().add(new THREE.Vector3(s === 'L' ? 0.1 : -0.1, 0, 0)); kf.addScaledVector(sh, -kf.dot(sh));
+        const dp = T3.clone().sub(F3.P); dp.addScaledVector(sh, -dp.dot(sh));
+        if (kf.lengthSq() > 1e-6 && dp.lengthSq() > 1e-6) {
+          kf.normalize(); dp.normalize(); const ang = Math.max(-1.2, Math.min(1.2, Math.atan2(new THREE.Vector3().crossVectors(dp, kf).dot(sh), dp.dot(kf))));
+          R[s + 'P'].b.quaternion.copy(wL.clone().invert().multiply(new THREE.Quaternion().setFromAxisAngle(sh, ang).multiply(F.W))); scene.updateMatrixWorld(true);
+        } }
       // (y los brazos, recogidos junto al cuerpo: en la carrera de Meshy las manos iban 9 cm por fuera de los hombros, con los
       // codos abiertos, como si llevase una bandeja; corriendo, el brazo va y viene pegado al costado. La mano se acerca a
       // la línea del hombro, por `brazo`, sin cambiar su altura ni lo que avanza, el codo apunta atrás y la mano conserva su giro)

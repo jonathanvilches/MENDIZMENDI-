@@ -166,9 +166,9 @@ function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
 // con la cámara de cerca en las charlas se notaba demasiado: «a veces los personajes se balancean demasiado al hablar»,
 // 16 de noviembre de 2026. La media mantiene la postura y el bucle sigue sin salto, porque principio y final se acercan igual)
 const _qm = new THREE.Quaternion(), _qa = new THREE.Quaternion();
-function calmaClip(clip, kCuerpo = 0.4, kBrazos = 0.8) {
+function calmaClip(clip, kCuerpo = 0.4, kBrazos = 0.8, kHueso = null) {
   for (const tr of clip.tracks) {
-    const k = /(Shoulder|Arm|Hand)/i.test(tr.name) ? kBrazos : kCuerpo, v = tr.values, n = tr.times.length;
+    const k = kHueso?.(tr.name) ?? (/(Shoulder|Arm|Hand)/i.test(tr.name) ? kBrazos : kCuerpo), v = tr.values, n = tr.times.length;
     if (/\.quaternion$/.test(tr.name)) {
       let x = 0, y = 0, z = 0, w = 0;
       for (let i = 0; i < n; i++) { const j = i * 4, sg = v[j] * v[0] + v[j + 1] * v[1] + v[j + 2] * v[2] + v[j + 3] * v[3] < 0 ? -1 : 1; x += sg * v[j]; y += sg * v[j + 1]; z += sg * v[j + 2]; w += sg * v[j + 3]; }
@@ -178,6 +178,45 @@ function calmaClip(clip, kCuerpo = 0.4, kBrazos = 0.8) {
       const m = [0, 0, 0]; for (let i = 0; i < n; i++) for (let c = 0; c < 3; c++) m[c] += v[i * 3 + c] / n;
       for (let i = 0; i < n; i++) for (let c = 0; c < 3; c++) v[i * 3 + c] = m[c] + (v[i * 3 + c] - m[c]) * k;
     }
+  }
+  return clip;
+}
+// LA CHARLA, TRANQUILA. El autor, 20 de noviembre de 2026, por la noche: «Al hablar con los personajes del juego, con los
+// vecinos, hacen un movimiento de oscilación demasiado exagerado que no me gusta. Prefiero que estén en reposo o que le
+// añadas una animación de hablar que sea mucho más tranquila». La charla de Meshy gira el cuerpo entero de un lado a otro
+// (visto de lado, pasaba de perfil a casi de espaldas) y levanta el brazo hacia delante. Cada hueso se queda en su
+// postura media y conserva solo una parte de lo que se movía: la cadera (todo el cuerpo) casi nada, las piernas poco, el
+// tronco un cuarto y los brazos, el cuello y la cabeza algo más, para que se vea que habla sin que se balancee
+// (y de frente: la postura media de esa charla está girada unos 35° hacia un lado, y el vecino no miraba a quien le
+// habla. La cadera, el tronco, el cuello y la cabeza se centran en la postura media de su estar de pie, Idle, que mira al
+// frente y está derecha; el reposo del esqueleto no vale, que en algunos se echa hacia atrás)
+const mediaQ = (v, n, q) => { let x = 0, y = 0, z = 0, w = 0; for (let i = 0; i < n; i++) { const j = i * 4, sg = v[j] * v[0] + v[j + 1] * v[1] + v[j + 2] * v[2] + v[j + 3] * v[3] < 0 ? -1 : 1; x += sg * v[j]; y += sg * v[j + 1]; z += sg * v[j + 2]; w += sg * v[j + 3]; } return q.set(x, y, z, w).normalize(); };
+// (y lo mismo su estar de pie, que en los vecinos es la animación «alerta» de Meshy: mira a un lado y a otro girando todo
+// el cuerpo, hasta quedarse casi de espaldas, también entre frase y frase de una charla. Algo menos calmado que la charla)
+const K_HABLA = (n) => /Hips/.test(n) ? 0.05 : /(Leg|Foot|Toe)/.test(n) ? 0.1 : /Spine/.test(n) ? 0.22 : /(Neck|Head)/.test(n) ? 0.4 : null;
+const K_QUIETO = (n) => /Hips/.test(n) ? 0.08 : /(Leg|Foot|Toe)/.test(n) ? 0.12 : /Spine/.test(n) ? 0.25 : /(Neck|Head)/.test(n) ? 0.45 : null;
+// (el centro: la postura de quieto, Still, con la cadera mirando al frente. En los vecinos de Meshy, hasta esa primera
+// postura de la «alerta» tiene la cadera girada unos 25° y el vecino nunca quedaba de frente a quien le habla)
+function centroCharla(clip, scene) {
+  const q = {}; for (const t of clip?.tracks || []) if (/(Hips|Spine|Neck|Head)[^.]*\.quaternion$/.test(t.name)) q[t.name] = mediaQ(t.values, t.times.length, new THREE.Quaternion());
+  const hk = Object.keys(q).find(k => /Hips\.quaternion$/.test(k)); let hb = null; scene?.traverse(o => { if (!hb && o.isBone && /Hips$/.test(o.name)) hb = o; });
+  if (hk && hb?.parent) {
+    scene.updateMatrixWorld(true);
+    const P = new THREE.Quaternion(); new THREE.Matrix4().multiplyMatrices(new THREE.Matrix4().copy(scene.matrixWorld).invert(), hb.parent.matrixWorld).decompose(new THREE.Vector3(), P, new THREE.Vector3());
+    const rumbo = (ql) => { const f = new THREE.Vector3(0, 0, 1).applyQuaternion(P.clone().multiply(ql)); return Math.atan2(f.x, f.z); };
+    const Qy = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), rumbo(hb.quaternion) - rumbo(q[hk]));
+    q[hk] = P.clone().invert().multiply(Qy).multiply(P).multiply(q[hk]);
+  }
+  return q;
+}
+// (los brazos, aún más quietos: el autor, la misma noche, «los movimientos también de la mano no me gusta. No quiero que
+// tenga tanto balanceo, movimiento con la mano, que sea más sutil»: en la charla, un 15 % de lo que movía; de pie, un 30 %)
+function calmaHabla(clip, centro, kHueso = K_HABLA, kBrazos = 0.15) {
+  calmaClip(clip, 0.25, kBrazos, kHueso);
+  for (const tr of clip.tracks) {
+    const r = /(Hips|Spine|Neck|Head)[^.]*\.quaternion$/.test(tr.name) && centro?.[tr.name]; if (!r) continue;
+    const d = r.clone().multiply(mediaQ(tr.values, tr.times.length, _qm).invert()), v = tr.values;
+    for (let i = 0; i < tr.times.length; i++) _qa.fromArray(v, i * 4).premultiply(d).toArray(v, i * 4);
   }
   return clip;
 }
@@ -458,7 +497,13 @@ export async function loadMeshy(name, lod = false, completo = false) {
     const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(src.Alert && !MESHY_BY[name] ? cortesVecino(src, name) : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
-      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); if (want === 'Talk' && (from === 'Chat' || from === 'TalkP')) calmaClip(k); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
+      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat);  k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
+    }
+    if (!pel.length) {
+      const A = (n) => animations.find(c => c.name === n), centro = centroCharla(A('Still') || A('Idle'), g.scene);
+      if (A('Talk')) calmaHabla(A('Talk'), centro);
+      if (A('Idle') && cuts.Idle?.[0] === 'Alert') calmaHabla(A('Idle'), centro, K_QUIETO, 0.3);
+      if (A('Still') && cuts.Still?.[0] === 'Alert') calmaHabla(A('Still'), centro, () => 1, 1);   // (de frente también parado del todo)
     }
     // (los del pelotari sustituyen a los recortes de los de Meshy; de pie y quieto, su reposo)
     if (pel.length) {
