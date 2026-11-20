@@ -5,13 +5,14 @@
    barra que has añadido de menú, comarcas y la pantalla que estamos jugando actualmente. Ese diseño hay que cambiarlo».
    Ahora, una cabecera de juego como la del menú (la de «Herrizherri / Menú», con su botón redondo en la esquina): sin
    cajas ni cápsulas, el texto directamente sobre el mapa, y detrás un velo fino que baja del borde de arriba en varios
-   tramos (como mucho al 50 %, sin desenfoque: ARQUITECTURA.md, «Identidad común»), para que se lea encima del cielo:
-   - en la esquina, el botón redondo del menú, oscuro como los de la cámara del mapa (donde en el menú está el de volver); al lado tu retrato con el aro de la
-     experiencia y el nivel, y tu nombre con tu rango; todo es un solo botón que abre el menú;
-   - tras una raya tenue, Navarra descubierta: rótulo rosa, las comarcas terminadas en la letra de los títulos, una barra de
-     doce tramos (uno por comarca, se llena con sus sellos) y, aparte, los sellos;
-   - a la derecha, la próxima parada: su foto en una tarjeta de esquinas de 8 px, el rótulo rosa, el pueblo en la letra de
-     los títulos y el botón de jugar en pastilla con el degradado, como «Entrar» en el menú.
+   tramos (como mucho al 50 %, sin desenfoque: ARQUITECTURA.md, «Identidad común»), para que se lea encima del cielo. En la
+   esquina, el botón redondo y oscuro del menú, como los de la cámara (donde en el menú está el de volver); al lado tu
+   retrato con el aro de la experiencia y el nivel, y tu nombre con tu rango. Las tres rayas abren el menú; tu retrato y tu
+   nombre, «Tu progreso» (hub.js).
+   Y desde la noche del 20, el autor: «no hace falta que ponga 0 o 12 comarcas. Todo eso que salga en un panel de control,
+   en un dashboard» (Navarra descubierta, fuera: ahora en «Tu progreso», progreso.css) y «el botón de la derecha arriba [...]
+   hay que hacerlo de otra manera»: la próxima parada baja al final de la fila de las comarcas, abajo a la derecha, donde los
+   juegos de móvil ponen el botón de jugar, en una tarjeta con la foto del pueblo, su nombre y el botón de jugar.
    La última hoja del menú (hub.js): manda sobre consola.css, inicio.css y neon.css */
 #hub.juego {
   --hb-in: calc(var(--hud-h) - 8px);
@@ -28,8 +29,7 @@
 
 /* ---------- sin cajas: cada pieza va suelta sobre el velo ---------- */
 /* (con el #hub dos veces: la sombra de caja de neon.css va con !important y un selector con dos ids, #lane #toast) */
-#hub#hub.juego[data-screen="home"] .hub-menu-btn,
-#hub#hub.juego .m3d :is(.m3-tot, .m3-mision) {
+#hub#hub.juego[data-screen="home"] .hub-menu-btn {
   border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important;
   -webkit-backdrop-filter: none; backdrop-filter: none; color: #fff; text-shadow: var(--hb-ts);
 }
@@ -52,34 +52,29 @@
 #hub.juego[data-screen="home"] .yo-t small { color: var(--rosa); font: 700 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 #hub.juego[data-screen="home"] .yo-xp { display: none; }
 
-/* ---------- Navarra descubierta, tras una raya tenue ---------- */
-#hub.juego .m3d .m3-tot { display: flex; align-items: center; gap: 20px; margin-left: 6px; padding: 0 0 0 20px; grid-template-columns: none; }
-#hub.juego .m3d .m3-tot::before { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 1px; background: rgba(255, 255, 255, .16); }
-#hub.juego .m3d .tt-ic { display: none; }
-#hub.juego .m3d .m3-tot .m3-tt { display: grid; grid-template-columns: auto; justify-items: start; row-gap: 5px; line-height: 1; }
-#hub.juego .m3d .m3-tot .m3-tt small { grid-column: auto; color: var(--rosa); font: 700 12px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
-#hub.juego .m3d .m3-tot .m3-tt b { display: flex; align-items: baseline; color: var(--lila); font: 400 24px/1 var(--f-display); letter-spacing: .01em; white-space: nowrap; }
-#hub.juego .m3d .m3-tot .m3-tt b em { color: #fff; font-style: normal; }
-#hub.juego .m3d .m3-tot .m3-tt b span { margin-left: 8px; color: #fff; font: 700 14px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
-#hub.juego .m3d .tt-seg { display: grid; grid-template-columns: repeat(var(--n, 12), minmax(0, 1fr)); gap: 3px; width: 168px; height: 4px; }
-#hub.juego .m3d .m3-tt .tt-seg i { display: block; border-radius: 2px; background: linear-gradient(90deg, #ff7ac8 calc(var(--f, 0) * 100%), rgba(255, 255, 255, .24) calc(var(--f, 0) * 100%)); box-shadow: 0 1px 3px rgba(6, 2, 16, .4); }
-#hub.juego .m3d .m3-tt .tt-seg i.ok { background: linear-gradient(90deg, #ff7ac8, #b54bff); }
-#hub.juego .m3d .tt-sel { display: flex; align-items: center; gap: 8px; font-style: normal; }
-#hub.juego .m3d .tt-sel :is(img, svg) { width: 26px; height: 26px; flex: none; filter: drop-shadow(0 2px 4px rgba(6, 2, 16, .45)); }
-#hub.juego .m3d .tt-sel span { display: grid; gap: 4px; line-height: 1; }
-#hub.juego .m3d .tt-sel b { color: #fff; font: 400 20px/1 var(--f-display); letter-spacing: .01em; white-space: nowrap; }
-#hub.juego .m3d .tt-sel small { color: var(--lila2); font: 700 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
-
-/* ---------- la próxima parada: foto, rótulo, pueblo y el botón de jugar ---------- */
-#hub.juego .m3d .m3-mision { padding: 0; column-gap: 14px; }
-#hub.juego .m3d .m3-mision .mm-img { width: calc(var(--hud-h) * 1.5); height: var(--hud-h); border-radius: 8px; box-shadow: 0 6px 16px rgba(4, 1, 12, .4); }
-#hub.juego .m3d .m3-mision .mm-tt { gap: 5px; }
-#hub.juego .m3d .m3-mision .mm-tt small { color: var(--rosa); font: 700 12px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
-#hub.juego .m3d .m3-mision .mm-tt b { color: #fff; font: 400 24px/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; }
-#hub.juego .m3d .m3-mision .mm-go { height: var(--hb-in); min-height: 0; padding: 0 24px 0 18px; gap: 8px; border-radius: 999px !important; background: var(--cta); text-shadow: none;
-  font: 400 20px/1 var(--f-display); letter-spacing: .03em; box-shadow: 0 6px 18px rgba(123, 47, 247, .4); }
-#hub.juego .m3d .m3-mision .mm-go:hover { background: var(--cta); filter: brightness(1.08); }
-#hub.juego .m3d .m3-mision .mm-go > :is(svg, img) { width: 18px; height: 18px; }
+/* ---------- la próxima parada: una tarjeta con la foto del pueblo al final de la fila de las comarcas ---------- */
+#hub.juego .m3d .m3-mision { --mh: 60px; top: auto; bottom: calc(var(--hud-b) + 6px); left: auto; right: calc(var(--hud-r) + var(--sr, 0px)); width: 300px; max-width: 34%; height: var(--mh);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tt go"; align-items: center; column-gap: 10px; padding: 6px 6px 6px 16px !important;
+  border: 0 !important; border-radius: 10px !important; background: rgba(21, 11, 46, .9) !important; outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px; overflow: hidden; animation: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none; }
+#hub#hub.juego .m3d .m3-mision { box-shadow: 0 10px 26px rgba(4, 1, 12, .4) !important; }
+#hub.juego .m3d .m3-mision .mm-img { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0; object-fit: cover; box-shadow: none; z-index: 0; }
+#hub.juego .m3d .m3-mision::before { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(90deg, rgba(14, 6, 32, .55) 0%, rgba(14, 6, 32, .5) 35%, rgba(14, 6, 32, .34) 70%, rgba(14, 6, 32, .22) 100%); }
+#hub.juego .m3d .m3-mision :is(.mm-tt, .mm-go) { position: relative; z-index: 2; }
+#hub.juego .m3d .m3-mision .mm-tt { gap: 5px; min-width: 0; }
+#hub.juego .m3d .m3-mision .mm-tt small { color: #ffd0ea; font: 700 12px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+#hub.juego .m3d .m3-mision .mm-tt b { color: #fff; font: 400 22px/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub.juego .m3d .m3-mision .mm-sig { display: none; }
+#hub.juego .m3d .m3-mision .mm-go { height: calc(var(--mh) - 12px); min-height: 0; padding: 0 20px 0 16px; gap: 8px; border-radius: 999px !important; background: var(--cta); text-shadow: none;
+  font: 400 18px/1 var(--f-display); letter-spacing: .03em; box-shadow: 0 6px 16px rgba(123, 47, 247, .45); animation: none; }
+#hub.juego .m3d .m3-mision .mm-go:hover { background: var(--cta); filter: brightness(1.08); transform: none; }
+#hub.juego .m3d .m3-mision .mm-go > :is(svg, img) { width: 16px; height: 16px; }
+#hub.juego .m3d .m3-mision .mm-go small { display: none; }
+/* (y la fila de las comarcas se acaba antes, para dejarle su sitio; con una comarca elegida o una colección, la tarjeta no
+   está y la fila vuelve a llegar al borde) */
+#hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: calc(var(--hud-r) + var(--sr, 0px) + min(300px, 34%) + 10px); }
+#hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) + var(--sr, 0px) + min(300px, 34%) + 2px); }
 
 /* ---------- y lo demás del mapa con el mismo lenguaje: los botones de la cámara y la ayuda, sin raya alrededor ---------- */
 #hub.juego .m3d :is(.m3-pad, .m3-pad2, .m3-ayuda) { border-color: transparent; background: rgba(17, 8, 38, .86); box-shadow: 0 10px 26px rgba(4, 1, 12, .36); -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -99,19 +94,17 @@
   #hub.juego[data-screen="home"] .hub-menu-btn { gap: 8px; padding: 0; }
   #hub.juego[data-screen="home"] .hub-menu-btn .yo-m svg { width: 20px; height: 20px; }
   #hub.juego[data-screen="home"] .yo-n { min-width: 18px; height: 14px; bottom: -4px; font-size: 11px; line-height: 14px; }
-  #hub.juego .m3d .m3-tot { gap: 14px; margin-left: 4px; padding-left: 14px; }
-  #hub.juego .m3d .m3-tot .m3-tt small, #hub.juego .m3d .tt-sel { display: none; }
-  #hub.juego .m3d .m3-tot .m3-tt b { font-size: 20px; } #hub.juego .m3d .m3-tot .m3-tt b span { font-size: 12px; margin-left: 6px; }
-  #hub.juego .m3d .tt-seg { width: 132px; height: 3px; gap: 2px; }
-  #hub.juego .m3d .m3-mision { column-gap: 10px; max-width: 46%; }
-  #hub.juego .m3d .m3-mision .mm-img { width: var(--hud-h); height: var(--hud-h); }
-  #hub.juego .m3d .m3-mision .mm-tt { gap: 4px; }
-  #hub.juego .m3d .m3-mision .mm-tt small { display: block; font-size: 11px; }
-  #hub.juego .m3d .m3-mision .mm-tt b { font-size: 20px; }
-  #hub.juego .m3d .m3-mision .mm-go { width: var(--hud-h); height: var(--hud-h); padding: 0; justify-content: center; border-radius: 50% !important; }
+  #hub.juego .m3d .m3-mision { --mh: 50px; width: 220px; max-width: 36%; bottom: calc(var(--hud-b) + 3px); padding-left: 12px !important; column-gap: 8px; }
+  #hub.juego .m3d .m3-mision .mm-tt small { font-size: 11px; letter-spacing: .12em; }
+  #hub.juego .m3d .m3-mision .mm-tt b { font-size: 18px; }
+  #hub.juego .m3d .m3-mision .mm-go { width: calc(var(--mh) - 12px); padding: 0; justify-content: center; border-radius: 50% !important; }
+  #hub.juego .m3d .m3-mision .mm-go span { display: none; }
+  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: calc(var(--hud-r) + var(--sr, 0px) + min(220px, 36%) + 8px); }
+  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) + var(--sr, 0px) + min(220px, 36%) + 2px); }
 }
-/* (el móvil de pie: la misión baja encima de las comarcas, lejos del velo de arriba, y allí sí lleva su panel oscuro) */
+/* (el móvil de pie: la tarjeta, de lado a lado encima de las comarcas, y la fila de las comarcas, entera) */
 @media (max-width: 760px) and (min-height: 521px) {
-  #hub.juego .m3d .tt-sel { display: none; }
-  #hub.juego .m3d .m3-mision { padding: 8px !important; border-radius: 10px !important; background: rgba(17, 8, 38, .86) !important; box-shadow: 0 10px 26px rgba(4, 1, 12, .36) !important; text-shadow: none; }
+  #hub.juego .m3d .m3-mision { left: var(--hud-l); right: var(--hud-r); width: auto; max-width: none; bottom: calc(var(--hud-b) + var(--railh) + 8px); }
+  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-rail { right: var(--hud-r); }
+  #hub.juego .m3d:has(.m3-mision):not(.con-sel):not(.con-col):not(.con-ficha) .m3-fl.sig { right: calc(var(--hud-r) - 8px); }
 }

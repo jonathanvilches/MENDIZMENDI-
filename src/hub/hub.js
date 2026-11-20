@@ -48,7 +48,7 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { comoJugar, vistoComoJugar } from './comojugar.js';
 import { puedeDescargar, queFalta, descargarTodo } from '../web/todo.js';
-import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
+import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
@@ -82,7 +82,8 @@ import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
 import './ajustes.css';   // (Perfil y Ajustes en tarjetas por tema, y Elige frontón con cartas de foto)
-import './barra-inicio.css';   // (la barra de arriba del mapa en cápsulas: tú, Navarra descubierta y la próxima parada. La última: manda sobre todas)
+import './barra-inicio.css';
+import './progreso.css';   // (Tu progreso: el panel de control de la partida)   // (la barra de arriba del mapa en cápsulas: tú, Navarra descubierta y la próxima parada. La última: manda sobre todas)
 // (las fotos de las dos cartas de Torneos: la pareja de pelotaris dentro del frontón y la de fútbol en el césped del estadio,
 // de Higgsfield, en tres tamaños; assets/torneos)
 import fotoPelota from '../assets/torneos/pelota.webp';
@@ -229,7 +230,12 @@ export class Hub {
     // del inicio y, como solo se medía en el inicio, su panel se ponía encima del retrato)
     { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (mb.offsetWidth) this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
     // (el menú flotante: se abre y se cierra con su botón, con la X, tocando fuera o con Escape; al elegir una sección, se cierra)
-    this.root.addEventListener('click', e => { if (e.target.closest('[data-menu]')) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
+    this.root.addEventListener('click', e => { const mb = e.target.closest('[data-menu]');
+      // (en el inicio, tu retrato y tu nombre abren tu progreso; las tres rayas, el menú. El autor, el 20 de noviembre de 2026:
+      // lo de «0/12 comarcas» fuera de la pantalla de inicio, en «un panel de control, un dashboard, donde podamos ver cómo va
+      // nuestra progresión»)
+      if (mb && this.screen === 'home' && !isDidactico() && e.target.closest('.yo-c, .yo-t') && !this.root.classList.contains('menu-on')) { this.go('progreso'); return; }
+      if (mb) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
     addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay, .lg-root:not(.out)')) return;   // (con un carrusel del juego encima, «Elige frontón», el Escape es suyo)
       if (this.root.classList.contains('menu-on')) { e.stopImmediatePropagation(); this.menu(false); } else if (this.screen !== 'home') { e.stopImmediatePropagation(); this.go('home'); } }, true);
     addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ((k !== 'q' && k !== 'e') || e.ctrlKey || e.metaKey || e.altKey || !this.visible || !this.root.classList.contains('juego') || this.screen === 'home' || this.root.classList.contains('menu-on') || e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('.sheet, .onb, .mg-overlay, .lg-root:not(.out)')) return;
@@ -266,8 +272,8 @@ export class Hub {
     this.nav = isDidactico()
       ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['frontones', 'Frontones', 'walls', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
       // (sin «Mapa» aparte: el inicio ya es el mapa de Navarra en 3D; en el didáctico se llama así, y su portada es «Aprende Navarra»)
-      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['frontones', 'Frontones', 'walls', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', ventajas: 'Descuentos en comercios de Navarra con tus sellos, insignias y certificados', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
+      : [['home', 'Inicio', 'home'], ['progreso', 'Progreso', 'medal'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['frontones', 'Frontones', 'walls', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', progreso: 'Cómo vas: nivel, comarcas, sellos y misiones', passport: 'Los sellos de tus pueblos', ventajas: 'Descuentos en comercios de Navarra con tus sellos, insignias y certificados', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', frontones: 'Los frontones de Navarra: su historia, sus fotos y todos, pueblo a pueblo', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
     if (isDidactico()) this.MORE.instrumentos = 'Txistu, gaita, txalaparta… qué son y cómo suenan';
@@ -990,6 +996,39 @@ export class Hub {
     const p = profile(); checkBadges(); saveProfile();
     return `${cabeza('Tu partida · Insignias', 'badge', 'Insignias')}<p class="lead-chip">${I('badge', 24)}<b>${p.badges.length}/${BADGES.length}</b></p>
       <section class="badges">${BADGES.map(b => { const on = p.badges.includes(b.id); return `<div class="bcard ${on ? 'on' : ''}"><div class="bic">${I(b.icon, 64)}${on ? '' : `<i class="blk">${I('lock', 24)}</i>`}</div><b>${esc(b.name)}</b><p>${esc(b.text)}</p></div>`; }).join('')}</section>`;
+  }
+
+  // ---------- Tu progreso: el panel de control de la partida ----------
+  // (20 de noviembre de 2026, el autor: «En la pantalla principal [...] no hace falta que ponga 0 o 12 comarcas. Todo eso que
+  // salga en un panel de control, en un dashboard, donde podamos ver cómo va nuestra progresión». Arriba, cuatro cifras: tu
+  // nivel con su experiencia, las comarcas terminadas, los sellos y las misiones; debajo, cada comarca con su insignia, sus
+  // sellos y sus misiones, que se toca para ir a ella; y al pie, lo que se colecciona. progreso.css)
+  s_progreso() {
+    const p = profile(), L = levelOf(p.xp), N = navarraProgress(p), CC = COMARCAS.filter(c => comarcaTowns(c.id).length);
+    const PR = CC.map(c => ({ c, r: comarcaProgress(p, c.id) })), md = PR.reduce((a, x) => a + x.r.done, 0), mt = PR.reduce((a, x) => a + x.r.total, 0);
+    checkBadges();
+    const barra = (f) => `<span class="pg-barra"><i style="width:${Math.round(Math.min(1, f) * 100)}%"></i></span>`;
+    const seg = PR.map(({ r }) => `<i class="${r.towns && r.stamps >= r.towns ? 'ok' : ''}" style="--f:${(r.towns ? r.stamps / r.towns : 0).toFixed(3)}"></i>`).join('');
+    const cifra = (ic, n, de, t, extra = '') => `<div class="pg-cifra">${I(ic, 32)}<div><b><em>${n}</em>/${de}</b><small>${t}</small>${extra}</div></div>`;
+    return `${cabeza('Tu partida · Progreso', 'medal', 'Tu progreso')}
+      <section class="pg-top">
+        <div class="pg-yo"><span class="pg-av" style="--xp:${Math.min(1, L.cur / L.need).toFixed(3)}"><img src="${avatarPortrait(p.avatar)}" alt=""></span>
+          <div><small class="pg-k">Nivel ${L.lv}</small><b>${esc(p.name || 'Aventurero')}</b><small class="pg-r">${rankOf(L.lv)}</small>${barra(L.cur / L.need)}<small class="pg-xp">${L.cur} / ${L.need} de experiencia</small></div></div>
+        ${cifra('map', N.comarcas, N.comarcasTotal, 'comarcas terminadas', `<span class="pg-seg" style="--n:${PR.length}">${seg}</span>`)}
+        ${cifra('stamp', N.stamps, N.towns, 'sellos de pueblo', barra(N.towns ? N.stamps / N.towns : 0))}
+        ${cifra('flag', md, mt, 'misiones hechas', barra(mt ? md / mt : 0))}
+      </section>
+      <h2 class="pg-h">${I('map', 22)} Comarcas</h2>
+      <section class="pg-com">${PR.map(({ c, r }) => { const hecha = r.towns && r.stamps >= r.towns;
+        return `<button type="button" class="pg-c${hecha ? ' ok' : ''}${r.stamps ? '' : ' cero'}" data-comarca="${c.id}" style="--c:${c.color}"><img src="${stampImg(c.id)}" alt="" loading="lazy" decoding="async">
+          <span><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${r.stamps}/${r.towns} sellos · ${r.done}/${r.total} misiones</small>${barra(r.total ? r.done / r.total : 0)}</span>${hecha ? `<i class="pg-ok">${I('check', 14)}</i>` : ''}</button>`; }).join('')}</section>
+      <h2 class="pg-h">${I('badge', 22)} Lo que llevas reunido</h2>
+      <section class="pg-mas">
+        <button type="button" class="pg-m" data-go="badges">${I('badge', 30)}<span><b>${p.badges.length}/${BADGES.length}</b><small>Insignias</small></span></button>
+        <button type="button" class="pg-m" data-go="passport">${I('stamp', 30)}<span><b>${N.stamps}</b><small>Sellos en el pasaporte</small></span></button>
+        <button type="button" class="pg-m" data-go="album">${I('scroll', 30)}<span><b>${(p.cards || []).length}</b><small>Cosas descubiertas</small></span></button>
+        <button type="button" class="pg-m" data-go="sports">${I('txapela', 30)}<span><b>${p.txapelas || 0}</b><small>${(p.txapelas || 0) === 1 ? 'Txapela' : 'Txapelas'}</small></span></button>
+      </section>`;
   }
 
   // ---------- Pasaporte ----------

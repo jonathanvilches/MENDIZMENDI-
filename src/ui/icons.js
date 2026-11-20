@@ -192,7 +192,10 @@ export const ICONS = {
   hand: s('M20 58V28l-6-8c-2-4 4-8 8-4l4 6V8c0-4 6-4 6 0v14V6c0-4 6-4 6 0v16V8c0-4 6-4 6 0v18l2-6c2-4 8-2 6 2l-4 16c-2 10-6 20-18 20z', '#eac1a0'),
   target: c(32, 32, 26, '#f7f1e2') + c(32, 32, 17, '#d42f2f') + c(32, 32, 8, '#f7f1e2') + c(32, 32, 3, '#d42f2f', false),
   sparkle: s('M32 6l5 21 21 5-21 5-5 21-5-21-21-5 21-5z', '#fff3b0'),
-  play: c(32, 32, 26, '#fff') + s('M26 20l18 12-18 12z', '#c21cff'),   // (blanco con el triángulo morado: se ve sobre el botón fucsia y sobre fondo oscuro)
+  // (el de jugar, un triángulo blanco de esquinas redondeadas, como en los juegos de ahora: el de antes, un círculo blanco con
+  // contorno y el triángulo morado sombreado, iba con el estilo de los dibujos de objetos y se veía tosco en los botones;
+  // el autor, el 20 de noviembre de 2026: «para el tema de jugar siento que es demasiado brusco, demasiado tosco»)
+  play: '<path d="M23 16.5 L48.5 32 L23 47.5 Z" fill="#fff" stroke="#fff" stroke-width="7.5" stroke-linejoin="round"/>',
   back: s('M40 10L18 32l22 22', 'none') + ln('M40 10L18 32l22 22', O, 8) + ln('M40 10L18 32l22 22', '#fff', 4),
   close: ln('M14 14l36 36M50 14L14 50', O, 8) + ln('M14 14l36 36M50 14L14 50', '#fff', 4),
   menu: ln('M10 16h44M10 32h44M10 48h44', O, 8) + ln('M10 16h44M10 32h44M10 48h44', '#fff', 4),

@@ -1,0 +1,74 @@
+/* ================= Tu progreso: el panel de control de la partida =================
+   20 de noviembre de 2026, el autor: «En la pantalla principal [...] no hace falta que ponga 0 o 12 comarcas. Todo eso que
+   salga en un panel de control, en un dashboard, donde podamos ver cómo va nuestra progresión». Se abre tocando tu retrato
+   en el inicio y desde el menú (hub.js s_progreso). Con la identidad de Perfil y Torneos (ajustes.css, torneos.css):
+   tarjetas oscuras de esquinas de 8 px con una raya neutra muy tenue y su sombra, rótulos rosas en letra estrecha, las
+   cifras en la letra de los títulos y las barras con el degradado del juego. Sin aire vacío: las cuatro cifras arriba en una
+   fila (dos y dos en el móvil tumbado) y las comarcas en tantas columnas como quepan */
+#hub { --pg-card: rgba(21, 11, 46, .9); --pg-linea: rgba(255, 255, 255, .12); }
+#hub :is(.pg-yo, .pg-cifra, .pg-c, .pg-m) {
+  background: var(--pg-card); border: 0; outline: 1px solid var(--pg-linea); outline-offset: -1px; border-radius: 8px;
+  box-shadow: var(--sombra-caja, 0 8px 20px rgba(4, 1, 12, .3)); color: #fff; min-width: 0;
+}
+#hub .pg-barra { display: block; height: 6px; margin-top: 8px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+#hub .pg-barra > i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #ff7ac8, #b54bff); }
+
+/* ---------- arriba: tú y tres cifras ---------- */
+#hub .pg-top { display: grid; grid-template-columns: 1.35fr repeat(3, 1fr); gap: var(--hueco-m, 16px); margin-top: var(--esp, 16px); }
+#hub .pg-yo { display: flex; align-items: center; gap: 16px; padding: 16px; }
+#hub .pg-av { flex: none; width: 76px; height: 76px; padding: 3px; box-sizing: border-box; border-radius: 50%;
+  background: conic-gradient(#ff7ac8 0turn, #b54bff calc(var(--xp, 0) * 1turn), rgba(255, 255, 255, .16) calc(var(--xp, 0) * 1turn)); }
+#hub .pg-av img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: center 18%; background: #2a1458; box-shadow: 0 0 0 3px #150a30; }
+#hub .pg-yo > div { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+#hub .pg-yo .pg-k { color: var(--rosa); font: 700 12px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+#hub .pg-yo b { font: 400 24px/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub .pg-yo .pg-r { color: var(--lila2, #c9b2ff); font: 700 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub .pg-yo .pg-barra { margin-top: 6px; }
+#hub .pg-yo .pg-xp { color: var(--dim, #a097bd); font: 500 12px/1.2 var(--f-ui); }
+#hub .pg-cifra { display: flex; align-items: center; gap: 14px; padding: 16px; }
+#hub .pg-cifra > :is(img, svg) { flex: none; width: 40px; height: 40px; }
+#hub .pg-cifra > div { flex: 1 1 auto; min-width: 0; }
+#hub .pg-cifra b { display: block; color: var(--lila, #b9a6f0); font: 400 32px/1 var(--f-display); letter-spacing: .01em; white-space: nowrap; }
+#hub .pg-cifra b em { color: #fff; font-style: normal; }
+#hub .pg-cifra small { display: block; margin-top: 4px; color: var(--rosa); font: 700 12px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub .pg-seg { display: grid; grid-template-columns: repeat(var(--n, 12), minmax(0, 1fr)); gap: 3px; height: 6px; margin-top: 8px; }
+#hub .pg-seg i { display: block; border-radius: 2px; background: linear-gradient(90deg, #ff7ac8 calc(var(--f, 0) * 100%), rgba(255, 255, 255, .14) calc(var(--f, 0) * 100%)); }
+#hub .pg-seg i.ok { background: linear-gradient(90deg, #ff7ac8, #b54bff); }
+
+/* ---------- las comarcas ---------- */
+#hub .pg-h { display: flex; align-items: center; gap: 8px; margin: calc(var(--esp, 16px) * 1.5) 0 12px; color: #fff; font: 400 var(--fs-lg, 22px)/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; }
+#hub .pg-h :is(img, svg) { width: 26px; height: 26px; }
+#hub .pg-com { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
+#hub .pg-c { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; text-align: left; font: inherit; cursor: pointer; transition: background .15s, transform .15s; }
+#hub .pg-c:is(:hover, :focus-visible) { background: rgba(40, 18, 84, .95); }
+#hub .pg-c > img { flex: none; width: 52px; height: 52px; border-radius: 50%; object-fit: contain; }
+#hub .pg-c.cero > img { filter: grayscale(.7) brightness(.8); }
+#hub .pg-c > span { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
+#hub .pg-c b { font: 700 17px/1.05 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub .pg-c small { color: var(--dim, #a097bd); font: 500 12px/1.2 var(--f-ui); }
+#hub .pg-c .pg-barra { margin-top: 4px; height: 5px; }
+#hub .pg-c .pg-ok { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #f2c94c; color: #2a1458; }
+#hub .pg-c .pg-ok :is(img, svg) { width: 14px; height: 14px; }
+
+/* ---------- lo que llevas reunido ---------- */
+#hub .pg-mas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+#hub .pg-m { display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left; font: inherit; cursor: pointer; transition: background .15s; }
+#hub .pg-m:is(:hover, :focus-visible) { background: rgba(40, 18, 84, .95); }
+#hub .pg-m > :is(img, svg) { flex: none; width: 36px; height: 36px; }
+#hub .pg-m span { display: grid; gap: 3px; min-width: 0; }
+#hub .pg-m b { font: 400 24px/1 var(--f-display); }
+#hub .pg-m small { color: var(--rosa); font: 700 12px/1.1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
+
+/* ---------- en pantallas más estrechas ---------- */
+@media (max-width: 1100px) { #hub .pg-top { grid-template-columns: repeat(2, minmax(0, 1fr)); } #hub .pg-mas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-height: 520px) {
+  #hub .pg-top, #hub .pg-com, #hub .pg-mas { gap: 8px; }
+  #hub .pg-yo, #hub .pg-cifra { padding: 10px 12px; gap: 10px; }
+  #hub .pg-av { width: 56px; height: 56px; }
+  #hub .pg-cifra b { font-size: 26px; } #hub .pg-cifra > :is(img, svg) { width: 32px; height: 32px; }
+  #hub .pg-h { margin: 16px 0 8px; font-size: 18px; }
+  #hub .pg-com { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+  #hub .pg-c > img { width: 42px; height: 42px; }
+  #hub .pg-c b { font-size: 15px; }
+}
+@media (max-width: 560px) { #hub .pg-top { grid-template-columns: 1fr; } }

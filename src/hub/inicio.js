@@ -76,13 +76,11 @@ function misionHTML(p, items) {
     </div>`;
 }
 function mapaHTML(p, items) {
-  const K = avance(p), pct = Math.round(K.f * 100);
-  // (lo descubierto, en su cápsula: el mapa en un círculo, las comarcas terminadas, una barra de un tramo por comarca que se
-  // llena con sus sellos y, aparte, los sellos; antes, un aro con el tanto por ciento. barra-inicio.css)
-  return `${DD ? '' : `${misionHTML(p, items)}<div class="m3-tot" role="group" aria-label="Navarra descubierta: ${K.comp} de ${K.C.length} comarcas, ${K.sell} de ${K.tot} sellos (${pct} %)">
-      <span class="tt-ic" aria-hidden="true">${I('map', 30)}</span>
-      <span class="m3-tt"><small>Navarra descubierta</small><b><em>${K.comp}</em>/${K.C.length}<span>comarcas</span></b><span class="tt-seg" style="--n:${K.C.length}" aria-hidden="true">${K.C.map(({ r }) => { const f = r.towns ? r.stamps / r.towns : 0; return `<i class="${f >= 1 ? 'ok' : ''}" style="--f:${f.toFixed(3)}"></i>`; }).join('')}</span></span>
-      <i class="tt-sel">${I('stamp', 24)}<span><b>${K.sell}/${K.tot}</b><small>sellos</small></span></i></div>`}
+  const K = avance(p);
+  // (lo descubierto ya no va en el inicio, en la barra de arriba: está en «Tu progreso», hub.js s_progreso. El autor, el 20 de
+  // noviembre de 2026: «no hace falta que ponga 0 o 12 comarcas. Todo eso que salga en un panel de control». Aquí, solo la
+  // próxima parada, abajo a la derecha, junto a las comarcas: barra-inicio.css)
+  return `${DD ? '' : misionHTML(p, items)}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Un dedo mueve · dos dedos acercan, giran e inclinan</span></span>
     <div class="m3-rail m3-insig" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
       // (tarjetas pequeñas: la insignia de la comarca y su nombre, sin foto, para que no tapen el mapa; 13 de noviembre de 2026)
