@@ -3,7 +3,8 @@
 // circular, y que se adapte muy bien a la pantalla»). Las portadas van en un anillo que gira: la de delante, grande y
 // encendida; a los lados, cada una más girada y más honda, y la vuelta no se acaba nunca (después de la última viene la
 // primera). Se gira con el dedo o el ratón (arrastrando), con las flechas de los lados, con la rueda, con las teclas ← → y,
-// en el mando, con lo mismo. Tocar la de delante (o «Jugar», o Intro) la elige; tocar una de los lados la trae delante.
+// en el mando, con lo mismo. Tocar una portada, la de delante o una de los lados, la elige al primer toque (y «Jugar» o
+// Intro, la de delante).
 // El tamaño sale del hueco que hay: la portada, de 3 de ancho por 4 de alto, del mayor alto que cabe, y en el móvil de pie
 // algo más estrecha para que asomen las de los lados.
 
@@ -15,8 +16,8 @@ const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-re
  * @param {HTMLElement} escena el hueco del anillo (con un hijo .c3-anillo con las portadas, botones con data-a)
  * @param {object} o { inicio: índice de la portada de delante al abrir, alCambiar(i, boton), sonido(k), ar: alto / ancho de
  *   cada portada (4/3 de pie, como las de los campeonatos; 3/4 tumbadas, como las fotos de los frontones);
- *   banda: el anillo abierto de lado a lado de la pantalla, con el ángulo que quepa (ver mide); directo: tocar una de los
- *   lados la elige ya, sin traerla antes delante }
+ *   banda: el anillo abierto de lado a lado de la pantalla, con el ángulo que quepa (ver mide); directo: ya no hace nada,
+ *   desde el 20 de noviembre de 2026 tocar una de los lados la elige siempre al primer toque }
  * @returns {{ destroy(), actual(): HTMLElement, ir(k) }}
  */
 export function carrusel3d(escena, o = {}) {
@@ -157,7 +158,7 @@ export function carrusel3d(escena, o = {}) {
   const paso = (s) => { meta = Math.round(meta) + s; o.sonido?.('click'); anima(); };
 
   // arrastrar con el dedo o el ratón: lo que se mueve el dedo gira el anillo a la par; al soltar, a la más cercana, con
-  // algo de inercia si iba deprisa. Un toque sin arrastrar es un toque (elige o trae delante)
+  // algo de inercia si iba deprisa. Un toque sin arrastrar es un toque (elige)
   let arr = null;
   const abajo = (e) => {
     if (e.button > 0) return;
@@ -177,9 +178,12 @@ export function carrusel3d(escena, o = {}) {
     if (!A.movido) return;   // (un toque: lo coge el click de la portada)
     const lanza = Math.max(-3, Math.min(3, -A.v * 260 / (w * 0.85)));
     meta = Math.round(rot + lanza); o.sonido?.('click'); anima();
-    // (que el click que llega al soltar no elija nada)
-    escena.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); }, { capture: true, once: true });
+    // (que el click que llega justo al soltar no elija nada; solo ese: antes se quedaba esperando y, en el iPhone, donde al
+    // deslizar no llega ese click, se comía el siguiente toque de verdad y había que tocar dos veces; el autor, 20 nov)
+    tragaHasta = performance.now() + 350;
   };
+  let tragaHasta = 0;
+  escena.addEventListener('click', (ev) => { if (performance.now() < tragaHasta) { tragaHasta = 0; ev.stopPropagation(); ev.preventDefault(); } }, true);
   escena.addEventListener('pointerdown', abajo);
   escena.addEventListener('pointermove', mueve);
   escena.addEventListener('pointerup', arriba);
@@ -188,14 +192,13 @@ export function carrusel3d(escena, o = {}) {
   let ruedaT = 0;
   const rueda = (e) => { const v = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (Math.abs(v) < 4) return; e.preventDefault(); const now = performance.now(); if (now - ruedaT < 260) return; ruedaT = now; paso(Math.sign(v)); };
   escena.addEventListener('wheel', rueda, { passive: false });
-  // (tocar: la de delante se elige; una de los lados viene delante. En las pruebas automáticas, se elige siempre)
+  // (tocar una carta la elige al primer toque, la de delante o una de los lados, y el anillo gira hacia ella mientras tanto:
+  // antes una de los lados solo venía delante y había que volver a tocarla, y un toque mientras giraba hacia ella se perdía;
+  // el autor, 20 de noviembre de 2026, «hace falta pulsar varias veces en los carruseles de selección». Lo elige quien
+  // escucha el click; o.directo queda por compatibilidad, ya es siempre así)
   anillo.addEventListener('click', (e) => {
     const b = e.target.closest('.c3-anillo > *'); if (!b) return;
-    const k = T.indexOf(b);
-    // (sigue: lo elige quien escucha. Con o.directo, también las de los lados se eligen al primer toque, sin traerlas
-    // antes delante: el menú del inicio, donde se entra a una sección de un toque)
-    if (k === frente || o.directo || (typeof navigator !== 'undefined' && navigator.webdriver)) return;
-    e.stopPropagation(); e.preventDefault(); ir(k);
+    const k = T.indexOf(b); if (k >= 0 && k !== md(Math.round(meta))) ir(k);
   }, true);
   const teclas = (e) => {
     if (!escena.isConnected) return quita();

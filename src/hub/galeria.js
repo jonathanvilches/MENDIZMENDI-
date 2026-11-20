@@ -119,8 +119,11 @@ export function galeria(m, o) {
     last = performance.now();
     const tick = (now) => {
       raf = 0; if (!G.isConnected) return;
-      const dt = Math.min(0.05, (now - last) / 1000); last = now;
-      if (!arrastre) { const k = reduce() ? 1 : 1 - Math.exp(-dt * 9); rot += (meta - rot) * k; if (Math.abs(meta - rot) < 0.05) rot = meta; }
+      // (el paso, con su tiempo de verdad hasta 0,2 s, como en el carrusel 3D: con el tope de 0,05, en un aparato que pinta
+      // pocos fotogramas la galería pasaba varias veces más despacio; y algo más viva, se asienta en medio segundo; el
+      // autor, 20 de noviembre de 2026, «por qué tarda tanto»)
+      const dt = Math.min(0.2, (now - last) / 1000); last = now;
+      if (!arrastre) { const k = reduce() ? 1 : 1 - Math.exp(-dt * 12); rot += (meta - rot) * k; if (Math.abs(meta - rot) < 0.05) rot = meta; }
       pinta();
       if (arrastre || rot !== meta) raf = requestAnimationFrame(tick);
     };
@@ -167,10 +170,11 @@ export function galeria(m, o) {
   const suelta = (e) => {
     if (fuera()) return;
     const a = arrastre; if (!a || (e && e.pointerId !== a.id)) return; arrastre = null;
-    // (un toque sin arrastrar: en la de delante, su ficha; en otra, se pasa hasta ella; fuera de las tarjetas, a un lado
-    // de la de delante, la de ese lado)
+    // (un toque sin arrastrar: en cualquier tarjeta que se vea, su ficha al primer toque, y la galería pasa hasta ella; antes
+    // una de los lados solo venía delante y había que volver a tocarla, y si se tocaba mientras pasaba, el toque se perdía;
+    // el autor, 20 nov. Fuera de las tarjetas, a un lado de la de delante, la de ese lado)
     if (!a.movido) { const t = e?.target?.closest?.('.gal-t'), k = t ? T.indexOf(t) : -1;
-      if (k >= 0 && k === frente) o.abre(t.dataset.gt); else if (k >= 0) aTarjeta(k);
+      if (k >= 0) { if (k !== frente) aTarjeta(k); o.abre(t.dataset.gt); }
       else if (e && frente >= 0) { const f = T[frente].getBoundingClientRect(); if (e.clientX > f.right) ve(1); else if (e.clientX < f.left) ve(-1); }
       anima(); return; }
     const w = T[0]?.offsetWidth || 220, lanza = -a.v * 220 / w * paso;   // (al soltar con impulso, sigue un poco)

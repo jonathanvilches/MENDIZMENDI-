@@ -17,10 +17,19 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (nada: el 19 nov por la noche se publicó `master` entero, ver «Última publicación»)
+- Carruseles de un solo toque, también después de deslizar (`src/game/carrusel3d.js`, `src/hub/galeria.js`), las leyendas
+  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche.
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (20 nov, mediodía): por encargo directo del autor («¿por qué tarda tanto o hace
+  falta pulsar varias veces en los carruseles de selección, en todos los carruseles de la web?»), en vuestro
+  `src/game/carrusel3d.js`: (1) después de deslizar el anillo quedaba puesta una escucha `once` que se comía el siguiente
+  clic de verdad (en el móvil, al deslizar no llega ese clic, y el primer toque tras deslizar no hacía nada); ahora solo
+  se traga el clic que llega en los 350 ms siguientes a soltar. (2) Tocar una portada de los lados la elige al primer
+  toque en todos los carruseles (antes solo con `directo`, que ya no hace nada; el anillo gira hacia ella a la vez). En
+  las pruebas automáticas no se veía porque con `navigator.webdriver` ya se elegía siempre: esa excepción se ha quitado.
+  Lo mismo en `src/hub/galeria.js` (galería de pueblos). Probado con toques reales (CDP) y ratón: un toque en todo.
 - **De Principal a Pelota · interfaz** (20 nov, mañana): por encargo directo del autor («la selección de carruseles
   sigue yendo muy lento. Desde que selecciono perfil, torneos, pulso y hasta que se selecciona pasa muchísimo tiempo»),
   en vuestro `src/game/carrusel3d.js`: el paso del giro usa su tiempo de verdad hasta 0,2 s (con el tope de 0,05, a pocos

@@ -300,8 +300,8 @@ export class Hub {
     if (on) this.anilloMenu(); else { this.car?.destroy(); this.car = null; }
   }
   /** Las secciones del menú en el anillo 3D de carrusel3d.js (el de los campeonatos y «Elige tu pelotari»): se gira con el
-   *  dedo, el ratón, la rueda, las flechas de los lados o ← →; tocar la de delante (o «Entrar», o Intro) la abre y tocar una
-   *  de los lados la trae delante. Se hace cada vez que se abre el menú y se suelta al cerrarlo: el anillo escucha las
+   *  dedo, el ratón, la rueda, las flechas de los lados o ← →; tocar cualquiera, la de delante o una de los
+   *  lados, la abre al primer toque (y «Entrar» o Intro, la de delante). Se hace cada vez que se abre el menú y se suelta al cerrarlo: el anillo escucha las
    *  teclas de toda la página y, cerrado el menú, las flechas y el Intro son del mapa. La escena se rehace con las mismas
    *  portadas dentro (la anterior se va con sus escuchas); empieza por la sección en la que estás. */
   anilloMenu() {
