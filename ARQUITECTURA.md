@@ -2419,15 +2419,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sombra de caja de `neon.css` va con `!important` y un selector de dos ids (`#lane #toast`): para quitarla,
   `#hub#hub.juego`. Los botones de la cámara, la ayuda y la ficha del jugador en la cabecera del menú siguen el mismo
   lenguaje.
-- **Tu progreso, el panel de control de la partida** (`s_progreso` de `hub.js`, `src/hub/progreso.css`, en el menú como
-  «Progreso»). El 20 de noviembre, el autor: «En la pantalla principal [...] no hace falta que ponga 0 o 12 comarcas. Todo
-  eso que salga en un panel de control, en un dashboard». Fuera del mapa Navarra descubierta (las comarcas terminadas y
-  los sellos). El panel, con la identidad de Perfil y Torneos (tarjetas oscuras de 8 px con raya neutra tenue, rótulos
-  rosas en letra estrecha, cifras en la letra de los títulos, barras con el degradado): arriba tú (retrato con el aro de
-  la experiencia, nivel, rango y barra de experiencia) y tres cifras (comarcas terminadas con un tramo por comarca, sellos
-  de pueblo, misiones hechas); luego las 12 comarcas, cada una con su insignia, sellos, misiones y barra, que llevan a la
-  comarca (`data-comarca`); y al final lo reunido (insignias, pasaporte, álbum, txapelas), que lleva a su pantalla. En el
-  móvil tumbado las cifras van de dos en dos y las comarcas en tres columnas.
+- **Tu progreso, el panel de control de la partida** (`src/hub/progreso.js` y `progreso.css`, desde `s_progreso` de
+  `hub.js`; en el menú como «Progreso», y tocando tu retrato en el inicio). El 20 de noviembre, el autor: «En la pantalla
+  principal [...] no hace falta que ponga 0 o 12 comarcas. Todo eso que salga en un panel de control, en un dashboard»; y
+  esa noche: «muy tecnológico, con anillos que se rellenan con animaciones, que se vea nuestro progreso como explorador,
+  nuestro progreso como pelotari, cómo va nuestro equipo de fútbol, los rankings». Arriba, tú (retrato con el aro de la
+  experiencia, rango y nivel) y cuatro cifras (insignias, descubiertas, txapelas y lo descubierto de Navarra). Luego tres
+  módulos con una esfera de tres anillos concéntricos cada uno, con sus marcas como un instrumento, una marca que recorre
+  el borde como un radar (7 s por vuelta) y la cifra en el centro, y al lado la leyenda: el explorador (sellos de pueblo,
+  misiones, experiencia y comarcas; en el centro, lo descubierto de Navarra), el pelotari (`tuPelotari` y
+  `tusCualidades` de `game/pelotariProgreso.js`: nivel, partidos ganados y la media de las cualidades; al lado, las cuatro
+  cualidades de 40 a 99, como en las cartas, con su barra) y el fútbol (la jornada de tu liga, los ganados y los goles;
+  en el centro, tu puesto). Después las clasificaciones: la tabla de tu liga de fútbol (la temporada con más jornadas
+  jugadas) y el ranking de pelotaris de tus campeonatos (ganados, perdidos y la diferencia de tantos de todos los
+  partidos jugados en ellos), con tu fila resaltada aunque no esté entre los seis primeros; si no hay, cómo empezar. Y
+  las doce comarcas, cada una con su anillo alrededor de la insignia. La liga y los campeonatos se leen de su guardado
+  (`herrizherri-liga-v1`, `herrizherri-torneo-v1`, `herrizherri-futbol-v1`) sin cargar `torneo.js` ni `liga.js`. Al entrar,
+  los anillos se llenan uno detrás de otro (`progresoVivo` pone `.vivo`; cada módulo 0,12 s después del anterior), las
+  filas de las tablas entran en cascada y las cifras suben desde cero (`data-cuenta`, `contadores`); con «reducir
+  movimiento», todo quieto y en su sitio. En el móvil tumbado los tres módulos siguen en fila, más pequeños.
 - **La próxima parada, abajo a la derecha** (`misionHTML` de `inicio.js`, `.m3-mision` en `barra-inicio.css`). El autor,
   el mismo día: «el botón de la derecha arriba [...] hay que hacerlo de otra manera». Deja la esquina de arriba y se pone
   al final de la fila de comarcas, a su misma altura (60 px; 50 px en el móvil tumbado): una tarjeta de 300 px (un 34 %
@@ -2436,6 +2446,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con el botón redondo. La fila de comarcas y su flecha se apartan lo que ocupa la tarjeta (`:has(.m3-mision)`); con una
   comarca, una ficha o una colección abiertas, la fila vuelve a ocupar todo el ancho. De pie, la tarjeta va a lo ancho
   encima de la fila.
+- **La música de Torneos** (`go` de `hub.js`): la pantalla de Torneos pide ya la música de la pelota («Sport», mood
+  `pelota`), la misma que suena en sus pantallas de elegir. El autor, 20 de noviembre de 2026: «una vez ya que entramos en
+  la parte de torneos, ya empieza la música que se escucha [...] dentro de la sección de pelota [...] que aparezca nada más
+  entrar en el bloque de torneos». Antes Torneos tenía la épica y «Sport» empezaba al entrar en la pelota; como es la
+  misma pista, al pasar de Torneos a la pelota sigue sin cortarse (`pistas.quiere`). El fútbol sigue con la épica.
 - **Iconos de jugar y pausa** (`src/assets/icons3d/*/play.webp` y `pause.webp`, `ICONS.play` de `icons.js`). El autor
   los veía «demasiado bruscos, demasiado toscos» con la identidad. En los juegos de móvil los iconos ilustrados son para
   objetos y lugares; los de control (jugar, pausa) son glifos blancos y limpios sobre la base del botón. Ahora: triángulo

@@ -83,7 +83,8 @@ import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus seccion
 import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
 import './ajustes.css';   // (Perfil y Ajustes en tarjetas por tema, y Elige frontón con cartas de foto)
 import './barra-inicio.css';
-import './progreso.css';   // (Tu progreso: el panel de control de la partida)   // (la barra de arriba del mapa en cápsulas: tú, Navarra descubierta y la próxima parada. La última: manda sobre todas)
+import './progreso.css';   // (Tu progreso: el panel de control de la partida)
+import { progresoHTML, progresoVivo } from './progreso.js';
 // (las fotos de las dos cartas de Torneos: la pareja de pelotaris dentro del frontón y la de fútbol en el césped del estadio,
 // de Higgsfield, en tres tamaños; assets/torneos)
 import fotoPelota from '../assets/torneos/pelota.webp';
@@ -346,7 +347,11 @@ export class Hub {
     const mb = this.root.querySelector('.hub-menu-btn'), mb0 = mb?.getBoundingClientRect();
     this.root.dataset.screen = screen;
     desdeAqui(mb, mb0);
-    if (this.visible) this.sound?.setMood?.(screen === 'sports' ? 'torneos' : 'inicio');   // (Torneos, con su propia música)
+    // (Torneos, ya con la música de la pelota, «Sport»: el autor, 20 de noviembre de 2026, «una vez ya que entramos en la parte
+    // de torneos, ya empieza la música que se escucha [...] dentro de la sección de pelota [...] que aparezca nada más entrar en
+    // el bloque de torneos». Antes sonaba la épica y «Sport» empezaba al entrar en la pelota; es la misma pista, así que al
+    // pasar de Torneos a la pelota sigue sin cortarse)
+    if (this.visible) this.sound?.setMood?.(screen === 'sports' ? 'pelota' : 'inicio');
     const m = $('#hMain', this.root), juego = this.root.classList.contains('juego');
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     this.menu(false);
@@ -1004,31 +1009,8 @@ export class Hub {
   // nivel con su experiencia, las comarcas terminadas, los sellos y las misiones; debajo, cada comarca con su insignia, sus
   // sellos y sus misiones, que se toca para ir a ella; y al pie, lo que se colecciona. progreso.css)
   s_progreso() {
-    const p = profile(), L = levelOf(p.xp), N = navarraProgress(p), CC = COMARCAS.filter(c => comarcaTowns(c.id).length);
-    const PR = CC.map(c => ({ c, r: comarcaProgress(p, c.id) })), md = PR.reduce((a, x) => a + x.r.done, 0), mt = PR.reduce((a, x) => a + x.r.total, 0);
-    checkBadges();
-    const barra = (f) => `<span class="pg-barra"><i style="width:${Math.round(Math.min(1, f) * 100)}%"></i></span>`;
-    const seg = PR.map(({ r }) => `<i class="${r.towns && r.stamps >= r.towns ? 'ok' : ''}" style="--f:${(r.towns ? r.stamps / r.towns : 0).toFixed(3)}"></i>`).join('');
-    const cifra = (ic, n, de, t, extra = '') => `<div class="pg-cifra">${I(ic, 32)}<div><b><em>${n}</em>/${de}</b><small>${t}</small>${extra}</div></div>`;
-    return `${cabeza('Tu partida · Progreso', 'medal', 'Tu progreso')}
-      <section class="pg-top">
-        <div class="pg-yo"><span class="pg-av" style="--xp:${Math.min(1, L.cur / L.need).toFixed(3)}"><img src="${avatarPortrait(p.avatar)}" alt=""></span>
-          <div><small class="pg-k">Nivel ${L.lv}</small><b>${esc(p.name || 'Aventurero')}</b><small class="pg-r">${rankOf(L.lv)}</small>${barra(L.cur / L.need)}<small class="pg-xp">${L.cur} / ${L.need} de experiencia</small></div></div>
-        ${cifra('map', N.comarcas, N.comarcasTotal, 'comarcas terminadas', `<span class="pg-seg" style="--n:${PR.length}">${seg}</span>`)}
-        ${cifra('stamp', N.stamps, N.towns, 'sellos de pueblo', barra(N.towns ? N.stamps / N.towns : 0))}
-        ${cifra('flag', md, mt, 'misiones hechas', barra(mt ? md / mt : 0))}
-      </section>
-      <h2 class="pg-h">${I('map', 22)} Comarcas</h2>
-      <section class="pg-com">${PR.map(({ c, r }) => { const hecha = r.towns && r.stamps >= r.towns;
-        return `<button type="button" class="pg-c${hecha ? ' ok' : ''}${r.stamps ? '' : ' cero'}" data-comarca="${c.id}" style="--c:${c.color}"><img src="${stampImg(c.id)}" alt="" loading="lazy" decoding="async">
-          <span><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${r.stamps}/${r.towns} sellos · ${r.done}/${r.total} misiones</small>${barra(r.total ? r.done / r.total : 0)}</span>${hecha ? `<i class="pg-ok">${I('check', 14)}</i>` : ''}</button>`; }).join('')}</section>
-      <h2 class="pg-h">${I('badge', 22)} Lo que llevas reunido</h2>
-      <section class="pg-mas">
-        <button type="button" class="pg-m" data-go="badges">${I('badge', 30)}<span><b>${p.badges.length}/${BADGES.length}</b><small>Insignias</small></span></button>
-        <button type="button" class="pg-m" data-go="passport">${I('stamp', 30)}<span><b>${N.stamps}</b><small>Sellos en el pasaporte</small></span></button>
-        <button type="button" class="pg-m" data-go="album">${I('scroll', 30)}<span><b>${(p.cards || []).length}</b><small>Cosas descubiertas</small></span></button>
-        <button type="button" class="pg-m" data-go="sports">${I('txapela', 30)}<span><b>${p.txapelas || 0}</b><small>${(p.txapelas || 0) === 1 ? 'Txapela' : 'Txapelas'}</small></span></button>
-      </section>`;
+    this.after = () => progresoVivo($('#hMain', this.root));
+    return progresoHTML(cabeza);
   }
 
   // ---------- Pasaporte ----------
