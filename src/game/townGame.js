@@ -1054,7 +1054,7 @@ export class TownGame {
     if (it.kind === 'clue') return this.examineClue(it.k);
     if (it.kind === 'memorial') return this.doMemorial(it.M);
     if (it.kind === 'creature') return this.meetCreature(it.M);
-    if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
+    if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + (TOWN.fountain.small ? 0.95 : 1.4), z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
   }
   // Lo que se gana al terminar: comida del producto y equipo nuevo
   async afterComplete(M) {

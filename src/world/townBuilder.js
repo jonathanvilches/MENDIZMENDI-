@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from './monuments.js';
-import { bench, lamp, fountain, papelera } from './village.js';
+import { bench, lamp, fountain, fuenteBeber, papelera } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
 import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
@@ -146,6 +146,19 @@ export function buildTown(scene, mats, def) {
       fountain(B, f.x, y, f.z);
       addCircle(f.x, f.z, 2.7);
       TOWN.fountain = { x: f.x, z: f.z, y };
+    }
+  }
+  // (sin la fuente grande —la plaza del kiosco, o una plaza real llena— una fuente de beber a un lado de la plaza: sin agua no
+  // se llena la cantimplora y la subida al monte no empieza, game/townCharla.js; Pamplona, Sube al Ezkaba)
+  if (!TOWN.fountain && !def.bosque) {
+    const rIn = P.rect ? Math.min(P.rect.hw, P.rect.hd) : P.r || 10, cand = [];
+    for (const q of real?.data.lugares?.fuentes || []) if (Math.hypot(q.x - P.x, q.z - P.z) < rIn + 12) cand.push({ x: q.x, z: q.z });
+    for (let r = Math.max(7, rIn * 0.6); r < rIn + 14; r += 1.5) for (let a = 0.3; a < 6.6; a += 0.35) cand.push({ x: P.x + Math.sin(a) * r, z: P.z + Math.cos(a) * r });
+    const f = cand.find(q => isFree(q.x, q.z, 1.3));
+    if (f) {
+      const y = terrainHeight(f.x, f.z);
+      fuenteBeber(B, f.x, y, f.z, Math.atan2(P.x - f.x, P.z - f.z));
+      TOWN.fountain = { x: f.x, z: f.z, y, small: true };
     }
   }
   // (los bancos de la plaza, mirando al centro, y una papelera junto a uno de cada dos)

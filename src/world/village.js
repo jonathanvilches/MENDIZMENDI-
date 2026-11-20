@@ -1,7 +1,7 @@
 // Otsagabia: casas, iglesia, palacios, puentes, muros del río, plaza y fuente
 import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
-import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl } from './builder.js';
+import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl, colored } from './builder.js';
 import { buildHouse } from './houses.js';
 import { tarjeta, mata, CELDAS } from './flores.js';
 import { fachadaLejana } from './townReal.js';
@@ -338,6 +338,30 @@ export function fountain(B, x, y, z) {
     const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(x + sx * 1.38, y + 1.66, z + sz * 1.38), new THREE.Vector3(x + sx * 1.75, y + 1.62, z + sz * 1.75), new THREE.Vector3(x + sx * 1.9, y + 0.62, z + sz * 1.9));
     B.add('jet', new THREE.TubeGeometry(c, 10, 0.024, 5, false));
   }
+}
+// Fuente de beber de hierro colado, como las de las calles y plazas de Pamplona: losa de piedra con su rejilla de desagüe,
+// columna torneada con remate, caño de bronce que cae en una taza pequeña. Para las plazas con kiosco, donde no cabe la
+// fuente grande de pilón (world/townBuilder.js): sin ella no había dónde llenar la cantimplora para subir al monte
+const VERDE_FUNDICION = '#3d5c47';   // (el verde de las fuentes y farolas de fundición de las ciudades)
+export function fuenteBeber(B, x, y, z, ry = 0) {
+  const T = M(x, y, z, ry), F = (m) => MM(T, m);
+  B.add('ashlar', box(0.95, 0.12, 0.95, 1), F(M(0, 0.06, 0)));
+  B.add('stoneDark', box(0.42, 0.02, 0.32, 1), F(M(0, 0.125, 0.24)));
+  for (let i = -2; i <= 2; i++) B.add('iron', box(0.025, 0.012, 0.3, 1), F(M(i * 0.08, 0.14, 0.24)));
+  const prof = [[0.001, 0], [0.2, 0], [0.2, 0.06], [0.15, 0.12], [0.16, 0.2], [0.11, 0.3], [0.1, 0.95], [0.13, 1.0], [0.16, 1.06], [0.12, 1.12], [0.06, 1.2], [0.07, 1.27], [0.001, 1.32]].map(([r, h]) => new THREE.Vector2(r, h));
+  B.add('paint', colored(new THREE.LatheGeometry(prof, 12), VERDE_FUNDICION), F(M(0, 0.12, 0)));
+  // anillos de la columna (las acanaladuras de las de fundición)
+  for (const h of [0.5, 0.78]) B.add('paint', colored(new THREE.TorusGeometry(0.105, 0.014, 5, 12).rotateX(Math.PI / 2), VERDE_FUNDICION), F(M(0, 0.12 + h, 0)));
+  // taza al pie, con agua
+  const taza = [[0.04, 0], [0.16, 0.02], [0.2, 0.09], [0.21, 0.11]].map(([r, h]) => new THREE.Vector2(r, h));
+  B.add('paint', colored(new THREE.LatheGeometry(taza, 12), VERDE_FUNDICION), F(M(0, 0.62, 0.26)));
+  const w = new THREE.CircleGeometry(0.18, 12); w.rotateX(-Math.PI / 2); B.add('water', w, F(M(0, 0.71, 0.26)));
+  B.add('paint', colored(box(0.05, 0.5, 0.05, 1), VERDE_FUNDICION), F(M(0, 0.4, 0.2)));
+  // caño y chorro
+  B.add('gold', new THREE.CylinderGeometry(0.018, 0.022, 0.2, 6).rotateX(Math.PI / 2 - 0.2), F(M(0, 0.98, 0.18)));
+  const c = new THREE.QuadraticBezierCurve3(new THREE.Vector3(0, 0.96, 0.28), new THREE.Vector3(0, 0.94, 0.33), new THREE.Vector3(0, 0.72, 0.31));
+  B.add('jet', new THREE.TubeGeometry(c, 8, 0.012, 5, false), T);
+  addCircle(x, z, 0.5);
 }
 function buildPlaza(B) {
   const p = PLACES.plaza;
