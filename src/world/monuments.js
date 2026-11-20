@@ -4,7 +4,7 @@ import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl } from './b
 import { roofHip, stepFrom } from './houses.js';
 import { toW } from './plot.js';
 import { terrainHeight, deckY, addPlatform } from './heightfield.js';
-import { addBox, addCircle } from './colliders.js';
+import { addBox, addCircle, rectFree } from './colliders.js';
 import { PLACES } from './layout.js';
 
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
@@ -171,9 +171,12 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   const cuantos = (run, max) => { for (let n = 4; n <= max; n++) if (y + 0.3 - 0.3 * (n - 1) - gE((n - 1) * run + run * 0.6) <= 0.15) return n; return 0; };   // (el último, a ras: a 30 cm, con la ladera que sigue bajando, el paso al suelo ya no se daba)
   let run = 1.1, nE = cuantos(1.1, 12); if (!nE) { run = 0.5; nE = cuantos(0.5, 32) || 32; }
   for (let i = 0; i < nE; i++) {
-    const zc = zE + i * run, top = 0.3 - i * 0.3, base = Math.min(top - 0.3, gE(i * run) - y - 0.1), w = Math.max(6.2, 8 - i * 0.6);   // (los de abajo, del ancho del cuarto: estrechándose a 3 m, en diagonal no había paso en la rejilla de caminos; Isaba)
+    const zc = zE + i * run, top = 0.3 - i * 0.3, base = Math.min(top - 0.3, gE(i * run) - y - 0.1), hd = (run + 0.1) / 2;
+    // (los de abajo, del ancho del cuarto: estrechándose a 3 m, en diagonal no había paso en la rejilla de caminos; Isaba;
+    // pero sin meterse en una casa: se estrecha lo justo)
+    let w = Math.max(6.2, 8 - i * 0.6); while (w > 3.2 && !rectFree(x, z, ry, -w / 2, w / 2, L / 2 + zc - hd, L / 2 + zc + hd, 0, true)) w -= 0.5;
     B.add('ashlar', box(w, top - base, run + 0.1), MM(F, M(0, (top + base) / 2, zc)));
-    stepFrom(F, 0, top, zc, w / 2, (run + 0.1) / 2);   // (cada peldaño es suelo: se sube la escalinata)
+    stepFrom(F, 0, top, zc, w / 2, hd);   // (cada peldaño es suelo: se sube la escalinata)
   }
   // (el sitio de la escalinata, reservado: que no se construya una casa encima; se pisa)
   if (nE > 4) boxCol(x, z, ry, 0, L / 2 + zE + (nE - 1) * run / 2, 8.4, (nE - 1) * run + run + 0.4, { ghost: true });
