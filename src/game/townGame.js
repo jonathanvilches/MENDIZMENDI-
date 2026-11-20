@@ -177,7 +177,8 @@ export class TownGame {
           : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
       case 'trade': { const t = TRADE[m.kind] || TRADE.herrero, of = OFICIOS[m.kind]; M.trade = t; M.oficio = of; M.tstep = 0; M.title = m.title || of?.name || t.title; M.icon = of?.icon || t.icon;
         M.steps = () => ['Habla con ' + host(), of ? `Taller de ${of.name.toLowerCase()}: paso ${Math.min(M.tstep + 1, of.steps.length)} de ${of.steps.length}` : `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
-      case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who]; M.figura = m.who;   // (un bosque cuenta la suya: leg) M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
+      // (un bosque cuenta la suya: leg)
+      case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who]; M.figura = m.who; M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
         M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
         M.steps = m.kind === 'almadia' && MOD.real?.presas ? () => ['Habla con ' + host(), 'Baja el Esca en la almadía hasta el puente medieval']
