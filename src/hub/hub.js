@@ -82,6 +82,7 @@ import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
 import './ajustes.css';   // (Perfil y Ajustes en tarjetas por tema, y Elige frontón con cartas de foto)
+import './barra-inicio.css';   // (la barra de arriba del mapa en cápsulas: tú, Navarra descubierta y la próxima parada. La última: manda sobre todas)
 // (las fotos de las dos cartas de Torneos: la pareja de pelotaris dentro del frontón y la de fútbol en el césped del estadio,
 // de Higgsfield, en tres tamaños; assets/torneos)
 import fotoPelota from '../assets/torneos/pelota.webp';
@@ -448,7 +449,8 @@ export class Hub {
     { const n = nuevas(p).length; this.root.querySelectorAll('#hNav [data-s="ventajas"], #hNav [data-s="more"]').forEach(b => { if (n) b.dataset.nuevas = n; else delete b.dataset.nuevas; }); }
     // (jugando, el menú se abre con tu retrato, arriba a la izquierda, como en los juegos de rol: tu cara con tu nivel y, si
     // hay sitio, tu nombre, tu rango y la barra de experiencia. Nada de iconos de página web)
-    $('[data-menu]', this.root).innerHTML = `<span class="yo-c"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small><i class="yo-xp"><i style="width:${L.cur / L.need * 100}%"></i></i></span>${MENU_M}`;
+    // (la experiencia, en el aro de alrededor del retrato: barra-inicio.css)
+    $('[data-menu]', this.root).innerHTML = `<span class="yo-c" style="--xp:${Math.min(1, L.cur / L.need).toFixed(3)}"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small></span>${MENU_M}`;
   }
 
   // ---------- Inicio ----------

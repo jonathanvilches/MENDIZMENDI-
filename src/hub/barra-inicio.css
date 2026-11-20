@@ -1,0 +1,118 @@
+/* ================= La barra de arriba del mapa del inicio =================
+   20 de noviembre de 2026, el autor, con una captura del iPhone: «al diseño de esta barra de arriba, de los elementos del
+   menú y demás, también hay que darle una vuelta de diseño porque se han quedado anticuados». Antes eran tres cajas de
+   cristal con una raya clara alrededor y desenfoque detrás; el retrato cuadrado, la cifra en un aro y «Menú» en letra
+   pequeña. Ahora, tres cápsulas oscuras como las de los juegos de móvil, a la misma altura y sin borde ni desenfoque (se
+   separan del mapa con su relleno y una sombra: la identidad común, ARQUITECTURA.md):
+   - tú: el retrato redondo dentro de un aro que se llena con la experiencia, el nivel en una pastilla debajo, tu nombre y
+     tu rango (si hay sitio) y el botón del menú, una pastilla con las tres rayas y «MENÚ»;
+   - Navarra descubierta: el mapa en su círculo, las comarcas terminadas en grande, una barra de doce tramos (uno por
+     comarca, que se llena con sus sellos) y los sellos aparte;
+   - la próxima parada: su foto en cápsula, el pueblo en letra estrecha grande y el botón de jugar con el degradado.
+   La última hoja del menú (hub.js): manda sobre consola.css, inicio.css y neon.css, que redondeaba a 8 px con !important.
+   Sin desenfoque también va más ligero en los ordenadores y móviles flojos (el desenfoque del cristal se recalcula en cada
+   fotograma del mapa) */
+#hub.juego {
+  --hb-bg: rgba(17, 8, 38, .86); --hb-bg2: rgba(40, 18, 84, .92);
+  --hb-sh: 0 10px 26px rgba(4, 1, 12, .36), inset 0 1px 0 rgba(255, 255, 255, .07);
+  --hb-in: calc(var(--hud-h) - 8px);
+}
+
+/* ---------- las tres cápsulas (y el rótulo de la comarca elegida, que ocupa el sitio de la del medio) ---------- */
+#hub.juego[data-screen="home"] .hub-menu-btn,
+#hub.juego .m3d :is(.m3-tot, .m3-mision, .m3-cb) {
+  border: 0 !important; border-radius: 999px !important; background: var(--hb-bg); box-shadow: var(--hb-sh) !important;
+  -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+
+/* ---------- tú: retrato con el aro de la experiencia, nivel, nombre, rango y el botón del menú ---------- */
+#hub.juego[data-screen="home"] .hub-menu-btn { gap: 10px; padding: 4px; }
+#hub.juego[data-screen="home"] .hub-menu-btn:is(:hover, :focus-visible) { background: var(--hb-bg2); box-shadow: var(--hb-sh) !important; }
+#hub.juego[data-screen="home"] .yo-c { width: var(--hb-in); height: var(--hb-in); padding: 3px; box-sizing: border-box; border-radius: 50%;
+  background: conic-gradient(#ff7ac8 0turn, #b54bff calc(var(--xp, 0) * 1turn), rgba(255, 255, 255, .16) calc(var(--xp, 0) * 1turn)); }
+#hub.juego[data-screen="home"] .yo-c img { border-radius: 50%; box-shadow: 0 0 0 2px #150a30; background: #2a1458; }
+#hub.juego[data-screen="home"] .yo-c.yo-dd { padding: 0; background: #2a1458; }
+#hub.juego[data-screen="home"] .yo-n { right: auto; left: 50%; bottom: -5px; transform: translateX(-50%); min-width: 22px; height: 16px; padding: 0 5px; border-radius: 999px;
+  background: var(--cta); color: #fff; font: 800 12px/16px var(--f-cond); letter-spacing: .02em; box-shadow: 0 0 0 2px #150a30; }
+#hub.juego[data-screen="home"] .yo-t { gap: 4px; padding-right: 2px; }
+#hub.juego[data-screen="home"] .yo-t b { font: 700 18px/1 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; max-width: 140px; }
+#hub.juego[data-screen="home"] .yo-t small { color: var(--rosa); font: 700 11px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego[data-screen="home"] .yo-xp { display: none; }
+#hub.juego[data-screen="home"] .hub-menu-btn .yo-m { display: flex; align-items: center; gap: 8px; height: var(--hb-in); padding: 0 16px 0 13px; border: 0; border-radius: 999px;
+  background: var(--btn-2); transition: background .15s; }
+#hub.juego[data-screen="home"] .hub-menu-btn:is(:hover, :focus-visible) .yo-m { background: var(--btn-2h); }
+#hub.juego[data-screen="home"] .hub-menu-btn .yo-m svg { width: 18px; height: 18px; }
+#hub.juego[data-screen="home"] .hub-menu-btn .yo-m small { color: #fff; font: 700 13px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+
+/* ---------- Navarra descubierta ---------- */
+#hub.juego .m3d .m3-tot { display: flex; align-items: center; gap: 12px; padding: 4px 18px 4px 4px; grid-template-columns: none; }
+#hub.juego .m3d .tt-ic { flex: none; width: var(--hb-in); height: var(--hb-in); display: grid; place-items: center; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #5a22b4 0%, #33126e 55%, #210b4a 100%); }
+#hub.juego .m3d .tt-ic :is(img, svg) { width: 64%; height: 64%; }
+#hub.juego .m3d .m3-tot .m3-tt { display: grid; grid-template-columns: auto; justify-items: start; row-gap: 4px; line-height: 1; }
+#hub.juego .m3d .m3-tot .m3-tt small { grid-column: auto; color: var(--rosa); font: 700 11px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
+#hub.juego .m3d .m3-tot .m3-tt b { display: flex; align-items: baseline; color: var(--lila); font: 800 20px/1 var(--f-cond); letter-spacing: .02em; white-space: nowrap; }
+#hub.juego .m3d .m3-tot .m3-tt b em { color: #fff; font-style: normal; }
+#hub.juego .m3d .m3-tot .m3-tt b span { margin-left: 6px; font-size: 14px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .m3d .tt-seg { display: grid; grid-template-columns: repeat(var(--n, 12), minmax(0, 1fr)); gap: 3px; width: 168px; height: 4px; }
+#hub.juego .m3d .m3-tt .tt-seg i { display: block; border-radius: 2px; background: linear-gradient(90deg, #ff7ac8 calc(var(--f, 0) * 100%), rgba(255, 255, 255, .16) calc(var(--f, 0) * 100%)); }
+#hub.juego .m3d .m3-tt .tt-seg i.ok { background: linear-gradient(90deg, #ff7ac8, #b54bff); }
+#hub.juego .m3d .tt-sel { display: flex; align-items: center; gap: 8px; align-self: stretch; margin-left: 2px; padding-left: 14px; border-left: 1px solid var(--linea); font-style: normal; }
+#hub.juego .m3d .tt-sel :is(img, svg) { width: 24px; height: 24px; flex: none; }
+#hub.juego .m3d .tt-sel span { display: grid; gap: 4px; line-height: 1; }
+#hub.juego .m3d .tt-sel b { color: #fff; font: 800 18px/1 var(--f-cond); letter-spacing: .02em; white-space: nowrap; }
+#hub.juego .m3d .tt-sel small { color: var(--lila2); font: 700 11px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+
+/* ---------- la próxima parada ---------- */
+#hub.juego .m3d .m3-mision { padding: 4px; column-gap: 12px; }
+#hub.juego .m3d .m3-mision .mm-img { width: calc(var(--hb-in) * 1.7); height: var(--hb-in); border-radius: 999px; }
+#hub.juego .m3d .m3-mision .mm-tt { gap: 4px; }
+#hub.juego .m3d .m3-mision .mm-tt small { color: var(--rosa); font: 700 11px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
+#hub.juego .m3d .m3-mision .mm-tt b { color: #fff; font: 800 20px/1 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; }
+#hub.juego .m3d .m3-mision .mm-go { height: var(--hb-in); padding: 0 20px 0 16px; gap: 8px; border-radius: 999px !important; background: var(--cta);
+  font: 800 15px/1 var(--f-cond); letter-spacing: .12em; }
+#hub.juego .m3d .m3-mision .mm-go:hover { background: var(--cta); filter: brightness(1.08); }
+#hub.juego .m3d .m3-mision .mm-go > :is(svg, img) { width: 18px; height: 18px; }
+
+/* ---------- el rótulo de la comarca elegida, en el sitio de Navarra descubierta ---------- */
+#hub.juego .m3d .m3-cb { padding: 4px; }
+#hub.juego .m3d .m3-cb .cb-tt small { color: color-mix(in srgb, var(--c, #ff7ac8) 50%, #fff); font: 700 11px/1 var(--f-cond); letter-spacing: .14em; }
+#hub.juego .m3d .m3-cb .cb-b { border: 0; border-radius: 50%; background: var(--btn-2); }
+#hub.juego .m3d .m3-cb .cb-b:is(:hover, :focus-visible) { background: var(--btn-2h); }
+
+/* ---------- y lo demás del mapa con el mismo lenguaje: los botones de la cámara y la ayuda, sin raya alrededor ---------- */
+#hub.juego .m3d :is(.m3-pad, .m3-pad2, .m3-ayuda) { border-color: transparent; background: var(--hb-bg); box-shadow: var(--hb-sh); -webkit-backdrop-filter: none; backdrop-filter: none; }
+#hub.juego .m3d .m3-b { border-color: transparent; background: rgba(160, 130, 240, .14); }
+#hub.juego .m3d .m3-b:hover { border-color: transparent; background: var(--btn-2h); }
+
+/* ---------- la ficha del jugador en la cabecera del menú, igual que la cápsula del mapa ---------- */
+#hub.juego .hub-top #hChip { border-color: transparent; background: rgba(255, 255, 255, .06); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06); }
+#hub.juego .hub-top #hChip > img { border: 0; box-shadow: 0 0 0 2px #150a30, 0 0 0 4px #ff7ac8; }
+#hub.juego .hub-top #hChip b { font: 700 18px/1.05 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; }
+#hub.juego .hub-top #hChip small { color: var(--rosa); font: 700 11px/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .hub-top #hChip .xp { height: 4px; border-radius: 2px; } #hub.juego .hub-top #hChip .xp i { background: linear-gradient(90deg, #ff7ac8, #b54bff); }
+#hub.juego .hub-top #hChip .stamps { color: #fff; font: 800 18px/1 var(--f-cond); border-left-color: var(--linea); }
+
+/* ---------- el móvil tumbado: lo justo, con las mismas piezas ---------- */
+@media (max-height: 520px) {
+  #hub.juego[data-screen="home"] .hub-menu-btn { gap: 6px; padding: 4px; }
+  #hub.juego[data-screen="home"] .yo-c { padding: 2px; }
+  #hub.juego[data-screen="home"] .yo-n { min-width: 18px; height: 14px; bottom: -4px; font-size: 11px; line-height: 14px; }
+  #hub.juego[data-screen="home"] .hub-menu-btn .yo-m { gap: 6px; padding: 0 12px 0 10px; }
+  #hub.juego[data-screen="home"] .hub-menu-btn .yo-m svg { width: 16px; height: 16px; }
+  #hub.juego[data-screen="home"] .hub-menu-btn .yo-m small { font-size: 12px; letter-spacing: .12em; }
+  #hub.juego .m3d .m3-tot { gap: 8px; padding: 4px 14px 4px 4px; }
+  #hub.juego .m3d .m3-tot .m3-tt small, #hub.juego .m3d .tt-sel { display: none; }
+  #hub.juego .m3d .m3-tot .m3-tt b { font-size: 17px; } #hub.juego .m3d .m3-tot .m3-tt b span { font-size: 12px; margin-left: 5px; }
+  #hub.juego .m3d .tt-seg { width: 124px; height: 3px; gap: 2px; }
+  #hub.juego .m3d .m3-mision { column-gap: 8px; }
+  #hub.juego .m3d .m3-mision .mm-img { width: var(--hb-in); border-radius: 50%; }
+  #hub.juego .m3d .m3-mision .mm-tt b { font-size: 17px; }
+  #hub.juego .m3d .m3-mision .mm-go { width: var(--hb-in); padding: 0; }
+}
+/* (el móvil de pie: la misión baja encima de las comarcas, con la foto en cápsula y el botón entero) */
+@media (max-width: 760px) and (min-height: 521px) {
+  #hub.juego[data-screen="home"] .hub-menu-btn .yo-m small { display: none; }
+  #hub.juego[data-screen="home"] .hub-menu-btn .yo-m { padding: 0 12px; }
+  #hub.juego .m3d .tt-sel { display: none; }
+}
