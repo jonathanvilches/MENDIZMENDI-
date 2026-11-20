@@ -1,0 +1,1 @@
+var e=new URL(`patxi-03-B6oWWitv.mp3`,import.meta.url).href;export{e as default};

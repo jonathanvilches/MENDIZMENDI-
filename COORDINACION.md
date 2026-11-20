@@ -17,8 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Carruseles de un solo toque, también después de deslizar (`src/game/carrusel3d.js`, `src/hub/galeria.js`), las leyendas
-  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche. Los golpes de pelota limpios, el rótulo «¡Tanto y partido!» legible y el público que se mueve y descansa con las manos en las rodillas.
+- (nada: el 20 nov por la tarde se publicó `master` entero, ver «Última publicación»)
 
 ## Peticiones entre ventanas
 
@@ -170,6 +169,14 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, tarde, la hizo la ventana principal, por el encargo del autor (carruseles, golpes, rótulo final, público):
+  `master` hasta `455103f5`. Entran los carruseles de un solo toque, también la carta de los lados y después de deslizar
+  (`src/game/carrusel3d.js`, `src/hub/galeria.js`); los golpes de pelota limpios, solo el impacto y una cola de sala corta
+  (`src/assets/sonidos/pelota-*.mp3`); el «¡Tanto y partido!» con placa oscura, título en oro y quién gana con el tanteo
+  (`src/pelota/hud.js`, `match.js`, `rules.js`); el público con las manos en las rodillas, el resto de la grada de pie
+  aplaudiendo al celebrar y 64 animados en el móvil (`src/actors/crowdAnim.js`, `crowd3d.js`, `src/game/fronton.js`); las
+  leyendas que ahora sí se pueden terminar (`src/game/townGame.js`); las voces de los vecinos que pasean y del músico de
+  Otsagabia (`src/assets/voz/vecinos/ochagavia/`) y el saludo de noche que ya no da los buenos días (`src/game/saludo.js`).
 - 20 nov, mediodía, la hizo la ventana principal, por el encargo del autor de la mañana (cencerros, carruseles,
   Basajaun, Altsasu, golpe de la pelota y figuras pixeladas): `master` hasta `2d011202` (la web, en `1ff01139`). Entran
   los cencerros grabados con ElevenLabs para el Zarratrako, los joaldunak y los momotxorros, con la música a un tercio

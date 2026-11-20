@@ -1,0 +1,1 @@
+var e=new URL(`ximun-01-CXbAmmga.mp3`,import.meta.url).href;export{e as default};
