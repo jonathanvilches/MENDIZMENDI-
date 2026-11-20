@@ -1386,7 +1386,13 @@ export class PelotaMatch {
         const [title] = t.calls[e.call] || t.calls.tanto, kant = this.lang === 'eu' ? e.kantari : '';
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
         if (g.mode === 'rally') this.hud.call(title, '', '', 2.6, ex);
-        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, kant, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
+        else if (e.final) {
+          // (debajo, quién gana y el tanteo, en una línea, y sin la racha: el partido ya se ha acabado; el autor, 20 nov,
+          // «este rótulo no me gusta y es muy dura la legibilidad»)
+          const F = (k) => t[k] || TEXT.es[k], yo = e.winner === 'you', a = yo ? e.score.you : e.score.rival, b = yo ? e.score.rival : e.score.you, m = `${a}${F('finalA')}${b}`;
+          const fin = g.pairs && this.mateObjs ? (yo ? F('finalUs')(m) : F('finalThem')(this.names.rival, this.mateObjs.rivalMate.name, m)) : (yo ? F('finalYou')(m) : F('finalRival')(this.names.rival, m));
+          this.hud.call(t.finalCall, fin, kant, 5.5, ex && { ...ex, racha: null }); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final');
+        }
         else {
           // (el tanto, en el marcador, que se convierte en lo que canta el juez, y debajo quién lo ha hecho con su carta:
           // hud.tanto. Encima del nombre: para ti, «Tanto para ti»; para el rival, su pueblo, que su nombre ya va debajo.

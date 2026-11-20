@@ -372,7 +372,10 @@ export const TEXT = {
       energy: 'Correr y las cortadas cansan: si te cansas, deja que tu compañero juegue más; si se cansa él, pide tú la pelota manteniendo GOLPE.',
       claim: '¡Mía!', rest: 'Descansa: esta la coge tu compañero.', mateTired: (hit) => `Tu compañero está cansado: pide tú la pelota manteniendo ${hit}.`,
       pointUs: 'Tanto para vosotros', pointThem: (a, b) => `Tanto para ${a} y ${b}` },
-    finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: (n) => `${n}, a un tanto de ganar.`, lastPoint: 'Último tanto',
+    finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.',
+    // (debajo del «¡Tanto y partido!», quién gana y cómo: m, el tanteo del que gana primero; el autor, 20 nov: el rótulo de
+    // antes, «Tanto para ti. Todo el frontón en pie aplaude», en dos líneas, «no me gusta y es muy dura la legibilidad»)
+    finalYou: (m) => `Has ganado ${m}`, finalRival: (n, m) => `Gana ${n} ${m}`, finalUs: (m) => `Habéis ganado ${m}`, finalThem: (a, b, m) => `Ganan ${a} y ${b} ${m}`, finalA: ' a ', matchPoint: 'Tanto de partido', matchPointSub: (n) => `${n}, a un tanto de ganar.`, lastPoint: 'Último tanto',
     // (los rótulos de racha, en el aviso del tanto y en el marcador: match.js, rachaDe)
     racha: { seguidos: (n) => `${n} tantos seguidos`, iguala: '¡Iguala el partido!', remonta: '¡Remontada!', marcador: (n) => `${n} seguidos` },
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
@@ -506,7 +509,8 @@ export const TEXT = {
       energy: 'Korrika egiteak eta cortadek nekatzen dute: nekatzen bazara, utzi zure lagunari gehiago jokatzen; bera nekatzen bada, eskatu zuk pilota JO sakatuta mantenduz.',
       claim: 'Nirea!', rest: 'Atseden hartu: hau zure lagunak hartzen du.', mateTired: (hit) => `Zure laguna nekatuta dago: eskatu zuk pilota ${hit} sakatuta mantenduz.`,
       pointUs: 'Tantoa zuentzat', pointThem: (a, b) => `Tantoa ${a} eta ${b}rentzat` },
-    finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: (n) => `${n}: tanto bat irabazteko.`, lastPoint: 'Azken tantoa',
+    finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.',
+    finalYou: (m) => `Irabazi duzu ${m}`, finalRival: (n, m) => `Irabazlea: ${n}, ${m}`, finalUs: (m) => `Irabazi duzue ${m}`, finalThem: (a, b, m) => `Irabazleak: ${a} eta ${b}, ${m}`, finalA: '-', matchPoint: 'Partidarako tantoa', matchPointSub: (n) => `${n}: tanto bat irabazteko.`, lastPoint: 'Azken tantoa',
     racha: { seguidos: (n) => `${n} tanto jarraian`, iguala: 'Partida berdindu du!', remonta: 'Buelta eman dio!', marcador: (n) => `${n} jarraian` },
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,

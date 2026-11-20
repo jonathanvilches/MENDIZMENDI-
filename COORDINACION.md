@@ -18,10 +18,16 @@ ya no vale, se borra.
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
 - Carruseles de un solo toque, también después de deslizar (`src/game/carrusel3d.js`, `src/hub/galeria.js`), las leyendas
-  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche.
+  que se pueden terminar, las voces de los vecinos que pasean y del músico de Otsagabia, y el saludo de noche. Los golpes de pelota limpios y el rótulo «¡Tanto y partido!» legible.
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (20 nov, tarde): por encargo directo del autor, con una captura del iPhone del
+  rótulo «¡Tanto y partido!» («no me gusta y es muy dura la legibilidad»), en vuestro `src/pelota/hud.js`: el final ya no
+  es rosa intenso con el texto lila y la racha rosa encima; lleva la placa oscura de los demás avisos, el filo y el título
+  en oro y, debajo, en blanco y en una línea, quién gana y el tanteo (`match.js` y los textos `finalYou`, `finalRival`,
+  `finalUs`, `finalThem` de `rules.js`), sin la racha. Y `.pel-racha[hidden]{display:none}`: sin racha se quedaba una
+  rayita morada vacía debajo de cada aviso.
 - **De Principal a Pelota · interfaz** (20 nov, mediodía): por encargo directo del autor («¿por qué tarda tanto o hace
   falta pulsar varias veces en los carruseles de selección, en todos los carruseles de la web?»), en vuestro
   `src/game/carrusel3d.js`: (1) después de deslizar el anillo quedaba puesta una escucha `once` que se comía el siguiente

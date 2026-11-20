@@ -152,6 +152,9 @@ const CSS = `
 .pel-call.c-azul{box-shadow:inset 0 3px 0 #6b5bff,0 14px 40px rgba(0,0,0,.4)}.pel-call.c-rojo{box-shadow:inset 0 3px 0 #ff2e88,0 14px 40px rgba(0,0,0,.4)}
 .pel-racha{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-top:var(--r-pp,12px);padding:4px 14px;border-radius:999px;background:var(--rc,linear-gradient(100deg,#d0189f,#6a2ff0));font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;box-shadow:0 0 14px rgba(255,122,200,.45);animation:pelRacha .5s .15s cubic-bezier(.2,1.6,.4,1) both}
 .pel-racha svg{width:16px;height:16px;flex:none;color:#ffd166}
+/* (sin racha, nada: con hidden se quedaba una rayita morada vacía debajo del texto de cada aviso, porque el display de
+   arriba le ganaba al hidden; 20 de noviembre de 2026) */
+.pel-racha[hidden]{display:none}
 .pel-call.c-azul .pel-racha{--rc:linear-gradient(100deg,#6b5bff,#3b2bc4)}.pel-call.c-rojo .pel-racha{--rc:linear-gradient(100deg,#ff2e88,#c01a6c)}
 @keyframes pelRacha{from{opacity:0;transform:translateY(8px) scale(.8)}}
 .pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#d0189f,#6a2ff0));border-color:#ffc2ec;color:#fff;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
@@ -599,7 +602,14 @@ body.alto-contraste .pel-root .pel-btn::before{display:none}
 .pel-root .pel-call{--sk:0deg;padding-left:34px}
 .pel-root .pel-call::before{background:rgba(10,4,26,.94);box-shadow:none}
 .pel-root .pel-call::after{left:0;width:10px;box-shadow:none}
-.pel-root.final .pel-call::before{background:#e0147e}
+/* (EL FINAL, «¡TANTO Y PARTIDO!», LEGIBLE (20 de noviembre de 2026; el autor, con una captura del iPhone: «este rótulo no
+   me gusta y es muy dura la legibilidad»). Era rosa intenso con el texto de debajo en lila y la racha en una pastilla rosa:
+   todo del mismo tono. Ahora, la misma placa oscura que los demás avisos, con el filo y el título en oro, y debajo, en
+   blanco y en una línea, quién gana y el tanteo; sin la racha) */
+.pel-root.final .pel-call::before{background:rgba(10,4,26,.95);box-shadow:inset 0 0 0 1px rgba(255,211,106,.38),0 14px 34px rgba(0,0,0,.45)}
+.pel-root.final .pel-call h3{color:#ffd36a;text-shadow:0 3px 0 rgba(7,2,15,.7)}
+.pel-root.final .pel-call p{color:#fff;font-size:var(--fs-md);letter-spacing:.08em;white-space:nowrap}
+.pel-root.final .pel-call .pel-kantari{color:#ffe7a8}
 .pel-root .pel-golpe::before{background:rgba(10,4,26,.92);border-left:0;box-shadow:inset 4px 0 0 var(--gc);transform:scaleX(0);transform-origin:right}
 .pel-root .pel-golpe.on::before{transform:scaleX(1)}
 .pel-root .pel-q small{transform:none;border-radius:0}
