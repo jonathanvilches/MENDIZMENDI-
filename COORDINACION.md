@@ -177,6 +177,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (11), la hizo la ventana principal, por encargo del autor: `master` hasta `386ab0a0`. La próxima parada,
+  otra vez arriba a la derecha (con su foto y el botón de jugar) y las comarcas a todo el ancho de abajo; la cámara sube al
+  mismo paso que la isla y ya no se le escapa por arriba; la ficha del pueblo en el mapa, más ancha, con el sello de la
+  comarca, el escudo del pueblo, las misiones en una fila y la siguiente misión junto al botón de jugar.
 - 20 nov, noche (10), la hizo la ventana principal, por encargo del autor: `master` hasta `388181eb`. Los montes de las
   islas, con roca donde la hay en los de verdad: paredes, crestas y lo alto del Pirineo, pedregal al pie, menos en el norte
   atlántico y bajo el bosque; la hierba, distinta en solanas, umbrías, vaguadas y crestas; surcos de ladera y grano de
