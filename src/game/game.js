@@ -25,7 +25,7 @@ import { hablaVecino, callaVecino, narra } from './vozVecinos.js';
 import { Perro } from './perro.js';
 import { Montura, MONTURAS, tipoMontura } from './montura.js';
 import { profile } from './profile.js';
-import { navTick, resetNav } from '../world/nav.js';
+import { navTick, resetNav, walkable } from '../world/nav.js';
 import { groundHeight } from '../world/heightfield.js';
 const ORDEN_MIS = ['bienvenida', 'escudos', 'zarratrako', 'pelota', 'ovejas', 'irati', 'lamia', 'basajaun', 'muskilda'];   // (el orden de la barra y de seguir la siguiente)
 
@@ -111,6 +111,27 @@ export class Game {
       this.npcs[d.id] = a;
     }
     this.npcs.basajaun.walkSpeed = 0.8;
+    // (las leyendas y los vecinos no se quedan como estatuas: el Basajaun pasea despacio por su hayedo, también después de
+    // hablar con él; la Lamia, por la orilla de su laguna; los vecinos de las misiones dan unos pasos alrededor de su sitio
+    // y miran a un lado y a otro. Se paran cuando te acercas. El autor, 20 de noviembre de 2026: «la leyenda como el
+    // Basajaun, después de hablar con él, él siguiera andando. Necesito movimiento de los personajes»)
+    const pasea = { basajaun: 12, lamia: 3.5, maite: 2, itziar: 1.8, kike: 2, amaia: 2, garazi: 2.5, joxemari: 2, inaki: 2 };
+    for (const [id, r] of Object.entries(pasea)) if (this.npcs[id] && !(this.npcs[id].wander > 0)) this.npcs[id].wander = r;
+    // (el Basajaun en el hayedo y la Lamia en su laguna quedan fuera de la rejilla de caminos del pueblo, world/nav.js, que
+    // solo cubre 300 m alrededor: allí eligen un sitio libre que se vea en línea recta y van andando hasta él)
+    for (const id of ['basajaun', 'lamia']) {
+      const a = this.npcs[id]; if (!a) continue;
+      a.pickWander = function () {
+        for (let k = 0; k < 12; k++) { const t = Math.random() * 6.28, r = (0.35 + Math.random() * 0.65) * this.wander, x = this.home.x + Math.cos(t) * r, z = this.home.z + Math.sin(t) * r;
+          if (isFree(x, z, 0.9) && !segmentBlocked(this.pos.x, this.pos.z, x, z) && waterLevelAt(x, z) < terrainHeight(x, z) - 0.05) return { x, z }; }
+        return null;
+      };
+      const ir = a.goTo.bind(a);
+      a.goTo = function (goal, again) {
+        if (walkable(this.pos.x, this.pos.z) && walkable(goal.x, goal.z)) return ir(goal, again);
+        this.cancelPath?.(); this.cancelPath = null; this.goal = goal; this.arrived = false; this.lookHeading = null; this.path = []; this.target = { x: goal.x, z: goal.z }; this.state = 'walk'; return true;
+      };
+    }
     for (const d of walkerDefs()) { const a = new Actor({ ...d, walkSpeed: 1.1 }, this.scene); a.face = d.face; a.color = d.color; a.walker = true; this.walkers.push(a); }
     // gorriones, palomas y vencejos en la plaza de Otsagabia (pajarillos.js), como en los demás pueblos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
