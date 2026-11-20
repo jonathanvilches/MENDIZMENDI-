@@ -201,6 +201,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (15), la hizo la ventana principal, por encargo del autor: `master` hasta `2896d4b7`. En Altsasu, al
+  encontrar los tres momotxorros, el final es de miedo: salen muchos más de todas las calles, te rodean y se dispersan, con
+  luz y niebla rojas, farolas que parpadean y un zumbido con latido.
 - 20 nov, noche (14), la hizo la ventana principal, por encargo del autor: `master` hasta `4fd4760d`. Los cencerros
   vuelven a oírse (y con ellos pasos, animales y ambientes: el bus de efectos llevaba desde el 11 de noviembre sin salida).
   El avisador de proximidad de los cencerros, una píldora pequeña arriba, también en el Zarratrako de Ochagavía, que se
