@@ -45,6 +45,7 @@ import { FAUNA } from '../data/fauna.js';
 import { Colada } from '../world/colada.js';
 import { foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
+import { Posada } from './posada.js';
 import { Mercado, marketDay } from './mercado.js';
 import { GOODS } from '../data/tiendas.js';
 import { PET } from '../data/tocar.js';
@@ -342,6 +343,8 @@ export class TownGame {
     }
     // la tienda del pueblo (productos locales, producto estrella y trueque)
     try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
+    // la posada, para dormir hasta la mañana si se hace de noche (posada.js); antes que los postes, que la señalan
+    if (!d.bosque) try { this.posada = new Posada(this); } catch (e) { console.warn('posada', e); }
     // los postes indicadores: en la plaza y, si se llega lejos de ella, también donde se aparece
     try { this.carteles(); } catch (e) { console.warn('carteles', e); }
     // (antes que los vecinos: la compra se hace en ella)
@@ -691,6 +694,7 @@ export class TownGame {
     if (this.mode !== 'futbol') this.perro?.update(dt);
     if (!this.dogHi && this.mode === 'play' && !this.ui.busy && !this.sportBusy && this.elapsed > 5) { this.dogHi = true; this.perro?.hello(); }
     this.gearProps?.night(this.isNight() ? 1 : 0);
+    this.posada?.update();   // (su farol y el aviso al caer la noche)
     if (this.herd) this.updateHerd();
     this.jornales?.update(dt);
     if (this.race) this.updateRace(dt);
@@ -844,6 +848,7 @@ export class TownGame {
     if (this.fronton) dest.push({ name: tr('Frontón'), p: this.fronton.entry || this.fronton.spot });
     if (TOWN.church) dest.push({ name: corto(this.def.church?.label || 'Iglesia'), p: TOWN.church.door || PLACES.church });
     if (this.tienda?.pos) dest.push({ name: tr('Tienda'), p: this.tienda.pos });
+    if (this.posada) dest.push({ name: tr('Posada'), p: this.posada.door });
     if (this.pista?.center) dest.push({ name: tr('Pista'), p: this.pista.center });
     for (const l of TOWN.landmarks.filter(l => l.spot && !['wall', 'house', 'stelae', 'cross'].includes(l.kind)).slice(0, 3)) dest.push({ name: corto(l.name), p: l.spot });
     const pon = (c) => {
@@ -987,6 +992,7 @@ export class TownGame {
     for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'seat', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.tienda) list.push(this.tienda.interactable());
+    { const po = this.posada?.interactable(); if (po) list.push(po); }   // (de noche: dormir hasta la mañana)
     this.flora?.interactables(list);
     return list;
   }
@@ -1026,6 +1032,7 @@ export class TownGame {
     if (it.kind === 'npc' && it.a === this.pelotari) return this.campeonato ? this.freePelota() : this.invitaCampeonato();
     if (it.kind === 'npc' && it.a === this.coach) return this.playFutbol();
     if (it.kind === 'npc' && it.a === this.futsalCoach) return this.playFutsal();
+    if (it.kind === 'posada') return this.posada.dormir();
     if (it.kind === 'shop' || (it.kind === 'npc' && it.a.shop)) return this.tienda.open();
     if (it.kind === 'npc') return this.talk(it.a);
     if (it.kind === 'fronton') {

@@ -10,6 +10,7 @@ import { Animal } from '../actors/animals.js';
 import { PLACES, BRIDGES, rx, MEADOW, riverInfo } from '../world/layout.js';
 import { terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
 import { VILLAGE } from '../world/village.js';
+import { Posada } from './posada.js';
 import { LANDMARKS } from '../world/landmarks.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { makeEguzkilore, makeComb, makeLitter } from '../fx.js';
@@ -141,6 +142,8 @@ export class Game {
       if (inst) { const c = PLACES.plaza, cand = [[6, -4], [-6, -4], [7, 3], [-7, 3], [0, -7]].map(([dx, dz]) => ({ x: c.x + dx, z: c.z + dz })), s = cand.find(q => isFree(q.x, q.z, 0.8)) || cand[0], [nm] = inst.musico;
         const m = new Actor({ id: 'musico', name: nm, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z), look: { shirt: '#f4f1ea', pants: '#1d1d24', txapela: '#1d1d24', scarf: '#d42f2f', sash: '#d42f2f', espadrille: true, laces: '#d42f2f', hair: '#2a1a12', region: 'pirineo', seed: 77 } }, this.scene);
         m.musico = inst.id; this.musico = m; } } catch (e) { console.warn('músico', e); }
+    // la posada, para dormir hasta la mañana si se hace de noche (posada.js), como en los demás pueblos
+    try { this.posada = new Posada(this, VILLAGE.houses); } catch (e) { console.warn('posada', e); }
     // bailarines (aparecen en la fiesta)
     this.dancers = [];
     const m = LANDMARKS.muskilda.dance;
@@ -325,6 +328,7 @@ export class Game {
     // de cerca todos, la lamia y el Basajaun también, se veían con la ligera de 512 px; 17 de noviembre de 2026)
     if ((this.cercaT = (this.cercaT || 0) - dt) <= 0) { this.cercaT = 0.5; try { cercaVecinos([...Object.values(this.npcs), ...this.walkers], P.pos); } catch (e) { } }
     for (const a of this.dancers) if (a.visible) a.update(dt, P);
+    this.posada?.update();   // (su farol y el aviso al caer la noche)
     this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, this.mode !== 'play');
     this.colada?.update(this.elapsed);
     // objetos
@@ -414,6 +418,7 @@ export class Game {
     // el frontón está abierto siempre: con la misión de Kike activa es el peloteo; si no, un partido libre
     list.push({ kind: 'fronton', x: PLACES.fronton.x + 2, z: PLACES.fronton.z, r: 3, label: 'Jugar a pelota' });
     const mi = LANDMARKS.mirador; list.push({ kind: 'mirador', x: mi.x + 1.8, z: mi.z - 1.3, r: 2, label: 'Mirar por el catalejo' });
+    { const po = this.posada?.interactable(); if (po) list.push(po); }   // (de noche: dormir hasta la mañana)
     // (tu montura: montarla, o bajarte si vas en ella; montado, bajar es lo único que se ofrece)
     const M = this.montura, Pl = this.player;
     if (M && Pl.vehiculo === M) return [{ kind: 'desmontar', x: Pl.pos.x, z: Pl.pos.z, r: 99, label: M.T.bajar }];
@@ -467,6 +472,7 @@ export class Game {
   async interact(it) {
     if (it.kind === 'montar') return this.montura?.sube(this.player);
     if (it.kind === 'desmontar') return this.montura?.baja();
+    if (it.kind === 'posada') return this.posada?.dormir();
     this.sound.ui('click');
     if (it.kind === 'musico') return this.tocarCon(it.a);
     if (it.kind === 'npc') return this.talk(it.a);

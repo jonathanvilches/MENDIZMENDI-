@@ -2067,6 +2067,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en `.dd-tx`, y el bloque es un contenedor: cuando mide 760 px o más, porque va solo en su fila, la ilustración pasa a la
   izquierda con el alto del texto y lo escrito a su derecha; sin ilustración, lo escrito en dos columnas, con cada
   subtítulo pegado a lo suyo. Para verlo: `didactico-rejilla.mjs` en la carpeta de trabajo de la sesión.
+- **La posada para pasar la noche** (`game/posada.js`; el autor, 20 de noviembre de 2026: «si realizando las misiones se
+  nos hace de noche, podemos buscar un hostal o una borda o una posada donde pasar la noche hasta el día siguiente»).
+  En cada pueblo (no en los bosques), una casa con puerta cerca de la plaza (a 12-70 m, lejos de la tienda) lleva un
+  letrero colgado de un hierro, «OSTATUA · Posada» con una cama, y un farol que se enciende de noche. De noche, en su
+  puerta, «Dormir en la posada hasta la mañana»: fundido, las 7:45, los corazones de la aventura llenos y un «buenos
+  días». Al caer la noche avisa una vez, salvo si se sigue una leyenda que solo se ve de noche (`leyendaNoche`, de
+  `townLeyendas.js`). Sale en los postes indicadores. En Otsagabia, que va con su propio juego (`game.js`), la misma
+  posada con sus casas (`VILLAGE.houses`); allí no hay `isNight` y la posada hace la cuenta de la noche ella misma.
 - **La bici, entera** (`game/conducir.js`, `biciModel`; el autor, 20 de noviembre de 2026: «a la bici le faltan partes»).
   El tubo de la dirección, la horquilla, la potencia y la barra del manillar se colgaban del cuadro y no del grupo que
   gira con el manillar (`frente`), así que se dibujaban 36 cm más atrás: la rueda de delante iba suelta, sin horquilla.

@@ -189,6 +189,7 @@ export class PuebloLeyendas {
     // la noche dura más mientras se sigue una leyenda, y la niebla la hace más misteriosa
     const base = 24 / (16 * 60) * (this.P.settings.timeSpeed ?? 1);
     if (this.sky) this.sky.speed = active && night ? base * 0.12 : base;
+    this.leyendaNoche = active && night;   // (la posada no avisa de dormir mientras se sigue una leyenda: posada.js)
     const fog = this.scene.fog;
     if (fog && fog.isFog) { this.fogFar0 ??= fog.far; const want = this.desfileOn?.rojo ? Math.min(this.fogFar0, 85) : active && night ? Math.min(this.fogFar0, 140) : this.fogFar0; fog.far += (want - fog.far) * Math.min(1, dt * 0.8); }   // (y en el final de los momotxorros, aún más cerca: la niebla roja)
     for (const f of this.folk) if (f.fm?.night) { f.obj.visible = f.obj.visible && night; }
