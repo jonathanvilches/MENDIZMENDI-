@@ -110,6 +110,26 @@
   #hub.juego .m3d .ft-sig small { font-size: 10px; } #hub.juego .m3d .ft-sig b { font-size: 12px; }
   #hub.juego .m3d .ft-pie .ft-go { min-height: 38px; padding: 0 14px; }
 }
+/* ---------- LA FICHA DEL PUEBLO, MENOS ES MÁS (20 de noviembre de 2026, noche). El autor, con la ficha nueva delante: «hay
+   demasiados elementos, el fondo debería ser un poco más oscuro, quizás no sale el escudo… menos es más». La foto del
+   pueblo queda detrás de un velo oscuro (se intuye, no compite con el nombre); arriba, el escudo del pueblo y su nombre
+   (fuera el sello redondo de la comarca, que ya está encendida en la fila de abajo); el escudo, en color si ya se ha
+   descubierto y, si no, en gris, pero entero y a la vista (la silueta blanca de antes parecía que faltaba); las misiones,
+   sin caja ni barra: el rótulo con lo hecho y la fila de casillas; y la siguiente misión, una línea de texto junto al
+   botón, sin caja ni icono (ya va marcada en la fila) ---------- */
+#hub.juego .m3d .m3-ft .ft-fondo img { opacity: .8; }
+#hub.juego .m3d .m3-ft .ft-fondo::after { background: linear-gradient(180deg, rgba(13, 6, 28, .66) 0%, rgba(13, 6, 28, .8) 50%, rgba(13, 6, 28, .9) 100%); }
+#hub.juego .m3d .ft-cab { display: flex; align-items: center; gap: 14px; }
+#hub.juego .m3d .ft-cab .ft-n { flex: 1; }
+#hub.juego .m3d .ft-esc { flex: none; width: 64px; height: 74px; }
+#hub.juego .m3d .ft-esc.bloq { filter: grayscale(1) brightness(1.15) drop-shadow(0 4px 10px rgba(4, 1, 12, .55)); opacity: .85; }
+#hub.juego .m3d .ft-ms { gap: 10px; padding: 0; background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+#hub.juego .m3d .ft-sig { grid-template-columns: minmax(0, 1fr); padding: 0; background: none; border: 0; }
+@media (max-height: 520px) {
+  #hub.juego .m3d .ft-cab { gap: 10px; }
+  #hub.juego .m3d .ft-esc { width: 44px; height: 52px; }
+  #hub.juego .m3d .ft-ms { gap: 6px; }
+}
 /* (el móvil de pie: la ficha abajo, a lo ancho; el botón, debajo de la siguiente misión si no caben) */
 @media (max-width: 640px) and (min-height: 521px) {
   #hub.juego .m3d .ft-pie { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }

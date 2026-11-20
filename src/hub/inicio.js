@@ -138,15 +138,16 @@ function fichaHTML(p, l) {
   const img = townImg(l, true), E = !l.bosque && OPC.escudo?.(l), sig = !DD && ms.find(m => !m.done);
   const go = DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`;
   return `${img ? `<span class="ft-fondo"><img src="${img}" alt="" decoding="async"></span>` : ''}
-    <span class="ft-cab"><img class="ft-sello" src="${stampImg(l.comarca)}" alt="" decoding="async"><span class="ft-n"><small>${esc(c?.name || '')}</small><b>${nombre}</b></span>${E ? `<img class="ft-esc${E.visto ? '' : ' bloq'}" src="${E.src}" alt="" decoding="async" title="${E.visto ? 'Su escudo' : 'Escudo por descubrir'}">` : ''}</span>
+    <span class="ft-cab">${E ? `<img class="ft-esc${E.visto ? '' : ' bloq'}" src="${E.src}" alt="" decoding="async" title="${E.visto ? 'Su escudo' : 'Escudo por descubrir'}">` : ''}<span class="ft-n"><small>${esc(c?.name || '')}</small><b>${nombre}</b></span></span>
     ${ms.length && !DD ? misionesHTML(ms, t) : ''}
-    <span class="ft-pie">${sig ? `<span class="ft-sig" style="--mc:${sig.mc || '#c9b8ff'}"><i>${I(sig.icon || 'star', 20)}</i><span><small>Siguiente</small><b>${esc(sig.title)}</b></span></span>` : ''}${go}</span>`;
+    <span class="ft-pie">${sig ? `<span class="ft-sig"><span><small>Siguiente</small><b>${esc(sig.title)}</b></span></span>` : ''}${go}</span>`;
 }
-// (las misiones del pueblo en su ficha: cuántas van con su barra y una casilla igual para cada una, a lo ancho en una fila
-// (dos si son muchas), hechas con su color y la siguiente marcada; sin más texto)
+// (las misiones del pueblo en su ficha: cuántas van y una casilla igual para cada una, a lo ancho en una fila (dos si son
+// muchas), hechas con su color y la siguiente marcada; sin más texto. Sin la barra desde el 20 de noviembre por la noche:
+// repetía el «0/9» y las casillas ya dicen cuáles están hechas. El autor: «hay demasiados elementos… menos es más»)
 function misionesHTML(ms, t) {
-  const sig = ms.find(m => !m.done), cols = ms.length > 12 ? Math.ceil(ms.length / 2) : ms.length, pct = Math.round(100 * t.done / Math.max(1, t.total));
-  return `<span class="ft-ms"><span class="ft-ms-h"><b>Misiones</b><em>${t.done}/${t.total}</em></span><i class="ft-ms-bar"><u style="width:${pct}%"></u></i>
+  const sig = ms.find(m => !m.done), cols = ms.length > 12 ? Math.ceil(ms.length / 2) : ms.length;
+  return `<span class="ft-ms"><span class="ft-ms-h"><b>Misiones</b><em>${t.done}/${t.total}</em></span>
     <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" style="--mc:${m.mc || '#c9b8ff'}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
 }
 let MAPA = null;
