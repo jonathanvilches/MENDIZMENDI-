@@ -169,6 +169,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (7), la hizo la ventana principal, por encargo del autor: `master` hasta `b2f7198f`. Lo del vídeo del
+  iPhone de las 16:46: el vuelo de dron de la isla sin parones (un programa del sombreado que faltaba por preparar y
+  medidas de la página que obligaban a recolocarlo todo a mitad de fotograma) y el terreno que baja hasta el borde de la
+  isla sin la repisa lisa. El inicio sin «0/12 comarcas»: el progreso está en el panel nuevo «Tu progreso» (menú →
+  Progreso, o tocando tu retrato). La próxima parada, abajo a la derecha como tarjeta con foto y JUGAR. Iconos de jugar y
+  pausa en glifo blanco redondeado.
 - 20 nov, noche (6), la hizo la ventana principal, por encargo del autor: `master` hasta `b0747c85`. La barra de arriba
   del mapa del inicio, rehecha como cabecera plana igual que la del menú («No me gusta la barra que has añadido de menú,
   comarcas y la pantalla que estamos jugando actualmente»): sin cápsulas, el texto sobre un velo fino, el botón redondo
