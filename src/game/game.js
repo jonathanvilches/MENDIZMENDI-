@@ -272,7 +272,7 @@ export class Game {
       case 'irati': return q.step === 1 ? { x: 0, z: -290, h: 3, noArrow: true } : at(N.inaki);
       case 'basajaun': {
         if (q.step === 0 || q.step === 2) return at(N.basajaun);
-        return this.nearest((this.litterItems || []).map(l => ({ x: l.x, z: l.z, h: 1.2 })));
+        return this.nearest((this.litterItems || []).filter(l => this.items.includes(l)).map(l => ({ x: l.x, z: l.z, h: 1.2 })));
       }
       case 'lamia': return q.step === 1 && this.combItem ? { x: this.combItem.x, z: this.combItem.z, h: 1.5 } : at(N.lamia);
       case 'zarratrako': {
@@ -510,6 +510,8 @@ export class Game {
       this.ui.toast(`Eguzkilore ${this.state.eguz.length}/${EGUZKILORES.length}`, 'eguzkilore');
       if (this.state.eguz.length === EGUZKILORES.length) { this.state.stars += 5; await this.ui.reward({ icon: 'sun', title: '¡Todos los eguzkilores!', text: 'Has encontrado las doce flores del sol. Según la tradición, protegen las casas. ¡+5 estrellas!' }); }
     } else if (it.kind === 'litter') {
+      // (fuera también de la lista que sigue la flecha amarilla: si no, seguía señalando la basura ya recogida)
+      this.litterItems = (this.litterItems || []).filter(x => x !== it);
       this.state.litter.push(it.id); this.sound.ui('coin');
       this.ui.toast(`Basura recogida ${this.state.litter.length}/5`, 'litter');
       if (this.state.litter.length >= 5) this.advance('basajaun', 2);
