@@ -177,6 +177,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (8), la hizo la ventana principal, por encargo del autor: `master` hasta `94c6f3a0`. «Tu progreso» como
+  panel de control: tres esferas de anillos que se llenan al entrar (explorador, pelotari y fútbol), la tabla de tu liga,
+  el ranking de pelotaris de tus campeonatos y cada comarca con su anillo. Los pelotaris celebran con los brazos en V sin
+  meter las manos en la cabeza y corren con los pies por debajo del cuerpo. Torneos ya con la música de la pelota.
 - 20 nov, noche (7), la hizo la ventana principal, por encargo del autor: `master` hasta `b2f7198f`. Lo del vídeo del
   iPhone de las 16:46: el vuelo de dron de la isla sin parones (un programa del sombreado que faltaba por preparar y
   medidas de la página que obligaban a recolocarlo todo a mitad de fotograma) y el terreno que baja hasta el borde de la
