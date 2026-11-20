@@ -21,6 +21,14 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · personajes** (20 nov, noche): por encargo directo del autor («cuando celebren y levanten las
+  manos no se atraviesen la cabeza» y «que a la hora de correr no corran con las piernas en V»), en vuestro
+  `src/actors/pelotaMoves.js`: (1) `montaje` mide el volumen de la cabeza con el pelo (`volumenCabeza`, un mapa de hasta
+  dónde llega en cada dirección) y `posa` aparta de él el codo, el antebrazo, la mano y los dedos (`enCabeza`); los puños
+  arriba (`PUNO_ARRIBA`, `PUNOS_ARRIBA`) van abiertos en V. (2) `carreraNatural(scene, clip)`, nuevo: la carrera de Meshy
+  con los tobillos hacia el centro, rodillas adelante y manos junto al cuerpo; lo llama `loadMeshy` de
+  `src/actors/glbChar.js` solo para los pelotaris. `tools/anatomia-pelotaris.mjs` sigue sin fallos; lámina para verlo:
+  `tools/clips-ver.mjs`. Detalle en ARQUITECTURA («Movimientos de pelota del pelotari»).
 - **De Principal a Pelota · personajes** (20 nov, tarde): por encargo directo del autor («en la vista de dron sobre los
   espectadores se ve claramente que no tienen movimiento… su posición de reposo no es con las manos en las rodillas,
   están como medio aplaudiendo, pero tampoco aplauden cuando se genera la acción»), en vuestros `src/actors/crowdAnim.js`

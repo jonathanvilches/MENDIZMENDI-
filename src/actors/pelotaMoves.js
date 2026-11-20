@@ -84,13 +84,17 @@ const SIGUE_BS = { ...SIGUE_A, c: [0.03, -0.06, 0.04], H: [4, 20, 0], S: [2, 10,
 const SAQUE_0 = { ...REPOSO, c: [0, -0.03, 0], S: [6, 0, 0], N: [-6, 0, 0], Lm: [0.10, 0.88, 0.30], Lc: [0.6, -1, -0.4], Rm: [-0.20, 0.76, 0.14] };
 const SAQUE_BOTA = { ...PASO, c: [-0.03, -0.10, 0.06], H: [10, -20, 0], S: [16, -10, 0], Lm: [0.16, 0.70, 0.34], Lc: [0.6, -1, -0.2], Rm: [-0.46, 0.84, -0.04], Lp: [0.08, 0.05, 0.16], Lr: [-8, 6, 0] };
 // (celebrar: puño arriba dos veces; lamentar: las manos a la cabeza y la cabeza abajo)
-const PUNO_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-6, 0, 0], N: [-10, 0, 0], Hd: [-12, 0, 0], Rm: [-0.22, 1.42, 0.10], Rc: [-1, 0, 0], Lm: [0.26, 0.80, 0.10] };
+// (el puño arriba y abierto hacia fuera, en diagonal: recto hacia arriba, con la cabeza grande y el brazo corto, la mano
+// quedaba delante de la cara o metida en el pelo; el autor, 20 de noviembre de 2026)
+const PUNO_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-6, 0, 2], N: [-10, 0, 0], Hd: [-12, 6, 0], Rm: [-0.40, 1.30, 0.0], Rc: [-1, 0.2, -0.3], Lm: [0.26, 0.80, 0.10] };
 const PUNO_ABAJO = { ...REPOSO, c: [0, -0.07, 0.01], S: [12, 0, 0], S1: [4, 0, 0], N: [-6, 0, 0], Rm: [-0.20, 0.90, 0.20], Rc: [-0.4, -1, -0.4], Lm: [0.24, 0.80, 0.14], Lp: [0.04, 0, 0], Rp: [-0.04, 0, 0] };
 const CABEZA = { ...REPOSO, c: [0, -0.02, 0], S: [8, 0, 0], N: [14, 0, 0], Hd: [16, 0, 0], Lm: [0.16, 1.30, 0.02], Lc: [1, 0, -0.3], Lw: -20, Rm: [-0.16, 1.30, 0.02], Rc: [-1, 0, -0.3], Rw: -20 };
 // (más maneras de celebrar y de lamentar, y los gestos de entre tanto y tanto, para que no hagan siempre lo mismo)
 // (los dos brazos arriba, con un salto; y el aplauso a la grada)
 const AGACHA = { ...REPOSO, c: [0, -0.13, 0.01], H: [6, 0, 0], S: [10, 0, 0], N: [-8, 0, 0], Rm: [-0.22, 0.74, 0.16], Rc: [-0.6, -1, -0.3], Lm: [0.22, 0.74, 0.16], Lc: [0.6, -1, -0.3] };
-const PUNOS_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-8, 0, 0], N: [-10, 0, 0], Hd: [-14, 0, 0], Rm: [-0.25, 1.42, 0.08], Rc: [-1, 0, 0], Lm: [0.25, 1.42, 0.08], Lc: [1, 0, 0] };
+// (los dos brazos arriba en V, como se celebra un tanto: abiertos hacia fuera y algo atrás, para que no tapen la cara ni se
+// metan en el pelo)
+const PUNOS_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-8, 0, 0], N: [-10, 0, 0], Hd: [-14, 0, 0], Rm: [-0.42, 1.29, -0.02], Rc: [-1, 0.2, -0.3], Lm: [0.42, 1.29, -0.02], Lc: [1, 0.2, -0.3] };
 const SALTO = { ...PUNOS_ARRIBA, c: [0, 0.1, 0], Lp: [0, 0.12, 0], Rp: [0, 0.12, 0], Lr: [18, 6, 0], Rr: [18, -6, 0] };
 // (las palmas, delante del pecho: por encima de la cabeza no llegan, que la tienen grande, y se tapaban la cara)
 const PALMAS = { ...REPOSO, c: [0, 0, 0], S: [-4, 0, 0], N: [-6, 0, 0], Hd: [-8, 0, 0], Rm: [-0.04, 0.99, 0.27], Rc: [-0.8, -1, 0], Rt: 0, Lm: [0.04, 0.99, 0.27], Lc: [0.8, -1, 0], Lt: 0 };
@@ -121,8 +125,8 @@ const MOVS = [
   ['Serve', 'Saque', false, [T(0, SAQUE_0), T(0.35, SAQUE_0), T(0.62, SAQUE_BOTA), T(0.86, ARMADO_B), T(0.95, IMPACTO_B), T(1.14, SIGUE), T(1.6, ESPERA)]],
   ['ShuffleR', 'Lateral a la derecha', true, [T(0, ESPERA), T(0.13, { ...ESPERA, c: [-0.05, -0.09, -0.03], Rp: [-0.19, 0.06, -0.05], Rr: [-6, -10, 0] }), T(0.26, { ...ESPERA, c: [-0.05, -0.13, -0.03], Rp: [-0.17, 0, -0.05], Lp: [0.02, 0, 0.05] }),
     T(0.39, { ...ESPERA, c: [0, -0.10, -0.03], Lp: [0.0, 0.06, 0.05], Lr: [-6, 10, 0] }), T(0.52, ESPERA)]],
-  ['Celebrate', 'Celebra', false, [T(0, REPOSO), T(0.22, PUNO_ABAJO), T(0.45, PUNO_ARRIBA), T(0.68, PUNO_ABAJO), T(0.92, PUNO_ARRIBA), T(1.15, { ...PUNO_ARRIBA, Rm: [-0.24, 1.36, 0.12] }), T(1.6, REPOSO)]],
-  ['Celebrate2', 'Celebra con salto', false, [T(0, REPOSO), T(0.2, AGACHA), T(0.4, SALTO), T(0.62, { ...PUNOS_ARRIBA, c: [0, -0.07, 0.01], S: [2, 0, 0] }), T(0.85, PUNOS_ARRIBA), T(1.05, { ...PUNOS_ARRIBA, Rm: [-0.27, 1.36, 0.1], Lm: [0.27, 1.36, 0.1] }), T(1.25, PUNOS_ARRIBA), T(1.7, REPOSO)]],
+  ['Celebrate', 'Celebra', false, [T(0, REPOSO), T(0.22, PUNO_ABAJO), T(0.45, PUNO_ARRIBA), T(0.68, PUNO_ABAJO), T(0.92, PUNO_ARRIBA), T(1.15, { ...PUNO_ARRIBA, Rm: [-0.38, 1.26, 0.04] }), T(1.6, REPOSO)]],
+  ['Celebrate2', 'Celebra con salto', false, [T(0, REPOSO), T(0.2, AGACHA), T(0.4, SALTO), T(0.62, { ...PUNOS_ARRIBA, c: [0, -0.07, 0.01], S: [2, 0, 0] }), T(0.85, PUNOS_ARRIBA), T(1.05, { ...PUNOS_ARRIBA, Rm: [-0.40, 1.25, 0.02], Lm: [0.40, 1.25, 0.02] }), T(1.25, PUNOS_ARRIBA), T(1.7, REPOSO)]],
   ['Celebrate3', 'Aplaude a la grada', false, [T(0, REPOSO), T(0.3, PALMAS_ABRE), T(0.42, PALMAS), T(0.56, PALMAS_ABRE), T(0.68, PALMAS), T(0.82, PALMAS_ABRE), T(0.94, PALMAS), T(1.08, PALMAS_ABRE), T(1.2, PALMAS), T(1.34, PALMAS_ABRE), T(1.8, REPOSO)]],
   ['Sad2', 'Lamento en jarra', false, [T(0, REPOSO), T(0.4, JARRA), T(0.75, { ...JARRA, Hd: [16, -14, 0] }), T(1.1, { ...JARRA, Hd: [16, 14, 0] }), T(1.45, { ...JARRA, Hd: [16, -10, 0] }), T(1.75, JARRA), T(2.2, REPOSO)]],
   ['Sopla', 'Se sopla la mano', false, [T(0, REPOSO), T(0.35, SOPLA), T(0.6, { ...SOPLA, Rm: [-0.03, 1.12, 0.22], Hd: [12, 0, 0] }), T(0.85, SOPLA), T(1.1, { ...SOPLA, Rm: [-0.03, 1.12, 0.22], Hd: [12, 0, 0] }), T(1.3, SOPLA), T(1.7, REPOSO)]],
@@ -211,7 +215,75 @@ function montaje(scene) {
     const aRef = a.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(up, ref)); aRef.addScaledVector(ref, -aRef.dot(ref)).normalize();
     anat[s] = { upR: up, aR: a, bisR: new THREE.Vector3().crossVectors(up, a).normalize(), ref, aRef };
   }
-  return { B, R, L, inv, scene, anat };
+  return { B, R, L, inv, scene, anat, cab: volumenCabeza(scene, B.Hd, inv) };
+}
+
+// EL VOLUMEN DE LA CABEZA, CON EL PELO, para que las manos y los brazos no la atraviesen. El autor, 20 de noviembre de 2026:
+// «cuando celebren y levanten las manos no se atraviesen la cabeza, como si fueran personajes humanos de verdad». Tienen la
+// cabeza grande y el brazo corto: con los puños arriba, las manos y los antebrazos se metían en el pelo, y en el lamento
+// (las manos a la cabeza) entraban hasta media cabeza. Se mide una vez por modelo con los vértices de la cabeza y lo que
+// cuelga de ella (pelo incluido), ya con la escala de la cabeza (CABEZA de glbChar), en los ejes del hueso de la cabeza:
+// desde el centro de esos vértices, hasta dónde llega la cabeza en cada dirección (24 × 48 direcciones, el más lejano de
+// cada una), como un mapa del contorno: sigue el pelo rizado, los moños y las coletas, donde una caja o un elipsoide se
+// quedaban cortos o se pasaban. Sin malla (las pruebas sin navegador), null y nada cambia
+const CAB_EL = 24, CAB_AZ = 48;
+function volumenCabeza(scene, head, inv) {
+  if (scene.userData._cab !== undefined) return scene.userData._cab;
+  let cab = null;
+  try {
+    const hm = new THREE.Matrix4().multiplyMatrices(inv, head.matrixWorld), hmInv = hm.clone().invert();
+    const pts = [], v = new THREE.Vector3(), w4 = new THREE.Vector4(), j4 = new THREE.Vector4();
+    scene.traverse(o => {
+      if (!o.isSkinnedMesh || !o.skeleton) return;
+      const bones = o.skeleton.bones, deCab = bones.map(b => { for (let p = b; p; p = p.parent) if (p === head) return true; return false; });
+      if (!deCab.some(Boolean)) return;
+      const pos = o.geometry.attributes.position, si = o.geometry.attributes.skinIndex, sw = o.geometry.attributes.skinWeight; if (!si || !sw) return;
+      const mw = new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld);
+      for (let i = 0; i < pos.count; i++) {
+        j4.fromBufferAttribute(si, i); w4.fromBufferAttribute(sw, i);
+        let wc = 0; for (let c = 0; c < 4; c++) if (deCab[j4.getComponent(c)]) wc += w4.getComponent(c);
+        if (wc < 0.6) continue;
+        v.fromBufferAttribute(pos, i); o.applyBoneTransform(i, v); v.applyMatrix4(mw).applyMatrix4(hmInv); pts.push(v.x, v.y, v.z);
+      }
+    });
+    const n = pts.length / 3;
+    if (n > 50) {
+      const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+      for (let i = 0; i < n; i++) for (let j = 0; j < 3; j++) { lo[j] = Math.min(lo[j], pts[i * 3 + j]); hi[j] = Math.max(hi[j], pts[i * 3 + j]); }
+      const c = new THREE.Vector3((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2), R = new Float32Array(CAB_EL * CAB_AZ);
+      for (let i = 0; i < n; i++) {
+        const x = pts[i * 3] - c.x, y = pts[i * 3 + 1] - c.y, z = pts[i * 3 + 2] - c.z, d = Math.hypot(x, y, z); if (d < 1e-6) continue;
+        const e = Math.min(CAB_EL - 1, Math.floor((Math.asin(Math.max(-1, Math.min(1, y / d))) / Math.PI + 0.5) * CAB_EL)), az = Math.floor(((Math.atan2(z, x) / (2 * Math.PI)) + 1) % 1 * CAB_AZ) % CAB_AZ;
+        if (d > R[e * CAB_AZ + az]) R[e * CAB_AZ + az] = d;
+      }
+      const e3 = new THREE.Vector3(); hm.decompose(new THREE.Vector3(), new THREE.Quaternion(), e3);
+      cab = { c, R, esc: (e3.x + e3.y + e3.z) / 3 };
+    }
+  } catch (e) { cab = null; }
+  scene.userData._cab = cab;
+  return cab;
+}
+// (hasta dónde llega la cabeza en una dirección: el mapa, entre sus cuatro casillas más cercanas)
+function radioCabeza(cab, x, y, z, d) {
+  const fe = (Math.asin(Math.max(-1, Math.min(1, y / d))) / Math.PI + 0.5) * CAB_EL - 0.5, fa = ((Math.atan2(z, x) / (2 * Math.PI)) + 1) % 1 * CAB_AZ - 0.5;
+  const e0 = Math.max(0, Math.min(CAB_EL - 1, Math.floor(fe))), e1 = Math.min(CAB_EL - 1, e0 + 1), te = Math.max(0, Math.min(1, fe - e0));
+  const a0 = ((Math.floor(fa) % CAB_AZ) + CAB_AZ) % CAB_AZ, a1 = (a0 + 1) % CAB_AZ, ta = fa - Math.floor(fa), R = cab.R;
+  // (la casilla más grande de las cuatro pesa algo más: entre dos rizos no se cuela la mano)
+  const r00 = R[e0 * CAB_AZ + a0], r01 = R[e0 * CAB_AZ + a1], r10 = R[e1 * CAB_AZ + a0], r11 = R[e1 * CAB_AZ + a1];
+  const bil = (r00 * (1 - ta) + r01 * ta) * (1 - te) + (r10 * (1 - ta) + r11 * ta) * te;
+  return Math.max(bil, 0.85 * Math.max(r00, r01, r10, r11));
+}
+// (lo que se ha apartado de la cabeza al hornear, para la prueba)
+export const _cabeza = { apartados: 0, peor: 1 };
+const _hl = new THREE.Vector3();
+// cuánto se mete un punto en la cabeza (menos de 1: dentro) y, si se mete, el punto de la superficie hacia el que salir
+function enCabeza(cab, hm, hmInv, p, margen, sale) {
+  _hl.copy(p).applyMatrix4(hmInv).sub(cab.c);
+  const d = _hl.length(); if (d < 1e-6) return 1;
+  const r = radioCabeza(cab, _hl.x, _hl.y, _hl.z, d); if (r <= 0) return 1;
+  const lim = r + margen / cab.esc, k = d / lim;
+  if (k < 1 && sale) sale.copy(_hl).multiplyScalar(lim / d).add(cab.c).applyMatrix4(hm);
+  return k;
 }
 
 // (el esqueleto sobre el que se hicieron las poses: hombros, brazo entero y altura de la cadera; montaje, valor)
@@ -321,6 +393,7 @@ function posa(M, pose) {
   const pecho = mundo(R, 'S2', inv).m.multiply(_m.copy(R.S2.M).invert());
   const pq = new THREE.Quaternion().setFromRotationMatrix(_m2.extractRotation(pecho));
   const pqInv = pq.clone().invert();
+  const cabM = M.cab ? mundo(R, 'Hd', inv).m : null, cabInv = cabM ? cabM.clone().invert() : null;
   for (const s of ['L', 'R']) {
     const A = R[s + 'A'], F = R[s + 'F'], Hh = R[s + 'H'], [L1, L2] = L[s + 'A'], an = M.anat[s];
     const Sh = mundo(R, s + 'A', inv).P, T = new THREE.Vector3(...pose[s + 'm']).applyMatrix4(pecho);
@@ -328,7 +401,18 @@ function posa(M, pose) {
     const dMin = Math.sqrt(L1 * L1 + L2 * L2 - 2 * L1 * L2 * Math.cos((180 - ANATOMIA.codoMax) * G)), dST = T.distanceTo(Sh);
     if (dST < dMin) { T.sub(Sh).multiplyScalar(dMin / Math.max(1e-5, dST)).add(Sh); _anatomia.codo++; }
     const pole = poloHumano(an, s, Sh, T, new THREE.Vector3(...pose[s + 'c']).applyQuaternion(pq), L1, L2, pqInv);
-    const k = dosHuesos(Sh, T, pole, L1, L2);
+    let k = dosHuesos(Sh, T, pole, L1, L2);
+    // (sin meterse en la cabeza: el codo, el antebrazo, la muñeca y la mano, con su grosor, fuera de su volumen; si algo
+    // entra, la mano sale hacia la superficie más cercana y el brazo se vuelve a colocar, hasta que nada entre)
+    if (cabM) for (let it = 0; it < 12; it++) {
+      const kB = M.R[ESC]?.kB || 1, mano = k.T.clone().addScaledVector(k.lo, 0.05 * kB), dedos = k.T.clone().addScaledVector(k.lo, 0.1 * kB);
+      const pts = [[Sh.clone().lerp(k.E, 0.7), 0.045], [k.E, 0.045], [k.E.clone().lerp(k.T, 0.5), 0.04], [k.T, 0.04], [mano, 0.04], [dedos, 0.03]];
+      let peor = 1, dl = null;
+      for (const [q, mg] of pts) { const sale = new THREE.Vector3(), kk = enCabeza(M.cab, cabM, cabInv, q, mg, sale); if (kk < peor) { peor = kk; dl = sale.sub(q); } }
+      if (!dl) break;
+      if (it === 0) { _cabeza.apartados++; _cabeza.peor = Math.min(_cabeza.peor, peor); }
+      T.add(dl.multiplyScalar(1.15)); k = dosHuesos(Sh, T, pole, L1, L2);
+    }
     const upR = F.P.clone().sub(A.P).normalize(), loR = Hh.P.clone().sub(F.P).normalize();
     // (el lado hacia el que se dobla, el anatómico: montaje)
     const bisR = an.bisR.clone();
@@ -416,4 +500,60 @@ export function poseArmado(scene, cual = 'Hit', izq = false) {
   for (const [k, r] of Object.entries(M.R)) out.q[r.b.name] = r.b.quaternion.clone();
   for (const r of Object.values(M.R)) { r.b.quaternion.copy(r.q0); r.b.position.copy(r.p0); }
   return out;
+}
+
+/**
+ * LA CARRERA, CON LOS PIES POR DEBAJO DEL CUERPO. El autor, 20 de noviembre de 2026: «que a la hora de correr no corran
+ * con las piernas en V, que el movimiento de correr sea más natural, más orgánico». La carrera que trae Meshy pisa con los
+ * pies a 30 cm uno del otro, más abiertos que la cadera (22 cm entre las dos articulaciones), y de frente las piernas
+ * hacían una V. Corriendo, una persona pisa casi en una línea, debajo del centro del cuerpo. Aquí, en cada fotograma del
+ * clip, cada tobillo se lleva hacia el centro (lo que se separa del centro de la cadera, por `k`) sin cambiar ni su altura
+ * ni lo que avanza o retrasa, la pierna se vuelve a colocar con dos huesos, con la rodilla hacia delante (lo que se
+ * abría de lado, por `rodilla`), y el pie conserva el giro que traía. Se hace una vez al cargar el modelo.
+ * @returns {THREE.AnimationClip} el clip nuevo (o el mismo si el esqueleto no es el de Mixamo)
+ */
+export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0.35 } = {}) {
+  const M = clip && montaje(scene); if (!M) return clip;
+  const { R, L, inv } = M, nom = (s) => `${R[s].b.name}.quaternion`;
+  const trU = clip.tracks.find(t => t.name === nom('LU')); if (!trU) return clip;
+  const mixer = new THREE.AnimationMixer(scene), act = mixer.clipAction(clip); act.play();
+  const W = (o) => { const q = new THREE.Quaternion(); new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld).decompose(_v.clone(), q, _v.clone()); return q; };
+  const times = trU.times, n = times.length, ks = ['LU', 'LL', 'LP', 'RU', 'RL', 'RP', 'LA', 'LF', 'LH', 'RA', 'RF', 'RH'], Q = Object.fromEntries(ks.map(s => [s, new Float32Array(n * 4)]));
+  for (let i = 0; i < n; i++) {
+    mixer.setTime(times[i]); scene.updateMatrixWorld(true);
+    const Hc = mundo(R, 'H', inv).P;
+    for (const s of ['L', 'R']) {
+      const U = mundo(R, s + 'U', inv), Kn = mundo(R, s + 'L', inv), F = mundo(R, s + 'P', inv), [L1, L2] = L[s + 'U'];
+      const Ft = F.P.clone(); Ft.x = Hc.x + (F.P.x - Hc.x) * k;
+      const eje = F.P.clone().sub(U.P).normalize(), pol = Kn.P.clone().sub(U.P); pol.addScaledVector(eje, -pol.dot(eje)); pol.x *= rodilla; if (pol.lengthSq() < 1e-8) pol.set(0, 0, 1);
+      const sol = dosHuesos(U.P, Ft, pol, L1, L2);
+      const wU = new THREE.Quaternion().setFromUnitVectors(Kn.P.clone().sub(U.P).normalize(), sol.up).multiply(U.W);
+      R[s + 'U'].b.quaternion.copy(W(R[s + 'U'].b.parent).invert().multiply(wU)); scene.updateMatrixWorld(true);
+      const K2 = mundo(R, s + 'L', inv), F2 = mundo(R, s + 'P', inv);
+      const wL = new THREE.Quaternion().setFromUnitVectors(F2.P.clone().sub(K2.P).normalize(), sol.lo).multiply(K2.W);
+      R[s + 'L'].b.quaternion.copy(wU.clone().invert().multiply(wL));
+      R[s + 'P'].b.quaternion.copy(wL.clone().invert().multiply(F.W)); scene.updateMatrixWorld(true);
+      // (y los brazos, recogidos junto al cuerpo: en la carrera de Meshy las manos iban 9 cm por fuera de los hombros, con los
+      // codos abiertos, como si llevase una bandeja; corriendo, el brazo va y viene pegado al costado. La mano se acerca a
+      // la línea del hombro, por `brazo`, sin cambiar su altura ni lo que avanza, el codo apunta atrás y la mano conserva su giro)
+      const A = mundo(R, s + 'A', inv), E = mundo(R, s + 'F', inv), Hm = mundo(R, s + 'H', inv), [A1, A2] = L[s + 'A'];
+      const Ht = Hm.P.clone(); Ht.x = A.P.x + (Hm.P.x - A.P.x) * brazo;
+      const ejeA = Hm.P.clone().sub(A.P).normalize(), polA = E.P.clone().sub(A.P); polA.addScaledVector(ejeA, -polA.dot(ejeA)); polA.x *= 0.4; if (polA.lengthSq() < 1e-8) polA.set(0, 0, -1);
+      const solA = dosHuesos(A.P, Ht, polA, A1, A2);
+      const wA = new THREE.Quaternion().setFromUnitVectors(E.P.clone().sub(A.P).normalize(), solA.up).multiply(A.W);
+      R[s + 'A'].b.quaternion.copy(W(R[s + 'A'].b.parent).invert().multiply(wA)); scene.updateMatrixWorld(true);
+      const E2 = mundo(R, s + 'F', inv), H2 = mundo(R, s + 'H', inv);
+      const wF = new THREE.Quaternion().setFromUnitVectors(H2.P.clone().sub(E2.P).normalize(), solA.lo).multiply(E2.W);
+      R[s + 'F'].b.quaternion.copy(wA.clone().invert().multiply(wF));
+      R[s + 'H'].b.quaternion.copy(wF.clone().invert().multiply(Hm.W)); scene.updateMatrixWorld(true);
+      for (const b of [s + 'U', s + 'L', s + 'P', s + 'A', s + 'F', s + 'H']) { const q = R[b].b.quaternion, a = Q[b]; if (i && a[i * 4 - 4] * q.x + a[i * 4 - 3] * q.y + a[i * 4 - 2] * q.z + a[i * 4 - 1] * q.w < 0) q.set(-q.x, -q.y, -q.z, -q.w); a.set([q.x, q.y, q.z, q.w], i * 4); }
+    }
+  }
+  act.stop(); mixer.uncacheRoot(scene);
+  for (const r of Object.values(R)) { r.b.quaternion.copy(r.q0); r.b.position.copy(r.p0); }
+  scene.updateMatrixWorld(true);
+  const quita = new Set(ks.map(nom)), tracks = clip.tracks.filter(t => !quita.has(t.name)).map(t => t.clone());
+  for (const s of ks) tracks.push(new THREE.QuaternionKeyframeTrack(nom(s), times.slice(), Q[s]));
+  const c = new THREE.AnimationClip(clip.name, clip.duration, tracks); c.userData = { ...(clip.userData || {}) };
+  return c;
 }

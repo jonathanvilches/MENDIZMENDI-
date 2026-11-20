@@ -10,7 +10,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { hdTable } from '../web/hd.js';
 import { loadChica } from './chicas.js';   // (solo se usa al cargar un avatar: chicas.js importa de aquí, y al arrancar no se llama)
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
-import { pelotaMoves, poseArmado } from './pelotaMoves.js';
+import { pelotaMoves, poseArmado, carreraNatural } from './pelotaMoves.js';
 import { ponDedos, Dedos } from './dedos.js';
 
 const cache = new Map();
@@ -422,6 +422,8 @@ export async function loadMeshy(name, lod = false, completo = false) {
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
+    // (y su carrera, con los pies por debajo del cuerpo y no abiertos en V: carreraNatural, pelotaMoves.js; 20 nov 2026)
+    if (pel.length) { const i = g.animations.findIndex(c => c.name === 'Run'); if (i >= 0) g.animations[i] = carreraNatural(g.scene, g.animations[i]); }
     const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['LlevaC', 'LlevaC', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // (los golpes reales: movimientos de pelotaris de verdad sacados de vídeo y pasados a su esqueleto en Blender
     // (tools/blender/golpes-al-juego.py, «Real_Hit», «Real_Volea»...). Sustituyen a los hechos a mano de los golpes que

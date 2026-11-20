@@ -2530,6 +2530,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cámara (`camaraCuerpo.js`), la mano del golpe es la que lo da, por el lado de su hombro, no por dónde empieza el gesto;
   la dejada que haces tú, a la cintura (`match.js`, `onGolpe`), y en primera persona (`primeraPersona.js`) el brazo sube
   o baja igual.
+  Sin atravesar la cabeza (el autor, 20 de noviembre de 2026: «cuando celebren y levanten las manos no se atraviesen la
+  cabeza, como si fueran personajes humanos de verdad»). Al montar el esqueleto (`volumenCabeza`) se mide, con los
+  vértices de la cabeza y lo que cuelga de ella (el pelo, con la escala de la cabeza ya puesta), hasta dónde llega la
+  cabeza en cada dirección desde su centro: un mapa de 24 × 48 direcciones en los ejes del hueso de la cabeza, que sigue
+  rizos, moños y melenas (una caja o un elipsoide se quedaban cortos en las esquinas del pelo). Al colocar cada brazo
+  (`posa`), si el codo, el antebrazo, la muñeca, la mano o los dedos, con su grosor (de 3 a 4,5 cm), entran en ese
+  volumen, la mano sale hacia la superficie más cercana y el brazo se vuelve a colocar, hasta que nada entra (`enCabeza`;
+  `_cabeza` cuenta cuántas veces). Así, en el lamento las manos se apoyan en el pelo en vez de hundirse hasta media
+  cabeza, y soplarse la mano queda delante de la boca. Y los puños arriba ya no van rectos (con la cabeza grande y el
+  brazo corto, la mano acababa delante de la cara o en el pelo): `PUNO_ARRIBA` y `PUNOS_ARRIBA` abren el brazo en
+  diagonal, la V de quien celebra un tanto. Sin malla (las pruebas sin navegador, `tools/anatomia-pelotaris.mjs`), no hay
+  volumen y nada cambia.
+  La carrera, con los pies por debajo del cuerpo (`carreraNatural`, desde `loadMeshy` de `glbChar.js`, solo en los
+  pelotaris). El autor, el mismo día: «que a la hora de correr no corran con las piernas en V». La de Meshy pisaba con
+  los tobillos a 30 cm uno del otro, más abiertos que la cadera (22 cm), con las rodillas abiertas, y llevaba las manos
+  por fuera de los hombros, como con una bandeja. En cada fotograma del clip, cada tobillo se acerca al centro de la
+  cadera (se queda en el 45 % de lo que se separaba: 13 cm entre los dos) sin cambiar ni su altura ni lo que avanza, la
+  pierna se recoloca con dos huesos y la rodilla mirando adelante, el pie guarda su giro; y cada mano se acerca a la línea
+  de su hombro (al 35 %), con el codo atrás. Para verlo: `tools/clips-ver.mjs` (lámina de clips de frente, de lado y detrás).
 - **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con andar y correr y
   todos los de pelota, con nombre en castellano; con `base`, sin ningún movimiento, para animarlo en otro programa. Sin
   comprimir y con la textura en PNG: unos 6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
