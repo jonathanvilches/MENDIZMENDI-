@@ -177,6 +177,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (9), la hizo la ventana principal, por encargo del autor: `master` hasta `c4ead6bd`. Las islas de las 12
+  comarcas, de una sola pieza: sin el labio de hierba del borde, el prado dobla sobre el filo y baja por la panza en
+  lenguas, con el color del terreno; y sin la raya parda fina que asomaba a lo largo del borde (rendijas entre el terreno y
+  la panza por las que se veía el interior de la roca).
 - 20 nov, noche (8), la hizo la ventana principal, por encargo del autor: `master` hasta `94c6f3a0`. «Tu progreso» como
   panel de control: tres esferas de anillos que se llenan al entrar (explorador, pelotari y fútbol), la tabla de tu liga,
   el ranking de pelotaris de tus campeonatos y cada comarca con su anillo. Los pelotaris celebran con los brazos en V sin
