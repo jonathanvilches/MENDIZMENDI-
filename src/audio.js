@@ -223,6 +223,15 @@ export class Sound {
     const b = L[Math.floor(Math.random() * L.length)], src = this.ctx.createBufferSource(); src.buffer = b; src.playbackRate.value = 0.92 + Math.random() * 0.14; src.connect(o);
     src.start(this.ctx.currentTime, Math.random() * 0.3, Math.min(b.duration, 0.42 * n + 0.4)); return true;
   }
+  /** El rumor de cencerros de una comparsa que pasa (el desfile de momotxorros: townLeyendas.js), en bucle, a v (0 a 1);
+   *  con 0 se apaga despacio. La primera vez solo lo prepara */
+  bucleCencerros(v = 0) {
+    if (!this.ctx) return; const b = carga(this.ctx, 'cencerros-desfile').buf;
+    if (!this.cenBucle && b && v > 0) { const g = this.ctx.createGain(); g.gain.value = 0; g.connect(this.sfx); const s = this.ctx.createBufferSource(); s.buffer = b; s.loop = true; s.connect(g); s.start(); this.cenBucle = { s, g }; }
+    const B = this.cenBucle; if (!B) return; const t = this.ctx.currentTime;
+    B.g.gain.setTargetAtTime(Math.max(0, Math.min(1, v)) * 0.55, t, v > 0 ? 0.4 : 1.2);
+    if (v <= 0) { clearTimeout(B.fin); B.fin = setTimeout(() => { if (this.cenBucle === B) { try { B.s.stop(); } catch (e) { } this.cenBucle = null; } }, 5000); } else clearTimeout(B.fin);
+  }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   bird(pos) {
     if (!this.ctx) return; const o = this.out(pos, 50, 0.1, 0.3); if (!o) return;   // (más bajo: 0,35, luego 0,2)

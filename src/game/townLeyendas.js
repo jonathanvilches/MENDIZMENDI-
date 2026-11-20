@@ -13,6 +13,8 @@ import { makeAura, makeClue } from './legendFx.js';
 import { terrainHeight } from '../world/heightfield.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { addCard, saveProfile } from './profile.js';
+import { QUALITY } from '../util/quality.js';
+import { removeMover } from '../world/colliders.js';
 // Aspecto de los personajes de carnaval y leyenda
 const FOLK = {
   joaldun: { myth: 'joaldun', traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
@@ -229,6 +231,43 @@ export class PuebloLeyendas {
     a.chase?.dispose(); a.chase = null;
     this.particles.confetti ? this.particles.confetti(a.pos, 40) : this.particles.emit({ x: a.pos.x, y: a.pos.y + 2, z: a.pos.z }, { n: 30, color: ['#e03c3c', '#f2c230', '#3a8fd6'], speed: 3, size: 0.3 });
     this.sound.magic(); this.ui.toast(`¡Encontrado! ${this.stepText(M)}`, 'mask', 2400);
-    if (M.count >= M.need) { M.step = M.night ? 3 : 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200); }
+    if (M.count >= M.need) { M.step = M.night ? 3 : 2; this.ui.toast(`¡Todos encontrados! Vuelve con ${M.host.name}`, 'check', 3200);
+      setTimeout(() => { if (this.scene) this.desfileCarnaval(M, { x: a.pos.x, z: a.pos.z }); }, 2600); }
+  }
+  // ---------- La fiesta al encontrarlos todos: el desfile por las calles ----------
+  // (como en el propio carnaval: salen muchos más, en comparsa, y recorren el pueblo con sus cencerros; los momotxorros de
+  // Altsasu, con luces rojas. El autor, 20 de noviembre de 2026: «cuando ya encontramos a los tres momotxorros, aparecen un
+  // montón de momotxorros, como en el propio carnaval, y salen andando por las calles de Altsasu con luces rojas, como
+  // para celebrar que has cumplido la misión». Luces de verdad no: una luz nueva en la escena obliga a recompilar todos los
+  // materiales y para la imagen; van halos que brillan y chispas)
+  desfileCarnaval(M, desde) {
+    if (this.desfileOn) return;
+    const look = FOLK[M.m.character] || FOLK.joaldun, rojo = M.m.character === 'momotxorro', P0 = PLACES.plaza || desde;
+    const D = desde || P0, lejos = TOWN.houses.map(h => h.door).filter(p => p && Math.hypot(p.x - P0.x, p.z - P0.z) > 25 && Math.hypot(p.x - P0.x, p.z - P0.z) < 90);
+    const otra = lejos.length ? lejos[Math.floor(this.rnd() * lejos.length)] : P0, iglesia = TOWN.church?.door || TOWN.church;
+    // (el recorrido: de donde estaba el último hacia la plaza, la iglesia y la fuente, por otra calle y vuelta a la plaza)
+    const pts = [P0, iglesia, TOWN.fountain, otra, P0].filter(p => p && Number.isFinite(p.x));
+    const n = QUALITY === 'low' ? 6 : QUALITY === 'mid' ? 10 : 14, gente = [];   // (como otra tanda de vecinos por la calle, un rato)
+    for (let i = 0; i < n; i++) {
+      const t = this.rnd() * 6.28, r = 2 + this.rnd() * 6, sp = this.spot({ x: D.x + Math.cos(t) * r, z: D.z + Math.sin(t) * r }, 2);
+      const route = pts.map(p => ({ x: p.x + (this.rnd() - 0.5) * 5, z: p.z + (this.rnd() - 0.5) * 5 }));
+      const a = new Actor({ id: 'desfile' + i, name: M.folk?.name || 'Personaje', x: sp.x, z: sp.z, look, route, walkSpeed: 1.0 + this.rnd() * 0.4, ghost: true }, this.scene);
+      a.wait = 0.3 + i * 0.22;   // (salen uno detrás de otro, en comparsa)
+      const halo = makeAura(rojo ? '#ff2a16' : '#ffb45a', rojo ? 0.95 : 0.8); halo.position.y = 2.25; a.obj.add(halo); a.aura = halo;
+      gente.push(a);
+    }
+    this.desfileOn = { gente, t: 0, dur: 80, cen: 0, chispa: 0, rojo };
+    this.sound.bucleCencerros?.(0);   // (prepara el rumor de la comparsa, audio.js)
+    this.ui.toast(rojo ? '¡Los momotxorros salen a celebrarlo por las calles!' : `¡Salen a celebrarlo por las calles!`, 'mask', 3800);
+  }
+  updateDesfile(dt) {
+    const D = this.desfileOn; if (!D) return; D.t += dt; const P = this.player;
+    for (const a of D.gente) { const d = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z); a.obj.visible = d < 100; if (d < 100) a.update(dt, P); a.aura?.userData.tick?.(dt); }
+    // (sus cencerros, de los que tienes cerca, uno tras otro, y chispas rojas de sus luces)
+    if ((D.cen -= dt) <= 0) { D.cen = 0.35 + this.rnd() * 0.3; const c = D.gente.filter(a => Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) < 70); const a = c[Math.floor(this.rnd() * c.length)]; if (a) this.sound.cencerroCerca?.(a.pos, 3, 0.85); }
+    if ((D.chispa -= dt) <= 0) { D.chispa = 0.25; const a = D.gente[Math.floor(this.rnd() * D.gente.length)]; if (a?.obj.visible) this.particles.emit({ x: a.pos.x, y: a.pos.y + 2.3, z: a.pos.z }, { n: 4, color: D.rojo ? ['#ff3a1e', '#ffb07a'] : ['#ffb45a', '#fff1c0'], speed: 0.8, size: 0.22, life: 0.9, gravity: -0.6 }); }
+    // (y el rumor de toda la comparsa, más fuerte cuanto más cerca, que se apaga en los últimos segundos)
+    if ((D.rum = (D.rum || 0) - dt) <= 0) { D.rum = 0.5; let d = 1e9; for (const a of D.gente) d = Math.min(d, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z)); this.sound.bucleCencerros?.(Math.max(0, 1 - d / 90) * Math.min(1, (D.dur - D.t) / 6)); }
+    if (D.t > D.dur) { for (const a of D.gente) { this.scene?.remove(a.obj); removeMover(a.collider); } this.desfileOn = null; this.sound.bucleCencerros?.(0); }
   }
 }
