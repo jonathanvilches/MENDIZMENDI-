@@ -380,7 +380,10 @@ export class PelotaGame {
       shot = 'saque';
       // (del todo a la izquierda, el bote casi pegado a la pared, a un palmo: antes llegaba a 1,3 m y el autor, «cuando saco con
       // el botón de cortada no puedo arrimarlo más a la pared. Hay que tener un control absoluto», 16 de noviembre de 2026)
-      const W2 = COURT.W / 2, lx = clamp(aimSide(rawX) * (rawX < 0 ? W2 - 0.3 : RAYA - 0.08) + gauss(rnd) * err * 1.2 + errRaya(gauss(rnd), aimSide(rawX), err), -W2 + 0.18, W2 + 0.7), ay = clamp(aim.y || 0, -1, 1);
+      // (sin tocar la palanca no bota en el medio: algo hacia la contracancha, a la derecha mirando al frontis, como sacan
+      // los pelotaris; el autor, 20 de noviembre: «saca hacia el medio del frontón y tiene que sacar un poco más hacia la
+      // contracancha». Los extremos, igual: del todo a la izquierda, pegado a la pared; del todo a la derecha, junto a la raya)
+      const W2 = COURT.W / 2, sd = aimSide(rawX), OFF = Math.min(1.6, RAYA * 0.35), lx = clamp((sd < 0 ? OFF + sd * (OFF + W2 - 0.3) : OFF + sd * (RAYA - 0.08 - OFF)) + gauss(rnd) * err * 1.2 + errRaya(gauss(rnd), aimSide(rawX), err), -W2 + 0.18, W2 + 0.7), ay = clamp(aim.y || 0, -1, 1);
       if (req === 'cortada') {
         sub = 'saqueCortado';
         const f = pow01(pow), speed = (29 + q * 4 + f * 12) * this.cortaCam(who), T = Math.max(0.2, p.z / speed);
