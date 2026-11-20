@@ -2067,6 +2067,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en `.dd-tx`, y el bloque es un contenedor: cuando mide 760 px o más, porque va solo en su fila, la ilustración pasa a la
   izquierda con el alto del texto y lo escrito a su derecha; sin ilustración, lo escrito en dos columnas, con cada
   subtítulo pegado a lo suyo. Para verlo: `didactico-rejilla.mjs` en la carpeta de trabajo de la sesión.
+- **La bici, entera** (`game/conducir.js`, `biciModel`; el autor, 20 de noviembre de 2026: «a la bici le faltan partes»).
+  El tubo de la dirección, la horquilla, la potencia y la barra del manillar se colgaban del cuadro y no del grupo que
+  gira con el manillar (`frente`), así que se dibujaban 36 cm más atrás: la rueda de delante iba suelta, sin horquilla.
+  Ahora todo eso va en `frente`, el tubo de la dirección es más alto (la horquilla tocaba la cubierta) y tiene lo que
+  le faltaba: corona de la horquilla, caja del pedalier, cadena por la derecha con su piñón, guardabarros curvos con la
+  luz roja de atrás, faro, puños a lo largo de la barra, manetas y las varillas de la cesta. `lab/bici-vista.html` la
+  enseña desde cuatro lados.
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la

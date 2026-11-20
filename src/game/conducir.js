@@ -186,7 +186,10 @@ function piezasBici() {
     cubierta: new THREE.TorusGeometry(0.29, 0.024, 8, 28), llanta: new THREE.TorusGeometry(0.27, 0.01, 6, 28), radio: new THREE.CylinderGeometry(0.0035, 0.0035, 0.54, 4),
     buje: new THREE.CylinderGeometry(0.022, 0.022, 0.1, 10), tubo: new THREE.CylinderGeometry(1, 1, 1, 8), caja: new THREE.BoxGeometry(1, 1, 1),
     goma: M('#1e1c1b', { roughness: 0.9, metalness: 0 }), cromo: M('#c9ccd1', { roughness: 0.3, metalness: 0.8 }), negro: M('#2a2725', { roughness: 0.7 }),
-    mimbre: M('#b88a4e', { roughness: 0.95, metalness: 0 }), cuadro: new Map(),
+    mimbre: M('#b88a4e', { roughness: 0.95, metalness: 0 }), cadena: M('#4a4642', { roughness: 0.5, metalness: 0.6 }),
+    luzRoja: M('#c41a12', { emissive: '#ff2a1a', emissiveIntensity: 0.9 }), luzFaro: M('#fff6d8', { emissive: '#fff1c4', emissiveIntensity: 0.8 }),
+    pinon: new THREE.TorusGeometry(0.045, 0.008, 6, 16), plato: new THREE.TorusGeometry(0.09, 0.008, 6, 20), faro: new THREE.CylinderGeometry(0.03, 0.026, 0.05, 12),
+    cuadro: new Map(),
   };
   return BICI;
 }
@@ -205,26 +208,43 @@ export function biciModel(color = '#2f7d6b') {
     return w;
   };
   const wheels = [[rueda(-0.5, g), R]];
-  // el cuadro (barra baja, de paseo): tubo del sillín, tubo bajo, vainas y tirantes hasta el eje de atrás
-  const BB = [0, 0.3, -0.05], ST = [0, 0.8, -0.2], HB = [0, 0.6, 0.38], HT = [0, 0.82, 0.33];
-  tubo(BB, ST, 0.02); tubo(BB, HB, 0.022); tubo([0, 0.42, -0.1], [0, 0.72, 0.36], 0.017);
+  // el cuadro (barra baja, de paseo): tubo del sillín, tubo bajo, vainas y tirantes hasta el eje de atrás. (El tubo de la
+  // dirección, más alto que antes: abajo tocaba la rueda; la horquilla deja ahora 4 cm sobre la cubierta)
+  const BB = [0, 0.3, -0.05], ST = [0, 0.8, -0.2], HB = [0, 0.66, 0.37], HT = [0, 0.88, 0.32];
+  tubo(BB, ST, 0.02); tubo(BB, HB, 0.022); tubo([0, 0.42, -0.1], [0, 0.78, 0.35], 0.017);
+  caja(BB, [0.09, 0.05, 0.05], mat);   // (la caja del pedalier, donde se juntan los tubos)
   for (const x of [-0.045, 0.045]) { tubo([x, 0.3, -0.05], [x, R, -0.5], 0.012); tubo([x, 0.74, -0.19], [x, R, -0.5], 0.011); }
   tubo(ST, [0, 0.86, -0.23], 0.013, K.cromo);
   caja([0, 0.875, -0.25], [0.12, 0.045, 0.24], K.negro);   // el sillín
-  // el guardabarros de atrás, con su luz roja
-  caja([0, R + 0.32, -0.62], [0.06, 0.012, 0.22], mat).rotation.x = 0.55;
-  // lo de delante, que gira con el manillar
+  // los guardabarros, curvos sobre las ruedas (un trozo de aro ancho y plano), y la luz roja de atrás
+  const guarda = (desde, arco, padre, z) => { const q = new THREE.TorusGeometry(R + 0.04, 0.011, 4, 22, arco); q.rotateZ(desde);
+    const m = new THREE.Mesh(q, mat); m.rotation.y = Math.PI / 2; m.scale.z = 2.3; m.position.set(0, R, z); padre.add(m); return m; };
+  guarda(-0.3, 2.2, g, -0.5);
+  caja([0, R + 0.35 * Math.sin(0.28), -0.5 - 0.35 * Math.cos(0.28)], [0.05, 0.035, 0.02], K.luzRoja);
+  // la cadena, por la derecha: del plato al piñón de la rueda de atrás, por arriba y por abajo
+  const pin = new THREE.Mesh(K.pinon, K.cromo); pin.rotation.y = Math.PI / 2; pin.position.set(0.06, R, -0.5); g.add(pin);
+  tubo([0.06, 0.39, -0.05], [0.06, R + 0.045, -0.5], 0.005, K.cadena); tubo([0.06, 0.21, -0.05], [0.06, R - 0.045, -0.5], 0.005, K.cadena);
+  // lo de delante, que gira con el manillar: tubo de la dirección, horquilla, rueda, potencia, manillar con sus puños y
+  // manetas, guardabarros, faro y la cesta con sus varillas. (Antes, el tubo, la horquilla, la potencia y la barra del
+  // manillar se colgaban del cuadro y no de este grupo: se dibujaban 36 cm más atrás y la rueda de delante quedaba suelta)
   const F = new THREE.Group(); F.position.set(0, 0, 0.36); g.add(F);
   const f = (p) => [p[0], p[1], p[2] - 0.36];
-  tubo(f(HB), f(HT), 0.024);
-  for (const x of [-0.04, 0.04]) tubo(f([x, 0.6, 0.38]), f([x, R, 0.5]), 0.012, K.cromo);
+  tubo(f(HB), f(HT), 0.024, mat, F);
+  caja(f([0, 0.66, 0.37]), [0.11, 0.03, 0.05], K.cromo, F);   // (la corona de la horquilla)
+  for (const x of [-0.045, 0.045]) tubo(f([x, 0.66, 0.37]), f([x, R, 0.5]), 0.012, K.cromo, F);
   wheels.push([rueda(0.14, F), R]);
-  tubo(f(HT), f([0, 0.95, 0.3]), 0.014, K.cromo);
-  tubo(f([-0.26, 0.96, 0.27]), f([0.26, 0.96, 0.27]), 0.012, K.cromo);
-  for (const x of [-0.27, 0.27]) caja(f([x, 0.96, 0.25]), [0.03, 0.03, 0.09], K.negro, F);
-  // la cesta de mimbre, en el manillar
-  const C = caja(f([0, 0.84, 0.5]), [0.3, 0.18, 0.22], K.mimbre, F);
+  guarda(1.25, 2.0, F, 0.14);
+  tubo(f(HT), f([0, 0.95, 0.3]), 0.014, K.cromo, F);
+  tubo(f([-0.26, 0.96, 0.27]), f([0.26, 0.96, 0.27]), 0.012, K.cromo, F);
+  for (const x of [-0.235, 0.235]) caja(f([x, 0.96, 0.27]), [0.1, 0.032, 0.032], K.negro, F);   // (los puños, a lo largo de la barra)
+  for (const x of [-0.19, 0.19]) caja(f([x, 0.955, 0.31]), [0.012, 0.012, 0.08], K.cromo, F).rotation.x = 0.35;   // (las manetas del freno)
+  // el faro, bajo la cesta
+  const faro = new THREE.Mesh(K.faro, K.cromo); faro.rotation.x = Math.PI / 2; faro.position.set(...f([0, 0.7, 0.45])); F.add(faro);
+  const luz = caja(f([0, 0.7, 0.475]), [0.045, 0.045, 0.006], K.luzFaro, F); void luz;
+  // la cesta de mimbre, en el manillar, con dos varillas hasta el eje de delante
+  const C = caja(f([0, 0.84, 0.52]), [0.3, 0.18, 0.22], K.mimbre, F);
   caja([0, 0.5, 0], [1.06, 0.12, 1.06], K.mimbre, C);
+  for (const x of [-0.11, 0.11]) tubo(f([x, 0.75, 0.55]), f([x * 0.45, R, 0.5]), 0.006, K.cromo, F);
   // la biela y los pedales (giran con lo recorrido; los pedales, al revés, para quedarse planos)
   const bi = new THREE.Group(); bi.position.set(...BB); g.add(bi); const pedales = [];
   for (const s of [-1, 1]) {
@@ -232,7 +252,7 @@ export function biciModel(color = '#2f7d6b') {
     const pd = new THREE.Group(); pd.position.set(s * 0.1, -s * 0.16, 0); bi.add(pd); caja([0, 0, 0], [0.09, 0.02, 0.06], K.negro, pd); pedales.push(pd);
     void brazo;
   }
-  const plato = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.008, 6, 20), K.cromo); plato.rotation.y = Math.PI / 2; plato.position.x = 0.06; bi.add(plato);
+  const plato = new THREE.Mesh(K.plato, K.cromo); plato.rotation.y = Math.PI / 2; plato.position.x = 0.06; bi.add(plato);
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
   g.userData.wheels = wheels; g.userData.biela = bi; g.userData.pedales = pedales; g.userData.frente = F;
   return g;
