@@ -504,8 +504,8 @@ export class Hub {
     // ve unas dos veces el alto de la carta, de ahí el ancho que se pide)
     const fig = ([s, m, hd], w, F) => { const ancho = Math.round(0.58 / F.fh / F.iar * 80);
       return `<img class="s2-foto s2-fig" src="${m}" srcset="${s} ${w[0]}w, ${m} ${w[1]}w, ${hd} ${w[2]}w" sizes="(orientation: portrait) ${Math.round(ancho * 0.9)}vw, ${ancho}vh" alt="" decoding="async" style="--fx:${F.fx};--fy1:${F.fy1};--fh:${F.fh};--medio:${F.medio};--iar:${F.iar}">`; };
-    const fotoP = fig([fotoPelota, fotoPelotaM, fotoPelotaHd], [1000, 1600, 2800], { fx: 0.5, fy1: 0.583, fh: 0.4292, medio: 0.104, iar: 0.7764 });
-    const fotoF = fig([fotoFutbol, fotoFutbolM, fotoFutbolHd], [1000, 1600, 2500], { fx: 0.5, fy1: 0.5923, fh: 0.4528, medio: 0.115, iar: 0.6264 });
+    const fotoP = fig([fotoPelota, fotoPelotaM, fotoPelotaHd], [1000, 1600, 2336], { fx: 0.5035, fy1: 0.6147, fh: 0.3337, medio: 0.0914, iar: 0.7466 });
+    const fotoF = fig([fotoFutbol, fotoFutbolM, fotoFutbolHd], [1000, 1600, 2336], { fx: 0.505, fy1: 0.6227, fh: 0.3733, medio: 0.12, iar: 0.7466 });
     // (las cifras van en negrita y parten la frase en trozos que el traductor no reconoce: en euskera se escribe aquí)
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
