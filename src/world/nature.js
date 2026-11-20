@@ -910,6 +910,7 @@ export class Nature {
     // cultivos y todo lo que viene detrás queda donde estaba)
     makeBush(rnd).dispose();
     const Sb = esqueleto('bush', mulberry32(211)), g = creaArbol('bush', mulberry32(212), 1, Sb), gDet = creaArbol('bush', mulberry32(213), 2, Sb);
+    this.bushGeo = g;   // (los jardines del casco usan la misma mata: buildGardens)
     // helechos: frondas arqueadas en roseta (el material las recorta en folíolos); unas más largas y tumbadas, otras
     // jóvenes más derechas, y algunas ya doradas como el helecho común en otoño
     const fronds = [], cBase = new THREE.Color('#2f6a26'), cTip = new THREE.Color('#86bd4e'), cOld = new THREE.Color('#a8893f');
@@ -994,8 +995,41 @@ export class Nature {
       cel.add(c); n++;
       lists[rnd() < 0.4 ? 0 : 1 + Math.floor(rnd() * flor.length)].push({ x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 });
     }
-    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
     const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
+    // (desde el 20 de noviembre de 2026, la misma mata del valle, con sus tallos, ramillas y hojas una a una, y las de flor
+    // con sus ramilletes por encima. El autor: «los setos no son ramas ni hojas individuales, son bloques raros». Antes eran
+    // bolas de hojas pintadas, la verde y la de flor encima, como bultos)
+    const gB = this.bushGeo;
+    if (gB && this.matHojas && this.matCorteza?.roble) {
+      geos.forEach(g => g.dispose());
+      gB.computeBoundingBox(); const bb = gB.boundingBox, H = Math.max(0.1, bb.max.y - bb.min.y), kH = 1.15 / H;   // (de 0,6 a 1,2 m de alto)
+      const cen = bb.getCenter(new THREE.Vector3()), rad = bb.getSize(new THREE.Vector3()).multiplyScalar(0.47), rf = mulberry32(779);
+      // (las flores: estrellas de cinco pétalos, planas, de dos tonos de su color y con el centro más claro, asomando entre
+      // las hojas por lo alto y lo de fuera de la copa, mirando hacia fuera y un poco al cielo, como florecen)
+      const estrella = (r) => { const pos = [], col = []; for (let k = 0; k < 10; k++) { const a0 = k / 10 * Math.PI * 2, a1 = (k + 1) / 10 * Math.PI * 2, r0 = k % 2 ? r * 0.42 : r, r1 = k % 2 ? r : r * 0.42;
+        pos.push(0, 0, 0, Math.cos(a0) * r0, Math.sin(a0) * r0, 0, Math.cos(a1) * r1, Math.sin(a1) * r1, 0); } const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); return g; };
+      const caps = flor.map(([a, b]) => {
+        const ca = new THREE.Color(a), cb = new THREE.Color(b), parts = [], Z = new THREE.Vector3(0, 0, 1);
+        for (let i = 0; i < 58; i++) {
+          const th = rf() * Math.PI * 2, ph = Math.acos(1 - rf() * 1.2), n = new THREE.Vector3(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th)), k = 0.78 + rf() * 0.18;
+          const o = estrella(H * (0.04 + rf() * 0.022)), cc = ca.clone().lerp(cb, rf()), d = n.clone().add(new THREE.Vector3(0, 0.6, 0)).normalize();
+          o.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(Z, d)); o.translate(cen.x + n.x * rad.x * k, cen.y + n.y * rad.y * 0.95 * k, cen.z + n.z * rad.z * k);
+          parts.push(colorize(o, (x, y, z, c) => c.copy(cc)));
+          // (el centro de cada flor, más claro: el primer vértice de cada pétalo)
+          const C = parts[parts.length - 1].attributes.color; for (let v = 0; v < C.count; v += 3) C.setXYZ(v, Math.min(1, cc.r * 0.6 + 0.5), Math.min(1, cc.g * 0.6 + 0.45), Math.min(1, cc.b * 0.4 + 0.2));
+        }
+        const m = mergeGeometries(parts); parts.forEach(g => g.dispose()); m.computeVertexNormals(); return m;
+      });
+      const matB = [this.matCorteza.roble, this.matHojas], matF = snowable(windMaterial({ roughness: 0.6, side: THREE.DoubleSide }), 0.5, 0.2, 0.8);
+      const todas = lists.flat();
+      for (const b of todas) { b.col = addCircle(b.x, b.z, 0.34 * b.s, { bush: true }); b.jardin = true; MATAS.push(b);
+        b.m = m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.06, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.setScalar(b.s * kH)).clone(); }
+      for (const { im, items } of this.addChunked(todas, gB, null, matB, (b) => b.m, { name: 'jardin' })) items.forEach((b, i) => { (b.inst ||= []).push([im, i]); b.medio = [im, i]; });
+      caps.forEach((cap, i) => { const list = lists[i + 1]; if (!list.length) { cap.dispose(); return; }
+        for (const { im, items } of this.addChunked(list, cap, null, matF, (b) => b.m, { name: 'jardin-flor' })) items.forEach((b, k) => (b.inst ||= []).push([im, k])); });
+      return;
+    }
+    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
     geos.forEach((g, i) => {
       const list = lists[i]; if (!list.length) return;
       for (const b of list) { b.col = addCircle(b.x, b.z, 0.34 * b.s, { bush: true }); MATAS.push(b); }
@@ -1231,7 +1265,7 @@ export function clearBushes(cx, cz, w, d, ry, m = 0.5) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (let k = MATAS.length - 1; k >= 0; k--) {
     // (con lo que abren sus ramas: las del valle, más anchas que las de los jardines)
-    const b = MATAS[k], dx = b.x - cx, dz = b.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + (b.medio ? 1.0 : 0.5) * b.s;
+    const b = MATAS[k], dx = b.x - cx, dz = b.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + (b.medio && !b.jardin ? 1.0 : 0.5) * b.s;
     if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
     for (const [im, i] of b.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
     b.quitado = true; DETALLE_SUCIO = true;
