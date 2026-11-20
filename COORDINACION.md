@@ -169,6 +169,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (5), la hizo la ventana principal, por encargo del autor tras jugar a pelota: `master` hasta `2f70bf3b`.
+  Vuelven los golpes de la pelota del 17 de noviembre (frontis y bote distintos: «antes el sonido del golpeo contra el
+  frontis era diferente al golpeo contra el suelo y tenía sentido») y el saque sin tocar la palanca bota 1,5 m hacia la
+  contracancha en vez de en el medio («tiene que sacar un poco más hacia la contracancha»).
 - 20 nov, noche (4), la hizo la ventana principal, por la auditoría de misiones («no termines ni pares hasta tener todo
   solucionado»): `master` hasta `e8f0b3fd`. Entran la fuente de beber de fundición en las plazas con kiosco (Pamplona,
   Tudela: sin ella no se llenaba la cantimplora y «Sube al Ezkaba» no empezaba), la explanada de delante de los castillos
