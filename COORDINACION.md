@@ -169,6 +169,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 20 nov, noche (2), la hizo la ventana principal, dentro de la auditoría de misiones que pidió el autor («vete poco a
+  poco y comienza a resolver todo lo que queda»): `master` hasta `b507fcc7`. Entran el redil con la puerta hacia el lado
+  libre y los animales del rebaño puestos donde hay camino hasta ella (Aribe y Etxalar ya se terminan;
+  `src/world/townBuilder.js`, `src/game/townActividades.js`, `src/world/nav.js`); la misión de observar de Orreaga, con
+  la flecha de siempre hasta el hayedo cuando los animales quedan fuera del alcance de los prismáticos
+  (`src/game/townCimas.js`, `src/game/townGame.js`); la entrada de Ituren dentro de la rejilla de caminos
+  (`src/levels/townReal.js`), y salir de la tienda con Escape (`src/game/tienda.js`).
 - 20 nov, noche, la hizo la ventana principal, por el encargo del autor («cuando recogemos basura para el Basajaun la
   línea amarilla no se elimina»): `master` hasta `583cdc93`. Entra solo eso: al recoger una basura, la flecha y la luz
   amarilla dejan de señalarla y pasan a la siguiente, y con la quinta van al Basajaun (`src/game/game.js`, pickItem y
