@@ -419,7 +419,18 @@ export class UI {
   // Voz del narrador: frase en cursiva (pistas y momentos de misterio)
   whisper(text, ms = 4000) { this.note('whisper', `<span>${esc(text)}</span>`, text, ms); }
   hudVisible(v) { if (this.hud) { this.hud.style.display = v ? '' : 'none'; if (v) this.queueFitTop(); } }
-  setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); } }
+  setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); this.colocaMG(m); } }
+  // (el avisador de cencerros va arriba, en una píldora: en el centro si cabe; si se acerca a menos de 16 px de la barra de
+  //  misiones, como en el móvil tumbado, se centra en el hueco entre la barra y la brújula; y si tampoco cabe ahí, como en
+  //  vertical, baja debajo de la fila de arriba y se aparta mientras está abierta la tarjeta de una misión)
+  colocaMG(m) {
+    m.style.left = m.style.top = ''; m.classList.remove('bajo'); if (!m.querySelector('.meter')) return;
+    const t = $('#tl', this.hud)?.getBoundingClientRect(), r = $('#topright', this.hud)?.getBoundingClientRect(), q = m.getBoundingClientRect(), h = this.hud.getBoundingClientRect();
+    if (!t || !t.width || q.left >= t.right + 16) return;
+    const R = r && r.width && r.left > t.right ? r.left : innerWidth;
+    if (R - t.right - 32 >= q.width) { m.style.left = Math.round(Math.min(Math.max((t.right + R) / 2, t.right + 16 + q.width / 2), R - 16 - q.width / 2) - h.left) + 'px'; return; }
+    m.classList.add('bajo'); m.style.top = Math.round(Math.max(t.bottom, r && r.width ? r.bottom : 0) + 10 - h.top) + 'px';
+  }
   // (las escenas van a toda la pantalla, sin franjas de cine: solo el rótulo de lo que se cuenta)
   setCinematic(on, text) { if (this.subtitle) this.subtitle.textContent = on ? text || '' : ''; }
   // (msg: en vez del negro, el fondo de los deportes con una pelota que bota y lo que se prepara, mientras se carga)

@@ -25,6 +25,8 @@ const CSS = `
 .av-cor.lado{transform:translate(0,-8px)}
 .av-cor.lado.ve{transform:none}
 body:has(#tl.mis > #quest:not(.hidden)) .av-cor.debajo{opacity:0}
+body:has(#mg:not(.hidden) .meter) .av-cor{top:calc(52px + env(safe-area-inset-top,0px))}
+body:has(#mg.bajo:not(.hidden) .meter) .av-cor.debajo{margin-top:52px}
 .av-cor svg{width:22px;height:22px}
 .av-cor .lleno path{fill:#ff5d73;stroke:#fff;stroke-width:1.4}
 .av-cor .vacio path{fill:none;stroke:#fff;stroke-width:1.8;stroke-dasharray:3 2.2}

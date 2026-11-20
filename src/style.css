@@ -471,7 +471,7 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
   #tl { max-width: calc(calc(100vw / var(--z, 1)) - 90px); }
   #mini { width: 100px; height: 100px; }
   #lane { top: auto; bottom: calc(var(--sb) + 236px); flex-direction: column-reverse; }
-  #mg { top: calc(var(--st) + 140px); }
+  #mg:not(:has(.meter)) { top: calc(var(--st) + 140px); }
   #dialog .face { flex-basis: 40px; height: 40px; }
   #dialog p { font-size: var(--fs-md); }
 }
@@ -602,6 +602,13 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 /* ---------- Minijuegos ---------- */
 #mg { position: absolute; left: 50%; top: calc(env(safe-area-inset-top, 0px) + 56px); transform: translateX(-50%); padding: 8px 16px; font-weight: 900; font-size: var(--fs-md); text-align: center; }
 #mg small { display: block; color: var(--muted); font-size: var(--fs-sm); font-weight: 700; }
+/* (el avisador de los cencerros, una pastilla baja arriba en el centro, en una sola línea: antes, tres renglones a media
+   altura, en medio de la pantalla y tapando el juego. El autor, 20 de noviembre de 2026: «está en medio de la pantalla y
+   limita mi visibilidad del juego»; menos es más) */
+#mg:has(.meter):not(.hidden) { top: calc(var(--st, 0px) + 10px); display: flex; align-items: center; gap: 10px; padding: 6px 14px; border-radius: 999px; font-size: var(--fs-sm); }
+#mg:has(.meter) .meter { margin: 0; gap: 3px; } #mg:has(.meter) .meter i { width: 10px; height: 14px; border-radius: 3px; }
+#mg:has(.meter) small { display: inline; font-size: var(--fs-xs); white-space: nowrap; }
+body:has(#tl.mis > #quest:not(.hidden)) #mg.bajo { visibility: hidden; }
 #rhythm { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%); width: min(520px, calc(94vw / var(--z, 1))); height: 200px; z-index: 4; }
 #rhythm .lane { position: absolute; bottom: 0; top: 0; width: 25%; border-left: 1px solid rgba(255, 255, 255, .12); }
 #rhythm .target { position: absolute; left: 0; right: 0; bottom: 64px; height: 6px; background: rgba(255, 255, 255, .5); border-radius: 4px; }

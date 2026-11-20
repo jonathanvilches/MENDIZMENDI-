@@ -214,6 +214,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el pueblo y con la dirección en cada oído, también los de las figuras de carnaval de los demás pueblos
   (`townLeyendas.js`). Antes de tocar el volumen o un sonido, buscar en `game.js`, `townGame.js`, `townCharla.js` y
   `townLeyendas.js` las misiones que dicen «escucha» o «sigue».
+  El 20 de noviembre de 2026 el autor seguía sin oír los cencerros en Ochagavía ni en Altsasu: desde el 11 de noviembre
+  (commit 59b8830f) el `this.sfx.connect(this.master)` de `audio.js` se había quedado escrito al final de una línea de
+  comentario, así que todo lo que va por el bus de efectos (cencerros, pasos, animales, ambientes, avisos) no salía por
+  los altavoces. Va otra vez en su propia línea; con un comentario delante de una orden, la orden en la línea siguiente.
+  El avisador de proximidad («Cencerros», cinco rayas y «Se oyen lejos / cerca / ¡Muy cerca!») es una píldora pequeña
+  arriba (`#mg:has(.meter)` en `style.css`), en el Zarratrako (`game.js`, `updateZarratrako`) y en el carnaval
+  (`townLeyendas.js`); `ui.colocaMG` la centra en el hueco entre la barra de misiones y la brújula si en el centro se
+  acerca a la barra (móvil tumbado), o la baja debajo de esa fila si tampoco cabe (vertical). Los corazones de la
+  aventura (`ui/aventuraHud.js`) bajan debajo de ella mientras está a la vista.
 - **Una sola línea de diseño** (el autor, 17 de noviembre de 2026: «el juego se ha ido creando poco a poco y tiene retazos
   de todos los añadidos; hay que unificar»). Personajes: la referencia es el campesino y el joaldun, y todo personaje nuevo
   se mide con `tools/proporciones-personajes.mjs` (unas 4,75 cabezas los adultos; `CABEZA` en `glbChar.js`). Elegir algo

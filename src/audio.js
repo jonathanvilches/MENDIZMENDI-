@@ -49,7 +49,11 @@ export class Sound {
     // (el del arranque, index.html, si lo hay: el toque en la portada ya lo puso en marcha)
     const pre = window.__sonido?.ctx, ctx = this.ctx = pre && pre.state !== 'closed' ? pre : new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0.8; this.master.connect(ctx.destination);
-    this.sfx = ctx.createGain(); this.sfx.gain.value = 0.62;   // (todos los efectos y ambientes, un tercio más bajos: 0,9 antes; el autor, noviembre de 2026: «todos los sonidos son muy fuertes») this.sfx.connect(this.master);
+    this.sfx = ctx.createGain(); this.sfx.gain.value = 0.62;   // (todos los efectos y ambientes, un tercio más bajos: 0,9 antes; el autor, noviembre de 2026: «todos los sonidos son muy fuertes»)
+    // (y conectados a la salida: desde el 11 de noviembre esta conexión se quedó metida al final del comentario de arriba y
+    // ningún efecto del pueblo llegaba a los altavoces, solo un poco de su eco; ni los cencerros del Zarratrako y de los
+    // momotxorros. El autor, 20 de noviembre: «sobre todo es muy importante que se escuchen los cencerros»)
+    this.sfx.connect(this.master);
     this.musicBus = ctx.createGain(); this.musicBus.gain.value = this.musVol; this.musicBus.connect(this.master);
     // reverb sencilla
     this.verb = ctx.createConvolver(); this.verb.buffer = this.impulse(2.2); const vg = ctx.createGain(); vg.gain.value = 0.25; this.verb.connect(vg); vg.connect(this.master);

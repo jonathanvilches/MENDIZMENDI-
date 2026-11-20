@@ -801,11 +801,15 @@ export class Game {
   updateZarratrako(dt) {
     const Z = this.zarra, a = this.npcs.zarratrako, P = this.player.pos;
     const q = this.q('zarratrako');
-    if (q.step !== 1) { a.visible = false; a.collider.ghost = true; a.sync(); this.zarra = null; return; }
+    if (q.step !== 1) { a.visible = false; a.collider.ghost = true; a.sync(); this.zarra = null; this.ui.setMG(null); return; }
     Z.bell -= dt;
     const d = Math.hypot(a.pos.x - P.x, a.pos.z - P.z);
     // (sus cencerros, que se oyen en todo el pueblo y cada vez más deprisa al acercarse: audio.js, cencerroGuia)
     if (Z.bell < 0) { Z.bell = d > 70 ? 1.5 : d > 30 ? 1.1 : 0.75; this.sound.cencerroGuia(a.pos, 3); }
+    // (y el avisador de cerca o lejos, como en los carnavales de los demás pueblos: el autor, «sigo sin escuchar los cencerros
+    // del Zarratrako ni el bloque que me indica si me acerco o no»)
+    { const lv = d < 12 ? 5 : d < 25 ? 4 : d < 45 ? 3 : d < 75 ? 2 : 1;
+      if (this.mode === 'play' && lv !== Z.lv) { Z.lv = lv; this.ui.setMG(`<b>Cencerros</b><span class="meter">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= lv ? 'on' : ''}"></i>`).join('')}</span><small>${lv >= 4 ? '¡Muy cerca!' : lv >= 3 ? 'Se oyen cerca' : 'Se oyen lejos'}</small>`); } }
     // con el modelo nuevo no hay «torso» suelto: se balancea la figura entera
     if (a.J.torso) a.J.torso.rotation.z = Math.sin(this.elapsed * 8) * 0.12; else a.obj.rotation.z = Math.sin(this.elapsed * 8) * 0.08;
     if (a.J.bell) a.J.bell.rotation.z = Math.sin(this.elapsed * 14) * 0.5;
@@ -817,7 +821,7 @@ export class Game {
       this.save();
       setTimeout(() => {
         this.particles.emit({ x: a.pos.x, y: a.pos.y + 1, z: a.pos.z }, { n: 40, color: '#e8dcc0', speed: 3, size: 0.6, life: 1 });
-        if (q.found >= 3) { this.advance('zarratrako', 2); a.visible = false; a.collider.ghost = true; a.sync(); this.zarra = null; return; }
+        if (q.found >= 3) { this.advance('zarratrako', 2); a.visible = false; a.collider.ghost = true; a.sync(); this.zarra = null; this.ui.setMG(null); return; }
         Z.i++; const s = Z.spots[Z.i % Z.spots.length]; a.setPos(s.x, s.z, 0); Z.fleeing = 0;
       }, 900);
     }
