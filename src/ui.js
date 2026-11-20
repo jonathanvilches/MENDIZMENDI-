@@ -305,12 +305,14 @@ export class UI {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
     // (si la flecha no estuviera, style.css, cada casilla elige su misión a la primera)
     const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta') && $('#mPliega', T)?.offsetWidth > 0;
+    // (tocar otra vez la misión que ya está desplegada lleva a hacerla, como tocar su tarjeta: junto al vecino que la da o al
+    // sitio de su paso siguiente; una ya hecha se recoge. Va antes que lo de la barra plegada: al elegir una misión la barra
+    // se pliega con ella a la vista, y el segundo toque la volvía a desplegar en vez de llevar a ella. Solo la primera de
+    // la barra llegaba; las demás pedían un tercer toque. El autor, 19 y 20 de noviembre de 2026: «sigue sin funcionar lo
+    // de las misiones que pulses y vaya al principio de la misión»)
+    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); if (!M.done && g.goMission) g.goMission(M); return; }
     // (plegada, la única casilla que se ve es la puerta de todo: tocarla despliega la barra, con su misión debajo)
     if (plegada) { this.sound?.ui?.('click'); if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } this.pliegaMisiones(true); this.abreMision(i, ABIERTA_MS); return; }
-    // (tocar otra vez la misión que ya está desplegada lleva a hacerla, como tocar su tarjeta: junto al vecino que la da o al
-    // sitio de su paso siguiente. El autor, 19 de noviembre de 2026: «hago clic y se despliega, vuelvo a hacer clic, no me
-    // lleva al inicio de la misión»; antes ese segundo toque la recogía. Una ya hecha se recoge, como antes)
-    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); if (!M.done && g.goMission) g.goMission(M); return; }
     if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
     this.misAbierta = i; this.pliegaMisiones(false);   // (elegida: la barra se pliega con ella a la vista, y su tarjeta debajo)
     this.abreMision(i, ABIERTA_MS);

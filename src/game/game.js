@@ -961,9 +961,23 @@ export class Game {
     if (a === 'mission' || a === 'track') return this.goMission(it.id);
     if (a === 'go') this.teleport(it.x, it.z);
   }
-  /** Viajar a una misión: junto a quien la da o al sitio de su paso siguiente, y se sigue con la flecha. */
+  /** Viajar a una misión: junto a quien la da (si aún no ha empezado, también las que están por desbloquear) o al sitio de
+   *  su paso siguiente, mirando hacia allí, y se sigue con la flecha. id: su nombre o la misión de la barra (ui.js le pasa
+   *  la misión entera, como en los pueblos: con eso no encontraba nada y no llevaba a ningún sitio. El autor, 20 de
+   *  noviembre de 2026: «sigue sin funcionar lo de las misiones que pulses y vaya al principio de la misión») */
   async goMission(id) {
-    const m = this.mapMarkers?.().find(x => x.id === id && x.act === 'track'); if (!m) return;
-    this.track(id); await this.ui.fadeOut(); this.teleport(m.x, m.z); await this.ui.fadeIn();
+    if (id && typeof id === 'object') id = id.id;
+    const Q = QUESTS[id], q = Q && this.q(id); if (!q || q.state === 'done' || this.goingM) return;
+    const n = this.npcs?.[Q.giver], t = q.state === 'active' ? this.questTarget(id) : null, dest = t || n?.pos; if (!dest) return;
+    this.goingM = true;
+    try {
+      if (q.state !== 'locked') this.track(id);
+      await this.ui.fadeOut();
+      // (a dos pasos y medio del vecino, por el lado del jugador, para que no aparezca encima; luego, mirándole)
+      const dx = this.player.pos.x - dest.x, dz = this.player.pos.z - dest.z, d = Math.hypot(dx, dz) || 1, r = t ? 3 : 2.5;
+      this.teleport(dest.x + dx / d * r, dest.z + dz / d * r);
+      const p = this.player.pos; this.player.place(p.x, p.z, Math.atan2(dest.x - p.x, dest.z - p.z)); this.follow.yaw = this.player.heading + Math.PI; this.follow.snap(this.player);
+      await this.ui.fadeIn();
+    } finally { this.goingM = false; }
   }
 }
