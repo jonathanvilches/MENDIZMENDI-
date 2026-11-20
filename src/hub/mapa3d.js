@@ -1969,7 +1969,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z, f, natural: !real };
       const cc = real ? (elegido._cc ||= centroCasas(elegido.id)) : null; return { X: cc?.X ?? elegido.X, Z: cc?.Z ?? elegido.Z, f, natural: !real }; } });
 
-  if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, arb: (c.bosqueFino || []).reduce((n, im) => n + im.count, 0), ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+  if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, subida: () => subida, islaDron: () => islaDron && { t: islaDron.t }, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, arb: (c.bosqueFino || []).reduce((n, im) => n + im.count, 0), ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
     dronIsla: () => islaDron, relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
@@ -2064,6 +2064,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   }
   function pinta(now) {
     if (o.pausado?.() || !compilado) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
+    // (lo que tapa el mapa, medido al empezar la imagen, antes de mover ningún nombre: medido después, con los nombres recién
+    // movidos, el navegador tenía que recolocar la página entera para contestar, y en el iPhone se perdía una imagen cada
+    // 0,4 s; en el vídeo del 20 de noviembre de 2026, el vuelo de dron de la isla iba «a golpes, a trompicones»)
+    if (now - tapas.t > 400) medirTapas(now);
     // (el selector de personaje usa este mismo lienzo, src/hub/stage.js: en la primera visita sale encima del mapa, se lo
     // lleva y, al cerrarse, no lo devolvía. El mapa seguía pintando fuera de la página y no se veían ni la entrada ni el
     // mapa. Ahora, en cuanto el mapa vuelve a verse, lo recupera con su tamaño)
@@ -2343,7 +2347,6 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // los nombres encima, sin pisarse nunca ni quedar debajo de lo de encima: primero el pueblo donde estás y el que señalas;
     // de cerca, los pueblos antes que las comarcas; de lejos, al revés. El que no cabe, se esconde. Con una comarca
     // elegida, solo los suyos; sin elegir, de lejos solo las comarcas (y el pueblo donde estás), y al acercarse, lo demás
-    if (now - tapas.t > 400) medirTapas(now);
     const cerca = v.d < PUEBLO_D, ocupado = tapas.r.slice(), lista = [];
     // (con la isla en el aire y la cámara a la distancia de la órbita, sin nombres: ni las fichas de sus pueblos, ni los
     // rótulos de las comarcas, ni los parajes y montes. Al acercarse, a un 80 % de esa distancia, van saliendo. El 15 de
@@ -2398,6 +2401,11 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       const rx = a.X + (b.X - a.X) * t, ry = Y(a) + (Y(b) - Y(a)) * t + 0.3, rz = a.Z + (b.Z - a.Z) * t;
       lista.push([6, rebano, rx, ry, rz, on && (a.c?.isla?.k > 0.05 || !tapaIsla(rx, ry, rz))]); }
     lista.sort((a, b) => a[0] - b[0]);
+    // (los nombres por medir, todos a la vez: primero se sacan y luego se miden, con una sola recolocación de la página.
+    // Uno a uno, cada medida obligaba a recolocarla con el anterior ya movido: al salir de golpe los nombres de una isla, al
+    // empezar su vuelo de dron, eran treinta recolocaciones en una imagen y en el iPhone la imagen se paraba)
+    { const mide = []; for (const it of lista) if (it[5] && !it[1]._w) mide.push(it[1]);
+      if (mide.length) { for (const el of mide) { el.hidden = false; if (!el._on) { el.classList.add('fuera'); el._ya = 0; } } for (const el of mide) { el._w = el.offsetWidth; el._h = el.offsetHeight; } } }
     for (const [, el, x, y, z, on, y2, punto] of lista) etiqueta(el, x, y, z, on, ocupado, y2, punto);
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)
     if (elegido && o.sigue) { elegido.bola.getWorldPosition(bw).project(cam); o.sigue((bw.x + 1) / 2 * sz.w, (1 - bw.y) / 2 * sz.h, bw.z < 1); }
