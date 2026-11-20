@@ -21,6 +21,14 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · personajes** (20 nov, noche, aún más tarde): por encargo directo del autor, dos cambios más
+  en lo vuestro. (1) `src/actors/glbChar.js`: «al hablar… hacen un movimiento de oscilación demasiado exagerado» y «los
+  movimientos de la mano… que sea más sutil». `calmaHabla` (nuevo) calma la charla de los vecinos hueso a hueso (cadera
+  5 %, piernas 10 %, tronco 22 %, cuello y cabeza 40 %, brazos 15 %) y también su estar de pie cuando es la «alerta» de
+  Meshy (`K_QUIETO`, brazos 30 %), y los centra en la postura de quieto con la cadera mirando al frente
+  (`centroCharla`: la primera postura de la alerta ya giraba 26°). Se aplica tras los recortes de `loadMeshy`, salvo en
+  los pelotaris. (2) `src/actors/pelotaMoves.js`, `carreraNatural`: «la punta del pie… no va hacia los lados»: el pie se
+  gira sobre la espinilla hasta mirar adonde la rodilla (6° hacia fuera); en el apoyo iba de 25 a 70° hacia fuera.
 - **De Principal a Pelota · personajes** (20 nov, noche, más tarde): por encargo directo del autor («el modo de correr ha
   mejorado algo, pero aún así no me gusta cómo corren. Creo que no es orgánico»), en vuestro `src/actors/pelotaMoves.js`,
   `carreraNatural` tiene tres opciones nuevas: `zancada` (1,45: cada pie va más adelante y más atrás de la cadera),
