@@ -780,5 +780,93 @@
    "Toma la cinta verde, como el frontón. ¡Vuelve a jugar cuando quieras!",
    "kike-06.mp3"
   ]
+ ],
+ "patxi": [
+  [
+   "¡Egun on! Hace un día precioso en el valle.",
+   "patxi-01.mp3"
+  ],
+  [
+   "¡Arratsalde on! Hace un día precioso en el valle.",
+   "patxi-02.mp3"
+  ],
+  [
+   "¡Gabon! Qué noche más tranquila para pasear.",
+   "patxi-03.mp3"
+  ],
+  [
+   "¡Egun on! Vaya día de lluvia… ¡pero el campo lo agradece!",
+   "patxi-04.mp3"
+  ],
+  [
+   "¡Arratsalde on! Vaya día de lluvia… ¡pero el campo lo agradece!",
+   "patxi-05.mp3"
+  ],
+  [
+   "¡Gabon! Vaya día de lluvia… ¡pero el campo lo agradece!",
+   "patxi-06.mp3"
+  ],
+  [
+   "¡Egun on! ¡Cómo nieva! Abrígate bien si subes al monte.",
+   "patxi-07.mp3"
+  ],
+  [
+   "¡Arratsalde on! ¡Cómo nieva! Abrígate bien si subes al monte.",
+   "patxi-08.mp3"
+  ],
+  [
+   "¡Gabon! ¡Cómo nieva! Abrígate bien si subes al monte.",
+   "patxi-09.mp3"
+  ],
+  [
+   "\"Egun on\" significa \"buenos días\" en euskera.",
+   "patxi-10.mp3"
+  ],
+  [
+   "\"Arratsalde on\" significa \"buenas tardes\" en euskera.",
+   "patxi-11.mp3"
+  ],
+  [
+   "\"Gabon\" significa \"buenas noches\" en euskera.",
+   "patxi-12.mp3"
+  ]
+ ],
+ "itxaso": [
+  [
+   "Mañana es la fiesta de Muskilda. ¡Toda la villa sube al santuario!",
+   "itxaso-01.mp3"
+  ]
+ ],
+ "fermin": [
+  [
+   "¿Has probado el queso de Arantxa? Está en la plaza.",
+   "fermin-01.mp3"
+  ]
+ ],
+ "txaro": [
+  [
+   "Cuando nieva, los tejados tan inclinados hacen que la nieve resbale.",
+   "txaro-01.mp3"
+  ]
+ ],
+ "iker": [
+  [
+   "He oído cencerros por las calles… ¿será el Zarratrako?",
+   "iker-01.mp3"
+  ]
+ ],
+ "ximun": [
+  [
+   "Agur. Esto es el ttun-ttun: el golpe grave lleva el paso y la txirula canta encima. Toca cada cosa cuando llegue a la línea.",
+   "ximun-01.mp3"
+  ],
+  [
+   "¡Así suenan los valles! Ttun, ttun… y la txirula arriba.",
+   "ximun-02.mp3"
+  ],
+  [
+   "Casi. Primero el golpe, luego la flauta. Vuelve cuando quieras.",
+   "ximun-03.mp3"
+  ]
  ]
 }

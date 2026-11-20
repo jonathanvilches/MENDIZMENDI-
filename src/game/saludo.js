@@ -10,8 +10,11 @@ export function weatherNow(G) {
   if (!W || W.kind === 'clear') return 'clear';
   return W.kind === 'snow' || W.k > 0.3 ? W.kind : 'clear';
 }
+// (de noche: cuando ya ha oscurecido o cuando ya toca decir «Gabon»; si no, a las nueve menos cuarto se oía «¡Gabon! Hace un
+// día precioso», que no tiene sentido ni grabación)
+const esNoche = (G) => (G?.sky?.night ?? 0) > 0.5 || kaixo(G) === 'Gabon';
 function dayLine(G) {
-  const w = weatherNow(G), night = (G?.sky?.night ?? 0) > 0.5;
+  const w = weatherNow(G), night = esNoche(G);
   if (w === 'snow') return '¡Cómo nieva! Abrígate bien si subes al monte.';
   if (w === 'rain') return 'Vaya día de lluvia… ¡pero el campo lo agradece!';
   return night ? 'Qué noche más tranquila para pasear.' : 'Qué día más bonito para pasear.';
@@ -25,6 +28,6 @@ export function greet(G, s) {
   if (typeof s !== 'string') return s;
   const k = kaixo(G);
   if (k !== 'Egun on' && s.includes('Egun on')) s = s.replace('"Egun on" significa "buenos días"', `"${k}" significa "${KAIXO_ES[k]}"`).replace(/Egun on/g, k);
-  if (DAY.test(s) && (weatherNow(G) !== 'clear' || (G?.sky?.night ?? 0) > 0.5)) s = s.replace(DAY, dayLine(G));
+  if (DAY.test(s) && (weatherNow(G) !== 'clear' || esNoche(G))) s = s.replace(DAY, dayLine(G));
   return s;
 }

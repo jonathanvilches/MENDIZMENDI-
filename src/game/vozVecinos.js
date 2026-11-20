@@ -1,7 +1,8 @@
 // Las voces de los vecinos de Otsagabia (Ochagavía), cada uno con su voz de la biblioteca de ElevenLabs, elegidas por el
 // autor escuchando las muestras (16 de noviembre de 2026): Itziar, Rosa; Joxemari, Rafael; Kike, Leo; Ainhoa, Sofía;
 // Joseba, Martín; la Lamia, Sophie; el Basajaun, Ezequiel; el Bobo, Lucas; Arantxa, Mari; la narradora, Nico. Maite
-// sigue con Lulú hasta que el autor elija la suya. Los paseantes no hablan: solo misiones e información.
+// sigue con Lulú hasta que el autor elija la suya. Los paseantes (Patxi, Itxaso, Fermín, Txaro, Iker) y Ximun, el
+// músico, con las tomas que eligió el autor en la novena ronda (20 nov): Patxi con sus saludos a la hora y con el tiempo que hace.
 // src/assets/voz/vecinos/ochagavia/<vecino>-<nn>.mp3 y manifiesto.json ({ vecino: [[frase, archivo]] }): la frase se
 // busca por su texto, sin el nombre de quien juega (las grabaciones no lo dicen), sin tildes ni signos. Las frases con
 // cuenta («Llevas 3 de 6. Colócate…») tienen su grabación con el número; si falta, se busca sin «Llevas 3 de 6» y suena
