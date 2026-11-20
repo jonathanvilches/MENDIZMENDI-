@@ -122,6 +122,7 @@ const CREP_SKY = new THREE.Color('#d8b4d2'), CREP_GND = new THREE.Color('#7c6878
 
 const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600, MIST_GEO = new THREE.PlaneGeometry(1, 1);
 const _sunQ = new THREE.Vector3(), _light = new THREE.Vector3(), _moon = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
+const _tin = new THREE.Color();
 const FLOOD_SKY = new THREE.Color('#d8e4fb'), FLOOD_GND = new THREE.Color('#857f72'), FLOOD_SUN = new THREE.Color('#fff3df'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
   constructor(scene, renderer, quality, aire = 'media') {
@@ -256,6 +257,17 @@ void main(){
   floodK() { const k = this.floodCur || 0; return k * k * (3 - 2 * k); }
   /** Luz de los focos: se aplica la última (después de la lluvia y la tormenta, que bajan la luz), así de noche la
    *  cancha se ve siempre bien. */
+  /** Un tinte sobre la luz, la niebla y el cielo, a k (0 a 1), después de update y del tiempo: el final de los
+   *  momotxorros de Altsasu, en rojo (townLeyendas.js, desde engine/runtime.js). Sin luces nuevas; cada fotograma parte
+   *  de lo que acaba de calcular update, así que no se acumula */
+  tinte(col, k) {
+    if (!(k > 0)) return;
+    this.fog.color.lerp(_tin.copy(col).multiplyScalar(0.3), k * 0.85);
+    this.hemi.color.lerp(col, k * 0.55); this.hemi.groundColor.lerp(_tin.copy(col).multiplyScalar(0.25), k * 0.6);
+    this.sun.color.lerp(col, k * 0.5); this.sun.intensity *= 1 - 0.45 * k; this.hemi.intensity *= 1 - 0.35 * k;   // (y más oscuro)
+    this.uniforms.uZen.value.lerp(_tin.copy(col).multiplyScalar(0.1), k * 0.85);
+    this.uniforms.uHor.value.lerp(_tin.copy(col).multiplyScalar(0.42), k * 0.85);
+  }
   applyFlood() {
     const fk = this.floodK(); if (fk <= 0) return;
     this.hemi.color.lerp(FLOOD_SKY, fk); this.hemi.groundColor.lerp(FLOOD_GND, fk); this.hemi.intensity += ((this.indoor ? 1.3 : 1.55) - this.hemi.intensity) * fk;   // (al aire libre, algo más de luz de relleno: las paredes que no miran a los focos no se quedan oscuras)

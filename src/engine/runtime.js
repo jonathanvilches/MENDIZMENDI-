@@ -571,6 +571,7 @@ export class Runtime {
       const mute = this.sportQuiet = hold || /^(sport|pelota)$/.test(this.moodOf(g)) || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || this.sportUi;
       this.weather?.update(dt, this.camera, this.sky, this.sound, hold, mute); }
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
+    { const T = g.tinte; if (T?.k > 0) this.sky.tinte(T.col, T.k); if (this.lights) this.lights.parpadeo = T?.parpadeo || 0; }   // (el final rojo de los momotxorros: game/townLeyendas.js)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
     groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value); groundUniforms.uDia.value = 1 - (this.sky.night || 0);   // (agua de las fuentes)

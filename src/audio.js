@@ -346,7 +346,7 @@ export class Sound {
   /** Lo fuerte que suena la música ahora: mientras habla el comentarista, algo más de la mitad, para que no lo tape */
   // (antes a un tercio, y en el partido, a 0,14 mientras se jugaba: con el comentarista hablando casi todo el rato, la
   // música no se oía en el iPhone. Ahora a 0,24 jugando y a 0,55 de eso cuando habla, noviembre de 2026)
-  volMus() { return this.musVol * (this.hablando ? 0.55 : 1) * (this.buscando ? 0.35 : 1); }
+  volMus() { return this.musVol * (this.hablando ? 0.55 : 1) * (this.buscando ? 0.35 : 1) * (this.asustado ? 0.12 : 1); }
   /** Mientras suenan los cencerros que hay que seguir, la música baja a un tercio para que se oigan y se sepa hacia dónde
    *  ir; vuelve sola 4 s después del último (musicTick) */
   buscaCencerros() {
@@ -362,6 +362,31 @@ export class Sound {
     try { dispatchEvent(new CustomEvent('herrizherri-voz', { detail: on })); } catch (e) { /* sin eventos */ }
     if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
     const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, on ? 0.1 : 0.6);
+  }
+  /** El miedo del final de los momotxorros (townLeyendas.js), a k (0 a 1): un zumbido muy grave que va y viene, por el
+   *  bus de efectos (no es música: la música es siempre la del autor, y mientras dura se queda casi fuera); con 0 se apaga
+   *  despacio y a los 6 s se para */
+  terror(k = 0) {
+    if (!this.ctx) return; const ctx = this.ctx, t = ctx.currentTime;
+    if (!this.miedo && k > 0) {
+      const g = ctx.createGain(); g.gain.value = 0; g.connect(this.sfx);
+      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 150; f.Q.value = 5; f.connect(g);
+      const os = [43.65, 44.2, 87.6].map((hz, i) => { const o = ctx.createOscillator(); o.type = i < 2 ? 'sawtooth' : 'triangle'; o.frequency.value = hz; o.connect(f); return o; });
+      const lfo = ctx.createOscillator(), lg = ctx.createGain(); lfo.frequency.value = 0.11; lg.gain.value = 60; lfo.connect(lg); lg.connect(f.frequency); os.push(lfo);
+      os.forEach(o => o.start()); this.miedo = { g, os };
+    }
+    const M = this.miedo; if (!M) return;
+    M.k = k; M.g.gain.setTargetAtTime(k * 0.45, t, k > 0 ? 0.7 : 1.5);
+    const quiere = k > 0.05;
+    if (quiere !== !!this.asustado) { this.asustado = quiere;
+      if (this.musicBus && this.musicOn && this.mood !== 'none' && !((this.duckUntil || 0) > t)) { const mg = this.musicBus.gain; mg.cancelScheduledValues(t); mg.setTargetAtTime(this.volMus(), t, quiere ? 0.6 : 2); } }
+    clearTimeout(M.fin);
+    if (k <= 0) M.fin = setTimeout(() => { if (this.miedo === M && !(M.k > 0)) { M.os.forEach(o => { try { o.stop(); } catch (e) { } }); M.g.disconnect(); this.miedo = null; } }, 6000);
+  }
+  /** Un latido (dos golpes sordos), para el miedo del final de los momotxorros */
+  latido(v = 0.5) {
+    if (!this.ctx || !(v > 0.01)) return;
+    this.tone(62, 0.16, 'sine', v, this.sfx, 0, 0.006, 40); this.tone(58, 0.2, 'sine', v * 0.75, this.sfx, 0.24, 0.006, 38);
   }
   /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */
   duck(s) {

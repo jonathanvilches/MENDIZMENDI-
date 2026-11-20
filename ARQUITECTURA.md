@@ -223,6 +223,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`townLeyendas.js`); `ui.colocaMG` la centra en el hueco entre la barra de misiones y la brújula si en el centro se
   acerca a la barra (móvil tumbado), o la baja debajo de esa fila si tampoco cabe (vertical). Los corazones de la
   aventura (`ui/aventuraHud.js`) bajan debajo de ella mientras está a la vista.
+- **El final de los momotxorros de Altsasu es de miedo** (el autor, 20 de noviembre de 2026: «que salgan muchísimos más
+  momotxorros… más rojo, más estilo Stranger Things, que sea mucho más de terror, de miedo y de misterio»).
+  `townLeyendas.js`, `desfileCarnaval` y `terrorDesfile`: al encontrar los tres salen 14, 22 o 30 según la calidad
+  (antes 6, 10 o 14) de todas las calles a la vez, con los ojos encendidos y un halo rojo; corren hacia ti, te rodean a
+  5-8 m mirándote y saltan unos 5 s (rótulo «MOMOTXORROAK», latido, gritos); luego un grito de todos, un fogonazo rojo y
+  se dispersan por las calles, unos corriendo, durante 95 s. Todo el rato: la luz, la niebla (más cerca, a 85 m) y el
+  cielo teñidos de rojo y más oscuros (`sky.tinte`, que `engine/runtime.js` llama después del tiempo con `game.tinte`),
+  las farolas que parpadean (`fx.js`, `Lights.parpadeo`), esporas rojas que flotan, un velo rojo que late en los bordes
+  (`.terror-velo`, por debajo del HUD) y un zumbido grave con latido (`audio.js`, `terror` y `latido`; la música baja a
+  un 12 %). Sin luces nuevas en la escena. En los demás pueblos con carnaval la comparsa sigue siendo una fiesta.
+  `finDesfile` lo quita todo al acabar o al salir del pueblo. Una línea de comentario nunca lleva código detrás: al
+  escribir esto, la línea de la niebla se quedó dentro de un comentario, como la del bus de efectos.
 - **Una sola línea de diseño** (el autor, 17 de noviembre de 2026: «el juego se ha ido creando poco a poco y tiene retazos
   de todos los añadidos; hay que unificar»). Personajes: la referencia es el campesino y el joaldun, y todo personaje nuevo
   se mide con `tools/proporciones-personajes.mjs` (unas 4,75 cabezas los adultos; `CABEZA` en `glbChar.js`). Elegir algo

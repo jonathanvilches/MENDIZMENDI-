@@ -252,7 +252,9 @@ export class NightLights {
     this.lamps = lamps;
   }
   update(night, player) {
-    const on = clamp((night - 0.3) * 2.5, 0, 1);
+    let on = clamp((night - 0.3) * 2.5, 0, 1);
+    // (en el final de los momotxorros las farolas parpadean y a ratos se apagan del todo: townLeyendas.js)
+    if (this.parpadeo > 0) { const t = performance.now() / 1000, n = Math.sin(t * 9.1) * Math.sin(t * 3.7 + 1.1) * Math.sin(t * 1.3 + 2); on *= 1 - this.parpadeo * (n > 0.25 ? 0.94 : 0.2 * Math.abs(Math.sin(t * 37))); }
     this.mat.opacity = on * 0.85; this.points.visible = on > 0.01;
     if (this.pools) { this.poolMat.opacity = on * 0.68; this.pools.visible = on > 0.01; }
     this.mats.lamp.emissiveIntensity = on * 3;

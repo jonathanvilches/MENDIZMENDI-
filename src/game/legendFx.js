@@ -10,7 +10,7 @@ function glowTex() {
   g.fillStyle = r; g.fillRect(0, 0, 128, 128);
   GLOW = new THREE.CanvasTexture(c); GLOW.colorSpace = THREE.SRGBColorSpace; return GLOW;
 }
-const glowSprite = (color, s, o = 1) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.scale.setScalar(s); return m; };
+export const glowSprite = (color, s, o = 1) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex(), color, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.scale.setScalar(s); return m; };
 const lit = (color, emissive, k = 1.4, o = {}) => new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity: k, roughness: 0.4, ...o });
 
 // huella enorme de pie descalzo (Basajaun)

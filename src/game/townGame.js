@@ -1160,7 +1160,7 @@ export class TownGame {
     try { this.pano?.dispose(); for (const sp of this.panoPins || []) { sp.material.map?.dispose(); sp.material.dispose(); } } catch (e) { }
     this.pano = this.panoPins = null; this.panoOn = false;
     try { this.aventuraFin(); } catch (e) { }
-    if (this.desfileOn) { this.desfileOn = null; this.sound?.bucleCencerros?.(0); }   // (la comparsa de carnaval que aún pasaba, y su rumor de cencerros)
+    try { this.finDesfile?.(); } catch (e) { }   // (la comparsa de carnaval que aún pasaba, su rumor de cencerros y, en Altsasu, el rojo y el velo)
     try { this.pelotaAbort?.(); } catch (e) { }
     for (const M of this.missions || []) try { this.quitaTractor(M); } catch (e) { }
     document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
