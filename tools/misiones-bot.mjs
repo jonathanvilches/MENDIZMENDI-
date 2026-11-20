@@ -18,6 +18,8 @@ let ids;
 { const p0 = await b.newPage(); await p0.goto(BASE, { timeout: 300000 });
   ids = cuales === 'todos' ? await p0.evaluate(async () => (await import('/src/data/levels.js')).LEVELS.filter(l => !l.special).map(l => l.id)) : cuales.split(',');
   await p0.close(); }
+// SALTA=pueblo1,pueblo2: los que ya se pasaron (para retomar un recorrido)
+if (process.env.SALTA) { const no = new Set(process.env.SALTA.split(',')); ids = ids.filter(t => !no.has(t)); }
 const informe = [];
 for (const town of ids) {
   const p = await b.newPage({ viewport: { width: 1280, height: 720 } }); const errs = [];
