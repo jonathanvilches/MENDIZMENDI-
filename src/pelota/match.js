@@ -50,6 +50,8 @@ function lateral(P) {
 const PLANOS = ['general', 'fija', 'detras'];
 // (el esprint con un toque del botón: cuánto dura la arrancada, en segundos)
 const ESPRINT_TOQUE = 1.2;
+// (los planos de la grada de cerca, tras un buen tanto: apagados; ver dronGrada)
+const PLANO_GRADA = false;
 export class PelotaMatch {
   /**
    * @param {object} o
@@ -669,7 +671,11 @@ export class PelotaMatch {
   // (game.js, pausaTanto) y la repetición, si está puesta, viene después. Nunca dos tantos seguidos; sin la cámara
   // dinámica, o si se juega con la cámara del cuerpo, no. En las pruebas automáticas, solo con window.__dron (que además
   // lo pone en cada tanto)
+  // (y desde la noche del 20 de noviembre de 2026, fuera: el público de cerca son retratos planos que se ven pixelados,
+  // con las cabezas grandes y sin cuerpo. El autor, con una captura de este plano: «mira qué mal se ven los vecinos en la
+  // cámara de dron. Si se van a ver así, prefiero que no se vean». Se queda el código por si vuelve con otro público)
   dronGrada(e, limpio) {
+    if (!PLANO_GRADA) return;
     const g = this.game, u = this.ultGolpe, suyo = !!u && g.side(u.who) === e.winner && limpio, n = this.rallyN || 0;
     this.dronN = (this.dronN ?? 2) + 1;
     const forzado = !!window.__dron;
@@ -1885,7 +1891,8 @@ export class PelotaMatch {
       // (la grada que aplaude, desde la cámara de pie de cancha: en la contracancha junto al frontis, mirando a lo largo de
       // la grada. Antes, desde dentro de la cancha, pegada a la pared izquierda: «las cámaras no se ponen ahí»)
       const Ls = g.players[this.lastWin === 'you' ? 'rival' : 'you'] || rv0, cl2 = [[Ls.x - 1.3, 1.5, Ls.z - 3.1], [Ls.x, 1.25, Ls.z]], bajo = [[Wn.x * 0.4 - 0.8, 0.55, Math.max(1.6, Wn.z - 7.5)], [Wn.x, 1.5, Wn.z]];
-      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, [[COURT.W / 2 + (C.contra || 2.6) * 0.5, 1.55, 2.6], [co + 1.5, 1.8, mid + 7]], bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
+      // (sin el de la grada que aplaude desde la contracancha: de cerca, el público se ve mal; noche del 20 de noviembre)
+      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
       // (corteN: por qué plano de corte se va. Antes se llevaba en this.plano, que desde que la cámara se elige es su nombre
       // («general», «fija», «detras»): la cuenta daba NaN, no había plano y el partido se cerraba al acabar el primer tanto)
       const nPl = (this.corteN || 0) % planos.length;
@@ -1894,7 +1901,7 @@ export class PelotaMatch {
       // cámara de televisión sobre su carro; el de la grada, una panorámica lenta)
       { const u = Math.min(6, Math.max(0, g.phaseT - 0.35)), dx = cl[0] - cp[0], dy = cl[1] - cp[1], dz = cl[2] - cp[2], d = Math.hypot(dx, dy, dz) || 1, av = Math.min(0.32 * u, d * 0.3), ld = (nPl % 2 ? 1 : -1) * 0.14 * u;
         cp = [cp[0] + dx / d * av + dz / d * ld, cp[1] + dy / d * av * 0.5, cp[2] + dz / d * av - dx / d * ld];
-        if (nPl === 4) cl = [cl[0], cl[1], cl[2] + 0.5 * u]; }
+      }
       if (this.lastFinal) { const a = (this.t - (this.planoT || 0)) * 0.55; cp = [Wn.x + Math.sin(a) * 4.2, 2 + Math.sin(a * 0.5) * 0.4, Wn.z - Math.cos(a) * 4.2]; cl = [Wn.x, 1.3, Wn.z]; }
       // (el dron de la grada, tras un buen tanto: dronGrada. Entra y sale con un corte)
       { const dr = this.dron && this.t >= this.dron.t0 && this.t < this.dron.t0 + this.dron.dur ? this.planoDron((this.t - this.dron.t0) / this.dron.dur) : null;

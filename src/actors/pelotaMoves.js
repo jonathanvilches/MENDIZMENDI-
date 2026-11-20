@@ -512,19 +512,28 @@ export function poseArmado(scene, cual = 'Hit', izq = false) {
  * abría de lado, por `rodilla`), y el pie conserva el giro que traía. Se hace una vez al cargar el modelo.
  * @returns {THREE.AnimationClip} el clip nuevo (o el mismo si el esqueleto no es el de Mixamo)
  */
-export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0.35 } = {}) {
+// (y desde la noche del 20, más orgánica. El autor: «el modo de correr ha mejorado algo, pero aún así no me gusta cómo
+// corren. Creo que no es orgánico». La carrera de Meshy da pasos muy cortos (unos 0,54 m) y el juego la aceleraba hasta
+// ×2,8 para llegar a la velocidad del partido: siete u ocho pasitos por segundo, como frenéticos. Ahora la zancada es
+// `zancada` veces más larga (los pies van más adelante y más atrás de la cadera) y el ritmo se divide por lo mismo
+// (clip.userData.zancada, glbChar.js): menos pasos y más largos. Y el cuerpo, `inclina` grados hacia delante, como quien
+// corre de verdad: la carrera de Meshy iba con el tronco tieso)
+export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0.35, zancada = 1.45, inclina = 7, mano = 0.9 } = {}) {
   const M = clip && montaje(scene); if (!M) return clip;
   const { R, L, inv } = M, nom = (s) => `${R[s].b.name}.quaternion`;
   const trU = clip.tracks.find(t => t.name === nom('LU')); if (!trU) return clip;
   const mixer = new THREE.AnimationMixer(scene), act = mixer.clipAction(clip); act.play();
   const W = (o) => { const q = new THREE.Quaternion(); new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld).decompose(_v.clone(), q, _v.clone()); return q; };
-  const times = trU.times, n = times.length, ks = ['LU', 'LL', 'LP', 'RU', 'RL', 'RP', 'LA', 'LF', 'LH', 'RA', 'RF', 'RH'], Q = Object.fromEntries(ks.map(s => [s, new Float32Array(n * 4)]));
+  const times = trU.times, n = times.length, ks = ['S', 'LU', 'LL', 'LP', 'RU', 'RL', 'RP', 'LA', 'LF', 'LH', 'RA', 'RF', 'RH', ...['LFT', 'RFT'].filter(s => R[s])], Q = Object.fromEntries(ks.map(s => [s, new Float32Array(n * 4)]));
+  const qInc = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), inclina * Math.PI / 180);   // (el tronco hacia delante, que mira a +z)
   for (let i = 0; i < n; i++) {
     mixer.setTime(times[i]); scene.updateMatrixWorld(true);
+    { const wS = qInc.clone().multiply(W(R.S.b)); R.S.b.quaternion.copy(W(R.S.b.parent).invert().multiply(wS)); scene.updateMatrixWorld(true);
+      const q = R.S.b.quaternion, a = Q.S; if (i && a[i * 4 - 4] * q.x + a[i * 4 - 3] * q.y + a[i * 4 - 2] * q.z + a[i * 4 - 1] * q.w < 0) q.set(-q.x, -q.y, -q.z, -q.w); q.toArray(a, i * 4); }
     const Hc = mundo(R, 'H', inv).P;
     for (const s of ['L', 'R']) {
       const U = mundo(R, s + 'U', inv), Kn = mundo(R, s + 'L', inv), F = mundo(R, s + 'P', inv), [L1, L2] = L[s + 'U'];
-      const Ft = F.P.clone(); Ft.x = Hc.x + (F.P.x - Hc.x) * k;
+      const Ft = F.P.clone(); Ft.x = Hc.x + (F.P.x - Hc.x) * k; Ft.z = Hc.z + (F.P.z - Hc.z) * zancada;   // (los pies bajo el cuerpo y más adelante y atrás)
       const eje = F.P.clone().sub(U.P).normalize(), pol = Kn.P.clone().sub(U.P); pol.addScaledVector(eje, -pol.dot(eje)); pol.x *= rodilla; if (pol.lengthSq() < 1e-8) pol.set(0, 0, 1);
       const sol = dosHuesos(U.P, Ft, pol, L1, L2);
       const wU = new THREE.Quaternion().setFromUnitVectors(Kn.P.clone().sub(U.P).normalize(), sol.up).multiply(U.W);
@@ -544,9 +553,21 @@ export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0
       R[s + 'A'].b.quaternion.copy(W(R[s + 'A'].b.parent).invert().multiply(wA)); scene.updateMatrixWorld(true);
       const E2 = mundo(R, s + 'F', inv), H2 = mundo(R, s + 'H', inv);
       const wF = new THREE.Quaternion().setFromUnitVectors(H2.P.clone().sub(E2.P).normalize(), solA.lo).multiply(E2.W);
-      R[s + 'F'].b.quaternion.copy(wA.clone().invert().multiply(wF));
-      R[s + 'H'].b.quaternion.copy(wF.clone().invert().multiply(Hm.W)); scene.updateMatrixWorld(true);
-      for (const b of [s + 'U', s + 'L', s + 'P', s + 'A', s + 'F', s + 'H']) { const q = R[b].b.quaternion, a = Q[b]; if (i && a[i * 4 - 4] * q.x + a[i * 4 - 3] * q.y + a[i * 4 - 2] * q.z + a[i * 4 - 1] * q.w < 0) q.set(-q.x, -q.y, -q.z, -q.w); a.set([q.x, q.y, q.z, q.w], i * 4); }
+      // (y la palma hacia dentro, hacia el muslo, con el pulgar arriba: en la carrera de Meshy, con la mano abierta, la palma
+      // iba hacia arriba con el brazo delante y hacia delante con el brazo atrás, como quien pide algo. Los pelotaris están
+      // en reposo con la palma hacia delante (medido en la malla de la mano de varios: el plano de la mano mira a +z, con el
+      // pulgar hacia fuera). Se gira el antebrazo con la mano sobre su eje, como la pronación de una persona; con hueso de
+      // giro, el antebrazo queda y ese hueso lleva la mitad)
+      const fa = H2.P.clone().sub(E2.P).normalize(), palma = new THREE.Vector3(0, 0, 1).applyQuaternion(Hm.W.clone().multiply(R[s + 'H'].W.clone().invert()));
+      const tgt = new THREE.Vector3(s === 'L' ? -1 : 1, -0.15, 0.2); palma.addScaledVector(fa, -palma.dot(fa)); tgt.addScaledVector(fa, -tgt.dot(fa));
+      let ang = 0; if (palma.lengthSq() > 1e-6 && tgt.lengthSq() > 1e-6) { palma.normalize(); tgt.normalize(); ang = Math.atan2(new THREE.Vector3().crossVectors(palma, tgt).dot(fa), palma.dot(tgt)); }
+      ang = Math.max(-1.75, Math.min(1.75, ang)) * mano;
+      const tw = new THREE.Quaternion().setFromAxisAngle(fa, ang), FT = R[s + 'FT'], wF2 = FT ? wF : tw.clone().multiply(wF);
+      R[s + 'F'].b.quaternion.copy(wA.clone().invert().multiply(wF2));
+      R[s + 'H'].b.quaternion.copy(wF2.clone().invert().multiply(tw.multiply(Hm.W)));
+      if (FT) FT.b.quaternion.copy(FT.q0).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), ang * 0.5));
+      scene.updateMatrixWorld(true);
+      for (const b of [s + 'U', s + 'L', s + 'P', s + 'A', s + 'F', s + 'H', ...(R[s + 'FT'] ? [s + 'FT'] : [])]) { const q = R[b].b.quaternion, a = Q[b]; if (i && a[i * 4 - 4] * q.x + a[i * 4 - 3] * q.y + a[i * 4 - 2] * q.z + a[i * 4 - 1] * q.w < 0) q.set(-q.x, -q.y, -q.z, -q.w); a.set([q.x, q.y, q.z, q.w], i * 4); }
     }
   }
   act.stop(); mixer.uncacheRoot(scene);
@@ -554,6 +575,6 @@ export function carreraNatural(scene, clip, { k = 0.45, rodilla = 0.3, brazo = 0
   scene.updateMatrixWorld(true);
   const quita = new Set(ks.map(nom)), tracks = clip.tracks.filter(t => !quita.has(t.name)).map(t => t.clone());
   for (const s of ks) tracks.push(new THREE.QuaternionKeyframeTrack(nom(s), times.slice(), Q[s]));
-  const c = new THREE.AnimationClip(clip.name, clip.duration, tracks); c.userData = { ...(clip.userData || {}) };
+  const c = new THREE.AnimationClip(clip.name, clip.duration, tracks); c.userData = { ...(clip.userData || {}), zancada };
   return c;
 }

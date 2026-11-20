@@ -21,6 +21,18 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · personajes** (20 nov, noche, más tarde): por encargo directo del autor («el modo de correr ha
+  mejorado algo, pero aún así no me gusta cómo corren. Creo que no es orgánico»), en vuestro `src/actors/pelotaMoves.js`,
+  `carreraNatural` tiene tres opciones nuevas: `zancada` (1,45: cada pie va más adelante y más atrás de la cadera),
+  `inclina` (7°: el tronco hacia delante, en el hueso de la columna) y `mano` (0,9: la palma hacia el muslo, girando
+  antebrazo y mano sobre el eje del antebrazo; con hueso de giro del antebrazo, lo lleva él a medias). El clip sale con
+  `userData.zancada`, y en `src/actors/glbChar.js` la velocidad de Run se divide por ella: menos pasos y más largos (antes
+  hasta ×2,8, siete u ocho pasos por segundo). Medido: los pelotaris están en reposo con la palma hacia delante (+z).
+  Láminas con `tools/clips-ver.mjs`; probado en un partido real a 1280×720 y 844×390, sin errores.
+- **De Principal a Pelota · interfaz** (20 nov, noche, más tarde): por encargo del autor («Mira qué mal se ven los vecinos
+  en la cámara de dron. Si se van a ver así, prefiero que no se vean»), los planos de la grada tras un buen tanto están
+  apagados en `src/pelota/match.js` (`PLANO_GRADA = false`). En vuestro `hud.js`, la clase `.pel-root.dron` (que escondía
+  los mandos durante esos planos) ya no se pone nunca; no hace falta tocarla, por si vuelven.
 - **De Principal a Pelota · personajes** (20 nov, noche): por encargo directo del autor («cuando celebren y levanten las
   manos no se atraviesen la cabeza» y «que a la hora de correr no corran con las piernas en V»), en vuestro
   `src/actors/pelotaMoves.js`: (1) `montaje` mide el volumen de la cabeza con el pelo (`volumenCabeza`, un mapa de hasta

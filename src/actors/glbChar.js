@@ -724,7 +724,7 @@ export class GlbChar {
       else if (quiereLat !== (this.latName || null) && (!this.latName || this.latT > 0.25)) { this.latName = quiereLat; this.latT = 0; }
       const lat = this.latName ? this.actions[this.latName] : null;
       if (lat) { want = this.latName; scale = ts * Math.min(1.6, Math.max(0.7, v / 1.3)); }
-      else if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
+      else if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)) / (this.actions.Run.getClip().userData?.zancada || 1); }   // (con la zancada alargada, menos pasos: carreraNatural)
       else if (gn !== 'Idle' && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
       if (want !== 'Walk' && want !== 'Run' && !lat) scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;

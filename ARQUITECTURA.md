@@ -621,6 +621,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   1,05 a 1,25 s que pierde antes los agudos). Tres variantes de la mano, el frontis, el bote y la pared izquierda, en
   `src/assets/sonidos/pelota-*.mp3` (200 KB todos), sin repetir la última y algo más agudos y fuertes cuanto más fuerte el
   golpe. Si aún no han llegado, suena el sintetizado de antes. Al aire libre suenan con la misma sala (pendiente).
+  Desde el 20 de noviembre, los que suenan son otros: recortados de la grabación del frontón cubierto que pasó el autor
+  ese día (la mano, el frontis, la pared y el bote, cada uno solo con su impacto, una cola de sala corta y las tres
+  variantes igual de fuertes; el bote, más sordo que el frontis: su brillo hacia 1.100-1.800 Hz y el del frontis hacia
+  4.300). Esa tarde volvieron un rato los fabricados y por la noche el autor pidió otra vez los recortados: «el sonido de
+  pelota ha vuelto al sonido que no me gustaba. El anterior había uno que sí me gustaba, que era a raíz del último vídeo
+  que te subí de pelota». Son los mismos archivos de `src/assets/sonidos/pelota-*.mp3` (los del commit 1c2594d8); los
+  fabricados se pueden rehacer con `tools/sonidos/golpes-pelota.py`.
 - **La pelota, un 10-15 % más rápida** (17 de noviembre de 2026; `pelota/rules.js`, `tempo` de cada nivel, y la fuerza
   del golpe normal según la distancia en `pelota/game.js`). En el vídeo del entrenamiento que pasó el autor, la pelota
   tarda 0,3 s del golpe al frontis desde 7 u 8 m, unos 27 m/s. Medido con partidos simulados entre dos pelotaris del
@@ -1221,6 +1228,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cámara la grada salía vacía un instante; ahora, si la cámara salta más de 1,5 m o gira más de 20°, elige en ese
   mismo cuadro (`crowdAnim` `tick`), lo que también quita ese vacío en los demás planos del tanto. En las pruebas
   automáticas, solo con `window.__dron`, que además lo pone en cada tanto
+  APAGADOS desde el 20 de noviembre por la noche (`PLANO_GRADA = false` en `match.js`; también fuera de la lista de planos
+  del tanto la grada que aplaude y la panorámica de la grada). El autor, con una captura de la vista de dron: «Mira qué mal
+  se ven los vecinos en la cámara de dron. Si se van a ver así, prefiero que no se vean». Los vecinos de la grada, de
+  cerca, son retratos planos; hasta tener un público que aguante el primer plano, la cámara no se acerca a la grada. Para
+  volver a encenderlos basta con `PLANO_GRADA = true`.
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro
@@ -2564,6 +2576,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cadera (se queda en el 45 % de lo que se separaba: 13 cm entre los dos) sin cambiar ni su altura ni lo que avanza, la
   pierna se recoloca con dos huesos y la rodilla mirando adelante, el pie guarda su giro; y cada mano se acerca a la línea
   de su hombro (al 35 %), con el codo atrás. Para verlo: `tools/clips-ver.mjs` (lámina de clips de frente, de lado y detrás).
+  Y desde esa misma noche, más orgánica (el autor: «el modo de correr ha mejorado algo, pero aún así no me gusta cómo
+  corren. Creo que no es orgánico»). La de Meshy da pasos de unos 0,54 m, y el juego la aceleraba hasta ×2,8 para llegar
+  a la velocidad del partido: siete u ocho pasitos por segundo. Ahora cada pie va 1,45 veces más adelante y más atrás de
+  la cadera (`zancada`) y el ritmo se divide por lo mismo (`clip.userData.zancada`, que lee `GlbChar` al poner la
+  velocidad de Run): la misma velocidad sobre el suelo, con menos pasos y más largos. El tronco, 7° hacia delante
+  (`inclina`). Y la palma, hacia el muslo con el pulgar arriba (`mano`): con la mano abierta (los dedos no se doblan desde
+  el 16 de noviembre), la de Meshy iba con la palma hacia arriba con el brazo delante y hacia delante con el brazo atrás.
+  Los pelotaris están en reposo con la palma hacia delante (medido en la malla de la mano de varios: el plano de la mano
+  mira a +z, con el pulgar hacia fuera); se gira el antebrazo con la mano sobre su eje, como la pronación de una persona
+  (con hueso de giro del antebrazo, ese hueso lleva la mitad y el antebrazo queda).
 - **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con andar y correr y
   todos los de pelota, con nombre en castellano; con `base`, sin ningún movimiento, para animarlo en otro programa. Sin
   comprimir y con la textura en PNG: unos 6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
