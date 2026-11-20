@@ -152,18 +152,19 @@ export class Waterfall {
 // ---------- Humo de chimeneas (un solo sistema de puntos) ----------
 // Sale de la boca de cada chimenea (o.chimenea en world/houses.js, chim en TOWN.houses y VILLAGE.houses). Cuánto, según el
 // tiempo del pueblo: cuando nieva, en las casas se enciende el fuego y humean casi todas, con un humo más denso, más alto
-// y más largo; con lluvia, una de cada tres; con buen tiempo, alguna cocina. Cada chimenea va a su ritmo, el humo se tumba
+// y más largo; con lluvia, solo algunas (una de cada siete, una docena como mucho: «que solo algunas chimeneas echen
+// humo»); con buen tiempo, alguna cocina. Cada chimenea va a su ritmo, el humo se tumba
 // con el viento (world/viento.js), ondea un poco y se pierde en la niebla. (13 de noviembre de 2026, el autor: «si está
 // nevando, que salga humo de las chimeneas: en los pueblos, cuando hace frío, se hace fuego». Antes humeaban 14 casas
 // como mucho, todas a la vez, flojo y desde el centro del tejado, hiciera el tiempo que hiciera)
 const HUMO = {
   snow: { parte: 0.78, alfa: 0.58, sube: 9, ciclo: 6.5, n: 9, tam: [1.9, 10.5], color: '#979da5' },   // (más oscuro que el cielo gris de la nevada, para que se vea)
-  rain: { parte: 0.35, alfa: 0.44, sube: 6.5, ciclo: 5, n: 6, tam: [1.4, 6.5], color: '#9da2a9' },
+  rain: { parte: 0.14, max: 12, alfa: 0.44, sube: 6.5, ciclo: 5, n: 6, tam: [1.4, 6.5], color: '#9da2a9' },
   clear: { parte: 0.12, alfa: 0.28, sube: 5.5, ciclo: 4.5, n: 5, tam: [1.3, 6], color: '#d2d2d2' },
 };
 export class Smoke {
   constructor(scene, houses, { tiempo = 'clear', q = 'high' } = {}) {
-    const H = HUMO[tiempo] || HUMO.clear, rnd = mulberry32(houses.length * 7919 + 13), max = q === 'low' ? 45 : 90;
+    const H = HUMO[tiempo] || HUMO.clear, rnd = mulberry32(houses.length * 7919 + 13), max = Math.min(H.max || 1e9, q === 'low' ? 45 : 90);
     // (solo de las chimeneas de verdad: una casa sin chimenea, como las sencillas o los edificios de Pamplona, no humea.
     // Antes, en Pamplona, el humo salía de lo alto del tejado)
     let bocas = houses.filter(h => h.chim).map(h => h.chim).filter(() => rnd() < H.parte);
