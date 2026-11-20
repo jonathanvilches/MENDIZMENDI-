@@ -162,9 +162,16 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
       addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
     }
   }
-  // escalinata
-  for (let i = 0; i < 4; i++) { const zc = (style === 'cathedral' ? 4.5 : 1.3) + i * 1.1; B.add('ashlar', box(8 - i * 0.6, 0.3, 1.2), MM(F, M(0, 0.15 - i * 0.3, zc)));
-    stepFrom(F, 0, 0.3 - i * 0.3, zc, (8 - i * 0.6) / 2, 0.6); }   // (cada peldaño es suelo: se sube la escalinata)
+  // escalinata: los peldaños que haga falta hasta el suelo de delante, y cada uno macizo hasta el suelo (en Tudela la
+  // catedral queda metro y medio por encima de la plaza: la escalinata de cuatro acababa a casi un metro del suelo,
+  // flotando, y no se subía a la puerta, donde espera el sabio)
+  const zE = style === 'cathedral' ? 4.5 : 1.3, gE = (k) => { const f = toW(x, z, ry, 0, L / 2 + zE + k * 1.1); return terrainHeight(f.x, f.z); };
+  let nE = 4; while (nE < 12 && y + 0.3 - 0.3 * (nE - 1) - gE(nE - 0.4) > 0.3) nE++;
+  for (let i = 0; i < nE; i++) {
+    const zc = zE + i * 1.1, top = 0.3 - i * 0.3, base = Math.min(top - 0.3, gE(i) - y - 0.1), w = Math.max(3.2, 8 - i * 0.6);
+    B.add('ashlar', box(w, top - base, 1.2), MM(F, M(0, (top + base) / 2, zc)));
+    stepFrom(F, 0, top, zc, w / 2, 0.6);   // (cada peldaño es suelo: se sube la escalinata)
+  }
   addBox(x, z, W + 3, L + 2, ry, { solidView: true });
   if (style === 'cathedral') boxCol(x, z, ry, W / 2 + 7, -L / 2 + 10, 12, 16);
   const door = toW(x, z, ry, 0, L / 2 + (style === 'cathedral' ? 8 : 5));
