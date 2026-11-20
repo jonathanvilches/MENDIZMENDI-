@@ -92,6 +92,9 @@ export function freeFast(x, z, r) {
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
     const l = grid.get(key(i, j)); if (!l) continue;
     for (const c of l) {
+      // (lo «fantasma» —la explanada delante del castillo, reservada para que no se construyan casas— se pisa: resolve()
+      // ya lo dejaba pasar, pero la rejilla de caminos lo tomaba por muro y no había ruta hasta la puerta; Marcilla, Cortes)
+      if (c.ghost) continue;
       if (c.type === 'circle') { const dx = x - c.x, dz = z - c.z, m = c.r + r; if (dx * dx + dz * dz < m * m) return false; continue; }
       const dx = x - c.x, dz = z - c.z, lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos;
       const ex = Math.abs(lx) - c.hw, ez = Math.abs(lz) - c.hd;
