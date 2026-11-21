@@ -17,7 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): láminas técnicas del viaje del salmón (misión de la guarda del río, Lesaka), de la carbonera (taller del carbonero) y de la lana, «De la oveja al ovillo» (taller de la hilandera).
 
 ## Peticiones entre ventanas
 
@@ -201,6 +200,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, tarde, la hizo la ventana principal: `master` hasta `61b8c01c`. Tres láminas técnicas más: el viaje del salmón
+  (misión de la guarda del río, Lesaka), la carbonera (taller del carbonero) y «De la oveja al ovillo» (taller de la hilandera).
 - 21 nov, mediodía, la hizo la ventana principal: `master` hasta `aebce296`. Seis láminas técnicas isométricas nuevas
   dentro de las misiones y en el material didáctico: el piquillo (conservera y cosecha de Lodosa), el aceite (almazara de
   Tafalla y cosecha de aceitunas), la miel (Aoiz), la cuajada (kaiku y piedra al rojo), la txistorra (Pamplona) y la
