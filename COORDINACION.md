@@ -17,9 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal) Láminas 19 a 24: las palomeras de Etxalar, el cantero (cantera, sillar, marca y arco sobre la cimbra), el aizkolari (las dos V y el reloj del juez), el levantador de piedras (la romana y la alzada al hombro), cómo vive una seta (micelio, raíces, esporas y cogerlas bien) y la Bajada del Ángel de Tudela (maroma, polea y velo, en su misión); al acabar sus talleres, en la misión de las setas y en «Por dentro».
-- (Principal) Menú en el iPhone tumbado: el texto de las secciones (Aprende, Por dentro, Pueblos, Progreso…) ya no queda bajo la isla; empieza pasada la zona segura.
-
 
 ## Peticiones entre ventanas
 
@@ -208,8 +205,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche, la hizo la ventana principal: `master` hasta `81472627`. Las plazas de los pueblos reales como en
-  OpenStreetMap: cada iglesia llena su planta de los datos (en Altsasu cierra la plaza de los Fueros por el norte, como
-  en la foto de satélite), sin árboles en hilera inventados en las plazas, y en Olite la nave se acorta para no pisar el
-  Palacio Real (comprobado en los 27 pueblos reales). Y en el material didáctico, la sección «Por dentro» con las 18
-  láminas técnicas.
+- 21 nov, noche (más tarde), la hizo la ventana principal: `master` hasta `b362de57`. Láminas 19 a 24: las palomeras de
+  Etxalar, el cantero (cantera, sillar, marca y arco sobre la cimbra), el aizkolari, el levantador de piedras (la romana
+  y la alzada al hombro), cómo vive una seta y la Bajada del Ángel de Tudela; salen al acabar sus talleres, en la misión
+  de las setas, en la de la Bajada del Ángel y en «Por dentro» (24 láminas). Al acabar las cosechas de uva y de trigo,
+  la lámina del rosado y la del molino. Y en el iPhone tumbado, el texto de las secciones del menú ya no queda bajo la
+  isla.
