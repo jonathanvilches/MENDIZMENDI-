@@ -93,14 +93,28 @@ function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
 
 // ---------- Iglesia (estilos: romanesque, gothic, baroque, fortress, cathedral) ----------
 export function church(B, x, z, ry, style, fam, opts = {}) {
-  const y = terrainHeight(x, z) - 0.2;
-  const T = M(x, y, z, ry);
-  if (style === 'ermita' || style === 'borda') return ermita(B, T, x, z, y, ry, style === 'ermita');
+  if (style === 'ermita' || style === 'borda') { const y = terrainHeight(x, z) - 0.2; return ermita(B, M(x, y, z, ry), x, z, y, ry, style === 'ermita'); }
   const brick = fam === 'ribera' && style === 'baroque';
   const mat = brick ? 'brick' : 'ashlar';
   const roof = fam === 'pyrenean' || fam === 'atlantic' && style !== 'baroque' ? 'slate' : 'tile';
   const dims = { romanesque: [9, 18, 8], gothic: [12, 26, 13], baroque: [12, 24, 12], fortress: [13, 24, 14], cathedral: [18, 40, 18] }[style] || [12, 24, 12];
-  const [W, L, Hh] = dims;
+  let [W, L, Hh] = dims;
+  // (con la planta de los datos, opts.planta, la del edificio de OpenStreetMap, la iglesia la llena: nave, contrafuertes,
+  // torre y ábside dentro de su rectángulo y centrados en él. Antes todas medían 12 × 26 m y las de verdad suelen medir
+  // 25 × 45: en Altsasu la iglesia de la Asunción se quedaba a un lado de su solar y la plaza de los Fueros, que en la
+  // realidad termina contra su costado, se abría a un prado. El autor, 21 nov: «todas las plazas tienen que seguir la
+  // misma estructura de OpenStreet»)
+  const P = opts.planta;
+  if (P && ['gothic', 'romanesque', 'baroque', 'fortress'].includes(style)) {
+    const tw0 = style === 'fortress' ? 7.5 : style === 'romanesque' ? 5 : 6.4, corto = Math.min(P.w, P.d), largo = Math.max(P.w, P.d);
+    W = Math.min(22, Math.max(dims[0] * 0.75, corto - tw0 - 1.55));
+    L = Math.min(46, Math.max(dims[1] * 0.7, largo - W / 2 + 0.3));
+    Hh = Math.max(Hh, Math.round(W * 0.8));
+    // (el centro del conjunto, no el de la nave: la torre va a un lado, +x, y el ábside detrás, −z)
+    const o = toW(x, z, ry, -(tw0 - 0.95) / 2, (W / 2 - 0.3) / 2); x = o.x; z = o.z;
+  }
+  const y = terrainHeight(x, z) - 0.2;
+  const T = M(x, y, z, ry);
   B.add(mat, box(W, Hh + 2, L, 2.2), MM(T, M(0, (Hh + 2) / 2 - 2, 0)));
   B.add('stoneDark', box(W + 0.4, 1.4, L + 0.4, 2), MM(T, M(0, 0.3, 0)));
   // contrafuertes y ventanas

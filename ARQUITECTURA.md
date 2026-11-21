@@ -2135,9 +2135,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   más que de sobra alrededor del kiosco»). El quiosco iba en el centro de los datos de la plaza, 10 m al oeste del de
   verdad y pegado a la fachada de la casa de al lado, y en su sitio real se levantaba una casa: el edificio «Kiosko» de los
   datos. Ahora, si la ficha tiene quiosco y los datos traen su edificio (solo Altsasu), la plaza se centra en él, el
-  quiosco va allí y esa casa no se levanta; queda con unos 10 m libres a cada lado, como en la foto. Y los árboles en
-  hilera de la plaza no se plantan a menos de 11 m de ningún quiosco (también en Tudela), para que quede despejado; la
-  manada de momotxorros baila alrededor del quiosco nuevo.
+  quiosco va allí y esa casa no se levanta; queda con unos 10 m libres a cada lado, como en la foto. La manada de
+  momotxorros baila alrededor del quiosco nuevo.
+- **Las plazas de los pueblos reales, como en OpenStreetMap** (`world/monuments.js`, church, `opts.planta`;
+  `world/townBuilder.js`; `world/nature.js`, townTrees; el autor, 21 de noviembre de 2026: «la plaza no es así, la estás
+  haciendo mal [...] todas las plazas tienen que seguir la misma estructura de OpenStreet»). Puestos los contornos de
+  OpenStreetMap sobre la foto de satélite de Altsasu, encajan: los datos estaban bien y lo que fallaba era el juego. Dos
+  cosas: la iglesia se levantaba con la talla genérica de su estilo (12 × 26 m la gótica) en medio de su planta real
+  (23 × 47 m en Altsasu), y el resto de la planta quedaba vacío, así que la plaza parecía abierta por el norte; y en
+  todas las plazas se plantaban cuatro hileras de árboles que OpenStreetMap no trae. Ahora, en los pueblos reales, la
+  iglesia románica, gótica, barroca o fortaleza llena su planta (la nave, del ancho que deja la torre, entre tres cuartos de la talla genérica y 22 m, y
+  del largo de la planta hasta 46 m; el alto crece con el ancho) y se corre para que torre y nave ocupen el rectángulo de los
+  datos; las ermitas, las catedrales y Pamplona quedan como estaban. Y en las plazas de los pueblos reales no se planta
+  ningún árbol en hilera (los de los jardines siguen). Comprobado desde arriba, con la planta encima, en los 27 pueblos
+  reales con iglesia en los datos.
 - **Fuera los corazones** (`ui/aventuraHud.js`, `game/townAventura.js`; el autor, 21 de noviembre de 2026: «yo tampoco sé
   de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
   solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la
@@ -2226,6 +2237,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   asa; dos cestas acabadas, una con manzanas. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
+  Y todas juntas en el material didáctico, en **«Por dentro»** (`hub/didactico.js`, s_pordentro; el autor, 21 nov:
+  «que esté en la parte didáctica y que podamos acceder a estas ilustraciones sin ningún problema»): una entrada más en
+  Saberes y en el menú, con las 18 láminas en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
+  cada una con su miniatura; un toque y se abre como en las misiones. Las miniaturas (`public/anatomia/<nombre>.jpg`,
+  592 × 296, unos 13 kB) las saca `tools/anatomia/miniaturas.mjs` de cada lámina en modo juego.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
   `game/fronton.js`; el autor, 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para
   cuando se refiera a un chico o a una chica pelotari» y «graba las voces de pelota para las chicas pelotaris»). Las 29

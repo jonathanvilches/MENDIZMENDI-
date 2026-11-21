@@ -75,7 +75,7 @@ export function buildTown(scene, mats, def) {
   // iglesia mirando a la plaza (la de los datos, en su sitio y a lo largo de su eje)
   const ch = PLACES.church;
   const ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
-  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, def.church || {});
+  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, { ...(def.church || {}), planta: real && ch.real ? ch.real : null });
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
   for (const b of BRIDGES) {
