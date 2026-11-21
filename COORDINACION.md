@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal) Láminas 19 a 22: las palomeras de Etxalar, el cantero (cantera, sillar, marca y arco sobre la cimbra), el aizkolari (las dos V y el reloj del juez) y el levantador de piedras (la romana que pesa la piedra y la alzada al hombro); al acabar sus talleres y en «Por dentro».
+- (Principal) Láminas 19 a 23: las palomeras de Etxalar, el cantero (cantera, sillar, marca y arco sobre la cimbra), el aizkolari (las dos V y el reloj del juez), el levantador de piedras (la romana y la alzada al hombro) y cómo vive una seta (micelio, raíces, esporas y cogerlas bien); al acabar sus talleres, en la misión de las setas y en «Por dentro».
 - (Principal) Menú en el iPhone tumbado: el texto de las secciones (Aprende, Por dentro, Pueblos, Progreso…) ya no queda bajo la isla; empieza pasada la zona segura.
 
 
