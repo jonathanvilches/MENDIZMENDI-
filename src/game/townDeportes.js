@@ -20,7 +20,6 @@ import { pasakaMenu, pasakaReward } from '../ui/pasaka.js';
 import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { showChampion } from '../ui/champion.js';
 import { llegaFronton } from './llegadas.js';
-import { empiezaVideoEntrada } from '../pelota/videoEntrada.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { COURT } from '../pelota/rules.js';
 
@@ -360,11 +359,8 @@ export class PuebloDeportes {
         if (act === 'new') { T = torneo(yo, ctx, true, kind); continue; }
         if (act === 'sim') { playTorneoRound(T); continue; }
         const m = yourMatch(T);
-        // (el vídeo de entrada, ya: tapa la carga del frontón y se va al salir los pelotaris; game/llegadas.js. En la final
-        // no: tiene su propia entrada, la de «Gran final»)
-        // (y se espera a que arranque, como mucho un segundo y medio: con el frontón montándose, el navegador va tan cargado
-        // que el vídeo no llegaba a empezar; una vez en marcha, sigue solo)
-        if (m.round !== 'Final') { this.videoEntrada?.quitar(); this.videoEntrada = empiezaVideoEntrada(); await this.videoEntrada?.arrancado; }
+        // (sin vídeo de entrada: el de los dos pelotaris chocando el puño se quitó a petición del autor, 21 de noviembre de
+        // 2026, «no me gusta nada, elimínala»; queda la carga de siempre hasta que salen los pelotaris)
         // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
         // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
         // (el Torneo de Trinquete, en el trinquete de verdad de su ronda: trinqueteDe)

@@ -57,9 +57,10 @@ function rankingPelota() {
 
 // ---------- las piezas ----------
 // una esfera de anillos concéntricos: aros [{ f (0 a 1), c (color o url del degradado) }], de fuera adentro, con las
-// marcas del borde, la marca que la recorre y la cifra del centro
+// marcas del borde, la marca que la recorre y la cifra del centro, sola (sin palabra debajo: con los anillos llenos chocaba
+// con ellos; el autor, 21 nov 2026, «que se dé por hecho que es el progreso de Navarra y no pongas Navarra»)
 const R0 = 52, PASO = 11;
-function esfera(aros, centro, sub, id) {
+function esfera(aros, centro, id) {
   const marcas = Array.from({ length: 60 }, (_, i) => { const a = i / 60 * Math.PI * 2, r1 = 59, r2 = i % 5 ? 61 : 63.5;
     return `<line x1="${(64 + Math.sin(a) * r1).toFixed(2)}" y1="${(64 - Math.cos(a) * r1).toFixed(2)}" x2="${(64 + Math.sin(a) * r2).toFixed(2)}" y2="${(64 - Math.cos(a) * r2).toFixed(2)}"/>`; }).join('');
   const anillos = aros.map((a, i) => { const r = R0 - i * PASO, L = 2 * Math.PI * r;
@@ -68,7 +69,7 @@ function esfera(aros, centro, sub, id) {
       <defs><linearGradient id="pgG${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff7ac8"/><stop offset="1" stop-color="#b54bff"/></linearGradient></defs>
       <g class="pg-marcas">${marcas}</g><g class="pg-radar"><path d="M64 1.5 A62.5 62.5 0 0 1 96.6 10.5" /></g>
       <g transform="rotate(-90 64 64)">${anillos}</g></svg>
-    <div class="pg-cen"><b data-cuenta>${centro}</b><small>${sub}</small></div></div>`;
+    <div class="pg-cen"><b data-cuenta>${centro}</b></div></div>`;
 }
 const dato = (c, t, v, de) => `<li style="--c:${c}"><i></i><span>${t}</span><b data-cuenta>${v}${de != null ? `<em>/${de}</em>` : ''}</b></li>`;
 const modulo = (cls, kicker, chip, titulo, cuerpo, ir) => `<article class="pg-mod ${cls}"${ir ? ` data-go="${ir}" role="button" tabindex="0"` : ''}>
@@ -88,13 +89,13 @@ export function progresoHTML(cabeza) {
   const col = (s, id) => s.replace('{id}', id);
 
   const explorador = modulo('pg-m-exp', 'Explorador', `Nivel ${L.lv}`, esc(rankOf(L.lv)),
-    `<div class="pg-cuerpo">${esfera([{ f: pc(N.stamps, N.towns), c: col(C1, 'e') }, { f: pc(md, mt), c: C2 }, { f: pc(L.cur, L.need), c: C3 }], navPct + '%', 'Navarra', 'e')}
+    `<div class="pg-cuerpo">${esfera([{ f: pc(N.stamps, N.towns), c: col(C1, 'e') }, { f: pc(md, mt), c: C2 }, { f: pc(L.cur, L.need), c: C3 }], navPct + '<em>%</em>', 'e')}
       <ul class="pg-ley">${dato(col('#ff7ac8', ''), 'Sellos de pueblo', N.stamps, N.towns)}${dato(C2, 'Misiones', md, mt)}${dato(C3, 'Experiencia', L.cur, L.need)}${dato(C4, 'Comarcas', N.comarcas, N.comarcasTotal)}</ul></div>`, 'passport');
   const pelotari = modulo('pg-m-pel', 'Pelotari', `Nivel ${P.n}`, P.partidos ? `${P.ganados} ${P.ganados === 1 ? 'partido ganado' : 'partidos ganados'}` : 'Aún sin partidos',
-    `<div class="pg-cuerpo">${esfera([{ f: pc(P.en, P.falta), c: col(C1, 'p') }, { f: pc(P.ganados, P.partidos), c: C2 }, { f: pc(qm - 3, 2), c: C3 }], P.n, 'Nivel', 'p')}
+    `<div class="pg-cuerpo">${esfera([{ f: pc(P.en, P.falta), c: col(C1, 'p') }, { f: pc(P.ganados, P.partidos), c: C2 }, { f: pc(qm - 3, 2), c: C3 }], P.n, 'p')}
       <ul class="pg-ley pg-q">${CUALIDADES.map((k, i) => `<li style="--c:${[ '#ff7ac8', C2, C3, C4][i]}"><span>${{ fuerza: 'Fuerza', velocidad: 'Velocidad', agilidad: 'Agilidad', precision: 'Precisión' }[k]}</span><b data-cuenta>${Math.round(40 + (Q[k] - 1) * 14.75)}</b><u><i style="--f:${pc(Q[k] - 1, 4).toFixed(3)}"></i></u></li>`).join('')}</ul></div>`, 'sports');
   const futbol = modulo('pg-m-fut', 'Fútbol', LG ? esc(CLUBS[LG.S.club]?.name || '') : (F.played ? 'Amistosos' : 'Sin club'), LG ? `${LG.pos}.º en la liga` : F.played ? `${F.played} ${F.played === 1 ? 'partido' : 'partidos'}` : 'Elige tu club',
-    `<div class="pg-cuerpo">${esfera([{ f: LG ? pc(LG.S.j || 0, LG.jornadas) : 0, c: col(C1, 'f') }, { f: pc(F.won, F.played), c: C2 }, { f: pc(F.gf, F.gf + F.ga), c: C3 }], LG ? LG.pos + '.º' : F.won, LG ? 'En la liga' : 'Victorias', 'f')}
+    `<div class="pg-cuerpo">${esfera([{ f: LG ? pc(LG.S.j || 0, LG.jornadas) : 0, c: col(C1, 'f') }, { f: pc(F.won, F.played), c: C2 }, { f: pc(F.gf, F.gf + F.ga), c: C3 }], LG ? LG.pos + '<em>.º</em>' : F.won, 'f')}
       <ul class="pg-ley">${LG ? dato('#ff7ac8', 'Jornada', LG.S.j || 0, LG.jornadas) : dato('#ff7ac8', 'Partidos', F.played)}${dato(C2, 'Ganados', F.won, F.played || null)}${dato(C3, 'Goles a favor', F.gf)}${dato(C4, LG ? 'Ligas ganadas' : 'Goles en contra', LG ? LG.titulos : F.ga)}</ul></div>`, 'sports');
 
   // las clasificaciones
