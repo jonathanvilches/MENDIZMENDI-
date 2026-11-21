@@ -19,6 +19,7 @@ import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { isEU, tr } from '../i18n.js';
 import { laminaUrl } from '../ui/laminas.js';
+import { laminaTecnica, laminaDe } from '../ui/anatomia.js';
 import { lerp } from '../util/math.js';
 import { makeGate, makeItem } from './items.js';
 import { oficioImg } from '../ui/escudoImg.js';
@@ -232,6 +233,8 @@ export class PuebloActividades {
     } finally { this.ui.onMiniHit = null; this.player.frozen = false; this.mode = 'play'; }
     if (!finished) return;
     this.player.rig.doCheer();
+    // (si el oficio tiene lámina técnica —la ferrería del herrero—, antes de «Antes y ahora» se ve cómo funcionaba por dentro)
+    const lam = laminaDe(M.m.kind); if (lam) await laminaTecnica(this.ui, lam, { button: 'Seguir' });
     await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: eu ? `Horrela aritzen zen ${oname.toLowerCase()}.` : `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
     const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);
     await this.complete(M, { card: M.title, cardText: eu ? `Nola egiten zen: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(x => low(tr(x))).join(', ')}.` : `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });

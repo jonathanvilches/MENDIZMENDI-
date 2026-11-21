@@ -2147,7 +2147,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   hace algo de Navarra, paso a paso al pasar el dedo o el ratón. Se dibujan con `tools/anatomia/<nombre>.mjs` (lo común,
   colores y modo juego, en `tools/anatomia/comun.mjs`), que deja `entrega/anatomia/<nombre>(-light).html` para el autor y
   `public/anatomia/<nombre>.html` para el juego; con `?juego` en la dirección, sin leyenda y del alto del visor. El visor
-  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay diez: **la almadía en el portillo** (al
+  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay once: **la almadía en el portillo** (al
   acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal), **el
   rosado** (misión del vino: vendimia, despalillado y estrujado, maceración con la piel, sangrado, fermentación a 16 °C y
   embotellado), **el espárrago blanco** (al acabar su cosecha, `laminaCosecha` de `game/townCharla.js`: el caballón,
@@ -2165,7 +2165,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   donde se mete la piedra con las tenazas y su termómetro —hierve y baja a unos 37 °C—, el cuajo, los cuencos de barro y la
   fresquera) y **la txistorra** (misión de la carnicera Itziar en Pamplona: la tabla con el magro y el tocino, la
   picadora de manivela, el barreño donde se adoba con sal, ajo y pimentón —la masa pasa de rosa a roja—, la embutidora
-  que llena la tripa en espiral, el secadero con las ristras colgadas y la sartén). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  que llena la tripa en espiral, el secadero con las ristras colgadas y la sartén) y **la ferrería** (misión del herrero de Lesaka, «La ferrería del Bidasoa»: el depósito y el canal de
+  madera, las dos ruedas hidráulicas al otro lado del muro, el árbol cuyas levas aprietan los barquines contra el horno del
+  carbón y la vena, y el de la corona de levas que baja la cola del mazo y lo deja caer sobre la zamarra en el yunque; las
+  barras, la pila y la escoria). Los oficios con lámina la abren al acabar el taller, antes de «Antes y ahora»
+  (`townActividades.doWorkshop`), y en el material didáctico, en la ficha del oficio. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,

@@ -234,7 +234,7 @@ export const DIDACTICO = {
     const img = laminaUrl(OFICIO_LAMINA[kind], true) || '', esc2 = oficioImg(kind);
     return block(O.icon, 'Oficio de antes', title || O.name, P(O.intro)
       + H4('Sus herramientas') + `<table class="dd-tools"><tbody>${O.tools.map(([es, eu, d]) => `<tr><th data-notr lang="es">${esc(es)}</th><td data-notr lang="eu">${esc(eu)}</td><td>${esc(d)}</td></tr>`).join('')}</tbody></table>`
-      + H4('Cómo se trabajaba') + O.steps.map(s => `<div class="dd-paso"><b>${esc(s.title)}</b>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('')
+      + H4('Cómo se trabajaba') + O.steps.map(s => `<div class="dd-paso"><b>${esc(s.title)}</b>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('') + porDentro(kind)
       + aa(O.then, O.now) + (esc2 ? `<p class="dd-ofarms"><img src="${esc2}" alt=""><span>El escudo del oficio</span></p>` : ''),
     { sub: title ? O.name : '', eu: O.eu, img, where: where(towns(m => m.type === 'trade' && m.kind === kind)) });
   },
