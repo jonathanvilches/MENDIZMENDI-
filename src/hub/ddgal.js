@@ -57,7 +57,7 @@ export function ficha(hub, it) {
   const o = ui.modal; if (!o) return;
   o.classList.add('ddf');
   o.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-town],[data-figura],[data-ficha]'); if (!t) return;
+    const t = e.target.closest('[data-town],[data-figura],[data-ficha],[data-lamina]'); if (!t) return;
     e.stopPropagation(); o.querySelector('.next')?.click();
     setTimeout(() => { const c = hub.root.appendChild(t.cloneNode(true)); c.hidden = true; c.click(); c.remove(); }, 280);   // (lo atiende el menú, como cualquier enlace suyo)
   });

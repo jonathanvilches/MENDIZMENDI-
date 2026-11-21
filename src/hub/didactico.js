@@ -9,6 +9,7 @@ import FOLKLORE from '../data/folklore.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { CUENTOS, KIND_LABEL, cuentoOfTown } from '../data/cuentos.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
+import { laminaDe } from '../ui/anatomia.js';
 import { OFICIOS } from '../data/oficios.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
@@ -129,6 +130,8 @@ const ROMERIA_LAM = { 'orreaga-roncesvalles': 'orreaga-camino', 'burgui-burgi': 
 const IGLESIA_ILUS = { romanesque: 'iglesia-romanica', gothic: 'iglesia-gotica', baroque: 'iglesia-barroca', fortress: 'iglesia-fortaleza', 'Iglesia neoclásica': 'iglesia-neoclasica', 'Iglesia neobarroca': 'iglesia-neobarroca', 'Basílica neogótica': 'iglesia-neogotica', 'Iglesia del siglo XIX': 'iglesia-neogotica', 'Iglesia del siglo XVI': 'iglesia-renacimiento', 'Iglesia de ladrillo': 'iglesia-ladrillo', 'Iglesia medieval': 'iglesia-romanica', 'Portada románica': 'portada-romanica' };
 const MONUMENTO_ILUS = { house: 'casa-escudo', towerhouse: 'casa-torre', ruin: 'ruinas', chapel: 'ermita', cross: 'crucero', monolith: 'monolito', lookout: 'mirador', pass: 'puerto-montana', horreo: 'horreo', stelae: 'estelas' };
 const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
+// (el botón a la lámina técnica del producto, si la tiene: ui/anatomia.js; lo atiende el menú, data-lamina)
+const porDentro = (id) => { const L = laminaDe(id); return L ? `<p class="dd-more"><button type="button" class="btn ghost" data-lamina="${L}">Verlo por dentro, paso a paso</button></p>` : ''; };
 export const LM_ICON = { trinquete: 'pelota', chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
 
@@ -203,7 +206,7 @@ export const DIDACTICO = {
   // lo que enseña una misión, sin el juego: su texto, su explicación (qué es, cómo se hace, antes y ahora) y su pregunta
   d_mision(l, m) {
     switch (m.type) {
-      case 'process': { const X = PROCESOS[m.id]; return block('basket', 'Producto local', m.title || m.product, (X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) : P(m.text)) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + (X ? aa(X.then, X.now) : ''), { sub: m.product }); }
+      case 'process': { const X = PROCESOS[m.id]; return block('basket', 'Producto local', m.title || m.product, (X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) : P(m.text)) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id) + (X ? aa(X.then, X.now) : ''), { sub: m.product }); }
       case 'tradition': { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + aa(X.then, X.now) : sinOrdenes(m.text), { img: tradicionUrl(m.ilus) || '' }); }
       case 'dance': return block('dance', 'Danza', m.name, P(m.text), { img: tradicionUrl(m.ilus) || '' });
       case 'trade': return this.d_oficio(m.kind, m.title);
@@ -375,7 +378,7 @@ export const DIDACTICO = {
         items: COMARCAS.filter(c => STAR[c.id]).map(c => { const S = STAR[c.id]; return { k: 's-' + c.id, img: tradicionUrl(STAR_ILUS[c.id]) || lam(STAR_LAM[c.id]), icon: FOOD_ICON[S.food] || 'cheese', c: c.color, kicker: c.name, title: S.name, eu: S.eu, secs: [['Qué es', P(S.text)]] }; }) },
       { k: 'como', name: 'Cómo se hace', icon: 'basket', intro: 'Del campo o del animal a la mesa, paso a paso.',
         items: proc.map(({ l, m }) => { const X = PROCESOS[m.id]; return { k: 'p-' + l.id + '-' + m.id, img: tradicionUrl(PROC_ILUS[m.id]) || lam(PROC_LAM[m.id]), icon: PROC_ICON[m.id] || 'basket', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || m.product, sub: m.product,
-          secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '')], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
+          secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id)], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
       { k: 'cosechas', name: 'Las cosechas', icon: 'wheat', intro: 'Qué se recoge en cada sitio.',
         items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c)]], towns: cropTowns(c).map(l => l.id) })) },
       { k: 'ganaderia', name: 'Ganadería', icon: 'sheep', intro: 'Pastores, vaqueras y sus rebaños.',
