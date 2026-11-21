@@ -17,7 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal) Lámina 25: cómo se hace la sidra (la trituradora, el dolare con su viga, su husillo y su piedra, la kupela y el chorro del txotx al vaso); al acabar la cosecha de manzanas de Irurtzun y en «Por dentro». Las fichas de las cosechas del material didáctico, con su botón «Verlo por dentro».
 
 ## Peticiones entre ventanas
 
@@ -206,9 +205,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche (más tarde), la hizo la ventana principal: `master` hasta `b362de57`. Láminas 19 a 24: las palomeras de
-  Etxalar, el cantero (cantera, sillar, marca y arco sobre la cimbra), el aizkolari, el levantador de piedras (la romana
-  y la alzada al hombro), cómo vive una seta y la Bajada del Ángel de Tudela; salen al acabar sus talleres, en la misión
-  de las setas, en la de la Bajada del Ángel y en «Por dentro» (24 láminas). Al acabar las cosechas de uva y de trigo,
-  la lámina del rosado y la del molino. Y en el iPhone tumbado, el texto de las secciones del menú ya no queda bajo la
-  isla.
+- 21 nov, noche (más tarde aún), la hizo la ventana principal: `master` hasta `195f78a2`. Lámina 25: cómo se hace la
+  sidra (la trituradora, el dolare con su viga, su husillo y su piedra, la kupela y el chorro del txotx al vaso), al
+  acabar la cosecha de manzanas de Irurtzun y en «Por dentro» (25 láminas); y las fichas de las cosechas del material
+  didáctico con su botón «Verlo por dentro». Antes, en la misma noche (`b362de57`): las láminas 19 a 24, las de las
+  cosechas de uva y trigo y el menú del iPhone tumbado sin texto bajo la isla.
