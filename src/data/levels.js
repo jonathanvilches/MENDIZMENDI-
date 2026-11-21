@@ -236,7 +236,7 @@ export const LEVELS = [
     river: { name: 'Burunda', x: 50, w: 2.6, amp: 6 },
     intro: 'Villa de Sakana entre las sierras de Urbasa y Aralar, con uno de los carnavales más conocidos: el de los Momotxorros.',
     church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del casco antiguo.' },
-    landmarks: [{ kind: 'plaza', name: 'Plaza del carnaval', text: 'El martes de carnaval salen los Momotxorros, con cuernos, sábanas manchadas de rojo y un sarde (horca).' }, { kind: 'dolmen', name: 'Dolmen de la sierra de Urbasa', text: 'En las sierras de Urbasa y Aralar hay decenas de dólmenes: tumbas de piedra levantadas por los primeros pastores hace unos 5.000 años.' }],
+    landmarks: [{ kind: 'kiosk', name: 'Plaza de los Fueros', text: 'Plaza con kiosco en el centro del pueblo. El martes de carnaval llegan los Momotxorros, con cuernos, sábanas manchadas de rojo y un sarde (horca), y bailan a su alrededor.' }, { kind: 'dolmen', name: 'Dolmen de la sierra de Urbasa', text: 'En las sierras de Urbasa y Aralar hay decenas de dólmenes: tumbas de piedra levantadas por los primeros pastores hace unos 5.000 años.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'momotxorro', title: 'Momotxorros', host: H('Unai', { shirt: '#3a8fd6', pants: '#34495e', hair: '#2e2018', messy: true, height: 1.4 }),
