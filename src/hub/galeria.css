@@ -1,11 +1,11 @@
 /* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, el morado del juego,
    limpio, con una luz suave del color de la comarca en el suelo; arriba, las comarcas; en medio, el anillo de pantallas con
    las flechas a su altura; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
-.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; overflow: hidden; border-radius: var(--rL); color: #fff;
+.gal { --c: #b56cff; --gh: min(66vh, 560px); --dh: 88px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; overflow: hidden; border-radius: var(--rL); color: #fff;
   background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
 /* (en el juego, sobre el fondo de la pantalla, sin su propio recuadro: en el iPhone se veía como una caja dentro de la
    pantalla, con los bordes a la vista; queda la luz del color de la comarca bajo el anillo) */
-#hub.juego .hub-main > .gal { height: 100%; margin: 0 -24px; background: none; }
+#hub.juego .hub-main > .gal { height: 100%; margin: 0 -24px; background: none; box-sizing: border-box; padding-bottom: max(14px, env(safe-area-inset-bottom, 0px)); }
 #hub.juego .hub-main:has(> .gal), html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
 #hub:not(.juego) .gal { height: min(72vh, 680px); margin-top: 16px; }
 
@@ -51,19 +51,24 @@
 .gt-foto::after { content: ''; position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%) 130% 0 / 250% 100% no-repeat; }
 .gal-t.frente .gt-foto::after { opacity: 1; animation: gtBrillo 5s ease-in-out infinite; }
 @keyframes gtBrillo { 0%, 55% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
-/* (la franja: oscura y con las esquinas de abajo redondas. Arriba, a lo ancho, una raya por misión (encendidas las hechas);
-   debajo, el nombre con la cuenta a su derecha y, en su propia fila y a todo el ancho, el otro nombre o la comarca: antes la
-   cuenta iba en esa fila y los nombres largos, como Larraun-Leitzaldea, se montaban con ella. El sello, sobre la foto) */
-.gt-dato { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: center; column-gap: 10px; row-gap: 3px; min-width: 0;
-  padding: 9px calc(var(--k) + 2px) 0 12px; background: linear-gradient(180deg, #1d1142, #110926); border-radius: 0 0 7px 7px; }
-.gt-nom, .gt-mis { display: contents; }
+/* (la franja: oscura y con las esquinas de abajo redondas. El nombre; debajo, el otro nombre o la comarca; y debajo, sus
+   misiones, una casilla por misión del color de su categoría, llenas las hechas, con la cuenta. A la derecha, en la de
+   delante, el botón de jugar. Todo en la misma carta: antes el nombre, las misiones y los botones iban en otra fila debajo
+   y la pantalla quedaba apretada, el autor, 21 de noviembre de 2026. El sello, sobre la foto) */
+.gt-dato { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto auto; align-content: center; column-gap: 14px; row-gap: 5px; min-width: 0;
+  padding: 10px calc(var(--k) + 2px) 10px 14px; background: linear-gradient(180deg, #1d1142, #110926); border-radius: 0 0 7px 7px; }
+.gt-nom { display: contents; }
 .gt-nom b { grid-area: 1 / 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font: 400 min(var(--fs-lg), 7.4cqw)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
-.gt-nom small { grid-area: 2 / 1 / 3 / 3; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 clamp(11px, 5cqw, 12px)/1.15 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
-.gt-mis em { grid-area: 1 / 2; align-self: center; font: 700 var(--fs-xs)/1 var(--f-ui); font-style: normal; letter-spacing: .04em; }
-.gt-rayas { position: absolute; top: 4px; left: 12px; right: calc(var(--k) + 2px); display: flex; gap: 3px; }
-.gt-rayas i { flex: 1; height: 3px; border-radius: 1px; transform: skewX(-18deg); background: rgba(255, 255, 255, .18); }
-.gt-rayas i.on { background: color-mix(in srgb, var(--c) 55%, #fff); box-shadow: 0 0 6px color-mix(in srgb, var(--c) 70%, transparent); }
-.gt-mis.ok em { color: #ffd166; } .gt-mis.ok .gt-rayas i { background: #ffd166; box-shadow: none; }
+.gt-nom small { grid-area: 2 / 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 clamp(11px, 5cqw, 12px)/1.15 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.gt-ms { grid-area: 3 / 1 / 4 / 3; display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.gt-ms i { --mc: #c9b8ff; flex: 0 1 var(--mi, 22px); min-width: 12px; aspect-ratio: 1; display: grid; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--mc) 14%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 45%, transparent); }
+.gt-ms i :is(svg, img) { width: 64%; height: 64%; } .gt-ms i:not(.ok) :is(svg, img) { opacity: .7; }
+.gt-ms i.ok { border-color: var(--mc); background: color-mix(in srgb, var(--mc) 42%, rgba(13, 6, 28, .55)); }
+.gt-ms em { flex: none; margin-left: 4px; color: var(--tx2, #cbc2e0); font: 700 var(--fs-xs)/1 var(--f-ui); font-style: normal; letter-spacing: .04em; }
+.gt-ms.ok em { color: #ffd166; }
+.gt-jugar.btn { grid-area: 1 / 2 / 3 / 3; align-self: center; min-height: 44px; padding: 0 20px; gap: 8px; white-space: nowrap; }
+.gt-jugar.btn :is(svg, img) { width: 18px; height: 18px; }
+.gal-t:not(.frente) .gt-jugar { display: none; }
 .gt-sello { position: absolute; z-index: 2; right: calc(var(--k) + 2px); bottom: calc(100% + 6px); width: 30px; height: 30px; transform: rotate(-12deg); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
 .gal-t.frente { box-shadow: 0 0 34px color-mix(in srgb, var(--c) 45%, transparent), 0 26px 50px rgba(4, 1, 12, .55); animation: galFlota 4s ease-in-out infinite; }
 .gal-t.frente .gt-marco { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%); }
@@ -87,6 +92,7 @@
 .gal-puntos i.on { width: 26px; background: color-mix(in srgb, var(--c) 70%, #fff); }
 
 /* el pueblo de delante: su nombre, su comarca, sus misiones y los botones */
+.gal-info:empty { display: none; }
 .gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 0 32px 28px; }
 .gal-info.cambia > * { animation: galSube .4s var(--ease) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
@@ -107,11 +113,11 @@
 
 /* ---------- el móvil tumbado: todo más bajo; el pueblo de delante, en una sola fila ---------- */
 @media (max-height: 520px) {
-  .gal { --gh: min(41vh, 180px); --dh: 40px; }
-  #hub.juego .hub-main > .gal { height: 100%; margin: 0 -16px; }
+  .gal { --gh: min(66vh, 270px); --dh: 70px; }
+  #hub.juego .hub-main > .gal { height: 100%; margin: 0 -16px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
   .gal .gal-cm { padding: 8px 20px 0; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
-  .gt-marco { --k: 10px; } .gt-dato { column-gap: 8px; row-gap: 2px; padding: 8px calc(var(--k) + 2px) 0 10px; } .gt-sello { width: 24px; height: 24px; }
-  .gt-rayas { top: 3px; left: 10px; gap: 2px; }
+  .gt-marco { --k: 10px; } .gt-dato { column-gap: 10px; row-gap: 3px; padding: 7px calc(var(--k) + 2px) 7px 10px; } .gt-sello { width: 24px; height: 24px; }
+  .gt-ms { --mi: 17px; gap: 3px; } .gt-jugar.btn { min-height: 36px; padding: 0 14px; font-size: var(--fs-sm); }
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
   .gal-info { padding: 0 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
@@ -128,14 +134,14 @@
    jugando: la sección ya va marcada en la barra) */
 @media (max-height: 520px) { #hub:not(.juego) .gal-lead { display: none; } #hub:not(.juego) .gal { height: calc(100vh - 76px); height: calc(100dvh - 76px); margin-top: 0; } }
 /* (en los móviles más bajos, la tarjeta algo más pequeña: que quede aire con las comarcas de arriba y el pueblo de abajo) */
-@media (max-height: 380px) { .gal { --gh: min(37vh, 160px); } }
+@media (max-height: 380px) { .gal { --gh: min(62vh, 230px); } }
 /* (en los tumbados más estrechos, las misiones sin la cuenta, que ya va en la tarjeta: si no, se quedaba sola en otra fila) */
 @media (max-height: 520px) and (max-width: 760px) { .gi-ms em { display: none; } }
 /* (en el más pequeño, solo el nombre y los botones: las misiones ya van contadas en la tarjeta) */
 @media (max-height: 520px) and (max-width: 640px) { .gi-ms { display: none; } }
 /* ---------- el móvil de pie: el pueblo de delante, debajo del anillo, a lo ancho ---------- */
 @media (max-width: 760px) and (min-height: 521px) {
-  .gal { --gh: min(34vh, 290px); --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 100vw - 132px, var(--gwmax, 100vw)); }   /* (las flechas, a los lados sin tapar la pantalla) */
+  .gal { --gh: min(50vh, 400px); --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 100vw - 132px, var(--gwmax, 100vw)); }   /* (las flechas, a los lados sin tapar la pantalla) */
   #hub.juego .hub-main > .gal { margin: 0 -16px; }
   .gal .gal-cm { padding: 10px 16px 0; }
   .gal-info { flex-direction: column; align-items: stretch; padding: 0 16px 16px; }
@@ -144,5 +150,5 @@
   .gal-fl { width: 40px; height: 40px; } .gal-fl.ant { left: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); } .gal-fl.sig { right: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); }
 }
 /* ---------- ordenador grande: las pantallas, más grandes ---------- */
-@media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(52vh, 480px); --dh: 60px; } .gt-nom b { font-size: min(var(--fs-xl), 7.4cqw); } .gt-nom small { font-size: 11px; } }
+@media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(68vh, 640px); --dh: 100px; } .gt-ms { --mi: 26px; } .gt-nom b { font-size: min(var(--fs-xl), 7.4cqw); } .gt-nom small { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .gal-t.frente, .gal-t.frente .gt-foto::after { animation: none; } .gal-anillo.entra .gal-t { animation: none; } }

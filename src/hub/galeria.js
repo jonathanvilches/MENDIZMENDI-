@@ -12,8 +12,9 @@ const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-re
 
 /**
  * m: el contenedor (la ventana de la sección). o: { comarcas: [{ id, nombre, color }], tarjetas(id) → html de
- * las tarjetas de sus pueblos (botones .gal-t con data-gt), info(townId, i, n) → html de la ficha del de delante,
- * inicial (id de la comarca), pueblo (id del pueblo de delante al entrar), abre(townId), sonido(nombre) }.
+ * las tarjetas de sus pueblos (bloques .gal-t con data-gt), info(townId, i, n) → html de debajo del de delante (o ''),
+ * inicial (id de la comarca), pueblo (id del pueblo de delante al entrar), abre(townId), juega(townId) (el botón
+ * [data-play] de la carta de delante), sonido(nombre) }.
  */
 export function galeria(m, o) {
   const G = m.querySelector('.gal'); if (!G) return;
@@ -33,7 +34,7 @@ export function galeria(m, o) {
   // ---------- la fila entera: todas las comarcas, una detrás de otra ----------
   // (las portadas, sin cargar: cada una se pide cuando su tarjeta se acerca a la de delante, y se suelta al alejarse mucho;
   // con las cuarenta y tantas a la vez, en el móvil se iba la memoria)
-  anillo.innerHTML = o.comarcas.map((c, i) => o.tarjetas(c.id).replace(/<img class="gt-img" src=/g, '<img class="gt-img" data-src=').replace(/<button type="button" class="gal-t"/g, `<button type="button" class="gal-t" data-ci="${i}" style="--c:${c.color}"`)).join('');
+  anillo.innerHTML = o.comarcas.map((c, i) => o.tarjetas(c.id).replace(/<img class="gt-img" src=/g, '<img class="gt-img" data-src=').replace(/ class="gal-t"/g, ` class="gal-t" data-ci="${i}" style="--c:${c.color}"`)).join('');
   T = [...anillo.querySelectorAll('.gal-t')]; N = T.length;
   T.forEach((t, k) => { const i = +t.dataset.ci; deC[k] = i; if (!R[i]) R[i] = { a: k, n: 0 }; R[i].n++; });
   G.classList.add('gal-fila');
@@ -71,7 +72,9 @@ export function galeria(m, o) {
       const L = [], G3 = [g1, g1 + 12, g1 + 22]; let xi = w / 2 + gap, zi = 0, llega = 0;
       for (let k = 0; k < 3; k++) {
         const g = G3[k] * rad, c = Math.cos(g), sn = Math.sin(g), zo = zi - w * sn;
-        let xo = xi + w * c; const sobra = xo - lim * (P - zo) / P; if (sobra > 0) xo -= sobra;
+        // (la primera no se encoge hacia dentro: asoma por el borde. Si no, en el móvil de pie su borde de dentro se metía
+        // en la de delante y se pintaba encima de ella)
+        let xo = xi + w * c; const sobra = xo - lim * (P - zo) / P; if (sobra > 0 && k > 0) xo -= sobra;
         L.push({ x: xo - w * c / 2, z: (zi + zo) / 2, g: G3[k] });
         if (!llega && pr(xo, zo) >= lim - 2) llega = k + 1;
         xi = xo + w * 0.015; zi = zo - w * 0.01;
@@ -173,7 +176,9 @@ export function galeria(m, o) {
     // (un toque sin arrastrar: en cualquier tarjeta que se vea, su ficha al primer toque, y la galería pasa hasta ella; antes
     // una de los lados solo venía delante y había que volver a tocarla, y si se tocaba mientras pasaba, el toque se perdía;
     // el autor, 20 nov. Fuera de las tarjetas, a un lado de la de delante, la de ese lado)
-    if (!a.movido) { const t = e?.target?.closest?.('.gal-t'), k = t ? T.indexOf(t) : -1;
+    if (!a.movido) { const t = e?.target?.closest?.('.gal-t'), k = t ? T.indexOf(t) : -1, jg = e?.target?.closest?.('[data-play]');
+      // (el botón de jugar, dentro de la carta de delante: juega, sin abrir la ficha)
+      if (jg && k === frente && o.juega) { o.sonido?.('open'); o.juega(jg.dataset.play); anima(); return; }
       if (k >= 0) { if (k !== frente) aTarjeta(k); o.abre(t.dataset.gt); }
       else if (e && frente >= 0) { const f = T[frente].getBoundingClientRect(); if (e.clientX > f.right) ve(1); else if (e.clientX < f.left) ve(-1); }
       anima(); return; }
@@ -200,7 +205,8 @@ export function galeria(m, o) {
     const k = e.key, h = { ArrowLeft: -1, ArrowRight: 1 }[k], v = { ArrowUp: -1, ArrowDown: 1 }[k];
     // (Intro abre la ficha del de delante si no hay otro botón elegido)
     const enter = k === 'Enter' && frente >= 0 && (e.target === document.body || e.target.closest?.('.gal-t'));
-    if (h) ve(h); else if (v) comarca(ci + v); else if (enter) o.abre(T[frente].dataset.gt); else return;
+    const jg = enter && o.juega ? e.target.closest?.('[data-play]') : null;
+    if (h) ve(h); else if (v) comarca(ci + v); else if (jg) o.juega(jg.dataset.play); else if (enter) o.abre(T[frente].dataset.gt); else return;
     e.preventDefault(); e.stopImmediatePropagation();
   };
   addEventListener('keydown', tecla, true);

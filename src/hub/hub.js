@@ -715,7 +715,7 @@ export class Hub {
     const p = profile(), dd = isDidactico(), grupos = COMARCAS.filter(c => comarcaTowns(c.id).length);
     const ultimo = levelById(p.last), ini = grupos.some(c => c.id === ir) ? ir : ultimo?.comarca || grupos[0]?.id;
     this.after = () => galeria($('#hMain', this.root), { comarcas: grupos.map(c => ({ id: c.id, nombre: c.name, color: c.color })), inicial: ini, pueblo: ini === ultimo?.comarca ? ultimo.id : null,
-      tarjetas: (id) => comarcaTowns(id).map(l => this.galTarjeta(l)).join(''), info: (id, i, n) => this.galInfo(id, i, n),
+      tarjetas: (id) => comarcaTowns(id).map(l => this.galTarjeta(l)).join(''), info: () => '', juega: (id) => this.play(id),
       abre: (id) => (isDidactico() ? this.go('pueblo', id) : this.townSheet(id)), sonido: (k) => this.sound?.ui(k) });
     const fl = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
     return `${dd ? `${cabeza('Saberes · Pueblos', 'church', 'Pueblos y ciudades', ' gal-lead')}<p class="lead gal-lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
@@ -727,27 +727,21 @@ export class Hub {
         <div class="gal-info" aria-live="polite"></div></div>`;
   }
   // la carta de un pueblo (la galería, la comarca y su ficha): su portada entera, sin recortar, y su franja con el nombre, el
-  // otro nombre o la comarca, una raya por misión (encendidas las hechas; en el didáctico no hay misiones) y el sello
-  carta(l, p = profile(), lazy = false) {
+  // otro nombre o la comarca y sus misiones, una casilla por misión del color de su categoría (llenas las hechas) con la
+  // cuenta; en la galería, la de delante lleva también el botón de jugar: todo en la misma carta, sin otra fila debajo
+  // (el autor, 21 de noviembre de 2026: «Tienes que aunar en la misma card [...] Mete ahí también las misiones, todo en
+  // una card»). En el didáctico no hay misiones ni botón. El sello del pueblo terminado, sobre la foto
+  carta(l, p = profile(), lazy = false, jugar = false) {
     const t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), cov = townImg(l), lleno = t.total && t.done === t.total;
-    const mis = dd || !t.total ? '' : `<span class="gt-mis${lleno ? ' ok' : ''}"><span class="gt-rayas">${Array.from({ length: t.total }, (_, i) => `<i${i < t.done ? ' class="on"' : ''}></i>`).join('')}</span><em>${t.done}/${t.total}</em></span>`;
+    const ms = dd || !t.total ? '' : `<span class="gt-ms${lleno ? ' ok' : ''}">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${m.done ? ' class="ok"' : ''}>${I(m.icon, 16)}</i>`).join('')}<em>${t.done}/${t.total}</em></span>`;
+    const jg = jugar && !dd ? `<button type="button" class="btn primary gt-jugar" data-play="${l.id}" tabindex="-1">${I('play', 18)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>` : '';
     return `<span class="gt-marco"><span class="gt-foto">${cov ? `<img class="gt-img" src="${cov}" alt=""${lazy ? ' loading="lazy"' : ''} decoding="async" draggable="false">` : ''}</span>
-      <span class="gt-dato"><span class="gt-nom"><b>${esc(n1)}</b>${n2 ? `<small data-notr>${esc(otroNombre(n1, n2))}</small>` : `<small>${esc(comarca(l.comarca)?.name || '')}</small>`}</span>${mis}${t.stamp ? `<img class="gt-sello" src="${stampImg(l.comarca)}" alt="">` : ''}</span></span>`;
+      <span class="gt-dato"><span class="gt-nom"><b>${esc(n1)}</b>${n2 ? `<small data-notr>${esc(otroNombre(n1, n2))}</small>` : `<small>${esc(comarca(l.comarca)?.name || '')}</small>`}</span>${ms}${jg}${t.stamp ? `<img class="gt-sello" src="${stampImg(l.comarca)}" alt="">` : ''}</span></span>`;
   }
   // (una pantalla de la galería: la carta del pueblo)
   galTarjeta(l) {
     const p = profile(), t = townProgress(p, l), dd = isDidactico();
-    return `<button type="button" class="gal-t" data-gt="${l.id}" aria-label="${esc(l.name.split(' / ')[0])}${dd ? '' : `, ${t.done} de ${t.total} misiones`}">${this.carta(l, p)}</button>`;
-  }
-  // (el pueblo de delante: su comarca y su sitio en ella, su nombre, sus misiones hechas y los botones de jugar y de ver la ficha)
-  galInfo(id, i, n) {
-    const l = levelById(id); if (!l) return '';
-    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), c = comarca(l.comarca);
-    // (el nombre y las misiones, en su propia fila: en el móvil tumbado van uno al lado del otro, centrados entre sí y debajo
-    // del rótulo; antes las misiones subían hasta el rótulo y se montaban con él)
-    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><div class="gi-fila"><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
-      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div></div>
-      <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div>`;
+    return `<div role="button" tabindex="-1" class="gal-t" data-gt="${l.id}" aria-label="${esc(l.name.split(' / ')[0])}${dd ? '' : `, ${t.done} de ${t.total} misiones`}">${this.carta(l, p, false, true)}</div>`;
   }
 
 

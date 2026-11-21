@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (21 nov, noche): galería de Pueblos con todo en la carta grande (nombre, misiones y Jugar), sin fila debajo.
 - Principal (21 nov, noche): golpes de la pelota otra vez los de la versión 3 que eligió el autor, sin la mano que llevaba una voz.
 
 
