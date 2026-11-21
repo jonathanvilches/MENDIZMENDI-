@@ -395,7 +395,7 @@ export class PelotaMatch {
       : duelo ? `<h2>${this.herrDe() !== 'mano' ? esc(HERRAMIENTAS[this.herrDe()][this.lang === 'eu' ? 'eu' : 'es']) : t.title}</h2><p class="pel-sub">${[this.o.comp, t.to(g.target)].filter(Boolean).map(esc).join(' · ')}</p>`
       : `<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>`;
     const p = this.hud.panel(`${duelo ? `${duelo}<div class="pel-lado">` : ''}${cab}
-      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
+      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Egin trote tokian bertan zure pilotariak korri egin dezan: troterik gabe, oinez doa. Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Trota en el sitio para que tu pelotari corra: sin trotar, va al paso. Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
       ${this.courtHtml()}
       ${this.court?.tipo === 'trinquete' && !g.reto && !this.o.fixedLevel ? `<small class="pel-lbl">${this.lang === 'eu' ? 'Modalitatea' : 'Modalidad'}</small><div class="pel-levels pel-herr" role="group" aria-label="${this.lang === 'eu' ? 'Modalitatea' : 'Modalidad'}">${HERR_ORDEN.map(k => `<button data-pel-herr="${k}" aria-pressed="${k === this.herrDe()}">${esc(HERRAMIENTAS[k][this.lang === 'eu' ? 'eu' : 'es'])}</button>`).join('')}</div>` : ''}
       <div class="pel-mas"><button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>${duelo ? `<button class="pel-chip" data-pel-tour>${TT.btn}</button>` : ''}</div>
@@ -1161,7 +1161,8 @@ export class PelotaMatch {
 
   // con la cámara: tu pelotari va al lado de la cancha donde estás tú (de lado a lado, a la altura donde se espera) y,
   // cuando te toca, va solo a por la pelota (como al mantener GOLPE) y apuntas hacia donde estás; el golpe, el tuyo
-  // (onGolpe, en arrancaCamara)
+  // (onGolpe, en arrancaCamara). Lo deprisa que va, a por la pelota o a su sitio, según trotes tú en el sitio (trote:
+  // game.js, CAM_PASO; sin trotar, al paso)
   leeCuerpo() {
     const I = this.input, g = this.game, C = this.cuerpo, you = g.players.you;
     const turno = g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you');
@@ -1174,7 +1175,7 @@ export class PelotaMatch {
       if (this.vaSitio) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
     }
     // (ladoGolpe: con qué brazo vas a golpear, por el que armas; tu pelotari se pone a ese lado de la pelota y no delante de ella)
-    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc, ladoGolpe: (C.arma || 'Hit').endsWith('L') ? -1 : 1 };
+    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc, ladoGolpe: (C.arma || 'Hit').endsWith('L') ? -1 : 1, trote: C.trote || 0 };
     this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = I.camAimY = null; I.camPend = false;
     return out;
   }

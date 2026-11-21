@@ -2082,6 +2082,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   le faltaba: corona de la horquilla, caja del pedalier, cadena por la derecha con su piñón, guardabarros curvos con la
   luz roja de atrás, faro, puños a lo largo de la barra, manetas y las varillas de la cesta. `lab/bici-vista.html` la
   enseña desde cuatro lados.
+- **La pelota en casa: trotar para correr, más sensible y más lenta** (`pelota/camaraCuerpo.js`, `pelota/game.js`; el
+  autor, 20 de noviembre de 2026: «muchísima más sensibilidad, el juego deberá ir un poco más lento para que nos dé
+  tiempo a golpear y luego deberemos movernos, deberemos trotar para correr hacia la pelota o para correr hacia atrás»).
+  El trote se lee de lo que sube y baja el cuerpo (hombros y caderas, quitando lo que cambia despacio): de 1,4 a 5,5
+  botes por segundo y con amplitud, `trote` de 0 a 1. Hacia dónde va el pelotari lo sigue poniendo él (a por la pelota
+  cuando te toca; si no, a su sitio), pero lo deprisa, tú: sin trotar al paso (2,8 m/s) y trotando a tope (6,7 m/s)
+  (`CAM_PASO`, `CAM_TROTE`). Bracear al trotar (las dos manos arriba y abajo a la vez, una subiendo y la otra bajando) y
+  la mano baja que cae no son golpes; trotando, el cuerpo que baja tampoco es agacharse para la dejada. Los golpes
+  cuentan desde 2,2 anchos de hombros por segundo (antes, 4) y el paso a un lado mueve más. La pelota, al 74 % (antes
+  85 %) y el momento justo perdona más (×1,5). Pruebas con un cuerpo de mentira y tiempos exactos:
+  `trote-unidad`, `golpes-unidad` y `sensib` (en la carpeta de pruebas de la sesión; cargan `camaraCuerpo.js` solo).
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la

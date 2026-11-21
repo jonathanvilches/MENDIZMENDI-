@@ -7,8 +7,11 @@
 //    alta (de aire), a media altura o baja (sotamano), como la tuya. Y hacia dónde: el brazo que acaba cruzado hacia el
 //    otro lado manda la pelota hacia ese lado (con la derecha, cruzado del todo, más allá del hombro izquierdo, es la dos
 //    paredes); el que acaba en su lado, al ancho; hacia arriba, larga y alta; de arriba abajo y fuerte, la cortada;
-//  - la postura: agachado (los hombros bajos o el tronco doblado), el golpe es una dejada, y basta un toque suave.
-// Moverse hasta la pelota lo hace solo el pelotari cuando te toca: tú das el golpe en su momento.
+//  - la postura: agachado (los hombros bajos o el tronco doblado), el golpe es una dejada, y basta un toque suave;
+//  - el trote: trotando en el sitio, el cuerpo sube y baja de 2 a 5 veces por segundo. Hacia dónde va tu pelotari lo pone
+//    él (a por la pelota cuando te toca y, si no, a su sitio), pero lo deprisa que va, tú: sin trotar, al paso; trotando
+//    con ganas, a tope (game.js, CAM_PASO). «Deberemos trotar para correr hacia la pelota o para correr hacia atrás, para
+//    posicionarnos [...] para así también hacer ejercicio» (el autor, 20 nov 2026).
 // Juego propio del juego (ni marca ni diseño de ninguna consola). Lo usa pelota/match.js (opción camara).
 import { motorVision, rutaAR } from '../ui/camaraAR.js';
 import { isEU } from '../i18n.js';
@@ -18,8 +21,9 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // la velocidad de la mano para que cuente como golpe, en anchos de hombros por segundo (un brazo que se mueve tranquilo va
 // a 1 o 2; un golpe de verdad, a 5 o más)
 const V_MIN = 3.4;
-// lo deprisa que golpea de normal quien juega, de primeras (anchos de hombros por segundo): luego se mide con sus golpes
-const TIPICO = 6;
+// lo deprisa que golpea de normal quien juega, de primeras (anchos de hombros por segundo): luego se mide con sus golpes.
+// (Más bajo y con los umbrales del golpe algo más bajos desde el 20 de noviembre: «que haya muchísima más sensibilidad»)
+const TIPICO = 5.5;
 // los huesos que se dibujan en la ventana de la cámara
 // (lo que miden de verdad los hombros, el brazo y el antebrazo, en metros: para sacar lo que va hacia delante, que la
 // imagen no lo da bien, de lo que le falta a cada hueso para medir lo que mide; como en primeraPersona.js)
@@ -65,7 +69,7 @@ export class CamaraCuerpo {
     this.host = host;
     this.x = 0; this.wind = 0; this.arma = 'Hit'; this.visto = false; this.listo = false; this.fallo = false; this.parado = false;
     this.onGolpe = null; this.onGolpeAvance = null; this.onGolpeFin = null; this.nombres = null; this.golpes = 0; this.agachado = 0; this.gesto = null;
-    this.picos = []; this.post = []; this.oculta = false; this.desde = null;
+    this.picos = []; this.post = []; this.oculta = false; this.desde = null; this.trote = 0; this.bote = []; this.yLento = null;
     this.M = { 15: mano(), 16: mano() };
     this.sw = 0; this.cx = 0; this.x0 = null; this.cal = []; this.tVisto = -9; this.tPrev = 0; this.lms = null; this.vw = 640; this.vh = 480;
     if (!cssPuesto) { cssPuesto = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
@@ -126,7 +130,7 @@ export class CamaraCuerpo {
   // empezar de cero (el centro, la postura, las manos y el golpe a medias) y un segundo sin golpes
   reinicia(por) {
     this.calma = performance.now() / 1000 + 1;
-    this.x0 = null; this.cal = []; this.post = []; this.agachado = 0; this.gesto = null; this.picoPow = 0; this.sw = 0; this.cx = 0;
+    this.x0 = null; this.cal = []; this.post = []; this.agachado = 0; this.gesto = null; this.picoPow = 0; this.sw = 0; this.cx = 0; this.trote = 0; this.bote = []; this.yLento = null;
     for (const k of [15, 16]) { const h = this.M[k]; h.ok = false; h.rastro.length = 0; h.wind = 0; h.windMax = 0; h.v = h.v2 = 0; h.vx = h.vy = h.vz = 0; }
     try { window.__informeEvento?.(`cámara empieza de cero (${por})`); } catch (e) { /* sin informe */ }
   }
@@ -136,7 +140,7 @@ export class CamaraCuerpo {
   tipico() { const a = this.picos; if (a.length < 4) return TIPICO; const b = a.slice().sort((p, q) => p - q); return clamp(b[b.length >> 1], 3.5, 30); }
   // la fuerza: por lo deprisa que va la mano, respecto a lo que golpeas tú de normal (la dejada, siempre suave)
   pot(v, dejada) { const T0 = this.tipico(); return dejada ? 0.15 + 0.45 * clamp((v - 1.5) / (T0 * 0.9), 0, 1) : 0.25 + 0.75 * clamp((v - T0 * 0.5) / (T0 * 1.3), 0, 1); }
-  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, agachado: +this.agachado.toFixed(2), oculta: this.oculta, trabajador: !!this.w, enviadas: this.enviadas || 0, saltadas: this.saltadas || 0, delegado: this.delegado || (this.pl ? 'aquí' : ''), tipico: +this.tipico().toFixed(1), ultimos: (this.ultimos || []).map(u => [u.tipo || 'golpe', u.req || '', +u.aimX.toFixed(2), +u.aimY.toFixed(2), +u.power.toFixed(2), u.golpe]), d: m(16), i: m(15), msg: this.msg.textContent }; }
+  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, agachado: +this.agachado.toFixed(2), trote: +this.trote.toFixed(2), oculta: this.oculta, trabajador: !!this.w, enviadas: this.enviadas || 0, saltadas: this.saltadas || 0, delegado: this.delegado || (this.pl ? 'aquí' : ''), tipico: +this.tipico().toFixed(1), ultimos: (this.ultimos || []).map(u => [u.tipo || 'golpe', u.req || '', +u.aimX.toFixed(2), +u.aimY.toFixed(2), +u.power.toFixed(2), u.golpe]), d: m(16), i: m(15), msg: this.msg.textContent }; }
 
   /** La cámara de delante y el detector; si algo falla, se juega con los botones de siempre */
   async start() {
@@ -219,7 +223,7 @@ export class CamaraCuerpo {
     // (en píxeles de la imagen y de espejo, como se ve en la ventana: tu derecha, a la derecha)
     const P = (i) => ({ x: (1 - lms[i].x) * this.vw, y: lms[i].y * this.vh, z: (lms[i].z || 0) * this.vw });
     if (!lms || !vis(11) || !vis(12)) {
-      if (t - this.tVisto > 0.6) { this.visto = false; this.desde = null; this.wind *= 0.8; if (this.listo) this.di(T('No te veo: ponte delante de la cámara', 'Ez zaitut ikusten: jarri kameraren aurrean')); }
+      if (t - this.tVisto > 0.6) { this.visto = false; this.desde = null; this.wind *= 0.8; this.trote = 0; this.bote.length = 0; this.yLento = null; if (this.listo) this.di(T('No te veo: ponte delante de la cámara', 'Ez zaitut ikusten: jarri kameraren aurrean')); }
       if (t - this.tVisto > 1.2) this.achica(false);   // (si deja de verte, otra vez a la vista: para que te coloques)
       this.box.classList.toggle('visto', this.visto); this.pinta(t); return;
     }
@@ -235,8 +239,20 @@ export class CamaraCuerpo {
     if (this.x0 != null && t - this.desde > 2) this.achica(true);   // (ya te ve y te ha medido: fuera)
     // dónde estás: el centro, el sitio donde te quedas quieto el primer segundo (con la cámara algo torcida, también vale)
     if (this.x0 == null) { this.cal.push(this.cx); if (this.cal.length >= 12) { const a = this.cal.slice().sort((p, q) => p - q); this.x0 = clamp(a[a.length >> 1], this.vw * 0.3, this.vw * 0.7); } }
-    const x0 = this.x0 ?? this.vw / 2, off = (this.cx - x0) / (sw * 1.3), dz = Math.abs(off) < 0.12 ? 0 : off - Math.sign(off) * 0.12;
-    this.x = clamp(dz / 0.88, -1, 1);
+    // (más sensible desde el 20 de noviembre: con algo menos de paso a un lado, tu pelotari llega a la pared o a la raya)
+    const x0 = this.x0 ?? this.vw / 2, off = (this.cx - x0) / (sw * 1.1), dz = Math.abs(off) < 0.09 ? 0 : off - Math.sign(off) * 0.09;
+    this.x = clamp(dz / 0.8, -1, 1);
+    // el trote en el sitio: lo que sube y baja el cuerpo (los hombros y las caderas) quitando lo que cambia despacio (agacharse,
+    // acercarse), en el último segundo: si va y viene de 1,4 a 5,5 veces por segundo y con amplitud, trotas (de 0 a 1). Cruces
+    // con margen, para que el temblor del detector no cuente como bote
+    { const yN = (caderas ? (cs.y + caderas.y) / 2 : cs.y) / sw;
+      this.yLento = this.yLento == null ? yN : this.yLento + (yN - this.yLento) * (1 - Math.exp(-dt / 0.35));
+      const B = this.bote; B.push({ t, v: yN - this.yLento }); while (B.length && t - B[0].t > 1) B.shift();
+      let s2 = 0; for (const q of B) s2 += q.v * q.v; const rms = Math.sqrt(s2 / B.length), mg = Math.max(0.008, rms * 0.5);
+      let cruces = 0, lado = 0; for (const q of B) { const sg = q.v > mg ? 1 : q.v < -mg ? -1 : 0; if (sg && sg !== lado) { if (lado) cruces++; lado = sg; } }
+      const span = B.length > 1 ? B[B.length - 1].t - B[0].t : 0, f = span > 0 ? cruces / 2 / span : 0;
+      const quiere = span > 0.6 && f >= 1.4 && f <= 5.5 ? clamp((rms - 0.01) / 0.028, 0, 1) : 0;
+      this.trote += (quiere - this.trote) * (1 - Math.exp(-dt / (quiere > this.trote ? 0.15 : 0.45))); }
     // la postura: encogido, la de la dejada. No contra estar de pie, sino contra como estás tú estos últimos segundos: en la
     // pelota se espera ya agachado y en la dejada el cuerpo se encoge un poco más, para ajustar el golpe (los hombros algo
     // más abajo o el tronco algo más doblado que la mediana de los últimos 3 s, sin el último medio segundo)
@@ -249,6 +265,8 @@ export class CamaraCuerpo {
       const yB = med(viejos.map(q => q.y)), tB = viejos.some(q => q.torso != null) ? med(viejos.filter(q => q.torso != null).map(q => q.torso)) : null;
       encoge = Math.max(((cs.y - yB) / sw - 0.08) / 0.25, torso != null && tB != null ? ((tB - torso) - 0.08) / 0.22 : 0);
     }
+    // (trotando, el cuerpo baja en cada bote: eso no es agacharse para la dejada)
+    encoge *= 1 - Math.min(1, this.trote * 1.4);
     this.agachado += (clamp(encoge, 0, 1) - this.agachado) * (1 - Math.exp(-dt / 0.08));
     const agachado = this.agachado > 0.5;
     // cada mano: lo armada que está y si golpea. El golpe se lee entero: empieza cuando la mano va deprisa hacia delante
@@ -324,10 +342,21 @@ export class CamaraCuerpo {
       // (antes bastaba menos también con la mano a la altura de la cadera; pero mucha gente tiene ahí las manos sin hacer
       // nada, y cualquier movimiento contaba como dejada: ahora, solo agachado)
       const cae = vert > 0.6, suave = agachado && !cae;
-      const k0 = (suave ? 0.45 : h.windMax > 0.3 ? 1 : 1.1) * (t - (h.acabo ?? -9) < (cae ? 0.8 : 0.5) ? 1.35 : 1) * (juntas ? 1.5 : 1);
+      // (trotando, los brazos van arriba y abajo con el paso: eso no es un golpe. Lo que va sobre todo de arriba abajo, o
+      // al revés, necesita entonces ir mucho más deprisa; el golpe de lado, el de siempre)
+      const trotaBrazo = this.trote > 0.25 && Math.abs(vert) > 0.55 ? 1 + 1.3 * this.trote : 1;
+      // (y bracear, como al echar a trotar, aunque el trote aún no se haya notado: las dos manos arriba y abajo a la vez, una
+      // subiendo y la otra bajando, casi igual de deprisa. Un golpe va con un brazo; el otro, como mucho, acompaña)
+      // (la otra mano, en esta misma imagen: si aún no se ha mirado, por donde está ahora)
+      const kO = k === 15 ? 16 : 15, crudaO = kO > k && otra.ok && (lms[kO]?.visibility ?? 0) > 0.2 ? (P(kO).y - cs.y - otra.ry) / dh / sw : null;
+      const vyO = crudaO ?? otra.vy;
+      if (otra.ok && t - otra.tU < 0.1 && Math.abs(vert) > 0.55 && Math.abs(vyO) > 0.3 * Math.abs(h.vy) && Math.sign(h.vy) !== Math.sign(vyO)) continue;
+      // (la mano baja que cae en vertical tampoco es un golpe: es el brazo que baja. La cortada empieza arriba)
+      const caeBaja = vert > 0.6 && h.ry > 0 ? 1.6 : 1;
+      const k0 = (suave ? 0.45 : h.windMax > 0.3 ? 1 : 1.1) * (t - (h.acabo ?? -9) < (cae ? 0.8 : 0.5) ? 1.35 : 1) * (juntas ? 1.5 : 1) * trotaBrazo * caeBaja;
       // (y nunca menos de una parte de lo que golpeas tú de normal: si no, recolocar la mano contaba como dejada)
       // (y nunca por debajo de un mínimo: un movimiento lento de la mano no es un golpe, ni una dejada)
-      const umbral = Math.max(clamp(this.tipico() * 0.36, 2.6, 8) * k0 * (vert < -0.6 ? 1.1 : vert > 0.6 ? 1.2 : 1), this.tipico() * (suave ? 0.18 : 0.25), suave ? 2.2 : 4.2);   // (agachado, que ya es querer una dejada, basta un toque suave)
+      const umbral = Math.max(clamp(this.tipico() * 0.3, 2.2, 7) * k0 * (vert < -0.6 ? 1.1 : vert > 0.6 ? 1.2 : 1), this.tipico() * (suave ? 0.15 : 0.21), (suave ? 1.8 : 3) * trotaBrazo);   // (agachado, que ya es querer una dejada, basta un toque suave)
       let r0 = null, dispara = h.v > umbral && delante(h.vx, h.vy);
       if (dispara) {
         // (el principio del gesto: hacia atrás, donde la mano estaba casi quieta, el armado; como mucho, 0,45 s antes)
@@ -337,8 +366,8 @@ export class CamaraCuerpo {
         // ha recorrido en el último medio segundo, hacia delante y a buen ritmo)
         let mej = 0;
         // (solo desde que acabó el golpe anterior de esta mano: si no, el mismo golpe volvería a contar al quedarse quieta)
-        for (const r of h.rastro) { const dtr = t - r.t; if (dtr < 0.06 || dtr > 0.45 || r.t <= (h.acabo ?? -9) || r.t <= h.ult) continue; const D = Math.hypot(h.rx - r.rx, h.ry - r.ry) / sw; if (D > mej && D / dtr >= Math.max(2.2 * k0, this.tipico() * (suave ? 0.18 : 0.25), suave ? 1.8 : 3.2) && delante(h.rx - r.rx, h.ry - r.ry)) { mej = D; r0 = r; } }
-        dispara = !!r0 && mej >= (suave ? 0.45 : 0.75);
+        for (const r of h.rastro) { const dtr = t - r.t; if (dtr < 0.06 || dtr > 0.45 || r.t <= (h.acabo ?? -9) || r.t <= h.ult) continue; const D = Math.hypot(h.rx - r.rx, h.ry - r.ry) / sw; if (D > mej && D / dtr >= Math.max(1.8 * k0, this.tipico() * (suave ? 0.15 : 0.21), (suave ? 1.5 : 2.1) * trotaBrazo) && delante(h.rx - r.rx, h.ry - r.ry)) { mej = D; r0 = r; } }
+        dispara = !!r0 && mej >= (suave ? 0.38 : 0.6);
       }
       if (!dispara) continue;
       h.ult = t; this.ultGolpe = t; h.windMax = 0;
@@ -367,7 +396,7 @@ export class CamaraCuerpo {
     }
     // (muy cerca de la cámara, los brazos se salen de la imagen al golpear y el golpe no se ve entero)
     const cerca = sw / this.vw > 0.34 || t - (this.fuera ?? -9) < 2;
-    if (this.listo && !(this.rotuloHasta > t)) this.di(this.x0 == null ? T('Te veo. Quieto un momento…', 'Ikusten zaitut. Geldi une batez…') : cerca ? T('Échate un poco hacia atrás: que se te vean los brazos', 'Atzeratu pixka bat: besoak ikusteko moduan') : this.golpes ? '' : T('Cuando venga la pelota: brazo de lado, golpe · de arriba abajo, cortada · agachado y suave, dejada', 'Pilota datorrenean: besoa alboan, jo · goitik behera, cortada · makurtuta eta leun, dejada'));
+    if (this.listo && !(this.rotuloHasta > t)) this.di(this.x0 == null ? T('Te veo. Quieto un momento…', 'Ikusten zaitut. Geldi une batez…') : cerca ? T('Échate un poco hacia atrás: que se te vean los brazos', 'Atzeratu pixka bat: besoak ikusteko moduan') : this.golpes ? '' : T('Trota en el sitio para correr · brazo de lado, golpe · de arriba abajo, cortada · agachado y suave, dejada', 'Egin trote tokian korri egiteko · besoa alboan, jo · goitik behera, cortada · makurtuta eta leun, dejada'));
     this.pinta(t);
   }
 

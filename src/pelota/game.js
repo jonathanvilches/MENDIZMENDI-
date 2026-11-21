@@ -55,8 +55,13 @@ function shotEnergy(shot, sub, pow, volea) {
 // la izquierda y más alta); después, «tarde» (a la derecha y más baja). TOL: lo que se perdona, según el nivel
 const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.55, CAM_LAT = 0.1, CAM_HOLD = 0.4;
 // (con la cámara, en casa, la pelota va más despacio: se juega con el cuerpo entero y la cámara llega tarde. Y las cortadas
-// del rival, aún algo más: a una rápida no se llegaba nunca. El autor, noviembre de 2026)
-const CAM_TEMPO = 0.85, CAM_CORTADA = 0.86;
+// del rival, aún algo más: a una rápida no se llegaba nunca. El autor, noviembre de 2026). Y aún más despacio desde el 20
+// de noviembre, ahora que hay que trotar para llegar: «el juego deberá ir un poco más lento para que nos dé tiempo a golpear»
+const CAM_TEMPO = 0.74, CAM_CORTADA = 0.84;
+// con la cámara, tu pelotari corre según trotes tú en el sitio (camaraCuerpo.js, trote, de 0 a 1): sin trotar va al paso
+// (CAM_PASO de su carrera) y, trotando con ganas, a tope y algo más. «Deberemos trotar para correr hacia la pelota o para
+// correr hacia atrás, para posicionarnos [...] para así también hacer ejercicio» (el autor, 20 nov 2026)
+const CAM_PASO = 0.45, CAM_TROTE = 0.65;
 const TOL = { iniciacion: 0.3, facil: 0.24, normal: 0.19, dificil: 0.15, experto: 0.12 };
 // a partir de esta altura, de volea, el golpe es un gancho: con la izquierda, por encima del hombro, girando hacia la
 // derecha para mandarla a la contracancha (y, con la palanca a la izquierda, a la pared izquierda)
@@ -332,7 +337,7 @@ export class PelotaGame {
     const reach = who === 'you' && !this.autoplay ? this.lvl.reach : 1.25;
     const qh = b.y >= GANCHO_Y ? 1 - clamp(Math.abs(b.y - 1.75) - 0.25, 0, 0.8) / 0.8 : 1 - clamp(Math.abs(b.y - 0.85) - 0.35, 0, 1.1) / 1.1;
     const qd = 1 - clamp(Math.hypot(b.x - pl.x, b.z - pl.z) - 0.45, 0, reach) / reach;
-    const tol = this.tol * (this.volley() ? 0.75 : 1) * (this.camara && who === 'you' ? 1.35 : 1);   // (de volea, el momento justo es más justo; con la cámara, algo menos)
+    const tol = this.tol * (this.volley() ? 0.75 : 1) * (this.camara && who === 'you' ? 1.5 : 1);   // (de volea, el momento justo es más justo; con la cámara, bastante menos)
     const qt = timing == null ? 0.75 : 1 - clamp(Math.abs(timing) / tol, 0, 1);
     // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
     const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
@@ -1044,6 +1049,10 @@ export class PelotaGame {
         you.esprint = man ? 1 : 0;
         you.ritmo ??= 1; you.ritmo += (ritmo - you.ritmo) * (1 - Math.exp(-(ritmo > you.ritmo ? (man ? 9 : 5) : 9) * dt));
         vx *= you.ritmo; vz *= you.ritmo; you.sprint = you.ritmo > 1.12 ? (dir || 1) : 0; }
+      // (con la cámara, lo deprisa que va según trotes: al paso si no trotas; inp.trote solo llega si la cámara te ve)
+      const paso = this.camara && inp.trote != null ? CAM_PASO + CAM_TROTE * clamp(inp.trote, 0, 1) : 1;
+      you.trote = inp.trote ?? null;
+      vx *= paso; vz *= paso;
       // ayuda: solo mientras mueves el joystick, y solo endereza un poco la carrera hacia donde llegará la pelota si ya
       // vas más o menos hacia allí. Sin tocar el joystick, el pelotari no se mueve. (Antes se acercaba solo a la pelota y,
       // con el botón mantenido, iba solo del todo: se veía moverse sin haberlo pedido)
@@ -1065,7 +1074,7 @@ export class PelotaGame {
         const c = this.interceptFor('you', YOU_RUN, 0.1);
         // (con la cámara, más deprisa y sin frenar tanto al llegar: no hay mando con el que ayudarle, y antes llegaba tarde
         // y la pelota le pasaba por delante)
-        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3) * (this.camara || you.esprint ? Math.max(1, you.ritmo || 1) : 1), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3) * (this.camara || you.esprint ? Math.max(1, you.ritmo || 1) : 1) * paso, dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
