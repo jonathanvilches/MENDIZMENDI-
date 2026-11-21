@@ -1,0 +1,1 @@
+var e=new URL(`patxi-09-D2dMDCdk.mp3`,import.meta.url).href;export{e as default};

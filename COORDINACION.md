@@ -201,6 +201,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, madrugada (18), la hizo la ventana principal, por encargo del autor: `master` hasta `dff1626e`. Pelota en casa: trotar en el sitio para que el pelotari corra (sin trotar, al paso), golpes más sensibles (desde 2,2 anchos de hombros por segundo) y la pelota más lenta (74 %); y las voces de los paseantes de Otsagabia al mismo volumen que los demás vecinos.
 - 20 nov, noche (17), la hizo la ventana principal, por encargo del autor: `master` hasta `1b7ca209`. La posada: en cada
   pueblo, también en Otsagabia, una casa con letrero y farol donde, de noche, se puede dormir hasta la mañana.
 - 20 nov, noche (16), la hizo la ventana principal, por encargo del autor: `master` hasta `7d2b32cb`. La bici, entera: la
