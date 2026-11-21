@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): láminas técnicas del piquillo (conservera y cosecha de Lodosa) y del aceite (almazara de Tafalla y cosecha de aceitunas) y de la miel (Aoiz).
+- Principal (21 nov, tarde): láminas técnicas del piquillo (conservera y cosecha de Lodosa) y del aceite (almazara de Tafalla y cosecha de aceitunas) de la miel (Aoiz) y de la cuajada (kaiku y piedra al rojo).
 
 ## Peticiones entre ventanas
 

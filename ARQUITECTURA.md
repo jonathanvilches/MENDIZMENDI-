@@ -2147,7 +2147,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   hace algo de Navarra, paso a paso al pasar el dedo o el ratón. Se dibujan con `tools/anatomia/<nombre>.mjs` (lo común,
   colores y modo juego, en `tools/anatomia/comun.mjs`), que deja `entrega/anatomia/<nombre>(-light).html` para el autor y
   `public/anatomia/<nombre>.html` para el juego; con `?juego` en la dirección, sin leyenda y del alto del visor. El visor
-  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay ocho: **la almadía en el portillo** (al
+  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay nueve: **la almadía en el portillo** (al
   acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal), **el
   rosado** (misión del vino: vendimia, despalillado y estrujado, maceración con la piel, sangrado, fermentación a 16 °C y
   embotellado), **el espárrago blanco** (al acabar su cosecha, `laminaCosecha` de `game/townCharla.js`: el caballón,
@@ -2160,7 +2160,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la lavadora con su soplante, el empiedro con dos rulos de piedra, la batidora a menos de 27 °C —extracción en frío—, la
   centrífuga que separa aceite, agua y orujo, y la bodega; de 4 a 6 kilos de aceitunas por litro) y **la miel** (misión
   «De la flor a la miel» de Aoiz: las flores y las abejas, la colmena con el alza abierta, el ahumador, el banco de
-  desopercular, el extractor de manivela con una ventana para ver la cesta girando, el madurador y los tarros). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  desopercular, el extractor de manivela con una ventana para ver la cesta girando, el madurador y los tarros) y **la
+  cuajada** (misión «Leche, cuajada y queso»: la lechera, el fuego con las piedras de río que se ponen al rojo, el kaiku
+  donde se mete la piedra con las tenazas y su termómetro —hierve y baja a unos 37 °C—, el cuajo, los cuencos de barro y la
+  fresquera). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
