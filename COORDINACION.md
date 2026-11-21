@@ -17,8 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, noche): galería de Pueblos con todo en la carta grande (nombre, misiones y Jugar), sin fila debajo.
-- Principal (21 nov, noche): golpes de la pelota otra vez los de la versión 3 que eligió el autor, sin la mano que llevaba una voz.
 
 
 ## Peticiones entre ventanas
@@ -208,6 +206,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, tarde, la hizo la ventana principal: `master` hasta `3c13ca99`. La galería de Pueblos sin textos montados en
-  las cartas (la cuenta de misiones junto al nombre), hasta abajo de la pantalla y sin recuadro propio. Antes, en la
-  misma tarde: los golpes de la pelota arreglados y la lámina «Cómo se hace una barrica».
+- 21 nov, noche, la hizo la ventana principal: `master` hasta `a14c74c7`. La galería de Pueblos con todo en la carta grande
+  (nombre, misiones con su cuenta y el botón Jugar, sin fila debajo) y los golpes de la pelota otra vez los de la versión 3
+  que eligió el autor, sin la mano que llevaba una voz del vídeo.
