@@ -208,7 +208,7 @@ export const DIDACTICO = {
   d_mision(l, m) {
     switch (m.type) {
       case 'process': { const X = PROCESOS[m.id]; return block('basket', 'Producto local', m.title || m.product, (X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) : P(m.text)) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id) + (X ? aa(X.then, X.now) : ''), { sub: m.product }); }
-      case 'tradition': { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + aa(X.then, X.now) : sinOrdenes(m.text), { img: tradicionUrl(m.ilus) || '' }); }
+      case 'tradition': { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + porDentro(m.kind) + aa(X.then, X.now) : sinOrdenes(m.text), { img: tradicionUrl(m.ilus) || '' }); }
       case 'dance': return block('dance', 'Danza', m.name, P(m.text), { img: tradicionUrl(m.ilus) || '' });
       case 'trade': return this.d_oficio(m.kind, m.title);
       case 'legend': return this.d_leyendaNoche(m.who, m.title);

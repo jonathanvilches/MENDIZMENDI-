@@ -217,7 +217,11 @@ export class PuebloCharla {
       case 'tradition': {
         await S([m.text]);
         const lam = tradicionUrl(m.ilus) || '';   // (su ilustración, en las fichas de qué es, cómo se hace y antes y ahora)
-        if (M.step === 0) { await this.explain(TRADICIONES[m.title], m.title, 'what', lam); await this.explain(TRADICIONES[m.title], m.title, 'how', lam); }
+        if (M.step === 0) {
+          await this.explain(TRADICIONES[m.title], m.title, 'what', lam); await this.explain(TRADICIONES[m.title], m.title, 'how', lam);
+          // (si la tradición tiene lámina técnica —la Bajada del Ángel—, después de cómo se hace se ve cómo funciona: ui/anatomia.js)
+          const lt = laminaDe(m.kind); if (lt) await laminaTecnica(this.ui, lt, { button: '¡Vamos!' });
+        }
         await S([m.kind === 'angel' ? 'Repite los movimientos en el mismo orden.' : 'Escucha la melodía y repítela.']);
         M.step = 1;
         const r = await simonGame(this.ui, { title: M.title, icon: M.icon, rounds: 4, labels: m.kind === 'angel' ? ['Cuerda', 'Alas', 'Bajar', 'Saludo'] : null });
