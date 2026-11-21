@@ -2121,19 +2121,34 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
   solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la
   capa); las kutxas dan experiencia, ya no corazones, y dormir en la posada llena la resistencia.
-- **El vídeo de entrada al partido** (`pelota/videoEntrada.js`, `game/llegadas.js`, `game/townDeportes.js`; el autor, 21
-  de noviembre de 2026: el tráiler «viene justo antes de la escena de "Salen los pelotaris"»). En los campeonatos, menos
-  en la final (que tiene su «Gran final»), al tocar «¡A jugar!» sale un vídeo de 5 s hecho con Higgsfield (Kling 3.0
-  Turbo, a partir de la carta de pelota de Torneos: `public/videos/entrada-partido.mp4`, 1 MB, sin sonido) en vez de la
-  carga borrosa. La llegada al frontón espera a que acabe (o a que lo toques; nunca más de 8 s, y a los 15 s fuera pase lo
-  que pase) y el vídeo se va con el velo, cuando la cámara del partido ya está puesta (`match.js`, camPuesta). Solo donde
-  se pueden poner vídeos (`ui/videos.js`); si no, o si no arranca en 2,5 s, la carga de siempre.
+- **Sin vídeo de entrada al partido ni saludo de los pelotaris** (el autor, 21 de noviembre de 2026: «una animación de
+  dos pelotaris dándose la mano o chocando el puño antes del partido que no me gusta nada, elimínala»). Fuera
+  `pelota/videoEntrada.js` y `public/videos/entrada-partido.mp4`: al tocar «¡A jugar!» vuelve la carga de siempre y la
+  llegada al frontón (`game/llegadas.js`, llegaFronton) solo tapa con el velo hasta que la cámara del partido está puesta.
+- **Pantalla de carga sin lámina animada** (`index.html`; el autor, el mismo día: «detrás sale una lámina animada del
+  explorador, esa también elimínala»). Solo el logo y el nombre sobre el fondo; la portada se va en cuanto el mapa está
+  listo y no antes de 1,5 s (a los 15 s, pase lo que pase).
+- **Progreso sin «Navarra» dentro de los anillos** (`hub/progreso.js`, esfera; `progreso.css`). En el centro, solo la
+  cifra (con `<em>%</em>` o `<em>.º</em>`): al llenarse los anillos ya no chocan con ningún rótulo.
 - **Los golpes de la pelota, con el eco del frontón** (`src/assets/sonidos/pelota-*.mp3`; el autor, 21 de noviembre de
   2026: «el sonido de la pelota ahora mismo no está bien»). Los recortes limpios del vídeo del autor (solo el impacto, sin
   los golpes sueltos que se colaban) con una cola de sala de frontón cubierto de 0,9 a 1,15 s, mezclada suave; el frontis,
   con más sala y más fuerte; el bote, más sordo; las tres variantes de cada golpe, igual de fuertes. Hecho con
   `tools/sonidos/golpes-eco.py`. Las cuatro versiones que ha habido se comparan en una página para que el autor elija
-  (`https://claude.ai/artifact/LZ9pjKppv73RZZFjzXhTCt`).
+  (`https://claude.ai/artifact/LZ9pjKppv73RZZFjzXhTCt`). **Eligió la A** (los primeros recortes del vídeo, con el sonido
+  de la sala; commit 3bba7287): es la que suena en el juego y en el peloteo del tráiler (`tools/trailer/mezcla-v2.py`).
+- **Láminas técnicas (skill Anatomy)** (`ui/anatomia.js`; el autor, 21 de noviembre de 2026: «explicaciones técnicas en
+  3D [...] la elaboración de diferentes alimentos, la elaboración de artesanías [...] poco a poco lo vayas aplicando y lo
+  vayas metiendo en el juego y en las misiones»). Ilustraciones isométricas interactivas que enseñan por dentro cómo se
+  hace algo de Navarra, paso a paso al pasar el dedo o el ratón. Se dibujan con `tools/anatomia/<nombre>.mjs` (lo común,
+  colores y modo juego, en `tools/anatomia/comun.mjs`), que deja `entrega/anatomia/<nombre>(-light).html` para el autor y
+  `public/anatomia/<nombre>.html` para el juego; con `?juego` en la dirección, sin leyenda y del alto del visor. El visor
+  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay tres: **la almadía en el portillo** (al
+  acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal) y **el
+  rosado** (misión del vino: vendimia, despalillado y estrujado, maceración con la piel, sangrado, fermentación a 16 °C y
+  embotellado). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
+  líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
   `game/fronton.js`; el autor, 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para
   cuando se refiera a un chico o a una chica pelotari» y «graba las voces de pelota para las chicas pelotaris»). Las 29

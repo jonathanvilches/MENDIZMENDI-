@@ -35,7 +35,7 @@ export const MARCA_JUEGO = `if (/[?&]juego\\b/.test(location.search)) document.b
 /** Escribe la lámina: siempre en entrega/anatomia; la oscura, también en public/anatomia para el juego */
 export function escribe(nombre, html, theme) {
   const sale = [join(RAIZ, 'entrega/anatomia', theme === 'light' ? `${nombre}-light.html` : `${nombre}.html`)];
-  if (theme !== 'light') sale.push(join(RAIZ, 'public/anatomia', `${nombre}.html`));
+  if (theme !== 'light' && !process.env.SOLO_ENTREGA) sale.push(join(RAIZ, 'public/anatomia', `${nombre}.html`));   // (SOLO_ENTREGA=1: sin tocar el juego)
   for (const f of sale) { mkdirSync(dirname(f), { recursive: true }); writeFileSync(f, html); }
   console.log('escrita', sale.join(' y '), Math.round(html.length / 1024) + ' KB');
 }
