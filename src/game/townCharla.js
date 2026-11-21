@@ -372,7 +372,8 @@ export class PuebloCharla {
   async laminaCosecha(m, S) {
     const lam = laminaDe(m.crop);
     if (!lam) return;
-    await S([lam === 'piquillo' ? 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.' : 'Antes de irte, mira cómo se recoge por dentro.']);
+    const dice = { piquillo: 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.', aceite: 'Antes de irte, mira lo que pasa en la almazara: del olivo a la botella.' };
+    await S([dice[lam] || 'Antes de irte, mira cómo se recoge por dentro.']);
     await laminaTecnica(this.ui, lam, { button: 'Seguir' });
   }
   async explain(X, title, part, lamina = '', boton = '') {

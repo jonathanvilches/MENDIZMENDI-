@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): lámina técnica del piquillo (misión de la conservera y cosecha de Lodosa).
+- Principal (21 nov, tarde): láminas técnicas del piquillo (conservera y cosecha de Lodosa) y del aceite (almazara de Tafalla y cosecha de aceitunas).
 
 ## Peticiones entre ventanas
 
