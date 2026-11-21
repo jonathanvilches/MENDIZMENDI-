@@ -206,6 +206,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche, la hizo la ventana principal: `master` hasta `7e2f4691`. Tres láminas técnicas nuevas: cómo se hace el pan
-  (el horno de leña cortado por delante, al acabar el taller de la panadera), cómo se hace una alpargata (al acabar el de la
-  alpargatera) y cómo se hace una cesta (al acabar el del cestero).
+- 21 nov, noche, la hizo la ventana principal: `master` hasta `f91c1587`. Altsasu: el quiosco de la plaza de los Fueros en
+  su sitio real (antes iba 10 m al oeste, pegado a una casa, y en su sitio se levantaba otra), con espacio libre alrededor
+  y la manada de momotxorros bailando en torno a él.
