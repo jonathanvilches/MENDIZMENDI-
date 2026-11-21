@@ -2147,7 +2147,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   hace algo de Navarra, paso a paso al pasar el dedo o el ratón. Se dibujan con `tools/anatomia/<nombre>.mjs` (lo común,
   colores y modo juego, en `tools/anatomia/comun.mjs`), que deja `entrega/anatomia/<nombre>(-light).html` para el autor y
   `public/anatomia/<nombre>.html` para el juego; con `?juego` en la dirección, sin leyenda y del alto del visor. El visor
-  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay catorce: **la almadía en el portillo** (al
+  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay quince: **la almadía en el portillo** (al
   acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal), **el
   rosado** (misión del vino: vendimia, despalillado y estrujado, maceración con la piel, sangrado, fermentación a 16 °C y
   embotellado), **el espárrago blanco** (al acabar su cosecha, `laminaCosecha` de `game/townCharla.js`: el caballón,
@@ -2178,7 +2178,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   por la boca y los respiraderos; la chabola, la leñera, la escalera, la pala y los sacos). Y **de la oveja al ovillo** (al
   acabar el taller de la hilandera: en dos filas y en zigzag, la oveja con las tijeras y el vellón, la cuba de lavar, el
   banco con las cardas, la rueca con el huso que gira colgado del hilo, la devanadera que pasa la madeja al ovillo y el
-  cesto con los ovillos, las agujas y el calcetín; el ratón enciende el puesto que señala). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  cesto con los ovillos, las agujas y el calcetín; el ratón enciende el puesto que señala). Y **cómo se hace una barrica** (al
+  acabar el taller del tonelero: la pila de duelas secándose; en medio, una barrica que pasa de rosa abierta a cerrada,
+  con el fuego que tuesta las duelas, el torno con la cuerda, los aros que baja el mazo, la tapa que entra en el jable y la
+  prueba con agua; el banco, los aros de repuesto y la cama con dos barricas acabadas). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
