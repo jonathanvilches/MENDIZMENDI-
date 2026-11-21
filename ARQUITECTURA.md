@@ -2249,9 +2249,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   setas se dibujan al construir en cuatro tamaños y en vivo se elige uno). Al acabar una cosecha de uva o de trigo se ve la
   del rosado o la del molino (LAMINA_DE uva y trigo). Las cinco pasan `scripts/lines.mjs` a cero en los dos temas (la
   regla del tablero, con las marcas desde el canto y sin `crease: 'none'`, para que acaben en su borde).
+  La 24, **la Bajada del Ángel** de Tudela (la Plaza de los Fueros con sus soportales, la maroma en parábola del balcón al
+  mástil, la polea, la cuerda de tiro y el torno; el niño baja, la Virgen espera junto al kiosco y el ángel le quita el
+  velo negro, con las palomas y las campanas), sale en su misión de tradición tras el qué y el cómo (`laminaDe(m.kind)`
+  en townCharla y en el material didáctico, junto al cómo). Con ella todas las misiones de proceso tienen su lámina.
   Y todas juntas en el material didáctico, en **«Por dentro»** (`hub/didactico.js`, s_pordentro; el autor, 21 nov:
   «que esté en la parte didáctica y que podamos acceder a estas ilustraciones sin ningún problema»): una entrada más en
-  Saberes y en el menú, con todas las láminas (23 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
+  Saberes y en el menú, con todas las láminas (24 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
   cada una con su miniatura; un toque y se abre como en las misiones. Las miniaturas (`public/anatomia/<nombre>.jpg`,
   592 × 296, unos 13 kB) las saca `tools/anatomia/miniaturas.mjs` de cada lámina en modo juego.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
@@ -4542,3 +4546,13 @@ git push origin master:main
   (`desde` y la duración de la toma). El Zarratrako está fuera: al autor no le gusta («no me gusta el zarratrako», 17 de
   noviembre de 2026); en su sitio, la lámina de Otsagabia. El vídeo: 75 s a 1920 × 1080 (437 MB con el grano del montador)
   y una versión ligera de 33 MB para enviar.
+- **Tráiler v2, «espectacular, muy gaming y cinematográfico»** (21 de noviembre de 2026; el autor: «a partir de ahora
+  dale prioridad al tráiler»). 69,5 s a 1920 × 1080 cortados al pulso de la música épica del juego (musica-torneos, 126,7
+  por minuto): la intro con la isla y la noche, 2 s de silencio y el golpe, y tres frases (Explora, Juega, Descubre) hasta
+  el logo. `montaje-v2.js` (con `MONTAJE=`) pone las bandas de cine que se abren con el golpe, los cortes al compás, el
+  temblor en los impactos, los barridos y los avisos de misión del juego; `mezcla-v2.py` hace el sonido (la música
+  cortada, los golpes, los cencerros, el público y los avisos). `planos-v2.mjs` (con `PLANOS=`) rueda la Foru Plaza de
+  Altsasu de día y la manada de momotxorros: el baile, la grúa cenital y la huida a cámara lenta. Se volvieron a rodar
+  con la plaza real (losas, quiosco sobre su podio, la escultura del nogal y la iglesia al fondo): la cámara busca el lado
+  abierto de la plaza y se apartan los vecinos y el chaval de la misión que se metían entre la manada. Montar los 1670
+  fotogramas tarda unos ocho minutos.
