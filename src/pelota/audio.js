@@ -30,7 +30,12 @@ export class PelotaAudio {
       // (a 0,75: el público, los golpes y los aplausos sonaban demasiado fuertes al lado de la música; el autor, noviembre de 2026)
       this.bus = this.ctx.createGain(); this.bus.gain.value = 0.75; this.bus.connect(this.ctx.destination);
       // (baja sin prisa, en algo menos de un segundo, y vuelve igual de suave: de golpe se notaba el corte en los aplausos)
-      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.34 : 0.75, t, e.detail ? 0.28 : 0.6); };
+      // (los golpes de la pelota, por su propio canal: con el comentarista solo bajan un poco. Iban por el del público y,
+      // como se habla casi todo el partido, sonaban a menos de la mitad: el autor, 21 de noviembre de 2026, «no me gusta
+      // cómo está en el juego ahora mismo»)
+      this.golpes = this.ctx.createGain(); this.golpes.gain.value = 0.75; this.golpes.connect(this.ctx.destination);
+      this.alHablar = (e) => { if (!this.bus) return; const t = this.ctx.currentTime;
+        for (const [n, abajo] of [[this.bus, 0.34], [this.golpes, 0.6]]) { const g = n.gain; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? abajo : 0.75, t, e.detail ? 0.28 : 0.6); } };
       addEventListener('herrizherri-voz', this.alHablar);
     }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
@@ -137,14 +142,16 @@ export class PelotaAudio {
     // (EL GOLPE, A SU HORA: el mp3 trae delante el silencio del codificador, unos 25 a 40 ms, que Chrome quita al
     // descodificar y Safari no: en el iPhone el golpe sonaba ese rato después de verse. Se mide una vez dónde empieza de
     // verdad cada muestra y se arranca desde ahí)
+    // (el umbral, la décima parte del golpe más fuerte de esos primeros 120 ms, no un valor fijo: con un 0,02 fijo, el
+    // soplido de fondo ya lo pasaba y el golpe que llegaba más tarde dentro de la muestra sonaba tarde)
     let ini = INICIO.get(b);
-    if (ini == null) { const d = b.getChannelData(0), n = Math.min(d.length, (b.sampleRate * 0.12) | 0); let k = 0; while (k < n && Math.abs(d[k]) < 0.02) k++; ini = k >= n ? 0 : Math.max(0, k / b.sampleRate - 0.0015); INICIO.set(b, ini); }
-    s.connect(g); g.connect(this.bus || c.destination); s.start(0, ini); return true;
+    if (ini == null) { const d = b.getChannelData(0), n = Math.min(d.length, (b.sampleRate * 0.12) | 0); let m = 0; for (let k = 0; k < n; k++) m = Math.max(m, Math.abs(d[k])); let k = 0; while (k < n && Math.abs(d[k]) < m * 0.1) k++; ini = k >= n ? 0 : Math.max(0, k / b.sampleRate - 0.0015); INICIO.set(b, ini); }
+    s.connect(g); g.connect(this.golpes || this.bus || c.destination); s.start(0, ini); return true;
   }
   // mano contra la pelota: «¡pac!» seco
   hit(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('mano', 0.62 * power)) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
   // pelota en el frontis: golpe con eco de pared
-  front(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('frontis', 0.7 * power)) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
+  front(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('frontis', 0.72 * power)) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
   // la chapa del sorteo contra el suelo: el golpe metálico al caer, un rebote y el repiqueteo de la moneda que baila
   // sobre su canto, cada vez más rápido y más flojo hasta quedarse quieta (como la chapa 3D, chapa.js). Antes eran tres
   // «¡tin!» flojos y casi no se oía

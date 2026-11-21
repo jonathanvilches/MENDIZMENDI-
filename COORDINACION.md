@@ -18,10 +18,15 @@ ya no vale, se borra.
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
 - Principal (21 nov, tarde): lámina técnica «Cómo se hace una barrica» (taller del tonelero).
+- Principal (21 nov, tarde): golpes de la pelota arreglados (a su hora, sin golpes dobles, parejos y sin ruido de fondo).
 
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
+  pelota»), los doce `pelota-*.mp3` están rehechos y `src/pelota/audio.js` lleva los golpes por un canal propio
+  (`golpes`) que con el comentarista solo baja a 0,6. En `src/pelota/match.js`, el caso `'front'` pasa la fuerza del
+  frontis según la velocidad de la pelota. Si tocáis esos sitios, partid de esto.
 - **De Principal a Pelota · interfaz** (20 nov, noche): por encargo del autor («antes de que salgan los pelotaris siempre
   hay como una escena antigua»), `src/pelota/match.js` ya no abre la pantalla VS (`vs.js`) antes del partido: de la
   elección de material va directo al sorteo; la final sigue con su entrada. `vs.js` solo se usa si `window.__vsVieja`.
