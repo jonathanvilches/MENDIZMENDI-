@@ -28,6 +28,7 @@ export const PLANOS = {
       est.a0 = mejor - 0.27;
     },
     cuadro: (t, U, est) => {
+      U.G.player.obj.visible = false;   // (el jugador se volvía a ver en medio del plano de la huida)
       // (una vuelta lenta alrededor del quiosco, bajando un poco: se ve el podio, la barandilla y el tejado de zinc)
       const c = est.c, k = U.ease(t / 3.2), a = est.a0 + k * 0.55, R = 13 - k * 2.5;
       U.cam(U.v(c.x + Math.cos(a) * R, c.y + 4.2 - k * 1.6, c.z + Math.sin(a) * R), U.v(c.x, c.y + 2.2, c.z), 46);
@@ -63,6 +64,7 @@ export const PLANOS = {
       window.__ay.despeja(U, est.c, 30, D.gente); est.fog = [50, 700];
     },
     cuadro: (t, U, est) => {
+      U.G.player.obj.visible = false;   // (el jugador se volvía a ver en medio del plano de la huida)
       // (bajita, junto al quiosco y de cara a la manada: la cámara retrocede despacio mientras saltan hacia ella, con las
       // casas y el cielo rojo detrás; se abre un poco de lado)
       const c = est.c, d = est.dir, k = U.ease(t / 4), R = 9.5 - k * 4, lat = (k - 0.5) * 1.6, sx = d.z, sz = -d.x;
@@ -84,6 +86,7 @@ export const PLANOS = {
       window.__ay.despeja(U, est.c, 30, D.gente); est.fog = [60, 800];
     },
     cuadro: (t, U, est) => {
+      U.G.player.obj.visible = false;   // (el jugador se volvía a ver en medio del plano de la huida)
       // (desde arriba, la grúa gira despacio y baja: la plaza entera llena, saltando en ola)
       // (oblicua, unos 40° hacia abajo: desde arriba del todo eran manchas; así se ve la plaza llena y quiénes son)
       const c = est.c, k = U.ease(t / 3), a = (est.a0 ?? -0.6) + k * 0.45, R = 17 - k * 3;
@@ -100,21 +103,25 @@ export const PLANOS = {
       est.c = U.v(C.x, U.suelo(C.x, C.z), C.z);
       // (la primera prueba miraba a una pared y salían diminutos: ahora la cámara se pone en el lado abierto de la plaza,
       // el de la plaza grande y sin casas, de cara al quiosco; los de ese lado corren hacia ella y la pasan)
-      const libre = window.__colliders?.isFree || (() => true); let mejor = 0, nota = -1;
-      for (let i = 0; i < 36; i++) {
-        const a = i / 36 * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a); let n = 0;
+      // (la segunda prueba miraba a un lado por el que no se iba nadie: ahora se cuenta hacia dónde corre cada uno, su
+      // goal, y la cámara se pone en la calle por la que salen más, siempre que esté libre)
+      const libre = window.__colliders?.isFree || (() => true); let mejor = 0, nota = -1, hueco = 8;
+      const vaA = D.gente.filter((p) => p.goal).map((p) => Math.atan2(p.goal.z - C.z, p.goal.x - C.x));
+      for (let i = 0; i < 72; i++) {
+        const a = i / 72 * Math.PI * 2, cx = Math.cos(a), cz = Math.sin(a); let n = 0;
         for (let r = 6; r <= 22; r += 2) { if (!libre(C.x + cx * r, C.z + cz * r, 1.4)) break; n++; }
-        const lleno = D.gente.filter((p) => { const ox = p.sitio.x - C.x, oz = p.sitio.z - C.z; return ox * cx + oz * cz > 4 && Math.abs(ox * cz - oz * cx) < 6; }).length;
-        const v = n * 10 + lleno; if (v > nota) { nota = v; mejor = a; }
+        const van = vaA.filter((g) => Math.abs(Math.atan2(Math.sin(g - a), Math.cos(g - a))) < 0.35).length;
+        const v = n >= 4 ? van * 10 + n : n - 100; if (v > nota) { nota = v; mejor = a; hueco = 6 + (n - 1) * 2; }
       }
-      est.a = mejor;
+      est.a = mejor; est.R = Math.max(8, Math.min(13, hueco - 3));
       G.player.place(C.x - Math.cos(mejor) * 60, C.z - Math.sin(mejor) * 60, 0); G.player.obj.visible = false;
       for (const g of G._carteles || []) g.visible = false;
       window.__ay.despeja(U, est.c, 30, D.gente); est.fog = [50, 700];
     },
     cuadro: (t, U, est) => {
+      U.G.player.obj.visible = false;   // (el jugador se volvía a ver en medio del plano de la huida)
       // (bajita, en la boca del lado abierto, de cara al quiosco: salen corriendo hacia la cámara y la pasan; retrocede)
-      const c = est.c, k = U.ease(t / 3), a = est.a + (k - 0.5) * 0.12, R = 13 + k * 3;
+      const c = est.c, k = U.ease(t / 3), a = est.a + (k - 0.5) * 0.12, R = est.R + k * 3;
       U.cam(U.v(c.x + Math.cos(a) * R, c.y + 1.0, c.z + Math.sin(a) * R), U.v(c.x, c.y + 1.7, c.z), 54);
     },
   },
