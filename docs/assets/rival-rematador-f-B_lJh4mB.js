@@ -1,0 +1,1 @@
+var e=new URL(`rival-rematador-f-Bmb5YHJj.mp3`,import.meta.url).href;export{e as default};

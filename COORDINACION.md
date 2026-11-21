@@ -201,6 +201,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, mañana (20), la hizo la ventana principal, por encargo del autor: `master` hasta `57670ebd`. Las frases de los
+  comentaristas en femenino para las pelotaris: 29 versiones grabadas con las mismas voces de Mikel y Edurne («Es una
+  rematadora», «la rival», «Se le nota cansada», «¡Sigue viva!», «Anda fina con la mano derecha»…), que suenan cuando
+  la frase habla de una chica; con un chico, la de siempre.
 - 21 nov, madrugada (19), la hizo la ventana principal, por encargo del autor: `master` hasta `0a4036f9`. Altsasu: al
   encontrar el tercer momotxorro, la manada llega corriendo, baila dando vueltas alrededor del kiosco de la plaza y se va
   corriendo, con un rojo suave. Fuera los corazones de arriba. En los campeonatos (menos la final), el vídeo de entrada
