@@ -201,6 +201,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, madrugada (19), la hizo la ventana principal, por encargo del autor: `master` hasta `0a4036f9`. Altsasu: al
+  encontrar el tercer momotxorro, la manada llega corriendo, baila dando vueltas alrededor del kiosco de la plaza y se va
+  corriendo, con un rojo suave. Fuera los corazones de arriba. En los campeonatos (menos la final), el vídeo de entrada
+  hecho con Higgsfield antes de que salgan los pelotaris. Los golpes de la pelota, con el eco del frontón cubierto. Los
+  comentaristas ya no dicen en masculino lo que habla de una pelotari.
 - 21 nov, madrugada (18), la hizo la ventana principal, por encargo del autor: `master` hasta `dff1626e`. Pelota en casa: trotar en el sitio para que el pelotari corra (sin trotar, al paso), golpes más sensibles (desde 2,2 anchos de hombros por segundo) y la pelota más lenta (74 %); y las voces de los paseantes de Otsagabia al mismo volumen que los demás vecinos.
 - 20 nov, noche (17), la hizo la ventana principal, por encargo del autor: `master` hasta `1b7ca209`. La posada: en cada
   pueblo, también en Otsagabia, una casa con letrero y farol donde, de noche, se puede dormir hasta la mañana.
