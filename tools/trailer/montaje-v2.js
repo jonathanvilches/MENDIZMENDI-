@@ -50,7 +50,7 @@ const TOMAS = [
   { a: B(7), b: B(7.5), src: 'p:bobo', luz: 'dia', desde: 0.6 },
   { a: B(7.5), b: B(8), src: 'p:momotxorro', luz: 'calido', desde: 1.0, golpe: '#ff9a6a' },
   // ---- Juega: la pelotari en el Labrit ----
-  { a: B(8), b: B(9), src: 'p:pelotari', luz: 'calido', entra: ['blanco', 0.3], impacto: 1 },
+  { a: B(8), b: B(9), src: 'p:pelotari', luz: 'calido', desde: 0.4, entra: ['blanco', 0.3], impacto: 1 },
   { a: B(9), b: B(9.5), src: 'p:pelotaLabrit2', luz: 'calido', desde: 0.8 },
   { a: B(9.5), b: B(10), src: 'p:pelotariAtras', luz: 'calido', desde: 0.4 },
   { a: B(10), b: B(11), src: 'p:pelotaLabrit', luz: 'calido', entra: ['barre', 0.2] },
