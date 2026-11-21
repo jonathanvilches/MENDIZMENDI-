@@ -2197,7 +2197,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cesto con los ovillos, las agujas y el calcetín; el ratón enciende el puesto que señala). Y **cómo se hace una barrica** (al
   acabar el taller del tonelero: la pila de duelas secándose; en medio, una barrica que pasa de rosa abierta a cerrada,
   con el fuego que tuesta las duelas, el torno con la cuerda, los aros que baja el mazo, la tapa que entra en el jable y la
-  prueba con agua; el banco, los aros de repuesto y la cama con dos barricas acabadas). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  prueba con agua; el banco, los aros de repuesto y la cama con dos barricas acabadas). Y **cómo se hace el pan** (al
+  acabar el taller de la panadera; el autor, 21 nov: «explicaciones técnicas con Anatomy de oficios antiguos, de procesos de
+  elaboración de productos artesanales de Navarra»): el horno de leña del pueblo cortado por delante (media bóveda por
+  dentro, con su sección de ladrillo refractario, barro con paja y piedra; la solera de baldosa sobre arena; la embocadura
+  con la boca en arco), un termómetro en el poyo que marca lo que pasa dentro (de 20 a 300 °C y la franja del pan), la
+  leña, la artesa con la masa que se amasa, el saco de harina, la masa madre y el cántaro, el tablero donde los panes
+  crecen bajo la manta, la pala que los marca y los mete uno a uno, el hurgón que saca las brasas, el escobón, la puerta
+  de hierro que se cierra para cocer y la rejilla donde se enfrían dorados. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
