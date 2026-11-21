@@ -1555,6 +1555,8 @@ export class PelotaMatch {
     const fy = pelotariRating(this.o.youStats || {}, '', this.o.youBonus ?? 2).ovr, fr = pelotariRating(this.o.rivalStats || {}, '', this.o.rivalBonus ?? 0).ovr;
     const est = C?.est || (C ? (fr - fy >= 5 ? 'favorito' : Math.abs(fr - fy) <= 2 ? 'igualados' : null) : null);
     this.vocesC = { you: yo, rival: riv, sede: sedeVoz(this.o.venue, this.o.town, !!C?.fuera), est, zurdo: A.arq === 'zurdo' };
+    // (si tú o tu rival sois chicas: fuera las frases grabadas en masculino que hablan de vosotras; comenta.js, deChica)
+    c.chica = { you: !!this.o.you?.girl, rival: !!this.o.rival?.girl };
     this.decir(c.presenta({ sede: this.vocesC.sede, camp: C, yo, rival: riv, arq: A.arq, estrella: A.estrella }), 400);
   }
   // Al acabar cada tanto: lo que toque según el marcador (la racha, la igualada, la remontada, el tanto de partido salvado,
@@ -2002,6 +2004,7 @@ export class PelotaMatch {
     this.cam.position.copy(this.camPos);
     if (this.shake > 0) { this.shake -= dt; this.cam.position.x += (Math.random() - 0.5) * this.shake * 0.25; this.cam.position.y += (Math.random() - 0.5) * this.shake * 0.25; }
     this.cam.lookAt(this.camLook);
+    this.camPuesta = (this.camPuesta || 0) + 1;   // (la cámara del partido ya manda: game/llegadas.js quita el velo cuando la hay)
     if (this.roll) this.cam.rotateZ(this.roll);
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
     // (se empieza a quitar 2 m antes de llegar a él: así, cuando la cámara lo cruza, ya no está; si no, durante un momento
