@@ -1,5 +1,5 @@
 // Láminas técnicas (skill Anatomy): ilustraciones isométricas interactivas que enseñan por dentro cómo se hace o cómo
-// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado, el espárrago, el molino, el piquillo, el aceite, la miel, la cuajada, la txistorra, la ferrería, el salmón, la carbonera, la lana, la barrica, el pan, la alpargata, la cesta, las palomeras, el cantero...). Se dibujan con tools/anatomia/*.mjs, que las deja en
+// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado, el espárrago, el molino, el piquillo, el aceite, la miel, la cuajada, la txistorra, la ferrería, el salmón, la carbonera, la lana, la barrica, el pan, la alpargata, la cesta, las palomeras, el cantero, el aizkolari...). Se dibujan con tools/anatomia/*.mjs, que las deja en
 // public/anatomia/<id>.html, y aquí se abren encima del juego, casi a pantalla entera, con su título y «Seguir».
 // El autor, 21 de noviembre de 2026: «explicaciones técnicas en 3D [...] todo esto quiero que poco a poco lo vayas
 // aplicando y lo vayas metiendo en el juego y en las misiones».
@@ -27,6 +27,7 @@ export const LAMINAS_TEC = {
   cesta: { title: 'Cómo se hace una cesta', kicker: 'Oficio de antes' },
   palomeras: { title: 'Las palomeras de Etxalar', kicker: 'Oficio de antes' },
   cantero: { title: 'Del monte al puente: el cantero', kicker: 'Oficio de antes' },
+  aizkolari: { title: 'Cómo se corta un tronco: el aizkolari', kicker: 'Oficio de antes' },
 };
 // los productos de las misiones (data/procesos.js) que tienen su lámina
 export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino', olive: 'aceite', olivo: 'aceite', honey: 'miel', chistorra: 'txistorra', herrero: 'ferreria', carbonero: 'carbonera', hilandera: 'hilandera', tonelero: 'tonelero', panadero: 'pan', alpargatero: 'alpargata', cestero: 'cesta', palomero: 'palomeras' };   // (el espárrago y el piquillo, por su id: esparrago, piquillo; los oficios, por su kind: herrero, carbonero, hilandera, tonelero, panadero, alpargatero, cestero)
