@@ -2210,7 +2210,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   y se cose de lado a lado con la aguja grande y el cáñamo (cuenta las puntadas); la prensa de husillo, con su volante de
   bolas, que baja el plato y deja la suela plana; el pie donde se cosen la puntera y el talón de lona, y las cintas rojas;
   la suela viaja de un puesto a otro, y delante hay una caja con un par acabado. La placa dice «ESPARTINAK · MAULE», por
-  las golondrinas del Roncal y Salazar que trabajaban en Mauleón. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  las golondrinas del Roncal y Salazar que trabajaban en Mauleón. Y **cómo se hace una cesta** (al acabar el taller del
+  cestero): el haz de varas de castaño atado y el tajo con la podadera; el caldero en el fuego, con las varas dentro y el
+  vapor; el banco de rajar, cuyo pedal bascula el bastidor para que el cabezal pise la tira mientras la cuchilla de dos
+  mangos la alisa y suelta virutas; y en medio, sobre la tabla, una cesta que se arma (las costillas en cruz se levantan),
+  se teje vuelta a vuelta por encima y por debajo de las costillas (cuenta las vueltas) y se remata con el borde atado y el
+  asa; dos cestas acabadas, una con manzanas. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
