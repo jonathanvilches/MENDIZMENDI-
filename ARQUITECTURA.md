@@ -2120,12 +2120,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con más sala y más fuerte; el bote, más sordo; las tres variantes de cada golpe, igual de fuertes. Hecho con
   `tools/sonidos/golpes-eco.py`. Las cuatro versiones que ha habido se comparan en una página para que el autor elija
   (`https://claude.ai/artifact/LZ9pjKppv73RZZFjzXhTCt`).
-- **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA y deChica; `pelota/match.js`,
+- **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
   `game/fronton.js`; el autor, 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para
-  cuando se refiera a un chico o a una chica pelotari»). Las frases grabadas en masculino que hablan de un pelotari
-  concreto («el rival», «cansado», «tranquilo», «un rematador», «va primero») se callan cuando ese pelotari es una chica:
-  sale otra del grupo o un silencio. Cada una dice de quién habla (tu rival, quien pierde el tanto, quien lo gana o
-  cualquiera). Las versiones en femenino están por grabar, con el visto bueno del autor.
+  cuando se refiera a un chico o a una chica pelotari» y «graba las voces de pelota para las chicas pelotaris»). Las 29
+  frases grabadas en masculino que hablan de un pelotari concreto («el rival», «cansado», «tranquilo», «un rematador»,
+  «va primero», «anda fino») tienen su versión en femenino, la misma clave con «-f» («Es una rematadora», «la rival se
+  queda clavada», «Se le nota cansada», «¡Sigue viva!», «Va primera de su grupo», «Anda fina con la mano derecha»), que
+  suena cuando ese pelotari es una chica. Cada frase dice de quién habla: tu rival, tú, quien pierde el tanto, quien lo
+  gana, quien anda fino con una mano (`manoQuien`) o quien va cansado (`cansadoQuien`, nuevo en `comCtx`; con los dos
+  cansados, la femenina solo si los dos son chicas). Si no se sabe de quién habla y hay una chica en la cancha, se calla.
+  Las «-f» no forman grupo propio (no salen nunca por su cuenta) y en los diálogos sustituyen solo su turno. Además,
+  «se le nota cansado» detrás de «otro fallo» ya solo sale si el cansado es el que falla. Grabadas con las mismas voces
+  de ElevenLabs (Mikel, «Koldo, comentarista de pelota», con el filtro de siempre y un poco menos de agudos para que
+  suene igual que sus otras frases; Edurne, su voz limpia), modelo eleven_v4, dos tomas de cada una, cortadas en el
+  silencio real más cercano a cada frontera de Scribe (una de las tomas daba tiempos corridos), 50 ms de silencio en
+  los bordes, nivel medio de cada voz (-18 y -17,3 dB) y picos por debajo de -1 dBFS, mp3 mono de 80 y 64 kbps; 3.700
+  créditos. Las 29 duran lo mismo que su versión masculina (±9 %). Guion en `tools/guion-voz/femenino-es.json`.
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la

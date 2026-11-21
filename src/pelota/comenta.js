@@ -16,6 +16,8 @@ const fold = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 const base = (k) => (/-e\d+$/.test(k) ? k.replace(/\d+$/, '') : k.replace(/-\d+$/, ''));
 const G = new Map(), DLG = new Map();
 for (const k of Object.keys(GUION)) {
+  // (las versiones en femenino, «<clave>-f», no forman grupo: salen en lugar de su clave cuando hablan de una chica, fem())
+  if (/-f$/.test(k)) continue;
   // (los diálogos, «d-<tema>-<n>-<turno>»: cada uno con sus turnos en orden)
   const d = /^d-(.+)-(\d+)-(\d+)$/.exec(k);
   if (d) { if (!DLG.has(d[1])) DLG.set(d[1], new Map()); const T = DLG.get(d[1]); if (!T.has(d[2])) T.set(d[2], []); T.get(d[2])[+d[3] - 1] = k; continue; }
@@ -62,23 +64,32 @@ const FALLO_E = { chapa: 'e-chapa-e', alta: 'e-alta-e', pared: 'e-fuera-e', lado
 const VISTOSO = new Set(['t-gancho-ancho', 't-cortada-2p', 't-dosparedes', 't-volea']);
 const ROL = { M: 'Mikel', E: 'Edurne' };
 // Las frases grabadas en masculino que hablan de un pelotari concreto («el rival», «cansado», «tranquilo», «un rematador»):
-// con una chica, se callan (sale otra del grupo, si la hay, o un silencio). De quién hablan: 'rival', tu rival; 'pierde',
-// quien ha perdido el tanto; 'gana', quien lo ha ganado; 'cualquiera', no se sabe (con una chica en la cancha, fuera). El
-// autor, el 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para cuando se refiera a un
-// chico o a una chica pelotari». Las versiones en femenino están por grabar (las voces, siempre con el visto bueno del autor).
+// con una chica suena su versión en femenino, la misma clave con «-f» («Es una rematadora», «la rival», «cansada»),
+// grabada con la misma voz. De quién hablan: 'rival', tu rival; 'yo', tú; 'pierde', quien ha perdido el tanto; 'gana',
+// quien lo ha ganado; 'mano', quien anda fino con una mano (manoQuien); 'cansado', el que va cansado (cansadoQuien). Si
+// no se sabe de quién, o si no está su versión, con una chica en la cancha se callan (sale otra del grupo o un silencio).
+// El autor, el 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para cuando se refiera
+// a un chico o a una chica pelotari» y «graba las voces de pelota para las chicas pelotaris».
 const ELLA = {
   'rival-rematador': 'rival', 'rival-defensor': 'rival', 'est-favorito': 'rival', 'm-final-rival-1': 'rival', 'r-consejo-2': 'rival',
   'r-consejo-3': 'rival', 'r-consejo-4': 'rival', 'r-consejo-6': 'rival', 'r-consejo-7': 'rival', 'd-descanso-2-2': 'rival',
   't-dejada-txoko-e': 'pierde', 't-dejada-ancho-e': 'pierde', 't-dosparedes-e': 'pierde', 't-volea-e': 'pierde', 't-largo-e': 'pierde',
   't-saque-e': 'pierde', 't-hueco-e1': 'pierde', 't-hueco-e2': 'pierde', 't-encima-e2': 'pierde', 'm-corta-e': 'pierde', 'm-escapa-e': 'pierde',
   'd-tanto-3-2': 'pierde', 'm-ventaja-e': 'gana', 'e-cuatro-e': 'gana', 'm-salva-1': 'gana',
-  'm-cansado-1': 'cualquiera', 'est-lider': 'cualquiera', 'r-derecha-2': 'cualquiera', 'r-izquierda-2': 'cualquiera' };
-/** ¿Habla en masculino de una chica? c.chica: { you, rival } (match.js); c.w: quien ha ganado el tanto ('you' o 'rival') */
-function deChica(k, c) {
-  const q = ELLA[k], ch = c?.chica; if (!q || !ch) return false;
-  if (q === 'rival') return !!ch.rival;
-  if ((q === 'gana' || q === 'pierde') && (c.w === 'you' || c.w === 'rival')) return !!ch[q === 'gana' ? c.w : (c.w === 'you' ? 'rival' : 'you')];
-  return !!(ch.you || ch.rival);
+  'm-cansado-1': 'cansado', 'est-lider': 'yo', 'r-derecha-2': 'mano', 'r-izquierda-2': 'mano' };
+/** ¿De quién habla la frase, de un chico o de una chica? 'chico', 'chica' o null (no se sabe). c.chica: { you, rival }
+ *  (match.js); c.w: quien ha ganado el tanto ('you' o 'rival'); c.manoQuien y c.cansadoQuien ('you', 'rival' o 'ambos') */
+function deQuien(k, c) {
+  const q = ELLA[k], ch = c?.chica; if (!q || !ch || (!ch.you && !ch.rival)) return 'chico';
+  const de = (w) => (w === 'you' || w === 'rival' ? (ch[w] ? 'chica' : 'chico') : null);
+  const otro = (w) => (w === 'you' ? 'rival' : w === 'rival' ? 'you' : null);
+  if (q === 'rival') return de('rival');
+  if (q === 'yo') return de('you');
+  if (q === 'gana') return de(c.w);
+  if (q === 'pierde') return de(otro(c.w));
+  if (q === 'mano') return de(c.manoQuien);
+  if (q === 'cansado') return c.cansadoQuien === 'ambos' ? (ch.you && ch.rival ? 'chica' : null) : de(c.cansadoQuien);
+  return null;
 }
 
 export class Comentarios {
@@ -98,7 +109,7 @@ export class Comentarios {
     if (!this.voz || !g) return null;
     // (con herramienta, en el trinquete: fuera las frases que hablan de la mano o de jugar a mano; match.js, sinMano)
     let L = (G.get(g) || []).filter(k => this.puede(GUION[k][0]) && (!q || GUION[k][0] === q) && !(una && this.dichas.has(k)) && !(this.sinMano && /\bmanos?\b/i.test(GUION[k][1]))
-      && !(this.tiene && !this.tiene(this.item(k, g))) && !this.fuera(k));
+      && !(this.tiene && !this.tiene(this.item(this.fem(k), g))) && !this.fuera(k));
     // (contra la repetición, desde el 16 de noviembre de 2026; el autor: «los comentarios son muy repetitivos». Ninguna de las
     // 40 últimas que se han oído, si queda otra; y los grupos de jugada, tanto y relleno que solo tienen una o dos frases se
     // callan durante seis tantos después de usarse, y los de una sola frase, ocho: mejor un silencio que otra vez lo mismo.
@@ -111,15 +122,19 @@ export class Comentarios {
     if (/^(j|t|e|r|o)-|^m-(racha|corta|iguala|igualado|escapa|remonta|empieza|mitad|ados|atres|cansado)/.test(g) && enGrupo <= 2 && this.n - (this.gUso[g] ?? -99) < (enGrupo === 1 ? 8 : 6)) return null;
     const k = L[Math.floor(Math.random() * L.length)]; this.ult[g] = k; this.dichas.add(k); this.gUso[g] = this.n;
     this.rec.push(k); if (this.rec.length > 40) this.rec.shift();
-    return this.item(k, g);
+    return this.item(this.fem(k), g);
   }
   // (las que no vienen a cuento en este partido: el consejo contra un zurdo si el rival no lo es, el de la pared izquierda en
   // una plaza sin ella, el de las cortadas seguidas si nadie las encadena; y las de la grada en pie o en silencio, que solo
   // valen tras un tanto de los que levantan al público o en un final apretado, no en mitad de cualquier cosa: tanto() y
   // tantoPartido() las piden con ctx.grada)
+  // (de quién habla la frase en este momento: el contexto del tanto o del relleno, con las chicas del partido)
+  quien(k) { const c = this.ctx || {}; return deQuien(k, { ...c, chica: c.chica || this.chica, w: c.w ?? this.w }); }
+  // (la clave que suena: su versión en femenino si habla de una chica y está grabada)
+  fem(k) { return ELLA[k] && GUION[k + '-f'] && this.quien(k) === 'chica' ? k + '-f' : k; }
   fuera(k) {
     const c = this.ctx || {};
-    if (deChica(k, { ...c, chica: c.chica || this.chica, w: c.w ?? this.w })) return true;
+    if (ELLA[k]) { const q = this.quien(k); if (q === null || (q === 'chica' && !GUION[k + '-f'])) return true; }
     if (k === 'r-consejo-7' && !c.zurdo) return true;
     if ((k === 'r-consejo-5' || /^j-pared-saca/.test(k)) && c.cancha === 'plaza') return true;
     if (k === 'r-energia-2' && !((c.cortadas || 0) >= 4)) return true;
@@ -138,7 +153,7 @@ export class Comentarios {
     const T = DLG.get(tema); if (!T) return null;
     const L = [...T.entries()].filter(([n, ks]) => !this.dichas.has(`d-${tema}-${n}`) && !(this.sinMano && ks.some(k => k && /\bmanos?\b/i.test(GUION[k][1]))) && !ks.some(k => k && this.fuera(k))); if (!L.length) return null;
     const [n, ks] = L[Math.floor(Math.random() * L.length)]; this.dichas.add(`d-${tema}-${n}`);
-    return ks.filter(Boolean).map(k => this.item(k, `d-${tema}`));
+    return ks.filter(Boolean).map(k => this.item(this.fem(k), `d-${tema}`));
   }
   // (varias frases seguidas, cada una al acabar la anterior: voz.js, sigue; sin las que no haya)
   seguidas(...L) { const s = L.flat(Infinity).filter(Boolean); return s.length > 1 ? s : s[0] || null; }
@@ -279,7 +294,8 @@ export class Comentarios {
     // y lo que se sabe de los otros partidos del campeonato)
     const dicho = (k, f) => { if (f) o.marca?.(k); return f; };
     if (o.perfecto) add(5, 'perfecto', () => dicho('p' + o.perfecto, this.seguidas(this.frase('r-perfecto'), this.azar(0.4) && this.frase('r-entrena'))));
-    if (o.falla) add(5, 'falla', () => dicho('f' + o.falla, this.seguidas(this.frase('r-falla'), o.cansado && this.azar(0.5) && this.frase('m-cansado'))));
+    // («se le nota cansado» detrás del que falla, solo si el cansado es él)
+    if (o.falla) add(5, 'falla', () => dicho('f' + o.falla, this.seguidas(this.frase('r-falla'), o.cansado && (o.cansadoQuien === o.falla || o.cansadoQuien === 'ambos') && this.azar(0.5) && (this.ctx = { ...o, cansadoQuien: o.falla }) && this.frase('m-cansado'))));
     if (o.manoLado === 'R') add(4, 'lado', () => dicho('m' + o.manoQuien, this.frase('r-derecha')));
     else if (o.manoLado === 'L') add(4, 'lado', () => dicho('m' + o.manoQuien, this.frase('r-izquierda')));
     if ((o.mano || 0) >= 3) add(1, 'entrena', () => this.frase('r-entrena', true));

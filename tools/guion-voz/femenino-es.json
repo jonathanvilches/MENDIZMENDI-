@@ -1,0 +1,147 @@
+[
+{
+"id": "m-final-rival-1-f",
+"voz": "hombre",
+"texto": "Se acabó. Esta vez gana la rival."
+},
+{
+"id": "d-tanto-3-2-f",
+"voz": "hombre",
+"texto": "Sí: la ha movido de un lado a otro hasta abrir el hueco."
+},
+{
+"id": "m-salva-1-f",
+"voz": "hombre",
+"texto": "¡Salva el tanto de partido! ¡Sigue viva!"
+},
+{
+"id": "m-cansado-1-f",
+"voz": "hombre",
+"texto": "Se le nota cansada."
+},
+{
+"id": "rival-rematador-f",
+"voz": "mujer",
+"texto": "Es una rematadora: acaba los tantos de un golpe, con la cortada o el pelotazo al fondo."
+},
+{
+"id": "rival-defensor-f",
+"voz": "mujer",
+"texto": "Es una defensora: llega a todas y devuelve lo que parece imposible. Gana por cansancio."
+},
+{
+"id": "est-favorito-f",
+"voz": "mujer",
+"texto": "Sobre el papel, la favorita es la rival: llega más fuerte."
+},
+{
+"id": "r-consejo-2-f",
+"voz": "mujer",
+"texto": "Mover a la rival de lado a lado: esa es la clave."
+},
+{
+"id": "r-consejo-3-f",
+"voz": "mujer",
+"texto": "Si la rival está atrás, una dejada es oro."
+},
+{
+"id": "r-consejo-4-f",
+"voz": "mujer",
+"texto": "Antes de golpear, hay que mirar dónde está la rival."
+},
+{
+"id": "r-consejo-6-f",
+"voz": "mujer",
+"texto": "Un saque largo obliga a la rival a irse atrás."
+},
+{
+"id": "r-consejo-7-f",
+"voz": "mujer",
+"texto": "Contra una zurda hay que pensar al revés: su pelota sale cruzada hacia el otro lado."
+},
+{
+"id": "d-descanso-2-2-f",
+"voz": "mujer",
+"texto": "Que tenga paciencia, Mikel. Que mueva a la rival y espere el hueco."
+},
+{
+"id": "t-dejada-txoko-e-f",
+"voz": "mujer",
+"texto": "Con la rival atrás, la dejada al txoko es la jugada perfecta: corta y pegada a la pared."
+},
+{
+"id": "t-dejada-ancho-e-f",
+"voz": "mujer",
+"texto": "La dejada al ancho sorprende: la rival espera la pelota en la pared y se le va al otro lado."
+},
+{
+"id": "t-dosparedes-e-f",
+"voz": "mujer",
+"texto": "Primero la pared izquierda, luego el frontis: la pelota sale cruzada y la rival se queda clavada."
+},
+{
+"id": "t-volea-e-f",
+"voz": "mujer",
+"texto": "Ir a por la pelota antes del bote le quita todo el tiempo a la rival."
+},
+{
+"id": "t-largo-e-f",
+"voz": "mujer",
+"texto": "Con la rival adelantada, un pelotazo largo la deja sin respuesta."
+},
+{
+"id": "t-saque-e-f",
+"voz": "mujer",
+"texto": "Un buen saque vale un tanto: pegado a la pared, y la rival ni se mueve."
+},
+{
+"id": "t-hueco-e1-f",
+"voz": "mujer",
+"texto": "Ha movido a la rival de lado a lado hasta encontrar el hueco."
+},
+{
+"id": "t-hueco-e2-f",
+"voz": "mujer",
+"texto": "Tanto bien pensado: primero mover a la rival y luego rematar."
+},
+{
+"id": "t-encima-e2-f",
+"voz": "mujer",
+"texto": "Cuando la rival se adelanta tanto, la pelota larga es la mejor arma."
+},
+{
+"id": "m-corta-e-f",
+"voz": "mujer",
+"texto": "Ese tanto vale doble: corta la racha de la rival."
+},
+{
+"id": "m-escapa-e-f",
+"voz": "mujer",
+"texto": "Se está yendo en el marcador. La rival tiene que reaccionar ya."
+},
+{
+"id": "m-ventaja-e-f",
+"voz": "mujer",
+"texto": "Con esta ventaja puede jugar tranquila. Pero cuidado, que en pelota nada está ganado."
+},
+{
+"id": "e-cuatro-e-f",
+"voz": "mujer",
+"texto": "En el Cuatro y Medio la pelota tiene que botar antes de la raya. Si la pasa, el tanto es de la rival."
+},
+{
+"id": "est-lider-f",
+"voz": "mujer",
+"texto": "Va primera de su grupo: con una victoria más, está dentro."
+},
+{
+"id": "r-derecha-2-f",
+"voz": "mujer",
+"texto": "Anda fina con la mano derecha."
+},
+{
+"id": "r-izquierda-2-f",
+"voz": "mujer",
+"texto": "Anda fina con la mano izquierda."
+}
+]

@@ -14,6 +14,8 @@ import { pelotariCard } from '../ui/sportCard.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PrimeraPersona } from './primeraPersona.js';
 import { bolaSVG } from './bola.js';
+// (quién va cansado, para las frases de los comentaristas con su género: comenta.js, deQuien)
+const cansadoDe = (P) => { const c = ['you', 'rival'].filter(w => (P[w]?.en ?? 1) < 0.3); return c.length === 2 ? 'ambos' : c[0] || null; };
 // (la estrella de los retos: rellena de amarillo si se ha ganado, solo el filo lila si no)
 const ESTRELLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z" stroke-linejoin="round"/></svg>';
 import { PelotaHud, esc } from './hud.js';
@@ -1474,7 +1476,7 @@ export class PelotaMatch {
   // juego, si a alguien le entra bien la mano, si va igualado, si alguno va cansado, el campeonato)
   comCtx() { const g = this.game, sc = g.score || { you: 0, rival: 0 }, R = this.rachas || {}, V = this.vocesC || {}, P = g.players || {};
     return { yo: V.you, rival: V.rival, sede: V.sede, est: V.est, zurdo: V.zurdo, bola: clase(this.bola), mano: R.n || 0, igualado: Math.abs(sc.you - sc.rival) <= 1 && sc.you + sc.rival >= 6, tantos: sc.you + sc.rival,
-      cansado: ['you', 'rival'].some(w => (P[w]?.en ?? 1) < 0.3), cuatro: !!this.o.cuatro, parejas: !!this.pairs, campeonato: !!this.o.camp, laFinal: !!this.o.final && !!this.o.camp,
+      cansado: ['you', 'rival'].some(w => (P[w]?.en ?? 1) < 0.3), cansadoQuien: cansadoDe(P), cuatro: !!this.o.cuatro, parejas: !!this.pairs, campeonato: !!this.o.camp, laFinal: !!this.o.final && !!this.o.camp,
       ...this.formaCtx(), otros: this.o.camp?.otros || [], cancha: this.court?.tipo || '' }; }
   // Cómo está jugando cada uno, para los comentarios nuevos del 16 de noviembre de 2026 (comenta.js): el que hace un partido
   // perfecto (cinco o más tantos por delante, ocho o más jugados y como mucho un fallo suyo), el que falla mucho (tres de
