@@ -40,7 +40,7 @@ const TOMAS = [
   { a: B(0), b: B(1), src: 'p:manadaBaile', luz: 'rojo', impacto: 1, entra: ['blanco', 0.35] },
   { a: B(1), b: B(1.5), src: 'p:manadaCenital', luz: 'rojo', desde: 0.5 },
   { a: B(1.5), b: B(2), src: 'p:manadaBaile', luz: 'rojo', desde: 2.3 },
-  { a: B(2), b: B(3), src: 'p:manadaHuyen', luz: 'rojo', desde: 0.4, entra: ['barre', 0.2], rotulo: ['Altsasu', 'Momotxorros'] },
+  { a: B(2), b: B(3), src: 'p:manadaHuyen', luz: 'rojo', desde: 0.85, entra: ['barre', 0.2], rotulo: ['Altsasu', 'Momotxorros'] },   // (hasta el fotograma 20 un momotxorro tapa la cámara; en el 21 pasa rozando y descubre la plaza)
   { a: B(3), b: B(4), src: 'p:otsaVuelo', luz: 'dia', entra: ['blanco', 0.3], impacto: 1 },
   { a: B(4), b: B(4.5), src: 'p:subida', luz: 'dia', desde: 0.8 },
   { a: B(4.5), b: B(5), src: 'p:joxemari', luz: 'dia', desde: 0.6 },
