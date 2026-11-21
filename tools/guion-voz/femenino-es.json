@@ -143,5 +143,125 @@
 "id": "r-izquierda-2-f",
 "voz": "mujer",
 "texto": "Anda fina con la mano izquierda."
+},
+{
+"id": "inicio-3-f",
+"voz": "hombre",
+"texto": "¡Buenas tardes! Todo listo, la grada llena y las pelotaris calentando las manos."
+},
+{
+"id": "saque-3-f",
+"voz": "hombre",
+"texto": "Las dos en su sitio. ¡Que empiece la pelota!"
+},
+{
+"id": "ronda-final-1-f",
+"voz": "hombre",
+"texto": "¡Llegamos a la final! Solo una se pondrá la txapela."
+},
+{
+"id": "t-largo-2-f",
+"voz": "hombre",
+"texto": "¡La manda al rebote, y tanto!"
+},
+{
+"id": "m-ultimo-1-f",
+"voz": "hombre",
+"texto": "Las dos a un tanto. ¡La que lo gane, se lleva el partido!"
+},
+{
+"id": "m-ultimo-2-f",
+"voz": "hombre",
+"texto": "¡Último tanto! La que lo gane, se lo lleva."
+},
+{
+"id": "f-fuera-k-f",
+"voz": "hombre",
+"texto": "Hoy toca jugar en el cubierto de la rival. La grada empuja a los suyos."
+},
+{
+"id": "d-zurdo-1-1-f",
+"voz": "hombre",
+"texto": "Contra una zurda todo es al revés, ¿verdad, Edurne?"
+},
+{
+"id": "j-botepronto-2-f",
+"voz": "hombre",
+"texto": "¡Bote pronto, muy agachada!"
+},
+{
+"id": "m-txapela-1-f",
+"voz": "hombre",
+"texto": "¡Txapeldun! ¡La txapela ya tiene dueña!"
+},
+{
+"id": "camp-mano-f",
+"voz": "mujer",
+"texto": "Partido del Campeonato Manomanista: una contra una y toda la cancha para cada una."
+},
+{
+"id": "camp-comarcas-f",
+"voz": "mujer",
+"texto": "Campeonato de Comarcas: hoy cada una defiende los colores de su comarca."
+},
+{
+"id": "est-igualados-f",
+"voz": "mujer",
+"texto": "Las dos llegan igual de fuertes. Partido sin favorita."
+},
+{
+"id": "estrella-dosparedes-f",
+"voz": "mujer",
+"texto": "Su golpe estrella es la dos paredes: la pelota cruza la cancha y te deja clavada."
+},
+{
+"id": "j-peloteo-e2-f",
+"voz": "mujer",
+"texto": "Ninguna se rinde."
+},
+{
+"id": "t-peloteo-e3-f",
+"voz": "mujer",
+"texto": "Ninguna de las dos quería fallar. ¡Qué tanto!"
+},
+{
+"id": "m-iguala-e-f",
+"voz": "mujer",
+"texto": "Vuelve a empezar todo: la que mantenga la cabeza fría, gana."
+},
+{
+"id": "r-material-1-f",
+"voz": "mujer",
+"texto": "Antes de cada partido, las pelotaris eligen la pelota. Cada una bota distinto, y eso lo cambia todo."
+},
+{
+"id": "d-peloteo-1-2-f",
+"voz": "mujer",
+"texto": "Eso se nota en las piernas, Mikel. La que aguante más, se lo lleva."
+},
+{
+"id": "t-encima-e1-f",
+"voz": "mujer",
+"texto": "Estaba muy adelantada y la pelota le ha pasado por encima."
+},
+{
+"id": "m-final-claro-e-f",
+"voz": "mujer",
+"texto": "Partido sin historia: hoy ha habido una dominadora clara."
+},
+{
+"id": "b-inaki-1-f",
+"voz": "mujer",
+"texto": "Iñaki, de Altsasu, mueve a la rival de lado a lado. Su golpe es la dos paredes: la pelota cruza la cancha y te deja clavada."
+},
+{
+"id": "b-xabier-1-f",
+"voz": "mujer",
+"texto": "Xabier, de Olite, llega a todas. Devuelve lo que parece imposible y, cuando ve a la rival atrás, la deja muerta."
+},
+{
+"id": "b-leire-2-f",
+"voz": "mujer",
+"texto": "Leire siempre dice que el partido se gana antes de golpear: mirando dónde está la rival."
 }
 ]

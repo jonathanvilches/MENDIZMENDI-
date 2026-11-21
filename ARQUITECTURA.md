@@ -2136,6 +2136,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   silencio real más cercano a cada frontera de Scribe (una de las tomas daba tiempos corridos), 50 ms de silencio en
   los bordes, nivel medio de cada voz (-18 y -17,3 dB) y picos por debajo de -1 dBFS, mp3 mono de 80 y 64 kbps; 3.700
   créditos. Las 29 duran lo mismo que su versión masculina (±9 %). Guion en `tools/guion-voz/femenino-es.json`.
+  Segunda tanda, el mismo día (el autor: «Yo lo que quiero es que a la chica pelotari se le nombre en femenino. Tanto
+  Mikel como Edurne»): revisadas todas las frases, otras 24 en femenino (10 de Mikel y 14 de Edurne), con tres papeles
+  nuevos en ELLA: 'ambos' (las dos pelotaris: «las pelotaris calentando», «Las dos en su sitio», «Solo una se pondrá la
+  txapela», «La que lo gane», «Ninguna se rinde», «Partido sin favorita»; con un chico y una chica, la de siempre),
+  'golpea' (quien acaba de golpear, de `enJuego`: «¡Bote pronto, muy agachada!») y 'contra' (en la historia de un
+  pelotari, `bio(id, lado)`, su contrario: «mueve a la rival de lado a lado», «te deja clavada»). `final` apunta quién
+  gana el partido («¡La txapela ya tiene dueña!», «una dominadora clara»). 53 en total, todas a ±30 % de la duración de
+  su versión masculina.
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la
@@ -2545,7 +2553,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`herrizherri-liga-v1`, `herrizherri-torneo-v1`, `herrizherri-futbol-v1`) sin cargar `torneo.js` ni `liga.js`. Al entrar,
   los anillos se llenan uno detrás de otro (`progresoVivo` pone `.vivo`; cada módulo 0,12 s después del anterior), las
   filas de las tablas entran en cascada y las cifras suben desde cero (`data-cuenta`, `contadores`); con «reducir
-  movimiento», todo quieto y en su sitio. En el móvil tumbado los tres módulos siguen en fila, más pequeños.
+  movimiento», todo quieto y en su sitio. En el móvil tumbado (hasta 520 de alto y 1000 de ancho), desde el 21 de
+  noviembre (el autor: «La página de progreso está muy justa en los extremos, casi no entra en una pantalla de móvil»):
+  la ventana con al menos 16 px a cada lado además de la muesca, 20 px de aire por dentro, los módulos uno debajo de
+  otro con la esfera y su leyenda en dos columnas, y las comarcas en dos columnas.
 - **La próxima parada, abajo a la derecha** (`misionHTML` de `inicio.js`, `.m3-mision` en `barra-inicio.css`). El autor,
   el mismo día: «el botón de la derecha arriba [...] hay que hacerlo de otra manera». Deja la esquina de arriba y se pone
   al final de la fila de comarcas, a su misma altura (60 px; 50 px en el móvil tumbado): una tarjeta de 300 px (un 34 %

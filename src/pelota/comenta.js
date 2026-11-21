@@ -76,7 +76,16 @@ const ELLA = {
   't-dejada-txoko-e': 'pierde', 't-dejada-ancho-e': 'pierde', 't-dosparedes-e': 'pierde', 't-volea-e': 'pierde', 't-largo-e': 'pierde',
   't-saque-e': 'pierde', 't-hueco-e1': 'pierde', 't-hueco-e2': 'pierde', 't-encima-e2': 'pierde', 'm-corta-e': 'pierde', 'm-escapa-e': 'pierde',
   'd-tanto-3-2': 'pierde', 'm-ventaja-e': 'gana', 'e-cuatro-e': 'gana', 'm-salva-1': 'gana',
-  'm-cansado-1': 'cansado', 'est-lider': 'yo', 'r-derecha-2': 'mano', 'r-izquierda-2': 'mano' };
+  'm-cansado-1': 'cansado', 'est-lider': 'yo', 'r-derecha-2': 'mano', 'r-izquierda-2': 'mano',
+  // (la segunda tanda, el mismo día: «tanto Mikel como Edurne detectan que está jugando una chica y cuando hablan sobre
+  // ella lo hablan en femenino». 'ambos', las dos a la vez, en femenino solo si las dos son chicas: «Las dos en su
+  // sitio», «La que lo gane»; con un chico y una chica, el masculino de siempre. 'golpea', quien acaba de golpear;
+  // 'contra', la rival del pelotari del que cuenta su historia Edurne)
+  'inicio-3': 'ambos', 'saque-3': 'ambos', 'ronda-final-1': 'ambos', 'm-ultimo-1': 'ambos', 'm-ultimo-2': 'ambos', 'camp-mano': 'ambos',
+  'camp-comarcas': 'ambos', 'est-igualados': 'ambos', 'j-peloteo-e2': 'ambos', 't-peloteo-e3': 'ambos', 'm-iguala-e': 'ambos',
+  'r-material-1': 'ambos', 'd-peloteo-1-2': 'ambos', 't-largo-2': 'pierde', 't-encima-e1': 'pierde', 'f-fuera-k': 'rival',
+  'd-zurdo-1-1': 'rival', 'estrella-dosparedes': 'yo', 'j-botepronto-2': 'golpea', 'm-txapela-1': 'gana', 'm-final-claro-e': 'gana',
+  'b-inaki-1': 'contra', 'b-xabier-1': 'contra', 'b-leire-2': 'contra' };
 /** ¿De quién habla la frase, de un chico o de una chica? 'chico', 'chica' o null (no se sabe). c.chica: { you, rival }
  *  (match.js); c.w: quien ha ganado el tanto ('you' o 'rival'); c.manoQuien y c.cansadoQuien ('you', 'rival' o 'ambos') */
 function deQuien(k, c) {
@@ -89,6 +98,9 @@ function deQuien(k, c) {
   if (q === 'pierde') return de(otro(c.w));
   if (q === 'mano') return de(c.manoQuien);
   if (q === 'cansado') return c.cansadoQuien === 'ambos' ? (ch.you && ch.rival ? 'chica' : null) : de(c.cansadoQuien);
+  if (q === 'ambos') return ch.you && ch.rival ? 'chica' : 'chico';
+  if (q === 'golpea') return de(c.golpea);
+  if (q === 'contra') return de(c.contra);
   return null;
 }
 
@@ -129,7 +141,7 @@ export class Comentarios {
   // valen tras un tanto de los que levantan al público o en un final apretado, no en mitad de cualquier cosa: tanto() y
   // tantoPartido() las piden con ctx.grada)
   // (de quién habla la frase en este momento: el contexto del tanto o del relleno, con las chicas del partido)
-  quien(k) { const c = this.ctx || {}; return deQuien(k, { ...c, chica: c.chica || this.chica, w: c.w ?? this.w }); }
+  quien(k) { const c = this.ctx || {}; return deQuien(k, { ...c, chica: c.chica || this.chica, w: c.w ?? this.w, golpea: this.golpea, contra: this.contra }); }
   // (la clave que suena: su versión en femenino si habla de una chica y está grabada)
   fem(k) { return ELLA[k] && GUION[k + '-f'] && this.quien(k) === 'chica' ? k + '-f' : k; }
   fuera(k) {
@@ -160,7 +172,8 @@ export class Comentarios {
   // (la frase con nombre, si el pelotari tiene las suyas)
   nombre(tipo, id) { return id ? this.frase(`n-${tipo}-${id}`) : null; }
   // (lo que cuenta Edurne de un pelotari: Mikel se lo pide y ella lo cuenta; con uno solo, el que lo tenga)
-  bio(id) { if (!id) return null; const b = this.frase(`b-${id}`, true); if (!b) return null; return this.seguidas(this.frase(`d-pelotari-${id}`, true), b); }
+  // (lado: de quién es la historia, 'rival' o 'you'; su rival es el otro, para «mueve a la rival de lado a lado»)
+  bio(id, lado = 'rival') { if (!id) return null; this.contra = lado === 'you' ? 'rival' : 'you'; const b = this.frase(`b-${id}`, true); this.contra = null; if (!b) return null; return this.seguidas(this.frase(`d-pelotari-${id}`, true), b); }
 
   /** La presentación, seguida, al empezar el partido. o: { sede (sedeVoz), camp: { kind, ronda }, yo, rival (pelotariVoz),
    *  arq, estrella (los del rival: rules.js, pelotariArq) } */
@@ -235,6 +248,7 @@ export class Comentarios {
    *  pasa (pasas de ronda), fuera (quedas fuera), justo, claro, vuelta (cómo ha sido: ajustado, sin historia, remontado) } */
   final(o = {}) {
     if (!this.voz) return null;
+    this.w = o.gano ? 'you' : 'rival';   // (quien gana el partido, para «La txapela ya tiene dueña» y «una dominadora clara»)
     const s = [this.nombre(o.txapela ? 'txapela' : 'gana', o.ganador) || this.frase(o.txapela ? 'm-txapela' : o.gano ? 'm-final-yo' : 'm-final-rival')];
     s.push(this.frase(o.txapela ? 'm-txapela-e' : o.vuelta ? 'm-final-vuelta-e' : o.justo ? 'm-final-justo-e' : o.claro ? 'm-final-claro-e' : o.gano ? 'm-final-yo-e' : 'm-final-rival-e'));
     if (o.pasa) s.push(this.frase('m-pasa'), this.azar(0.5) && this.frase('m-pasa-e')); else if (o.fuera) s.push(this.frase('m-fuera-e'));
@@ -252,6 +266,7 @@ export class Comentarios {
     const kind = e?.real ?? e?.shot, sub = e?.real != null ? (e.realSub || '') : (e?.sub || ''), gancho = kind === 'gancho';
     if (!this.voz || !e || (n < 2 && !gancho && !/^saque(Cortado|Pared|Ancho)$/.test(e.sub || '')) || t - (this.jT ?? -99) < (gancho ? 2.5 : 5.5)) return null;
     const an = e.anim || '';
+    this.golpea = e.who === 'you' || e.who === 'rival' ? e.who : null;   // (para «¡Bote pronto, muy agachada!»)
     let g = null;
     if (e.sub === 'saqueCortado') g = 'j-saque-cortado';
     // (el saque pegado a la pared o abierto al ancho, a veces: game.js, serve)
@@ -301,8 +316,8 @@ export class Comentarios {
     if ((o.mano || 0) >= 3) add(1, 'entrena', () => this.frase('r-entrena', true));
     if (o.otros?.length) add(3, 'otros', () => { for (const k of [...o.otros].sort(() => Math.random() - 0.5)) { const f = this.frase(`o-${k}`, true); if (f) return f; } return null; });
     if (o.sede) add(3, 'sede', () => this.frase(`f-${o.sede}`, true));
-    add(3, 'bio', () => this.bio(o.rival));
-    add(1, 'bioYo', () => this.bio(o.yo));
+    add(3, 'bio', () => this.bio(o.rival, 'rival'));
+    add(1, 'bioYo', () => this.bio(o.yo, 'you'));
     if (o.est) add(2, 'est', () => this.frase(`est-${o.est}`, true));
     add(3, 'historia', () => (this.azar(0.65) && this.dialogo('historia')) || this.frase('h', true));
     add(1, 'grada', () => (this.azar(0.6) && this.dialogo('grada')) || this.frase('r-grada'));

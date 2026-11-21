@@ -142,3 +142,18 @@
   #hub .pg-yo { flex-wrap: wrap; }
   #hub .pg-sum { margin-left: 0; max-width: none; flex-basis: 100%; }
 }
+/* ---------- en el móvil tumbado: más aire a los lados y los tres módulos uno debajo de otro ----------
+   El autor, 21 de noviembre de 2026: «la página de progreso está muy justa en los extremos, casi no entra en una pantalla
+   de móvil». Tres módulos de anillos en fila dejaban unos 210 px a cada uno en un móvil pequeño (667 px), con los textos
+   cortados y los bordes pegados a la pantalla. Ahora la ventana deja al menos 16 px más los de la isla del iPhone, el
+   contenido 20 px por dentro, cada módulo ocupa el ancho con su leyenda en dos columnas y las comarcas van de dos en dos */
+@media (max-height: 520px) and (max-width: 1000px) {
+  #hub.juego[data-screen="progreso"]:not([data-screen="home"]) { --sh-l: max(16px, var(--hud-l)); --sh-r: max(16px, var(--hud-r)); }
+  #hub.juego[data-screen="progreso"] .hub-main { padding-left: 20px; padding-right: 20px; }
+  #hub.juego[data-screen="progreso"] .hub-main::before { margin-left: -20px; margin-right: -20px; }
+  #hub .pg-mods { grid-template-columns: 1fr; }
+  #hub .pg-mod .pg-cuerpo { gap: 20px; }
+  #hub .pg-mod .pg-ley { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 28px; row-gap: 10px; max-width: 480px; }
+  #hub .pg-com { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #hub .pg-yo .pg-r { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
