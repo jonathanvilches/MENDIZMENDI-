@@ -17,8 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): láminas técnicas del piquillo (conservera y cosecha de Lodosa) y del aceite (almazara de Tafalla y cosecha de aceitunas) de la miel (Aoiz) de la cuajada (kaiku y piedra al rojo) de la txistorra (Pamplona) y de la ferrería (misión del herrero de Lesaka).
-
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (20 nov, noche): por encargo del autor («antes de que salgan los pelotaris siempre
@@ -201,6 +199,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, mediodía, la hizo la ventana principal: `master` hasta `aebce296`. Seis láminas técnicas isométricas nuevas
+  dentro de las misiones y en el material didáctico: el piquillo (conservera y cosecha de Lodosa), el aceite (almazara de
+  Tafalla y cosecha de aceitunas), la miel (Aoiz), la cuajada (kaiku y piedra al rojo), la txistorra (Pamplona) y la
+  ferrería (al acabar el taller del herrero de Lesaka).
 - 21 nov, tarde (22), la hizo la ventana principal, por encargo del autor: `master` hasta `24de3108`. Altsasu: vuelven
   las chispas y ascuas de fuego de los momotxorros (ascuas rojas que suben de sus cabezas y brasas flotando por la
   plaza). Láminas técnicas isométricas (Anatomy) dentro de las misiones: el queso (Idiazabal y Roncal), la almadía en el
