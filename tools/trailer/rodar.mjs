@@ -31,7 +31,11 @@ for (const nombre of nombres.split(',')) {
     await p.evaluate(() => document.querySelector('[data-sport="pelota"]').click());
     await p.waitForFunction(() => document.querySelector('.lg-root [data-a="libre"]'), null, { timeout: 600000 });
     await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());
-    await p.waitForFunction(() => document.querySelector('.pel-panel [data-pel-go]'), null, { timeout: 120000 });
+    // (desde el 18 de noviembre, antes de cada partido suelto sale «Elige tu pelotari»: P.pelotari, con quién se juega;
+    // sin él, el tuyo)
+    await p.waitForFunction(() => document.querySelector('.ep-pant [data-a="ok"], .pel-panel [data-pel-go]'), null, { timeout: 120000 });
+    await p.evaluate((q) => { if (!document.querySelector('.ep-pant')) return; const c = document.querySelector(`.ep-port[data-p="${q}"]`); (c || document.querySelector('.ep-pant [data-a="ok"]')).click(); }, P.pelotari || '');
+    await p.waitForFunction(() => document.querySelector('.pel-panel [data-pel-go]'), null, { timeout: 180000 });
     await p.evaluate(() => document.querySelector('[data-pel-go]').click());
     await p.waitForFunction(() => { const g = window.__game?.pelotaMatch?.game; return g && g.phase !== 'intro'; }, null, { timeout: 180000 });
     await p.evaluate(() => { const m = window.__game.pelotaMatch; m.game.autoplay = true; });
