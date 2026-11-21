@@ -9,7 +9,7 @@ import FOLKLORE from '../data/folklore.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { CUENTOS, KIND_LABEL, cuentoOfTown } from '../data/cuentos.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
-import { laminaDe } from '../ui/anatomia.js';
+import { laminaDe, LAMINAS_TEC } from '../ui/anatomia.js';
 import { OFICIOS } from '../data/oficios.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
@@ -146,6 +146,7 @@ export const DIDACTICO = {
       ['tradiciones', 'mask', 'Tradiciones', 'Danzas, carnavales, fiestas, romerías, ferias y pelota', '', ''],
       ['frontones', 'pelota', 'Frontones de Navarra', 'Los frontones con historia, sus fotos, los tipos de cancha y todos, pueblo a pueblo', FRONTONES_N.total, 'frontones'],
       ['oficios', 'anvil', 'Oficios de antes', 'Cómo trabajaban, con qué herramientas y cómo es hoy', Object.keys(OFICIOS).length, 'oficios'],
+      ['pordentro', 'mill', 'Por dentro', 'Cómo se hacen el queso, el pan o una cesta y cómo funcionan el molino o la ferrería, pieza a pieza', Object.keys(LAMINAS_TEC).length, 'láminas'],
       ['productos', 'cheese', 'Producto local y campo', 'Quesos, aceite, vino, huerta, cosechas y ganadería', '', ''],
       ['historia', 'castle', 'Historia y arquitectura', 'Castillos, dólmenes, los vascones y cómo reconocer cada monumento', '', ''],
       ['nature', 'leaf', 'Naturaleza', 'Animales, árboles, plantas y flores de cada comarca', nFa + nFl, 'fichas'],
@@ -361,6 +362,18 @@ export const DIDACTICO = {
     const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Saberes · Oficios</small><h1>Oficios de antes</h1>
       <p>Cómo se hacían las cosas cuando no había máquinas. Cada oficio tiene su ficha: qué hacía, sus herramientas en castellano y en euskera, cómo se trabajaba paso a paso, con una pregunta en cada paso, y cómo es hoy.</p></div>`;
     return galeria(this, 'oficios', tab, head, [{ k: 'oficios', name: 'Oficios', icon: 'anvil', items }]);
+  },
+
+  // ---------- Por dentro: todas las láminas técnicas (ui/anatomia.js), a mano ----------
+  // (cada una con su miniatura, public/anatomia/<id>.jpg, tools/anatomia/miniaturas.mjs; al tocarla se abre la lámina que
+  // se mueve, data-lamina, como al acabar el taller. El autor, 21 nov: «que esté en la parte didáctica y que podamos acceder
+  // a estas ilustraciones sin ningún problema»)
+  s_pordentro() {
+    const card = ([id, L]) => `<button type="button" class="lam" data-lamina="${id}"><img src="./anatomia/${id}.jpg" alt="" loading="lazy"><span>${esc(L.title)}</span></button>`;
+    const grupos = ['Cómo se hace', 'Oficio de antes', 'Cómo funciona', 'Cómo vive'].map(k => [k, Object.entries(LAMINAS_TEC).filter(([, L]) => L.kicker === k)]).filter(([, l]) => l.length);
+    return `<div class="ar-head dd-head"><small class="kicker">${I('mill', 20)} Saberes · Por dentro</small><h1>Por dentro</h1>
+      <p>Cómo se hacen las cosas de Navarra y cómo funcionan sus máquinas de siempre, pieza a pieza. Toca una lámina para verla moverse y sigue el proceso paso a paso.</p></div>
+      ${grupos.map(([k, l]) => `<section class="album-sec"><h2 class="sec"><i class="adot"></i>${esc(k)}</h2><div class="lam-rail">${l.map(card).join('')}</div></section>`).join('')}`;
   },
 
   // ---------- Producto local y campo (galería) ----------
