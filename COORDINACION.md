@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, mediodía): lámina técnica del viaje del salmón (misión de la guarda del río, Lesaka).
+- Principal (21 nov, mediodía): láminas técnicas del viaje del salmón (misión de la guarda del río, Lesaka) y de la carbonera (taller del carbonero).
 
 ## Peticiones entre ventanas
 

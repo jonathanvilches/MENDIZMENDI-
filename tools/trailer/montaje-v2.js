@@ -50,18 +50,20 @@ const TOMAS = [
   { a: B(7), b: B(7.5), src: 'p:bobo', luz: 'dia', desde: 0.6 },
   { a: B(7.5), b: B(8), src: 'p:momotxorro', luz: 'calido', desde: 1.0, golpe: '#ff9a6a' },
   // ---- Juega: la pelotari en el Labrit ----
-  { a: B(8), b: B(9), src: 'p:pelotari', luz: 'calido', desde: 0.4, entra: ['blanco', 0.3], impacto: 1 },
+  // (pelotari: hasta el fotograma 17 el suelo sale rosa, antes de cargar su textura; pelotariAtras: hasta el 29 se ve el aro
+  // del jugador elegido. Las tomas empiezan después)
+  { a: B(8), b: B(9), src: 'p:pelotari', luz: 'calido', desde: 0.75, entra: ['blanco', 0.3], impacto: 1 },
   { a: B(9), b: B(9.5), src: 'p:pelotaLabrit2', luz: 'calido', desde: 0.8 },
-  { a: B(9.5), b: B(10), src: 'p:pelotariAtras', luz: 'calido', desde: 0.4 },
+  { a: B(9.5), b: B(10), src: 'p:pelotariAtras', luz: 'calido', desde: 1.22 },
   { a: B(10), b: B(11), src: 'p:pelotaLabrit', luz: 'calido', entra: ['barre', 0.2] },
   { a: B(11), b: B(12), src: 'p:pelotari', luz: 'calido', desde: 1.2 },
   { a: B(12), b: B(13), src: 'p:publico', luz: 'calido', entra: ['blanco', 0.25], impacto: 0.7 },
   { a: B(13), b: B(13.5), src: 'p:pelota', luz: 'calido', desde: 0.4 },
-  { a: B(13.5), b: B(14), src: 'p:pelotariAtras', luz: 'calido', desde: 1.6 },
+  { a: B(13.5), b: B(14), src: 'p:pelotariAtras', luz: 'calido', desde: 2.2 },
   { a: B(14), b: B(15), src: 'p:pelotari', luz: 'calido', desde: 2.0, vel: 0.5, entra: ['barre', 0.2] },
   { a: B(15), b: B(15.25), src: 'p:pelotaLabrit2', luz: 'calido', desde: 1.8 },
   { a: B(15.25), b: B(15.5), src: 'p:publico', luz: 'calido', desde: 2.2 },
-  { a: B(15.5), b: B(15.75), src: 'p:pelotariAtras', luz: 'calido', desde: 2.4 },
+  { a: B(15.5), b: B(15.75), src: 'p:pelotariAtras', luz: 'calido', desde: 1.7 },
   { a: B(15.75), b: B(16), src: 'p:pelotari', luz: 'calido', desde: 2.6 },
   // ---- Descubre: castillos, leyendas, las láminas y el pasaporte ----
   { a: B(16), b: B(17), src: 'p:olite', luz: 'ocaso', entra: ['blanco', 0.35], impacto: 1, desde: 1 },
