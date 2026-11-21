@@ -206,6 +206,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche, la hizo la ventana principal: `master` hasta `f91c1587`. Altsasu: el quiosco de la plaza de los Fueros en
-  su sitio real (antes iba 10 m al oeste, pegado a una casa, y en su sitio se levantaba otra), con espacio libre alrededor
-  y la manada de momotxorros bailando en torno a él.
+- 21 nov, noche, la hizo la ventana principal: `master` hasta `81472627`. Las plazas de los pueblos reales como en
+  OpenStreetMap: cada iglesia llena su planta de los datos (en Altsasu cierra la plaza de los Fueros por el norte, como
+  en la foto de satélite), sin árboles en hilera inventados en las plazas, y en Olite la nave se acorta para no pisar el
+  Palacio Real (comprobado en los 27 pueblos reales). Y en el material didáctico, la sección «Por dentro» con las 18
+  láminas técnicas.
