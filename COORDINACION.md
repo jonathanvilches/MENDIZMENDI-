@@ -206,6 +206,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche, la hizo la ventana principal: `master` hasta `a14c74c7`. La galería de Pueblos con todo en la carta grande
-  (nombre, misiones con su cuenta y el botón Jugar, sin fila debajo) y los golpes de la pelota otra vez los de la versión 3
-  que eligió el autor, sin la mano que llevaba una voz del vídeo.
+- 21 nov, noche, la hizo la ventana principal: `master` hasta `fb9b7a45`. Dos láminas técnicas nuevas: cómo se hace el pan
+  (el horno de leña cortado por delante, al acabar el taller de la panadera) y cómo se hace una alpargata (al acabar el de la
+  alpargatera).
