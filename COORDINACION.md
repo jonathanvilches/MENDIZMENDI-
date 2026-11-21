@@ -17,7 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): galería de Pueblos sin textos montados en las cartas, hasta abajo y sin recuadro.
 
 
 ## Peticiones entre ventanas
@@ -206,6 +205,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, tarde, la hizo la ventana principal: `master` hasta `6e2ae3ca`. Los golpes de la pelota arreglados (a su
-  hora, sin golpes dobles, parejos y sin el ruido del vídeo; con el comentarista ya no se apagan) y la lámina técnica
-  «Cómo se hace una barrica» (taller del tonelero).
+- 21 nov, tarde, la hizo la ventana principal: `master` hasta `3c13ca99`. La galería de Pueblos sin textos montados en
+  las cartas (la cuenta de misiones junto al nombre), hasta abajo de la pantalla y sin recuadro propio. Antes, en la
+  misma tarde: los golpes de la pelota arreglados y la lámina «Cómo se hace una barrica».
