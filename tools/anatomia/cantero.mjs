@@ -63,8 +63,8 @@ function tablero() {
   out.push(`<path class="onda" d="${ond}"/>`);
   // la regla y la placa
   const regla = { x: -54, y: -9.5, w: 34, d: 5, r: 1 };
-  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo', crease: 'none' }));
-  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.6, 0.6, [1.5, 2.8], P);
+  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo' }));
+  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.05, 0.6, [1.8, regla.d - 0.1], P);
   out.push(L(t.minor, { tone: 'lo' }), L(t.major, { tone: 'mid' }));
   out.push(D([at([regla.x + 1.5, regla.y + 2.5, 0.6]), at([regla.x + regla.w - 1.5, regla.y + 2.5, 0.6])], { size: 0.45 }));
   const pl = { x: 46, y: -9.5, w: 26, d: 5.6, r: 1.2 };
@@ -82,7 +82,7 @@ function cantera() {
   for (const [y0, y1, z0, h] of bancales) {
     out.push(caja(c.x, c.x + c.w, y0, y1, z0, h, 'roca', 0.4, 1.2));
     // las vetas de la roca en la cara de delante
-    let v = ''; for (let i = 1; i < 6; i++) { const x = c.x + i / 6 * c.w + (R2x(i + z0) - 0.5) * 3; v += linea([[x, y1, z0 + h * (0.1 + R2y(i) * 0.25)], [x + 1.2 + R2x(i * 3) * 1.5, y1, z0 + h * (0.55 + R2y(i + 4) * 0.35)]]); }
+    let v = ''; for (let i = 1; i < 6; i++) { const x = c.x + i / 6 * c.w + (R2x(i + z0) - 0.5) * 3; v += linea([[x, y1, z0 + 0.02], [x + 0.6 + R2x(i * 3) * 1.2, y1, z0 + h * 0.5], [x + 0.2 + R2x(i * 5) * 1.6, y1, z0 + h - 0.02]]); }
     out.push(L(v, { tone: 'lo' }));
   }
   // las marcas de los agujeros de cuñas de otros bloques ya sacados, en el borde del segundo bancal
@@ -109,8 +109,10 @@ function herramientas() {
   out.push(`<path class="hierro" d="${poly([[t.x + 7.6, t.y + 2.2, z + 0.3], [t.x + 10.6, t.y + 5.8, z + 0.3], [t.x + 10.1, t.y + 6.3, z + 0.3], [t.x + 7.0, t.y + 3.0, z + 0.3]])}"/>`);
   out.push(L(linea([[t.x + 11, t.y + 1.4, z + 0.4], [t.x + 14.5, t.y + 3.4, z + 0.4]]), { tone: 'mid', className: 'mango' }));
   out.push(caja(t.x + 14, t.x + 16.4, t.y + 2.2, t.y + 4.8, z, 1.6, 'piedra-maza', 0.2, 0.4));
-  for (const dx of [17.6, 19.2]) out.push(`<path class="iso-line cincel" data-tone="mid" d="${linea([[t.x + dx, t.y + 1.2, z + 0.25], [t.x + dx + 0.8, t.y + 5.4, z + 0.25]])}"/>`, D([at([t.x + dx + 0.8, t.y + 5.4, z + 0.25])], { size: 0.35, tone: 'mid' }));
+  for (const dx of [17.6, 19.2]) out.push(`<path class="iso-line cincel" data-tone="mid" d="${linea([[t.x + dx, t.y + 1.2, z + 0.25], [t.x + dx + 0.8, t.y + 5.4, z + 0.25]])}"/>`, D([at([t.x + dx, t.y + 1.2, z + 0.25]), at([t.x + dx + 0.8, t.y + 5.4, z + 0.25])], { size: 0.35, tone: 'mid' }));
+  out.push(D([at([t.x + 2, t.y + 1.6, z + 0.3]), at([t.x + 11, t.y + 1.4, z + 0.4])], { size: 0.45, tone: 'mid' }));
   out.push(`<path class="iso-line escuadra" data-tone="mid" d="${linea([[t.x + 21, t.y + 1.2, z + 0.1], [t.x + 21, t.y + 5.6, z + 0.1], [t.x + 23.2, t.y + 5.6, z + 0.1]])}"/>`);
+  out.push(D([at([t.x + 21, t.y + 1.2, z + 0.1]), at([t.x + 23.2, t.y + 5.6, z + 0.1])], { size: 0.35, tone: 'mid' }));
   return `<g data-part="herramientas">${out.join('')}</g>`;
 }
 // los sillares ya hechos, apilados

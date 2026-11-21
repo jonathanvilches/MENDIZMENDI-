@@ -70,8 +70,8 @@ function tablero() {
   out.push(`<path class="senda" d="${linea(senda)}"/>`);
   // la regla y la placa
   const regla = { x: -18, y: -9, w: 36, d: 5, r: 1 };
-  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo', crease: 'none' }));
-  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.6, 0.6, [1.5, 2.8], P);
+  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo' }));
+  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.05, 0.6, [1.8, regla.d - 0.1], P);
   out.push(L(t.minor, { tone: 'lo' }), L(t.major, { tone: 'mid' }));
   out.push(D([at([regla.x + 1.5, regla.y + 2.5, 0.6]), at([regla.x + regla.w - 1.5, regla.y + 2.5, 0.6])], { size: 0.45 }));
   return out.join('');
@@ -126,6 +126,7 @@ function atalaya() {
   const e0 = [x - 1, y + a + 4.5, z], e1 = [x - 1, y + a + 0.4, z + h], e2 = [x + 1, y + a + 4.5, z], e3 = [x + 1, y + a + 0.4, z + h];
   let pel = ''; for (let i = 1; i < 12; i++) { const t = i / 12; pel += linea([[e0[0], e0[1] + (e1[1] - e0[1]) * t, e0[2] + (e1[2] - e0[2]) * t], [e2[0], e2[1] + (e3[1] - e2[1]) * t, e2[2] + (e3[2] - e2[2]) * t]]); }
   out.push(L(linea([e0, e1]) + linea([e2, e3]), { tone: 'mid', className: 'larguero' }), L(pel, { tone: 'lo' }));
+  out.push(D([at(e0), at(e2)], { size: 0.4, tone: 'mid' }));
   // la plataforma, la barandilla y el tejadillo
   out.push(caja(x - a - 1.2, x + a + 1.2, y - a - 1.2, y + a + 1.2, z + h, 0.7, 'madera'));
   const zb = z + h + 0.7, zr = zb + 2.4, ba = a + 1.0;
@@ -214,7 +215,7 @@ function red(c, lit) {
   }
   // los vientos de delante y el cabo de soltar, que baja de cada poste a la txabola
   let v = ''; for (const px of POSTES) v += linea([[px, RED_Y, PH - 1], [px * 1.15, RED_Y + 14, 0]]);
-  o += '<path class="iso-line viento" data-tone="lo" d="' + v + '"/>';
+  o += '<path class="iso-line viento" data-tone="lo" d="' + v + '"/><g class="iso-dots" data-tone="mid">' + POSTES.map((px) => { const q = at([px * 1.15, RED_Y + 14, 0]); return '<circle r=".45" cx="' + f2(q[0]) + '" cy="' + f2(q[1]) + '"/>'; }).join('') + '</g>';
   return o;
 }
 function cuerda(tira) {

@@ -54,8 +54,8 @@ function tablero() {
   out.push(L(tornillos.map(([x, y]) => k.ring(x, y, 1.8, 0, P, 16)).join(''), { tone: 'lo' }));
   out.push(D(tornillos.map(([x, y]) => at([x, y, 0])), { size: 0.5 }));
   const regla = { x: -46, y: -14, w: 26, d: 5, r: 1 };
-  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo', crease: 'none' }));
-  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.6, 0.6, [1.5, 2.8], P);
+  out.push(S(k.slabOf(regla, 0, 0.6, P, 3), { tone: 'lo' }));
+  const t = k.topTicks(regla.x + 3, regla.x + regla.w - 3, 2, 5, regla.y + 0.05, 0.6, [1.8, regla.d - 0.1], P);
   out.push(L(t.minor, { tone: 'lo' }), L(t.major, { tone: 'mid' }));
   out.push(D([at([regla.x + 1.5, regla.y + 2.5, 0.6]), at([regla.x + regla.w - 1.5, regla.y + 2.5, 0.6])], { size: 0.45 }));
   const pl = { x: -16, y: -14, w: 30, d: 5.6, r: 1.2 };

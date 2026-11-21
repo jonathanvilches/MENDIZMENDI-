@@ -2237,9 +2237,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   asa; dos cestas acabadas, una con manzanas. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
+  Las láminas 19 a 23 (21 nov, noche) completan los talleres que no tenían la suya y la misión de las setas: **las
+  palomeras de Etxalar** (el collado entre dos montes en terrazas con el hayedo en otoño, la atalaya con el vigía que
+  lanza la paleta, el bando que baja en picado y las redes que caen desde la txabola; LAMINA_DE palomero), **del monte al
+  puente, el cantero** (la cantera en bancales con el bloque que se abre con cuñas, el sillar que se desbasta, se labra,
+  se escuadra y se firma, y el arco que se cierra dovela a dovela sobre la cimbra; las dovelas, prismas de lathe.mjs, se
+  dibujan al construir y en vivo solo bajan y aparecen), **el aizkolari** (las dos V y el reloj del juez), **cómo se levanta
+  una piedra** (la romana del trípode: el pilón corre hasta equilibrar la piedra, kg · a = pilón · b, y marca los 100
+  kilos, que son 3,7 unidades de lado de granito; y la alzada a las rodillas, al pecho y al hombro) y **cómo vive una
+  seta** (el suelo cortado en capas con el micelio, el agua por azúcar con el haya, la lluvia, las esporas y la cesta; las
+  setas se dibujan al construir en cuatro tamaños y en vivo se elige uno). Al acabar una cosecha de uva o de trigo se ve la
+  del rosado o la del molino (LAMINA_DE uva y trigo). Las cinco pasan `scripts/lines.mjs` a cero en los dos temas (la
+  regla del tablero, con las marcas desde el canto y sin `crease: 'none'`, para que acaben en su borde).
   Y todas juntas en el material didáctico, en **«Por dentro»** (`hub/didactico.js`, s_pordentro; el autor, 21 nov:
   «que esté en la parte didáctica y que podamos acceder a estas ilustraciones sin ningún problema»): una entrada más en
-  Saberes y en el menú, con las 18 láminas en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
+  Saberes y en el menú, con todas las láminas (23 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
   cada una con su miniatura; un toque y se abre como en las misiones. Las miniaturas (`public/anatomia/<nombre>.jpg`,
   592 × 296, unos 13 kB) las saca `tools/anatomia/miniaturas.mjs` de cada lámina en modo juego.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
