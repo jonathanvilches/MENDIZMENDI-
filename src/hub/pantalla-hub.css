@@ -43,6 +43,11 @@
   /* (lo que sube al desplazar se funde arriba, bajo la barra, en vez de cortarse en seco) */
   -webkit-mask: linear-gradient(180deg, transparent 0, #000 12px); mask: linear-gradient(180deg, transparent 0, #000 12px); }
 #hub.juego .hub-main::before { display: none; }
+/* (en el móvil tumbado, el panel arranca en el borde del marcador, 26 px dentro de la zona segura, que en las esquinas está
+   libre; pero el texto va a media altura, a la de la isla del iPhone: el relleno de los lados llega hasta pasarla) */
+@media (max-height: 520px) { #hub.juego .hub-main {
+  padding-left: max(clamp(0px, .8vw, 10px), calc(env(safe-area-inset-left, 0px) - var(--sh-l) + 6px));
+  padding-right: max(clamp(0px, .8vw, 10px), calc(env(safe-area-inset-right, 0px) - var(--sh-r) + 6px)); } }
 /* (el título y el antetítulo de dentro van ya en la barra de arriba) */
 #hub.juego .hub-main > :is(.title, h1.title, .kicker), #hub.juego .hub-main .ar-head > :is(h1, .kicker) { display: none; }
 #hub.juego .hub-main .ar-head { margin-top: 0; }

@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Principal) Menú en el iPhone tumbado: el texto de las secciones (Aprende, Por dentro, Pueblos, Progreso…) ya no queda bajo la isla; empieza pasada la zona segura.
 
 
 ## Peticiones entre ventanas
