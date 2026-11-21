@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (21 nov, tarde): galería de Pueblos sin textos montados en las cartas, hasta abajo y sin recuadro.
 
 
 ## Peticiones entre ventanas

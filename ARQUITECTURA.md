@@ -1624,6 +1624,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
   tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
+  La franja de cada carta (`carta` en `hub.js`; también en la página de la comarca): arriba, a lo ancho, una raya por
+  misión; debajo, el nombre con la cuenta (2/6) a su derecha y, en su propia fila y a todo el ancho, el otro nombre o la
+  comarca; el sello, sobre la foto. El 21 de noviembre de 2026 el autor mandó una captura del iPhone donde la cuenta se
+  montaba con «Larraun-Leitzaldea» porque iban en la misma fila. La galería llega hasta abajo de la pantalla (antes
+  descontaba dos veces la barra de arriba y dejaba una franja vacía) y en el juego va sin recuadro propio, sobre el fondo
+  de la pantalla.
 - **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `eligeMision`, y `#misiones` en `style.css`): solo los
   iconos de las misiones del pueblo, una casilla por misión del color de su categoría (hecha, llena y con su marca verde
   sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y debajo se despliega: su

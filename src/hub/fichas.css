@@ -25,7 +25,9 @@
 .fh-mi > :is(svg, img) { width: 26px; height: 26px; }
 /* la carta del pueblo fuera de la galería, en la comarca: la misma, quieta */
 .cm-t { position: relative; display: block; container-type: inline-size; color: #fff; filter: drop-shadow(0 14px 22px rgba(4, 1, 12, .45)); }
-.cm-t .gt-marco { position: relative; inset: auto; grid-template-rows: auto var(--dh, 48px); }
+/* (la franja, como mínimo de su alto y, si el nombre grande y la comarca no caben, crece: antes se cortaba por abajo) */
+.cm-t .gt-marco { position: relative; inset: auto; grid-template-rows: auto minmax(var(--dh, 48px), auto); }
+.cm-t .gt-dato { padding-bottom: 7px; }
 .cm-t .gt-marco::after { display: none; }
 
 /* ---------- la ficha del pueblo ---------- */
