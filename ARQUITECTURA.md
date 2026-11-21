@@ -2204,7 +2204,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con la boca en arco), un termómetro en el poyo que marca lo que pasa dentro (de 20 a 300 °C y la franja del pan), la
   leña, la artesa con la masa que se amasa, el saco de harina, la masa madre y el cántaro, el tablero donde los panes
   crecen bajo la manta, la pala que los marca y los mete uno a uno, el hurgón que saca las brasas, el escobón, la puerta
-  de hierro que se cierra para cocer y la rejilla donde se enfrían dorados. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  de hierro que se cierra para cocer y la rejilla donde se enfrían dorados. Y **cómo se hace una alpargata** (al acabar
+  el taller de la alpargatera): el poste donde se trenzan tres cabos de yute, con los manojos de fibra y el rollo de
+  trenza; el banco donde una sola trenza se enrolla en espiral, de dentro afuera, con la forma del pie (cuenta las vueltas)
+  y se cose de lado a lado con la aguja grande y el cáñamo (cuenta las puntadas); la prensa de husillo, con su volante de
+  bolas, que baja el plato y deja la suela plana; el pie donde se cosen la puntera y el talón de lona, y las cintas rojas;
+  la suela viaja de un puesto a otro, y delante hay una caja con un par acabado. La placa dice «ESPARTINAK · MAULE», por
+  las golondrinas del Roncal y Salazar que trabajaban en Mauleón. LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
