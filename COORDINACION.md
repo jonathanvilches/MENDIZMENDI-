@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Principal, 21 nov) La herrería de Lesaka: el taller del herrero en grande, explicado paso a paso con la cámara en cada puesto (`src/game/talleres.js`, `src/ui/tallerPaso.js`).
 
 ## Peticiones entre ventanas
 
