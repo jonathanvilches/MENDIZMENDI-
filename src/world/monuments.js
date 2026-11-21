@@ -92,6 +92,14 @@ function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
 }
 
 // ---------- Iglesia (estilos: romanesque, gothic, baroque, fortress, cathedral) ----------
+// (dos rectángulos girados {x, z, ry, hw, hd} se pisan más de m metros: ejes separadores. Los ejes, como toW: x local hacia
+// (cos ry, −sin ry) y z local hacia (sin ry, cos ry))
+function solapan(a, b, m = 0) {
+  const ejes = (r) => [[Math.cos(r.ry), -Math.sin(r.ry)], [Math.sin(r.ry), Math.cos(r.ry)]];
+  const radio = (r, [ux, uz]) => { const [[ax, az], [bx, bz]] = ejes(r); return r.hw * Math.abs(ax * ux + az * uz) + r.hd * Math.abs(bx * ux + bz * uz); };
+  for (const u of [...ejes(a), ...ejes(b)]) if (Math.abs((b.x - a.x) * u[0] + (b.z - a.z) * u[1]) >= radio(a, u) + radio(b, u) - m) return false;
+  return true;
+}
 export function church(B, x, z, ry, style, fam, opts = {}) {
   if (style === 'ermita' || style === 'borda') { const y = terrainHeight(x, z) - 0.2; return ermita(B, M(x, y, z, ry), x, z, y, ry, style === 'ermita'); }
   const brick = fam === 'ribera' && style === 'baroque';
@@ -112,6 +120,22 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     Hh = Math.max(Hh, Math.round(W * 0.8));
     // (el centro del conjunto, no el de la nave: la torre va a un lado, +x, y el ábside detrás, −z)
     const o = toW(x, z, ry, -(tw0 - 0.95) / 2, (W / 2 - 0.3) / 2); x = o.x; z = o.z;
+    // (y sin meterse en un castillo que se levanta luego, opts.evita: en Olite la planta de Santa María la Real toca el
+    // Palacio Real y la fachada entraba 3,5 m en una de sus torres. Se acorta la nave por el extremo que choca, con el otro
+    // quieto, hasta que queda libre)
+    const ev = opts.evita || [];
+    const caja = (cx, cz) => { const x0 = -W / 2 - 1.3, x1 = W / 2 + tw0 + 0.3, z0 = -L / 2 - (W / 2 - 0.3), z1 = L / 2 + 0.5, c = toW(cx, cz, ry, (x0 + x1) / 2, (z0 + z1) / 2); return { x: c.x, z: c.z, ry, hw: (x1 - x0) / 2, hd: (z1 - z0) / 2 }; };
+    const choca = (cx, cz) => ev.some(e => solapan(caja(cx, cz), e, 0.3));
+    if (ev.length && choca(x, z)) {
+      const L0 = L, x0 = x, z0 = z;
+      let mejor = null;
+      for (const s of [-1, 1]) {   // (−1: queda quieto el ábside y se acorta la fachada; +1, al revés)
+        L = L0; let cx = x0, cz = z0;
+        while (L > dims[1] * 0.6 && choca(cx, cz)) { L -= 0.5; const q = toW(cx, cz, ry, 0, s * 0.25); cx = q.x; cz = q.z; }
+        if (!choca(cx, cz) && (!mejor || L > mejor.L)) mejor = { L, x: cx, z: cz };
+      }
+      if (mejor) { L = mejor.L; x = mejor.x; z = mejor.z; } else L = L0;
+    }
   }
   const y = terrainHeight(x, z) - 0.2;
   const T = M(x, y, z, ry);

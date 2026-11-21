@@ -2146,9 +2146,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   todas las plazas se plantaban cuatro hileras de árboles que OpenStreetMap no trae. Ahora, en los pueblos reales, la
   iglesia románica, gótica, barroca o fortaleza llena su planta (la nave, del ancho que deja la torre, entre tres cuartos de la talla genérica y 22 m, y
   del largo de la planta hasta 46 m; el alto crece con el ancho) y se corre para que torre y nave ocupen el rectángulo de los
-  datos; las ermitas, las catedrales y Pamplona quedan como estaban. Y en las plazas de los pueblos reales no se planta
-  ningún árbol en hilera (los de los jardines siguen). Comprobado desde arriba, con la planta encima, en los 27 pueblos
-  reales con iglesia en los datos.
+  datos; las ermitas, las catedrales y Pamplona quedan como estaban. Si la planta toca un castillo que se levanta luego (Olite: Santa María la Real contra el Palacio Real, cuya torre entraba 3,5 m en la fachada), la nave se acorta por el extremo que choca hasta quedar libre (`opts.evita`). Y en las plazas de los pueblos reales no se planta
+  ningún árbol en hilera (los de los jardines siguen). Comprobado en los 27 pueblos reales con iglesia en los datos: desde arriba, con la planta
+  encima, y midiendo en el juego que ninguna casa ni torre pisa la nave, el ábside o la torre.
 - **Fuera los corazones** (`ui/aventuraHud.js`, `game/townAventura.js`; el autor, 21 de noviembre de 2026: «yo tampoco sé
   de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
   solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la

@@ -75,7 +75,10 @@ export function buildTown(scene, mats, def) {
   // iglesia mirando a la plaza (la de los datos, en su sitio y a lo largo de su eje)
   const ch = PLACES.church;
   const ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
-  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, { ...(def.church || {}), planta: real && ch.real ? ch.real : null });
+  // (los castillos se levantan después, con su sitio ya sabido: la iglesia no se mete en ellos; castle, en monuments.js:
+  // 44 × 34 m en Olite y 30 × 26 en los demás, más media torre de las esquinas)
+  const evita = (PLACES.landmarks || []).filter(l => l.kind === 'castle' && l.style !== 'javier').map(l => { const big = def.id === 'olite'; return { x: l.x, z: l.z, ry: Math.atan2(PLACES.plaza.x - l.x, PLACES.plaza.z - l.z), hw: big ? 25.5 : 18, hd: big ? 20.5 : 16 }; });
+  const c = pamp ? pamp.church : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, { ...(def.church || {}), planta: real && ch.real ? ch.real : null, evita });
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
   for (const b of BRIDGES) {
