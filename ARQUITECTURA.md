@@ -2093,16 +2093,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cuentan desde 2,2 anchos de hombros por segundo (antes, 4) y el paso a un lado mueve más. La pelota, al 74 % (antes
   85 %) y el momento justo perdona más (×1,5). Pruebas con un cuerpo de mentira y tiempos exactos:
   `trote-unidad`, `golpes-unidad` y `sensib` (en la carpeta de pruebas de la sesión; cargan `camaraCuerpo.js` solo).
-- **Altsasu: la manada de momotxorros que baila alrededor del kiosco** (`game/townLeyendas.js`, manadaMomotxorros,
-  updateManada y vanseMomotxorros; el autor, 21 de noviembre de 2026: «demasiado rojo», «que se distingan bien los
-  momotxorros y que vayan todos en manada… cuando encontramos al tercero, el resto llega corriendo y se ponen a bailar
-  dando vueltas alrededor del kiosco de la plaza… están un rato y luego se van corriendo»). El lugar de Altsasu es ahora la
-  Plaza de los Fueros con su kiosco (`data/levels.js`, kind `kiosk`, que va al centro de la plaza). Al encontrar el
-  tercero, de 14 a 30 momotxorros (según la calidad) salen casi a la vez de una puerta a 25-60 m del kiosco y llegan
-  corriendo; en el corro dan vueltas saltando, en tres anillos, y de vez en cuando uno se para a bailar con su cencerro. El
-  rato cuenta mientras estás a menos de 40 m del kiosco (32 s; si no vienes, a los dos minutos y medio) y se van corriendo
-  por tres calles. El tinte rojo, suave (22 %), sin velo, título ni farolas que parpadean. Se mueven aunque estés lejos
-  (antes, a más de 100 m, la comparsa se quedaba quieta y no llegaba nunca).
+- **Altsasu: la manada de momotxorros que llena la plaza** (`game/townLeyendas.js`, manadaMomotxorros, updateManada y
+  vanseMomotxorros). El 21 de noviembre de 2026 por la tarde (antes: «demasiado rojo», y que bailaran alrededor del
+  kiosco) y otra vez esa misma mañana del 21: «antes ellos saltaban como unas chispas rojas, que eso me gustaba mucho, eso
+  quiero mantener. Y luego que aparezcan el triple de momotxorros, que llenen la plaza, que se pongan a bailar, que el
+  ambiente sea mucho más rojo, que dure unos segundos y que todos empiecen a correr por el pueblo para irse y
+  desaparecer». Al encontrar el tercero, 30, 54 o 90 momotxorros (según la calidad, el triple que antes) salen de cuatro
+  puertas a 30-75 m de la plaza, una en cada cuarto alrededor, y llegan corriendo, soltando chispas rojas
+  (`particles.emit`). Cada uno tiene su sitio en la plaza: los huecos libres de una rejilla de 1,6 m dentro de la plaza de
+  verdad (`plazaMask`, `isFree`), repartidos del centro al borde (si no caben, en espiral alrededor). Allí saltan en ola
+  desde el centro (la fase según la distancia), unos giran sobre sí mismos y otros se balancean de cara al centro, se paran
+  a bailar con el cencerro, y cada pocos saltos levantan chispas al caer. El aire se pone rojo: tinte de la luz hasta 0,72
+  (`sky.tinte`), las farolas parpadean un poco, brasas rojas que flotan sobre la plaza y un velo rojo en los bordes de la
+  pantalla (`.manada-velo`, nunca oscuro). Cuando llevas 14 s a menos de 45 m (si no vienes, a los dos minutos y medio),
+  salen corriendo por las calles en siete direcciones, cada uno por la que le pilla, y al alejarse 55-85 m de la plaza,
+  al llegar o a los 9-16 s desaparecen en un chispazo; el rojo se va en 7 s.
+- **La Foru Plaza de Altsasu, la de verdad** (`world/monuments.js`, `kiosk` con `estilo: 'altsasu'` y `escultura`;
+  `levels/townReal.js`, `lm.at`; el autor, 21 de noviembre de 2026: «la plaza no es así [...] La plaza del pueblo tiene que
+  ser real»). Mirada en las fotos de Commons (Category:Foru Plaza, Altsasu-Alsasua): toda de losas de piedra, con la
+  iglesia de la Asunción, el viejo ayuntamiento «Gure Etxea», casas blancas con esquinas y marcos de sillería y balcones de
+  madera, el nogal en medio (de 1991 a 2020; el viejo vivió 350 años) y un quiosco pequeño. El quiosco del juego es ahora
+  como ese: un podio ocre de 1,5 m con barandilla de hierro y escalera, ocho columnas finas y el tejado de pabellón oscuro
+  con su linterna (antes, el quiosco grande de piedra de cualquier plaza). Y la escultura «Altsasuko sustraiak» (Joxe
+  Ulibarrena, 1994), el tronco del nogal viejo tallado con figuras, sobre peñas, en su sitio real (42,895502, -2,16818:
+  `at: [-18.7, -12.8]`, metros desde el centro del pueblo). Queda pendiente el suelo, que en el juego es adoquín.
 - **Fuera los corazones** (`ui/aventuraHud.js`, `game/townAventura.js`; el autor, 21 de noviembre de 2026: «yo tampoco sé
   de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
   solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la
@@ -2437,8 +2451,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   artefacto, y el service worker no los guarda (Safari pide los vídeos por trozos). En el modo sencillo, con «reducir
   movimiento», con ahorro de datos, sin conexión o si fallan, queda la fija. El arranque (`#portada-app` en `index.html`)
   pone los Pirineos al 50 % detrás del icono, con su viñeta morada, y de ahí se pasa directamente al mapa: la lámina se
-  queda hasta que el mapa del inicio está pintado (`window.__mapaListo`, en `mapa3d.js`, con el suelo y el sombreado
-  llegados o a los 2,5 s) y se va con un fundido. Se queda al menos 5 s desde que se abre y, si se mueve, 4 s desde que entra el vídeo (`window.__paVid`), para que se vea bien (noviembre de 2026: el autor quería verla más; con todo guardado, el mapa estaba listo en un par de segundos); un toque la quita antes con el mapa ya listo, pero no el primero, que en el iPhone da la música, ni uno antes de 2,5 s; como mucho, 15 s. La entrada de nubes del mapa (`INTRO`), que el autor veía «como humo»,
+  queda hasta que el mapa del inicio está pintado (`window.__mapaListo`, en `mapa3d.js`, con las cuatro imágenes del mapa
+  llegadas, la península, lo de alrededor, el sombreado y la ortofoto de Navarra, o a los 9 s; antes del 21 de noviembre de
+  2026 bastaban tres, sin la ortofoto, o 2,5 s, y con datos móviles el mapa asomaba gris y sin fondo: el autor, «carga sin
+  texturas, sin fondo, el mapa») y se va con un fundido. Se queda al menos 5 s desde que se abre y, si se mueve, 4 s desde que entra el vídeo (`window.__paVid`), para que se vea bien (noviembre de 2026: el autor quería verla más; con todo guardado, el mapa estaba listo en un par de segundos); un toque la quita antes con el mapa ya listo, pero no el primero, que en el iPhone da la música, ni uno antes de 2,5 s; como mucho, 15 s. La entrada de nubes del mapa (`INTRO`), que el autor veía «como humo»,
   está apagada (noviembre de 2026; con `window.__intro`, en las pruebas, sale aún). Las láminas sin vídeo siguen fijas: para añadir una,
   se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
   **Resolución ante todo** (regla del autor, noviembre de 2026: en el juego todo con la máxima resolución y definición; si

@@ -99,6 +99,11 @@ export function mapa3d(host, o) {
   // más fino, lo que rodea a Navarra, de Bilbao a Zaragoza y del Cantábrico al Moncayo, que se funde con ella
   // (tools/relieve/mapa-relieve.py espana y entorno). Mientras llega cada imagen, del color del fondo o transparente
   let cargas = 0;   // (las imágenes del suelo y del sombreado que ya han llegado: la entrada grande las espera)
+  // (son cuatro: la península, lo de alrededor de Navarra, el sombreado y la ortofoto de Navarra. El autor, 21 de noviembre
+  // de 2026: «no carga bien el juego al principio. Carga sin texturas, sin fondo, el mapa». La lámina del arranque se iba
+  // a los 2,5 s aunque no hubieran llegado, y la ortofoto, que es casi todo el color, ni se contaba: con datos móviles se
+  // veía el mapa gris y sin fondo. Ahora se esperan las cuatro, hasta 9 s; la lámina tapa mientras tanto)
+  const CARGAS = 4;
   const TIEMPO = { value: 0 };   // (el reloj de las nubes)
   // (lo de fuera de Navarra, apagado: la máscara de Navarra, nítida en rojo y difuminada en verde, dónde cae y cuánto se apaga)
   const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 }, CIELO = { value: 0 };   // (CIELO: con una isla en el aire, de día: lo de fuera, menos apagado)
@@ -197,7 +202,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // la ortofoto de toda Navarra (PNOA del Instituto Geográfico Nacional, CC BY 4.0; tools/relieve/ortofoto.py): el color de
   // verdad del suelo. Entra poco a poco al llegar (uOrtoK)
   const ORTO_K = { value: 0 }; let ortoListo = 0;
-  const orto = new THREE.TextureLoader().load(ORTO, () => { ortoListo = 1; });
+  const orto = new THREE.TextureLoader().load(ORTO, () => { ortoListo = 1; cargas++; });   // (cuenta para la entrada: es el color de Navarra)
   orto.flipY = false; orto.colorSpace = THREE.NoColorSpace; orto.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
   Object.assign(UNI, { uEnt: { value: nada }, uEntK: { value: 0 }, uOrto: { value: orto }, uOrtoK: ORTO_K, uOrtoR: { value: new THREE.Vector4(MAPA_ORTO.x0, MAPA_ORTO.y0, MAPA_ORTO.w * MAPA_ORTO.paso, MAPA_ORTO.h * MAPA_ORTO.paso) } });
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
@@ -1879,8 +1884,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (estreno && estreno.n++) { estreno.grupo.removeFromParent(); estreno = null; }   // (ya pintado una vez, con sus programas estrenados: fuera)
     // (en el ordenador, a los 4 s; en el móvil, a los 6,5 s o al acercarse: antes, solo al acercarse o al tocar, y se compilaba
     // a la vez que subía la isla. El mapa siempre se mueve un poco: no se espera a que esté quieto)
-    if (!calentado && (v.d < 8 || ((!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > (LENTO ? 6500 : 4000)))) calienta();   // (en el móvil también, a los 6,5 s: si no, se compilaba al tocar la comarca, mientras subía la isla)
-    if (!islaLista && (!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > (LENTO ? 3500 : 2500)) preparaIsla();
+    if (!calentado && (v.d < 8 || ((!intro || intro.hecho) && cargas >= CARGAS && performance.now() - t0 > (LENTO ? 6500 : 4000)))) calienta();   // (en el móvil también, a los 6,5 s: si no, se compilaba al tocar la comarca, mientras subía la isla)
+    if (!islaLista && (!intro || intro.hecho) && cargas >= CARGAS && performance.now() - t0 > (LENTO ? 3500 : 2500)) preparaIsla();
     // (volando a un pueblo tocado, la suya se va haciendo por el camino: al llegar ya está y solo tiene que levantarse)
     const vaE = elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
     const quiere = va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
@@ -2090,10 +2095,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
     // (el reloj de la entrada grande)
     let tI = 99, dI = 0;
-    if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
+    if (intro) { if (!intro.t && ((cargas < CARGAS && intro.espera < 9) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
     // (el mapa, listo para verse: con el suelo y el sombreado ya llegados, o a los 2,5 s; entonces se va la lámina del
     // arranque, index.html, y no antes: así no asoma el mapa a medio pintar)
-    if (!window.__mapaListo && (cargas >= 3 || t > 2.5)) window.__mapaListo = true;
+    if (!window.__mapaListo && (cargas >= CARGAS || t > 9)) window.__mapaListo = true;
     // tamaño del lienzo
     const w = host.clientWidth, h = host.clientHeight, z = escala();
     if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, prPres(w, h), (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
@@ -2347,7 +2352,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     r.setClearColor(FONDO, 1);
     if (show && !intro.hecho) show.tick(tI);
     r.render(scene, cam);
-    if (!revisa.listo && cargas >= 3 && (!intro || intro.hecho)) { revisa.listo = true; otraVez(); }
+    if (!revisa.listo && cargas >= CARGAS && (!intro || intro.hecho)) { revisa.listo = true; otraVez(); }
     if (revisa.cuando && now >= revisa.cuando) revisaImagen();
     // los nombres encima, sin pisarse nunca ni quedar debajo de lo de encima: primero el pueblo donde estás y el que señalas;
     // de cerca, los pueblos antes que las comarcas; de lejos, al revés. El que no cabe, se esconde. Con una comarca

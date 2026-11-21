@@ -399,7 +399,10 @@ export function createRealTownLevel(def, D) {
   for (const lm of def.landmarks || []) {
     let pos = null, b = null, clearR = 0, placeName = null;
     const keys = keysOf(lm.name), k = lm.kind; LMW = nrm(lm.name).split(/[^a-z0-9ñ]+/).filter(w => w.length > 3);
-    if (lm.real && lm.x == null && (pos = haciaReal(lm.real, k, lm.name))) { /* en su sitio de verdad o hacia él */ }
+    // (lm.at: el sitio exacto, en metros desde el centro del pueblo, para lo que no viene en los datos: la escultura de
+    // la Foru Plaza de Altsasu, sacada de sus coordenadas)
+    if (lm.at) pos = { x: lm.at[0], z: lm.at[1] };
+    else if (lm.real && lm.x == null && (pos = haciaReal(lm.real, k, lm.name))) { /* en su sitio de verdad o hacia él */ }
     else if (k === 'castle') { b = byName(keys, /castillo|gaztelu|palacio real|errege jauregi|jauregi/); clearR = 30; }
     else if (k === 'palace') { b = byName(keys, /palacio|jauregi/); }
     else if (k === 'towerhouse') { b = byName(keys, /dorre|torre/) || CASAS.filter(c => c.k === 'tower' && !TAKEN.has(c)).sort((p, q) => Math.hypot(p.x, p.z) - Math.hypot(q.x, q.z))[0] || null; }
@@ -463,10 +466,10 @@ export function createRealTownLevel(def, D) {
       pads.push({ x: tq.x, z: tq.z, r: Math.hypot(tq.w, tq.d) / 2 + 2, blend: 12 });
     }
     // (las casas que pisaría el monumento no se levantan: el castillo ocupa su recinto; los demás, unos metros)
-    const rr = clearR || (k === 'walls' && pos.ring ? 0 : ['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || b ? 0 : 8);
+    const rr = clearR || (k === 'walls' && pos.ring ? 0 : ['bridge', 'plaza', 'kiosk', 'fountain', 'townhall', 'escultura'].includes(k) || b ? 0 : 8);
     if (rr) for (const c of CASAS) if (Math.hypot(c.x - o.x, c.z - o.z) < rr + Math.max(c.w, c.d) / 2) TAKEN.add(c);
     if (k === 'walls' && pos.ring) for (const c of CASAS) if (Math.abs(Math.hypot(c.x - o.x, c.z - o.z) - 44) < Math.max(c.w, c.d) / 2 + 3) TAKEN.add(c);
-    if (!b && (!['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || (lm.real && k === 'fountain')) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
+    if (!b && (!['bridge', 'plaza', 'kiosk', 'fountain', 'townhall', 'escultura'].includes(k) || (lm.real && k === 'fountain')) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
     if (b && k === 'castle') pads.push({ x: o.x, z: o.z, r: 30, blend: 16 });
   }
   // ---------- El núcleo: donde se juega ----------

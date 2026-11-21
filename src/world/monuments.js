@@ -679,11 +679,45 @@ export function landmark(B, lm, ctx) {
       return { x: x + 4, z };
     }
     case 'kiosk': {
+      if (lm.estilo === 'altsasu') {
+        // el de la Foru Plaza de Altsasu, como en las fotos: pequeño, sobre un podio de metro y medio forrado de ocre, con
+        // barandilla de hierro y la escalera a un lado; columnas finas y el tejado de pabellón oscuro con su linterna. El
+        // autor, 21 de noviembre de 2026: «la plaza no es así [...] La plaza del pueblo tiene que ser real»
+        const R = 2.8, H = 1.5, cols = 8;
+        B.add('paint', colored(new THREE.CylinderGeometry(R, R + 0.06, H, cols), '#c98a3e'), MM(T, M(0, H / 2, 0)));
+        B.add('ashlar', new THREE.CylinderGeometry(R + 0.12, R + 0.12, 0.12, cols), MM(T, M(0, H + 0.06, 0)));
+        for (let i = 0; i < cols; i++) {
+          const a = (i + 0.5) / cols * 6.283, a2 = (i + 1.5) / cols * 6.283, x1 = Math.cos(a) * R, z1 = Math.sin(a) * R, x2 = Math.cos(a2) * R, z2 = Math.sin(a2) * R;
+          B.add('iron', new THREE.CylinderGeometry(0.06, 0.07, 2.7, 6), MM(T, M(x1, H + 1.35, z1)));
+          // (la barandilla, menos en el lado de la escalera, que da a +z)
+          if (i === 1) continue;
+          const mx = (x1 + x2) / 2, mz = (z1 + z2) / 2, L = Math.hypot(x2 - x1, z2 - z1), ry = -Math.atan2(z2 - z1, x2 - x1);
+          B.add('iron', box(L, 0.05, 0.05), MM(T, M(mx, H + 0.95, mz, ry)));
+          for (let k = 1; k < 6; k++) { const t = k / 6; B.add('iron', box(0.025, 0.9, 0.025), MM(T, M(x1 + (x2 - x1) * t, H + 0.5, z1 + (z2 - z1) * t))); }
+        }
+        for (let k = 0; k < 6; k++) B.add('ashlar', box(1.4, 0.25 * (k + 1), 0.34), MM(T, M(Math.cos(1.5 / cols * 6.283) * (R + 0.2 + (5 - k) * 0.32), 0.125 * (k + 1), Math.sin(1.5 / cols * 6.283) * (R + 0.2 + (5 - k) * 0.32), -1.5 / cols * 6.283 + Math.PI / 2)));
+        B.add('zinc', new THREE.ConeGeometry(R + 0.55, 1.15, cols), MM(T, M(0, H + 2.7 + 0.57, 0)));
+        B.add('zinc', new THREE.CylinderGeometry(0.42, 0.42, 0.45, cols), MM(T, M(0, H + 3.95, 0)));
+        B.add('zinc', new THREE.ConeGeometry(0.62, 0.55, cols), MM(T, M(0, H + 4.45, 0)));
+        B.add('gold', new THREE.SphereGeometry(0.12, 8, 6), MM(T, M(0, H + 4.8, 0)));
+        addCircle(x, z, R + 0.25); return { x, z: z + R + 3.5 };
+      }
       B.add('ashlar', new THREE.CylinderGeometry(5, 5.2, 1.4, 8), MM(T, M(0, 0.7, 0)));
       for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28; B.add('iron', new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6), MM(T, M(Math.cos(a) * 4.5, 3.1, Math.sin(a) * 4.5))); }
       B.add('zinc', new THREE.ConeGeometry(5.8, 2.4, 8), MM(T, M(0, 5.9, 0)));
       B.add('gold', new THREE.SphereGeometry(0.3, 8, 6), MM(T, M(0, 7.3, 0)));
       addCircle(x, z, 5.3); return { x, z: z + 7 };
+    }
+    case 'escultura': {
+      // «Altsasuko sustraiak» (Joxe Ulibarrena, 1994), en la Foru Plaza de Altsasu: el tronco del viejo nogal de la plaza,
+      // que vivió unos 350 años, tallado con 38 figuras del pueblo (los momotxorros entre ellas), sobre peñas sin labrar
+      for (let i = 0; i < 4; i++) { const a = i * 1.7, r = 0.55; B.add('stoneDark', new THREE.DodecahedronGeometry(0.62 - i * 0.06, 0).scale(1.2, 0.75, 1), MM(T, M(Math.cos(a) * r, 0.32, Math.sin(a) * r, a, 0.15 * i))); }
+      B.add('woodDark', new THREE.CylinderGeometry(0.38, 0.62, 3.6, 9), MM(T, M(0.05, 2.35, 0, 0.05, 0, -0.06)));
+      for (let i = 0; i < 4; i++) { const a = i / 4 * 6.283 + 0.4; B.add('woodDark', new THREE.ConeGeometry(0.16, 1.1, 6), MM(T, M(Math.cos(a) * 0.62, 0.95, Math.sin(a) * 0.62, 0, Math.sin(a) * 0.9, -Math.cos(a) * 0.9))); }
+      // (las figuras talladas: cabezas y cuerpos que asoman del tronco a varias alturas; arriba, cuernos de momotxorro)
+      for (let i = 0; i < 9; i++) { const a = i * 2.4, h = 1.2 + (i % 5) * 0.55, r = 0.5 - h * 0.03; B.add(i % 3 ? 'woodDark' : 'wood', new THREE.SphereGeometry(0.17 + (i % 2) * 0.04, 7, 5).scale(1, 1.25, 0.85), MM(T, M(Math.cos(a) * r, h, Math.sin(a) * r))); }
+      for (const s of [-1, 1]) B.add('woodDark', new THREE.ConeGeometry(0.06, 0.45, 5), MM(T, M(s * 0.2, 4.3, 0.1, 0, 0, -s * 0.5)));
+      addCircle(x, z, 1.1); return { x: x + 2.2, z: z + 1.6 };
     }
     case 'townhall': {
       const w = 18, d = 10, h = 14;

@@ -376,7 +376,7 @@ export function createTownLevel(def) {
     edge: order([{ x: pl.x + out * (R + 25), z: -R * 0.6 }, { x: pl.x - out * 30, z: -R - 60 }, { x: pl.x + out * 70, z: R + 55 }, { x: pl.x - out * (R + 40), z: R * 0.4 }], 16),
     river: rv ? [{ x: rx(-R * 0.6) + (half + 19) * (rv.x > 0 ? -1 : 1), z: -R * 0.6 }, { x: rx(R * 0.9) - (half + 19) * (rv.x > 0 ? -1 : 1), z: R * 0.9 }] : [],   // detrás de la calle de la orilla, no encima
   };
-  const cat = { castle: 'big', walls: 'big', palace: 'street', house: 'street', towerhouse: rv ? 'river' : 'street', arch: 'street', townhall: 'plaza', kiosk: 'plaza', fountain: 'plaza', plaza: 'plaza',
+  const cat = { castle: 'big', walls: 'big', palace: 'street', house: 'street', towerhouse: rv ? 'river' : 'street', arch: 'street', townhall: 'plaza', kiosk: 'plaza', fountain: 'plaza', plaza: 'plaza', escultura: 'plaza',
     mill: rv ? 'river' : 'edge', raft: rv ? 'river' : 'edge', gorge: 'gorge', bridge: 'bridge', stelae: 'church', chapel: 'church' };
   PLACES.landmarks = [];
   // en el bosque, cada sitio queda monte adentro, a un buen paseo del claro y en su misma orilla del río (el mirador, en

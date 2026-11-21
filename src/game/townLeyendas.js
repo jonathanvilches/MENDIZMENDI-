@@ -5,7 +5,7 @@
 import { Actor } from '../actors/people.js';
 import { Chase } from './chase.js';
 import { MYTHS } from '../actors/outfits.js';
-import { PLACES, PONDS } from '../world/layout.js';
+import { PLACES, PONDS, plazaMask } from '../world/layout.js';
 import * as THREE from 'three';
 import { TOWN } from '../world/townBuilder.js';
 import { clamp } from '../util/math.js';
@@ -14,10 +14,12 @@ import { terrainHeight, groundHeight } from '../world/heightfield.js';
 import { COSTUMES } from '../actors/minifig.js';
 import { addCard, saveProfile } from './profile.js';
 import { QUALITY } from '../util/quality.js';
-import { removeMover } from '../world/colliders.js';
+import { removeMover, isFree } from '../world/colliders.js';
 
 // el final de los momotxorros (manadaMomotxorros): un tinte rojo suave de la luz que ya hay, no una noche roja
 const ROJO_MANADA = new THREE.Color('#ff3a1c');
+// (y un velo rojo suave en los bordes de la pantalla, que sube con el tinte; nunca oscuro del todo: «menos es más»)
+const MANADA_CSS = `.manada-velo{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:0;transition:opacity .4s linear;background:radial-gradient(ellipse at center,rgba(255,40,10,.06) 35%,rgba(220,24,0,.3) 72%,rgba(150,0,0,.52) 100%)}`;
 // Aspecto de los personajes de carnaval y leyenda
 const FOLK = {
   joaldun: { myth: 'joaldun', traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
@@ -262,88 +264,121 @@ export class PuebloLeyendas {
     this.sound.bucleCencerros?.(0);   // (prepara el rumor de la comparsa, audio.js)
     this.ui.toast('¡Salen a celebrarlo por las calles!', 'mask', 3800);
   }
-  // ---------- Altsasu: la manada de momotxorros que baila alrededor del kiosco ----------
-  // El autor, 21 de noviembre de 2026: «demasiado rojo. Quiero que se distingan bien los momotxorros y que vayan todos en
-  // manada [...] Cuando encontramos al tercero, el resto llega corriendo y se ponen a bailar dando vueltas alrededor del
-  // kiosco de la plaza de Altsasu. Cuando vamos están allá. Están un rato y luego se van corriendo». Así que: (1) de una
-  // calle cercana a ti sale la manada, toda junta, y corre a la plaza; (2) allí dan vueltas al kiosco en tres corros,
-  // saltando y parándose a bailar con los cencerros, y te esperan hasta que llegas; (3) cuando llevas un rato mirando,
-  // salen corriendo por tres calles y se van. Sin halos, ni ojos encendidos, ni velo: los momotxorros, a la vista; de
-  // rojo, solo un tinte suave de la luz (sky.tinte, desde engine/runtime.js)
+  // ---------- Altsasu: la manada de momotxorros que llena la plaza ----------
+  // El autor, 21 de noviembre de 2026, por la mañana: «antes ellos saltaban como unas chispas rojas, que eso me gustaba
+  // mucho, eso quiero mantener. Y luego que aparezcan el triple de momotxorros, que llenen la plaza, que se pongan a
+  // bailar, que el ambiente sea mucho más rojo, que dure unos segundos y que todos empiecen a correr por el pueblo para
+  // irse y desaparecer». (La víspera había pedido menos rojo y que se distinguieran bien: sin halos ni ojos encendidos.)
+  // Así que: (1) de cuatro calles alrededor de la plaza llegan corriendo, el triple que antes (30, 54 o 90 según la
+  // calidad), echando chispas rojas; (2) se reparten por toda la plaza (los huecos libres de plazaMask, del centro al
+  // borde) y bailan en su sitio: saltan en ola desde el centro, giran, se paran a bailar con el cencerro, y cada salto
+  // levanta chispas; el aire se pone rojo (tinte de la luz hasta 0,72, brasas que flotan y un velo rojo suave en los
+  // bordes); (3) cuando llevas unos segundos mirando (14 s), salen corriendo por las calles en todas direcciones y, al
+  // llegar lejos, desaparecen en un chispazo
   manadaMomotxorros() {
-    const look = FOLK.momotxorro, P = this.player.pos;
-    const kio = TOWN.landmarks.find(l => l.kind === 'kiosk');
-    const C = kio ? { x: kio.x, z: kio.z, r: 8 } : { x: PLACES.plaza.x, z: PLACES.plaza.z, r: 6.5 };
-    // (de dónde llegan: una puerta a 25-60 m del kiosco, la más cercana a ti sin estar encima: así los ves pasar corriendo)
-    let ori = null, best = 1e9;
-    for (const h of TOWN.houses) {
-      const p = h.door; if (!p) continue;
-      const dk = Math.hypot(p.x - C.x, p.z - C.z), dp = Math.hypot(p.x - P.x, p.z - P.z);
-      if (dk > 25 && dk < 60 && dp > 12 && dp < best) { best = dp; ori = p; }
+    const look = FOLK.momotxorro, P = this.player.pos, PL = PLACES.plaza;
+    const kio = TOWN.landmarks.find(l => l.kind === 'kiosk' || l.kind === 'nogal');
+    const C = kio ? { x: kio.x, z: kio.z, r: 4.2 } : { x: PL.x, z: PL.z, r: 2.5 };
+    const n = QUALITY === 'low' ? 30 : QUALITY === 'mid' ? 54 : 90;
+    // (los huecos de la plaza: una rejilla de 1,6 m dentro de la plaza de verdad, libres de casas, fuentes y del kiosco)
+    const R = Math.max(16, (PL.r || 14) * 2), huecos = [];
+    for (let x = -R; x <= R; x += 1.6) for (let z = -R; z <= R; z += 1.6) {
+      const X = C.x + x + (this.rnd() - 0.5) * 0.5, Z = C.z + z + (this.rnd() - 0.5) * 0.5, d = Math.hypot(X - C.x, Z - C.z);
+      if (d > R || d < C.r) continue;
+      if (plazaMask(X, Z) < 0.5 && Math.hypot(X - PL.x, Z - PL.z) > (PL.r || 14)) continue;
+      if (!isFree(X, Z, 0.55)) continue;
+      huecos.push({ x: X, z: Z, d });
     }
-    ori ||= { x: C.x + 40, z: C.z };
-    const n = QUALITY === 'low' ? 14 : QUALITY === 'mid' ? 22 : 30, gente = [];
+    huecos.sort((a, b) => a.d - b.d);
+    // (repartidos por toda la plaza, del centro al borde; si la plaza es pequeña, se apretujan alrededor)
+    const sitios = [];
+    if (huecos.length >= n) for (let i = 0; i < n; i++) sitios.push(huecos[Math.floor(i * huecos.length / n)]);
+    else { sitios.push(...huecos); for (let i = sitios.length, k = 0; i < n; i++, k++) { const a = k * 2.4, r = C.r + 1 + k * 0.18; sitios.push({ x: C.x + Math.cos(a) * r, z: C.z + Math.sin(a) * r, d: r }); } }
+    // (de dónde llegan: cuatro puertas a 30-75 m, cada una en un cuarto distinto alrededor de la plaza)
+    const puertas = TOWN.houses.map(h => h.door).filter(p => p && Math.hypot(p.x - C.x, p.z - C.z) > 30 && Math.hypot(p.x - C.x, p.z - C.z) < 75);
+    const origen = [0, 1, 2, 3].map(k => { const t = k / 4 * 6.283 + Math.atan2(P.z - C.z, P.x - C.x); let b = null, bd = 1e9; for (const p of puertas) { const a = Math.atan2(p.z - C.z, p.x - C.x), da = Math.abs(Math.atan2(Math.sin(a - t), Math.cos(a - t))); if (da < bd) { bd = da; b = p; } } return b || { x: C.x + Math.cos(t) * 45, z: C.z + Math.sin(t) * 45 }; });
+    const gente = [];
     for (let i = 0; i < n; i++) {
-      const t = this.rnd() * 6.283, r = 1 + this.rnd() * 3.5, sp = this.spot({ x: ori.x + Math.cos(t) * r, z: ori.z + Math.sin(t) * r }, 3);
-      const a = new Actor({ id: 'desfile' + i, name: 'Momotxorro', x: sp.x, z: sp.z, look, walkSpeed: 0.9 + this.rnd() * 0.3, ghost: true }, this.scene);
+      const o = origen[i % 4], t = this.rnd() * 6.283, r = 1 + this.rnd() * 3.5, sp = this.spot({ x: o.x + Math.cos(t) * r, z: o.z + Math.sin(t) * r }, 3);
+      const a = new Actor({ id: 'desfile' + i, name: 'Momotxorro', x: sp.x, z: sp.z, look, walkSpeed: 1.0 + this.rnd() * 0.35, ghost: true }, this.scene);
       a.ignorePlayer = true; a.wait = 1e9; a.oculto = true; a.obj.visible = false;
-      a.sale = 0.3 + i * 0.09;   // (salen casi a la vez, en tropel)
-      a.ang = i / n * 6.283; a.radio = C.r + (i % 3) * 1.4;   // (tres corros alrededor del kiosco)
-      a.fase = this.rnd() * 6.283; a.baile = 2 + this.rnd() * 6;
+      a.sale = 0.2 + Math.floor(i / 4) * 0.06 + (i % 4) * 0.15;   // (en tropel, por las cuatro calles a la vez)
+      a.sitio = sitios[i]; a.fase = -sitios[i].d * 0.45; a.giro = (this.rnd() - 0.5) * 3; a.baile = 1 + this.rnd() * 5;
       gente.push(a);
     }
-    this.desfileOn = { gente, t: 0, dur: Infinity, cen: 0, chispa: 0, manada: true, C, fase: 'llegan', k: 0, mirado: 0, grita: 2 };
+    if (!document.getElementById('manada-css')) { const st = document.createElement('style'); st.id = 'manada-css'; st.textContent = MANADA_CSS; document.head.appendChild(st); }
+    const velo = document.createElement('div'); velo.className = 'manada-velo'; velo.setAttribute('aria-hidden', 'true'); document.body.appendChild(velo);
+    this.desfileOn = { gente, t: 0, dur: Infinity, cen: 0, chispa: 0, brasa: 0, manada: true, C, fase: 'llegan', k: 0, mirado: 0, grita: 1.5, velo };
     this.sound.bucleCencerros?.(0);
-    this.ui.toast('¡Llegan corriendo los momotxorros! Van a bailar alrededor del kiosco de la plaza', 'mask', 4200);
+    this.ui.toast('¡Llegan corriendo los momotxorros! Van a llenar la plaza', 'mask', 4200);
   }
-  /** La manada en cada fotograma: llegan corriendo, dan vueltas al kiosco y se van (ver manadaMomotxorros). */
+  /** La manada en cada fotograma: llegan corriendo, llenan la plaza bailando y se van (ver manadaMomotxorros). */
   updateManada(D, dt) {
-    const P = this.player, C = D.C, G = D.gente, enCorro = (a) => ({ x: C.x + Math.cos(a.ang) * a.radio, z: C.z + Math.sin(a.ang) * a.radio });
-    // (el tinte rojo: suave, sube en 3 s y se va al marcharse)
-    D.k = Math.min(1, D.t / 3) * (D.fase === 'van' ? Math.max(0, 1 - (D.t - D.van) / 6) : 1);
-    this.tinte = D.k > 0.01 ? { col: ROJO_MANADA, k: D.k * 0.22, parpadeo: 0 } : null;
+    const P = this.player, C = D.C, G = D.gente, chispas = (x, y, z, k = 1) => this.particles.emit({ x, y, z }, { n: Math.round(5 * k), color: ['#ff2a12', '#ff6a2a', '#ffc08a'], speed: 1.6, size: 0.2, life: 0.8, gravity: 2.2, spread: 0.5, up: 1.4 });
+    // (el rojo: sube en 3 s hasta 0,55 mientras bailan y se va en 7 s al marcharse)
+    const sube = Math.min(1, D.t / 3), baja = D.fase === 'van' ? Math.max(0, 1 - (D.t - D.van) / 7) : 1;
+    D.k = sube * baja * (D.fase === 'llegan' ? 0.7 : 1);
+    this.tinte = D.k > 0.01 ? { col: ROJO_MANADA, k: D.k * 0.72, parpadeo: D.k * 0.18 } : null;
+    if (D.velo && Math.abs((D.veloK ?? -1) - D.k) > 0.02) { D.veloK = D.k; D.velo.style.opacity = D.k.toFixed(2); }
+    // (brasas rojas que flotan sobre la plaza)
+    if (D.k > 0.2 && (D.brasa -= dt) <= 0) { D.brasa = QUALITY === 'low' ? 0.1 : 0.05; const t = this.rnd() * 6.283, r = this.rnd() * 18; this.particles.emit({ x: C.x + Math.cos(t) * r, y: groundHeight(C.x, C.z) + 0.4 + this.rnd() * 2, z: C.z + Math.sin(t) * r }, { n: 1, color: ['#ff3a1c', '#ff7a3a'], speed: 0.25, size: 0.12, life: 2.6, gravity: -0.35, spread: 0.2 }); }
     // (de vez en cuando, uno grita)
-    if ((D.grita -= dt) <= 0) { D.grita = 2.5 + this.rnd() * 3; const a = G[Math.floor(this.rnd() * G.length)]; if (a && !a.oculto) this.sound.creature?.('momotxorro', 'call', a.pos); }
-    const dKio = Math.hypot(P.pos.x - C.x, P.pos.z - C.z);
+    if ((D.grita -= dt) <= 0) { D.grita = 1.6 + this.rnd() * 2.4; const a = G[Math.floor(this.rnd() * G.length)]; if (a && !a.oculto) this.sound.creature?.('momotxorro', 'call', a.pos); }
+    const dPlaza = Math.hypot(P.pos.x - C.x, P.pos.z - C.z);
     if (D.fase === 'llegan' || D.fase === 'baile') {
       let enSitio = 0;
       for (const a of G) {
-        if (a.oculto) { if (D.t >= a.sale) { a.oculto = false; a.obj.visible = true; a.goTo({ ...enCorro(a), run: true }); a.pide = D.t; } continue; }
-        if (!a.corro) {
-          const q = enCorro(a), d = Math.hypot(a.pos.x - q.x, a.pos.z - q.z);
-          if (d < 2.2 || a.arrived) a.corro = true;
-          else if (a.state === 'idle' && D.t - (a.pide || 0) > 1.2) { a.goTo({ ...q, run: true }); a.pide = D.t; }   // (sin camino o atascado: otra vez)
+        if (a.oculto) { if (D.t >= a.sale) { a.oculto = false; a.obj.visible = true; a.goTo({ x: a.sitio.x, z: a.sitio.z, run: true }); a.pide = D.t; } continue; }
+        if (!a.enSitio) {
+          // (corriendo hacia la plaza, saltando y soltando chispas)
+          if (a.state === 'walk' && this.rnd() < dt * 1.2) chispas(a.pos.x, a.pos.y + 0.3, a.pos.z, 0.6);
+          const d = Math.hypot(a.pos.x - a.sitio.x, a.pos.z - a.sitio.z);
+          if (d < 1.4 || (a.arrived && d < 6)) { a.enSitio = true; a.state = 'idle'; a.target = null; a.path = null; a.goal = null; a.heading = Math.atan2(C.x - a.pos.x, C.z - a.pos.z); a.h0 = a.heading; }
+          else if (a.state === 'idle' && D.t - (a.pide || 0) > 1.2) { a.goTo({ x: a.sitio.x, z: a.sitio.z, run: true }); a.pide = D.t; }   // (sin camino o atascado: otra vez)
           continue;
         }
         enSitio++;
-        // en el corro: dan vueltas al kiosco saltando; cada pocos segundos, uno se para a bailar con su cencerro
-        if (a.dance) { if ((a.bailaT -= dt) <= 0) { a.dance = 0; a.baile = 4 + this.rnd() * 6; } continue; }
-        if ((a.baile -= dt) <= 0) { a.dance = 1; a.bailaT = 1.4; a.state = 'idle'; a.target = null; this.sound.cencerroCerca?.(a.pos, 2, 0.8); continue; }
-        a.ang += a.walkSpeed / a.radio * dt;
-        const ad = { x: C.x + Math.cos(a.ang + 0.5) * a.radio, z: C.z + Math.sin(a.ang + 0.5) * a.radio };
-        a.state = 'walk'; a.target = ad; a.path = null; a.goal = null; a.arrived = false;
-        a.alto = groundHeight(a.pos.x, a.pos.z) + Math.max(0, Math.sin(D.t * 7 + a.fase)) * 0.28;   // (saltan al andar, como en el carnaval)
+        // en su sitio de la plaza: saltan en ola desde el centro, giran y, de vez en cuando, bailan con el cencerro
+        const s = Math.sin(D.t * 6.5 + a.fase), arriba = Math.max(0, s);
+        a.alto = groundHeight(a.pos.x, a.pos.z) + arriba * 0.42;
+        if (s < -0.9 && !a.cayo) { a.cayo = true; if (this.rnd() < (QUALITY === 'low' ? 0.18 : 0.3)) chispas(a.pos.x, a.pos.y + 0.1, a.pos.z, 0.8); } else if (s > 0) a.cayo = false;
+        // (unos giran sobre sí mismos; los demás, de cara al centro, se balancean a un lado y a otro)
+        if (Math.abs(a.giro) > 0.9) a.heading += a.giro * dt; else a.heading = a.h0 + Math.sin(D.t * 2.2 + a.fase) * 0.5;
+        if (a.dance) { if ((a.bailaT -= dt) <= 0) { a.dance = 0; a.baile = 3 + this.rnd() * 5; } }
+        else if ((a.baile -= dt) <= 0) { a.dance = 1; a.bailaT = 1.6; this.sound.cencerroCerca?.(a.pos, 2, 0.8); }
       }
-      if (D.fase === 'llegan' && (enSitio >= G.length * 0.75 || D.t > 40)) { D.fase = 'baile'; D.baile = D.t; }
+      if (D.fase === 'llegan' && (enSitio >= G.length * 0.75 || D.t > 40)) { D.fase = 'baile'; D.baile = D.t; this.ui.toast('¡Los momotxorros bailan en la plaza!', 'mask', 3000); }
       if (D.fase === 'baile') {
-        // (te esperan: el rato cuenta cuando estás cerca del kiosco; si no vienes, al cabo de dos minutos y medio se van)
-        if (dKio < 40) D.mirado += dt;
-        if (D.mirado > 32 || D.t - D.baile > 150) this.vanseMomotxorros(D);
+        // (unos segundos: cuentan mientras estás cerca de la plaza; si no vienes, al cabo de dos minutos y medio se van)
+        if (dPlaza < 45) D.mirado += dt;
+        if (D.mirado > 14 || D.t - D.baile > 150) this.vanseMomotxorros(D);
       }
     } else if (D.fase === 'van') {
-      // (se van corriendo; se quitan al alejarse o pasados 14 s)
+      // (corren por las calles hacia las afueras; al llegar lejos, o a los 16 s, desaparecen en un chispazo)
       let quedan = 0;
-      for (const a of G) { if (!a.obj.visible) continue; if (Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) > 75 || D.t - D.van > 14) { a.obj.visible = false; a.oculto = true; } else quedan++; }
-      if (!quedan || D.t - D.van > 15) this.finDesfile();
+      for (const a of G) {
+        if (!a.obj.visible || a.oculto) continue;
+        if (a.state === 'walk' && this.rnd() < dt * 1.2) chispas(a.pos.x, a.pos.y + 0.3, a.pos.z, 0.5);
+        const lejos = Math.hypot(a.pos.x - C.x, a.pos.z - C.z) > a.irse || a.arrived || D.t - D.van > a.limite;
+        if (lejos) { chispas(a.pos.x, a.pos.y + 1, a.pos.z, 3); a.obj.visible = false; a.oculto = true; } else quedan++;
+      }
+      if (!quedan || D.t - D.van > 18) this.finDesfile();
     }
   }
-  /** Se acaba el baile: salen corriendo por tres calles, en grupos. */
+  /** Se acaba el baile: salen corriendo por las calles, cada uno por la que le pilla, y desaparecen al alejarse. */
   vanseMomotxorros(D) {
     D.fase = 'van'; D.van = D.t; const C = D.C;
-    const lejos = TOWN.houses.map(h => h.door).filter(p => p && Math.hypot(p.x - C.x, p.z - C.z) > 60 && Math.hypot(p.x - C.x, p.z - C.z) < 110);
-    const salidas = [0, 1, 2].map(k => { const t = k / 3 * 6.283 + this.rnd(); let b = null, bd = 1e9; for (const p of lejos) { const d = Math.hypot(p.x - (C.x + Math.cos(t) * 85), p.z - (C.z + Math.sin(t) * 85)); if (d < bd) { bd = d; b = p; } } return b || { x: C.x + Math.cos(t) * 85, z: C.z + Math.sin(t) * 85 }; });
-    D.gente.forEach((a, i) => { if (a.oculto) return; a.dance = 0; a.alto = null; a.corro = false; const s = salidas[i % 3]; a.goTo({ x: s.x + (this.rnd() - 0.5) * 4, z: s.z + (this.rnd() - 0.5) * 4, run: true }); });
-    for (let i = 0; i < 3; i++) { const a = D.gente[Math.floor(this.rnd() * D.gente.length)]; if (a) this.sound.creature?.('momotxorro', 'call', a.pos); }
+    const lejos = TOWN.houses.map(h => h.door).filter(p => p && Math.hypot(p.x - C.x, p.z - C.z) > 70 && Math.hypot(p.x - C.x, p.z - C.z) < 140);
+    const N = 7, salidas = [...Array(N)].map((_, k) => { const t = k / N * 6.283 + this.rnd() * 0.4; let b = null, bd = 1e9; for (const p of lejos) { const d = Math.hypot(p.x - (C.x + Math.cos(t) * 100), p.z - (C.z + Math.sin(t) * 100)); if (d < bd) { bd = d; b = p; } } return { p: b || { x: C.x + Math.cos(t) * 100, z: C.z + Math.sin(t) * 100 }, t }; });
+    for (const a of D.gente) {
+      if (a.oculto) continue;
+      const ang = Math.atan2(a.pos.z - C.z, a.pos.x - C.x); let s = salidas[0], sd = 9;
+      for (const o of salidas) { const da = Math.abs(Math.atan2(Math.sin(ang - o.t), Math.cos(ang - o.t))); if (da < sd) { sd = da; s = o; } }
+      a.dance = 0; a.alto = null; a.enSitio = false; a.lookAt = null; a.walkSpeed = 1.15 + this.rnd() * 0.3;
+      a.irse = 55 + this.rnd() * 30; a.limite = 9 + this.rnd() * 7;
+      a.goTo({ x: s.p.x + (this.rnd() - 0.5) * 4, z: s.p.z + (this.rnd() - 0.5) * 4, run: true });
+    }
+    for (let i = 0; i < 4; i++) { const a = D.gente[Math.floor(this.rnd() * D.gente.length)]; if (a) this.sound.creature?.('momotxorro', 'call', a.pos); }
     this.ui.toast('Los momotxorros se van corriendo por las calles de Altsasu', 'mask', 3200);
   }
   updateDesfile(dt) {
@@ -364,6 +399,7 @@ export class PuebloLeyendas {
   finDesfile() {
     const D = this.desfileOn; if (!D) return;
     for (const a of D.gente) { this.scene?.remove(a.obj); removeMover(a.collider); }
+    D.velo?.remove();
     this.desfileOn = null; this.tinte = null; this.sound?.bucleCencerros?.(0); this.sound?.terror?.(0);
   }
 }
