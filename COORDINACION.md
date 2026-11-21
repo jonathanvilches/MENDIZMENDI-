@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (21 nov, mediodía): lámina técnica del viaje del salmón (misión de la guarda del río, Lesaka).
+
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (20 nov, noche): por encargo del autor («antes de que salgan los pelotaris siempre
