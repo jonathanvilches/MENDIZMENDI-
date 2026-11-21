@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (nada: el 21 nov por la tarde se publicó `master` entero, ver «Última publicación»)
+- Principal (21 nov, tarde): lámina técnica del piquillo (misión de la conservera y cosecha de Lodosa).
 
 ## Peticiones entre ventanas
 

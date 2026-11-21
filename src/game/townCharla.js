@@ -368,11 +368,11 @@ export class PuebloCharla {
     }
   }
   // Tarjetas que explican un producto o una tradición: qué es, cómo se hace, y antes/ahora
-  /** Al acabar una cosecha cuyo cultivo tiene lámina técnica (el espárrago), se ve por dentro cómo se recoge (ui/anatomia.js) */
+  /** Al acabar una cosecha cuyo cultivo tiene lámina técnica (el espárrago, el piquillo), se ve por dentro (ui/anatomia.js) */
   async laminaCosecha(m, S) {
     const lam = laminaDe(m.crop);
     if (!lam) return;
-    await S(['Antes de irte, mira cómo se recoge por dentro.']);
+    await S([lam === 'piquillo' ? 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.' : 'Antes de irte, mira cómo se recoge por dentro.']);
     await laminaTecnica(this.ui, lam, { button: 'Seguir' });
   }
   async explain(X, title, part, lamina = '', boton = '') {
