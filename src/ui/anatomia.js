@@ -1,5 +1,5 @@
 // Láminas técnicas (skill Anatomy): ilustraciones isométricas interactivas que enseñan por dentro cómo se hace o cómo
-// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado, el espárrago, el molino, el piquillo, el aceite, la miel, la cuajada, la txistorra, la ferrería, el salmón, la carbonera, la lana, la barrica, el pan, la alpargata, la cesta, las palomeras, el cantero, el aizkolari, la piedra, las setas, la Bajada del Ángel...). Se dibujan con tools/anatomia/*.mjs, que las deja en
+// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado, el espárrago, el molino, el piquillo, el aceite, la miel, la cuajada, la txistorra, la ferrería, el salmón, la carbonera, la lana, la barrica, el pan, la alpargata, la cesta, las palomeras, el cantero, el aizkolari, la piedra, las setas, la Bajada del Ángel, la sidra...). Se dibujan con tools/anatomia/*.mjs, que las deja en
 // public/anatomia/<id>.html, y aquí se abren encima del juego, casi a pantalla entera, con su título y «Seguir».
 // El autor, 21 de noviembre de 2026: «explicaciones técnicas en 3D [...] todo esto quiero que poco a poco lo vayas
 // aplicando y lo vayas metiendo en el juego y en las misiones».
@@ -31,9 +31,10 @@ export const LAMINAS_TEC = {
   harrijasotzaile: { title: 'Cómo se levanta una piedra', kicker: 'Oficio de antes' },
   setas: { title: 'Cómo vive una seta', kicker: 'Cómo vive' },
   angel: { title: 'La Bajada del Ángel', kicker: 'Cómo funciona' },
+  sidra: { title: 'Cómo se hace la sidra', kicker: 'Cómo se hace' },
 };
 // los productos de las misiones (data/procesos.js) que tienen su lámina
-export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino', olive: 'aceite', olivo: 'aceite', honey: 'miel', chistorra: 'txistorra', herrero: 'ferreria', carbonero: 'carbonera', hilandera: 'hilandera', tonelero: 'tonelero', panadero: 'pan', alpargatero: 'alpargata', cestero: 'cesta', palomero: 'palomeras', uva: 'vino', trigo: 'molino' };   // (el espárrago y el piquillo, por su id: esparrago, piquillo; los oficios, por su kind: herrero, carbonero, hilandera, tonelero, panadero, alpargatero, cestero)
+export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino', olive: 'aceite', olivo: 'aceite', honey: 'miel', chistorra: 'txistorra', herrero: 'ferreria', carbonero: 'carbonera', hilandera: 'hilandera', tonelero: 'tonelero', panadero: 'pan', alpargatero: 'alpargata', cestero: 'cesta', palomero: 'palomeras', uva: 'vino', trigo: 'molino', manzana: 'sidra' };   // (el espárrago y el piquillo, por su id: esparrago, piquillo; los oficios, por su kind: herrero, carbonero, hilandera, tonelero, panadero, alpargatero, cestero)
 export const laminaDe = (id) => LAMINA_DE[id] || (LAMINAS_TEC[id] ? id : null);
 
 const CSS = `.lt-ov{position:fixed;inset:0;z-index:960;display:grid;place-items:center;background:rgba(8,3,18,.92);

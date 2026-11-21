@@ -376,7 +376,7 @@ export class PuebloCharla {
   async laminaCosecha(m, S) {
     const lam = laminaDe(m.crop);
     if (!lam) return;
-    const dice = { piquillo: 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.', aceite: 'Antes de irte, mira lo que pasa en la almazara: del olivo a la botella.', vino: 'Antes de irte, mira lo que pasa en la bodega: de la uva al rosado.', molino: 'Antes de irte, mira lo que pasa en el molino: del trigo a la harina.' };
+    const dice = { piquillo: 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.', aceite: 'Antes de irte, mira lo que pasa en la almazara: del olivo a la botella.', vino: 'Antes de irte, mira lo que pasa en la bodega: de la uva al rosado.', molino: 'Antes de irte, mira lo que pasa en el molino: del trigo a la harina.', sidra: 'Antes de irte, mira lo que pasa en la sidrería: de la manzana al txotx.' };
     await S([dice[lam] || 'Antes de irte, mira cómo se recoge por dentro.']);
     await laminaTecnica(this.ui, lam, { button: 'Seguir' });
   }

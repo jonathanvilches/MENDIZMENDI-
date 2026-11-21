@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Principal) Lámina 25: cómo se hace la sidra (la trituradora, el dolare con su viga, su husillo y su piedra, la kupela y el chorro del txotx al vaso); al acabar la cosecha de manzanas de Irurtzun y en «Por dentro». Las fichas de las cosechas del material didáctico, con su botón «Verlo por dentro».
 
 ## Peticiones entre ventanas
 

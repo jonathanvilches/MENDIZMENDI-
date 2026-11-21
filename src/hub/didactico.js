@@ -213,7 +213,7 @@ export const DIDACTICO = {
       case 'trade': return this.d_oficio(m.kind, m.title);
       case 'legend': return this.d_leyendaNoche(m.who, m.title);
       case 'carnival': return this.d_carnaval(m.character, m.title);
-      case 'harvest': { const C = CROP[m.crop]; return block(C?.[1] || 'wheat', 'Cosecha', C?.[0] || m.crop, sinOrdenes(m.text), { cls: 'cap' }); }
+      case 'harvest': { const C = CROP[m.crop]; return block(C?.[1] || 'wheat', 'Cosecha', C?.[0] || m.crop, sinOrdenes(m.text) + porDentro(m.crop), { cls: 'cap' }); }
       case 'herd': {
         if (m.story) return block('sheep', 'Ganadería', m.title || '', Ps(m.story) + (m.cardText ? `<p class="dd-tip">${esc(m.cardText)}</p>` : ''));
         const X = m.animal === 'cows' ? VAQUERA_INFO : PASTOR_INFO(l.family);
@@ -393,7 +393,7 @@ export const DIDACTICO = {
         items: proc.map(({ l, m }) => { const X = PROCESOS[m.id]; return { k: 'p-' + l.id + '-' + m.id, img: tradicionUrl(PROC_ILUS[m.id]) || lam(PROC_LAM[m.id]), icon: PROC_ICON[m.id] || 'basket', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || m.product, sub: m.product,
           secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id)], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
       { k: 'cosechas', name: 'Las cosechas', icon: 'wheat', intro: 'Qué se recoge en cada sitio.',
-        items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c)]], towns: cropTowns(c).map(l => l.id) })) },
+        items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c) + porDentro(c)]], towns: cropTowns(c).map(l => l.id) })) },
       { k: 'ganaderia', name: 'Ganadería', icon: 'sheep', intro: 'Pastores, vaqueras y sus rebaños.',
         items: [[PASTOR_INFO('atlantic'), 'Montaña', 'etxalar-ovejas'], [PASTOR_INFO('ribera'), 'Ribera y Zona Media', 'c-bardenas'], [VAQUERA_INFO, '', 'ituren-vacas']].map(([X, sub, l], i) => ({ k: 'g-' + i, img: lam(l), icon: X.icon, kicker: 'Ganadería', title: X.title, sub, secs: [['El oficio', Ps(X.lines)], ['Antes y ahora', aa(X.then, X.now)]] }))
           .concat(herd.map(({ l, m }) => ({ k: 'g-' + l.id, img: lam(HERD_LAM[l.id]), icon: 'sheep', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || '', secs: [['La historia', Ps(m.story) + (m.cardText ? `<p class="dd-tip">${esc(m.cardText)}</p>` : '')]], towns: [l.id] }))) },

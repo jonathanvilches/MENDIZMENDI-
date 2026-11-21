@@ -2253,9 +2253,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mástil, la polea, la cuerda de tiro y el torno; el niño baja, la Virgen espera junto al kiosco y el ángel le quita el
   velo negro, con las palomas y las campanas), sale en su misión de tradición tras el qué y el cómo (`laminaDe(m.kind)`
   en townCharla y en el material didáctico, junto al cómo). Con ella todas las misiones de proceso tienen su lámina.
+  La 25, **cómo se hace la sidra** (para la cosecha de manzanas de Irurtzun): la trituradora con su manivela, el cubo de
+  la pulpa, el **dolare** (la viga gira en su eje entre dos pies derechos; el husillo la baja sobre los tacos y la torta,
+  que se aplasta lo que baja la viga donde la toca, y al final levanta la piedra, que cuelga y sigue apretando), la pila
+  del mosto, la manguera hasta el tapón de la kupela, la kupela tumbada con sus aros, la espuma de la fermentación y el
+  **txotx**: se quita el palito y el chorro cae en parábola al vaso. La viga se dibuja al construir en 15 ángulos y en
+  vivo se elige uno (el resto, la torta, la piedra y el husillo, sale del ángulo que se ve). Los aros de la kupela son
+  solo la mitad que se ve de una banda (`aro`): un sólido torneado pinta su tapa entera encima del cuerpo. Las fichas de
+  las cosechas del material didáctico (las de cada pueblo y «Las cosechas» de Productos) llevan su botón «Verlo por
+  dentro» cuando el cultivo tiene lámina.
   Y todas juntas en el material didáctico, en **«Por dentro»** (`hub/didactico.js`, s_pordentro; el autor, 21 nov:
   «que esté en la parte didáctica y que podamos acceder a estas ilustraciones sin ningún problema»): una entrada más en
-  Saberes y en el menú, con todas las láminas (24 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
+  Saberes y en el menú, con todas las láminas (25 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
   cada una con su miniatura; un toque y se abre como en las misiones. Las miniaturas (`public/anatomia/<nombre>.jpg`,
   592 × 296, unos 13 kB) las saca `tools/anatomia/miniaturas.mjs` de cada lámina en modo juego.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
