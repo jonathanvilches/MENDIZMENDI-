@@ -688,8 +688,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, tBase, level, fixedLevel, rivalStats: rStats,
-      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou, rig },   // (rig: su esqueleto, para la entrega de la txapela; pelota/ceremonia.js)   // (sombra: la redonda de los móviles, que en primera persona se esconde)
-      rival: { obj: rival.obj, name: rivName, animate: animRival, rig: red },
+      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou, rig, girl: yo ? pelotariGirl(yo.name) : ella },   // (rig: su esqueleto, para la entrega de la txapela; pelota/ceremonia.js)   // (sombra: la redonda de los móviles, que en primera persona se esconde)
+      rival: { obj: rival.obj, name: rivName, animate: animRival, rig: red, girl: pelotariGirl(rivName) },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
       // empezaba callado y no se oían la chapa del sorteo ni los aplausos de la presentación hasta tocar)

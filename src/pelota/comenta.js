@@ -61,6 +61,25 @@ const FALLO = { chapa: 'e-chapa', alta: 'e-alta', pared: 'e-fuera', lado: 'e-fue
 const FALLO_E = { chapa: 'e-chapa-e', alta: 'e-alta-e', pared: 'e-fuera-e', lado: 'e-fuera-e', ladoIzq: 'e-fuera-e', red: 'e-fuera-e', fuera: 'e-fuera-e', largo: 'e-fuera-e', falta: 'e-falta-e', pasa: 'e-pasa-e', cuatro: 'e-cuatro-e' };
 const VISTOSO = new Set(['t-gancho-ancho', 't-cortada-2p', 't-dosparedes', 't-volea']);
 const ROL = { M: 'Mikel', E: 'Edurne' };
+// Las frases grabadas en masculino que hablan de un pelotari concreto («el rival», «cansado», «tranquilo», «un rematador»):
+// con una chica, se callan (sale otra del grupo, si la hay, o un silencio). De quién hablan: 'rival', tu rival; 'pierde',
+// quien ha perdido el tanto; 'gana', quien lo ha ganado; 'cualquiera', no se sabe (con una chica en la cancha, fuera). El
+// autor, el 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para cuando se refiera a un
+// chico o a una chica pelotari». Las versiones en femenino están por grabar (las voces, siempre con el visto bueno del autor).
+const ELLA = {
+  'rival-rematador': 'rival', 'rival-defensor': 'rival', 'est-favorito': 'rival', 'm-final-rival-1': 'rival', 'r-consejo-2': 'rival',
+  'r-consejo-3': 'rival', 'r-consejo-4': 'rival', 'r-consejo-6': 'rival', 'r-consejo-7': 'rival', 'd-descanso-2-2': 'rival',
+  't-dejada-txoko-e': 'pierde', 't-dejada-ancho-e': 'pierde', 't-dosparedes-e': 'pierde', 't-volea-e': 'pierde', 't-largo-e': 'pierde',
+  't-saque-e': 'pierde', 't-hueco-e1': 'pierde', 't-hueco-e2': 'pierde', 't-encima-e2': 'pierde', 'm-corta-e': 'pierde', 'm-escapa-e': 'pierde',
+  'd-tanto-3-2': 'pierde', 'm-ventaja-e': 'gana', 'e-cuatro-e': 'gana', 'm-salva-1': 'gana',
+  'm-cansado-1': 'cualquiera', 'est-lider': 'cualquiera', 'r-derecha-2': 'cualquiera', 'r-izquierda-2': 'cualquiera' };
+/** ¿Habla en masculino de una chica? c.chica: { you, rival } (match.js); c.w: quien ha ganado el tanto ('you' o 'rival') */
+function deChica(k, c) {
+  const q = ELLA[k], ch = c?.chica; if (!q || !ch) return false;
+  if (q === 'rival') return !!ch.rival;
+  if ((q === 'gana' || q === 'pierde') && (c.w === 'you' || c.w === 'rival')) return !!ch[q === 'gana' ? c.w : (c.w === 'you' ? 'rival' : 'you')];
+  return !!(ch.you || ch.rival);
+}
 
 export class Comentarios {
   /** lang: 'es' o 'eu'; voz: 'duo' (los dos), 'hombre' (solo Mikel), 'mujer' (solo Edurne) o 'no' (por defecto, lo de Ajustes) */
@@ -100,6 +119,7 @@ export class Comentarios {
   // tantoPartido() las piden con ctx.grada)
   fuera(k) {
     const c = this.ctx || {};
+    if (deChica(k, { ...c, chica: c.chica || this.chica, w: c.w ?? this.w })) return true;
     if (k === 'r-consejo-7' && !c.zurdo) return true;
     if ((k === 'r-consejo-5' || /^j-pared-saca/.test(k)) && c.cancha === 'plaza') return true;
     if (k === 'r-energia-2' && !((c.cortadas || 0) >= 4)) return true;
@@ -116,7 +136,7 @@ export class Comentarios {
   dialogo(tema) {
     if (this.voz !== 'duo') return null;
     const T = DLG.get(tema); if (!T) return null;
-    const L = [...T.entries()].filter(([n, ks]) => !this.dichas.has(`d-${tema}-${n}`) && !(this.sinMano && ks.some(k => k && /\bmanos?\b/i.test(GUION[k][1])))); if (!L.length) return null;
+    const L = [...T.entries()].filter(([n, ks]) => !this.dichas.has(`d-${tema}-${n}`) && !(this.sinMano && ks.some(k => k && /\bmanos?\b/i.test(GUION[k][1]))) && !ks.some(k => k && this.fuera(k))); if (!L.length) return null;
     const [n, ks] = L[Math.floor(Math.random() * L.length)]; this.dichas.add(`d-${tema}-${n}`);
     return ks.filter(Boolean).map(k => this.item(k, `d-${tema}`));
   }
@@ -147,7 +167,7 @@ export class Comentarios {
    *  racha del otro), empieza, escapa, mitad, salva, yaDicho (la jugada ya se comentó en el peloteo), y lo del relleno } */
   tanto(x, o = {}) {
     if (!this.voz || !x) return null;
-    this.n++; this.ctx = o;
+    this.n++; this.ctx = o; this.w = x.w;
     const quien = x.w === 'you' ? o.yo : o.rival, otro = x.w === 'you' ? o.rival : o.yo, duo = this.voz === 'duo';
     if (o.salva) return this.seguidas(this.frase('m-salva'), this.azar(0.5) && this.frase('m-salva-e'));
     // (el marcador, desde el 16 de noviembre de 2026, con las ideas del autor: «está a dos tantos»; la primera vez que el que
@@ -252,7 +272,7 @@ export class Comentarios {
    *  cuatro, parejas, campeonato, laFinal, zurdo } */
   relleno(o = {}) {
     if (!this.voz) return null;
-    this.ctx = o;
+    this.ctx = o; this.w = null;
     const ops = [], add = (w, k, f) => { if (k !== this.ultR) for (let i = 0; i < w; i++) ops.push([k, f]); };
     // (lo nuevo del 16 de noviembre de 2026, con las ideas del autor, y antes que lo demás porque habla de lo que está
     // pasando en este partido: el que está haciendo un partido perfecto, el que falla mucho, el que anda fino con una mano,
