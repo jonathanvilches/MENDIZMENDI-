@@ -32,7 +32,7 @@ export const LAMINAS_TEC = {
   setas: { title: 'Cómo vive una seta', kicker: 'Cómo vive' },
 };
 // los productos de las misiones (data/procesos.js) que tienen su lámina
-export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino', olive: 'aceite', olivo: 'aceite', honey: 'miel', chistorra: 'txistorra', herrero: 'ferreria', carbonero: 'carbonera', hilandera: 'hilandera', tonelero: 'tonelero', panadero: 'pan', alpargatero: 'alpargata', cestero: 'cesta', palomero: 'palomeras' };   // (el espárrago y el piquillo, por su id: esparrago, piquillo; los oficios, por su kind: herrero, carbonero, hilandera, tonelero, panadero, alpargatero, cestero)
+export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino', olive: 'aceite', olivo: 'aceite', honey: 'miel', chistorra: 'txistorra', herrero: 'ferreria', carbonero: 'carbonera', hilandera: 'hilandera', tonelero: 'tonelero', panadero: 'pan', alpargatero: 'alpargata', cestero: 'cesta', palomero: 'palomeras', uva: 'vino', trigo: 'molino' };   // (el espárrago y el piquillo, por su id: esparrago, piquillo; los oficios, por su kind: herrero, carbonero, hilandera, tonelero, panadero, alpargatero, cestero)
 export const laminaDe = (id) => LAMINA_DE[id] || (LAMINAS_TEC[id] ? id : null);
 
 const CSS = `.lt-ov{position:fixed;inset:0;z-index:960;display:grid;place-items:center;background:rgba(8,3,18,.92);
