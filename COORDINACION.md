@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal) Lámina 19: las palomeras de Etxalar (atalaya, paleta, bando en picado y redes); al acabar el taller del palomero y en «Por dentro».
+- (Principal) Láminas 19 y 20: las palomeras de Etxalar y el cantero (cantera, sillar, marca y arco sobre la cimbra); al acabar sus talleres y en «Por dentro».
 - (Principal) Menú en el iPhone tumbado: el texto de las secciones (Aprende, Por dentro, Pueblos, Progreso…) ya no queda bajo la isla; empieza pasada la zona segura.
 
 
