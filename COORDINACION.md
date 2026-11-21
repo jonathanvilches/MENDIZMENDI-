@@ -17,7 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (nada: el 20 nov por la tarde se publicó `master` entero, ver «Última publicación»)
+- (nada: el 21 nov por la tarde se publicó `master` entero, ver «Última publicación»)
 
 ## Peticiones entre ventanas
 
@@ -201,6 +201,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, tarde (22), la hizo la ventana principal, por encargo del autor: `master` hasta `24de3108`. Altsasu: vuelven
+  las chispas y ascuas de fuego de los momotxorros (ascuas rojas que suben de sus cabezas y brasas flotando por la
+  plaza). Láminas técnicas isométricas (Anatomy) dentro de las misiones: el queso (Idiazabal y Roncal), la almadía en el
+  portillo, el rosado (misión del vino), el espárrago (al acabar su cosecha) y el molino de rodezno; también en el
+  material didáctico. Pelota: los golpes que eligió el autor (la versión A). Fuera el vídeo de los pelotaris chocando el
+  puño, la lámina animada detrás del logo de la carga y la palabra del centro de los anillos de progreso.
 - 21 nov, mediodía (21), la hizo la ventana principal, por encargo del autor: `master` hasta `374ccfb9`. La pelotari,
   siempre en femenino: otras 24 frases de Mikel y Edurne («Las dos en su sitio», «Ninguna se rinde», «¡Bote pronto, muy
   agachada!», «La txapela ya tiene dueña»…). La página de progreso con aire a los lados en el móvil. Altsasu: el triple
