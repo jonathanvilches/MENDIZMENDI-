@@ -2093,6 +2093,39 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cuentan desde 2,2 anchos de hombros por segundo (antes, 4) y el paso a un lado mueve más. La pelota, al 74 % (antes
   85 %) y el momento justo perdona más (×1,5). Pruebas con un cuerpo de mentira y tiempos exactos:
   `trote-unidad`, `golpes-unidad` y `sensib` (en la carpeta de pruebas de la sesión; cargan `camaraCuerpo.js` solo).
+- **Altsasu: la manada de momotxorros que baila alrededor del kiosco** (`game/townLeyendas.js`, manadaMomotxorros,
+  updateManada y vanseMomotxorros; el autor, 21 de noviembre de 2026: «demasiado rojo», «que se distingan bien los
+  momotxorros y que vayan todos en manada… cuando encontramos al tercero, el resto llega corriendo y se ponen a bailar
+  dando vueltas alrededor del kiosco de la plaza… están un rato y luego se van corriendo»). El lugar de Altsasu es ahora la
+  Plaza de los Fueros con su kiosco (`data/levels.js`, kind `kiosk`, que va al centro de la plaza). Al encontrar el
+  tercero, de 14 a 30 momotxorros (según la calidad) salen casi a la vez de una puerta a 25-60 m del kiosco y llegan
+  corriendo; en el corro dan vueltas saltando, en tres anillos, y de vez en cuando uno se para a bailar con su cencerro. El
+  rato cuenta mientras estás a menos de 40 m del kiosco (32 s; si no vienes, a los dos minutos y medio) y se van corriendo
+  por tres calles. El tinte rojo, suave (22 %), sin velo, título ni farolas que parpadean. Se mueven aunque estés lejos
+  (antes, a más de 100 m, la comparsa se quedaba quieta y no llegaba nunca).
+- **Fuera los corazones** (`ui/aventuraHud.js`, `game/townAventura.js`; el autor, 21 de noviembre de 2026: «yo tampoco sé
+  de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
+  solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la
+  capa); las kutxas dan experiencia, ya no corazones, y dormir en la posada llena la resistencia.
+- **El vídeo de entrada al partido** (`pelota/videoEntrada.js`, `game/llegadas.js`, `game/townDeportes.js`; el autor, 21
+  de noviembre de 2026: el tráiler «viene justo antes de la escena de "Salen los pelotaris"»). En los campeonatos, menos
+  en la final (que tiene su «Gran final»), al tocar «¡A jugar!» sale un vídeo de 5 s hecho con Higgsfield (Kling 3.0
+  Turbo, a partir de la carta de pelota de Torneos: `public/videos/entrada-partido.mp4`, 1 MB, sin sonido) en vez de la
+  carga borrosa. La llegada al frontón espera a que acabe (o a que lo toques; nunca más de 8 s, y a los 15 s fuera pase lo
+  que pase) y el vídeo se va con el velo, cuando la cámara del partido ya está puesta (`match.js`, camPuesta). Solo donde
+  se pueden poner vídeos (`ui/videos.js`); si no, o si no arranca en 2,5 s, la carga de siempre.
+- **Los golpes de la pelota, con el eco del frontón** (`src/assets/sonidos/pelota-*.mp3`; el autor, 21 de noviembre de
+  2026: «el sonido de la pelota ahora mismo no está bien»). Los recortes limpios del vídeo del autor (solo el impacto, sin
+  los golpes sueltos que se colaban) con una cola de sala de frontón cubierto de 0,9 a 1,15 s, mezclada suave; el frontis,
+  con más sala y más fuerte; el bote, más sordo; las tres variantes de cada golpe, igual de fuertes. Hecho con
+  `tools/sonidos/golpes-eco.py`. Las cuatro versiones que ha habido se comparan en una página para que el autor elija
+  (`https://claude.ai/artifact/LZ9pjKppv73RZZFjzXhTCt`).
+- **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA y deChica; `pelota/match.js`,
+  `game/fronton.js`; el autor, 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para
+  cuando se refiera a un chico o a una chica pelotari»). Las frases grabadas en masculino que hablan de un pelotari
+  concreto («el rival», «cansado», «tranquilo», «un rematador», «va primero») se callan cuando ese pelotari es una chica:
+  sale otra del grupo o un silencio. Cada una dice de quién habla (tu rival, quien pierde el tanto, quien lo gana o
+  cualquiera). Las versiones en femenino están por grabar, con el visto bueno del autor.
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la
