@@ -2205,6 +2205,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   carbón y la vena, y el de la corona de levas que baja la cola del mazo y lo deja caer sobre la zamarra en el yunque; las
   barras, la pila y la escoria). Los oficios con lámina la abren al acabar el taller, antes de «Antes y ahora»
   (`townActividades.doWorkshop`), y en el material didáctico, en la ficha del oficio.
+- **Los talleres de los oficios** (`src/game/talleres.js`, 21 de noviembre de 2026; el autor: «Vete ampliando las zonas de
+  elaboración de los oficios y explicándolos paso a paso, que sea más visual»). En vez del banco diminuto de
+  `items.makeWorkbench`, el oficio que tiene taller (`TALLERES`; de momento el herrero de Lesaka) monta una zona de trabajo
+  de unos 8 × 7 m: la herrería con el muro de piedra, la fragua con su campana y la chimenea que sale por el tejado, las
+  brasas que laten (más cuando sopla el fuelle, y sueltan chispas), el fuelle de cuero en forma de lágrima que sube y baja,
+  el yunque en su tronco con la herradura que se pone al rojo, la pila de templar (vapor al acabar), la pared de
+  herramientas, el banco con su tornillo, el carbón, las barras y la piedra de afilar. Se monta en coordenadas propias
+  (x a lo ancho, z hacia lo abierto) sobre el suelo de cada punto; lo fijo va junto en una malla por material. Sitio
+  (`sitioTaller`): cerca del vecino, despejado, casi llano, fuera del agua, de las calles y de la plaza (la primera vez
+  salió junto a la fuente de Lesaka), con el pasillo del plano general libre y la entrada alcanzable; se quitan árboles,
+  matas, hierba y flores bajo las losas. Si no cabe, el banco de siempre.
+  Cada puesto dice adónde mira la cámara, desde dónde y dónde se pone el maestro. `townActividades.doWorkshop`: el
+  explorador entra como aprendiz, el maestro ya está dentro, la cámara (un `follow.cinematic` que se desliza de puesto en
+  puesto) enseña el taller entero, luego cada herramienta en su sitio y cada paso en su puesto, con un aro que late en el
+  suelo; la leyenda es `ui/tallerPaso.js`, una tarjeta baja sin velo con el número del paso (la ficha a pantalla entera
+  tapaba justo lo que se explicaba). Los minijuegos no cambian (`juegoPaso`); lo hecho se ve en el taller (`T.paso`). Al
+  acabar o dejarlo a medias, la cámara vuelve al explorador sin corte (`sueltaTaller`, con `follow.salida`). Prueba:
+  entrar en Lesaka, poner el paso 1 de la misión del herrero y llamar a `doTrade` (los minijuegos se dan por ganados).
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la
   presa con su cortina de agua, la escala de ocho pozas que los salmones suben saltando, el tramo de abajo y el mar con la
   escollera; los peces son vivos: alevines, esguines que bajan al mar y adultos que vuelven y desovan).

@@ -16,6 +16,7 @@ import { clearTrees, clearBushes } from '../world/nature.js';
 import { walkable, olvidaZona } from '../world/nav.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from '../ui/minigames.js';
+import { pasoTaller, escondePaso, quitaPaso } from '../ui/tallerPaso.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { isEU, tr } from '../i18n.js';
 import { laminaUrl } from '../ui/laminas.js';
@@ -200,7 +201,90 @@ export class PuebloActividades {
     if (r.win) { this.player.rig.doCheer(); await this.say(M.host, [`¡Tienes buenas manos! El oficio de ${t.title.toLowerCase()} pasaba de padres a hijos.`]); await this.complete(M, { card: M.title, cardText: M.m.text }); }
     else await this.say(M.host, ['¡Casi! Vuelve a intentarlo cuando quieras en el banco de trabajo.']);
   }
+  // El taller de verdad (game/talleres.js): la cámara va de puesto en puesto, el maestro se pone en cada uno y una leyenda
+  // abajo, sin velo, cuenta cada herramienta y cada paso delante de lo que se usa; el minijuego de cada paso, como siempre
   async doWorkshop(M) {
+    const T = M.taller; if (!T) return this.doWorkshopBanco(M);
+    const of = M.oficio, n = of.steps.length, P = this.player, host = M.host, F = this.follow;
+    const eu = isEU(), oname = eu ? (of.eu || of.name) : of.name;
+    const espera = (ms) => new Promise(r => setTimeout(r, ms));
+    P.frozen = true; this.mode = 'mini'; this.ui.hudVisible?.(false);
+    // el explorador, dentro y a un lado, como un aprendiz; la cámara, del plano de siempre al plano del taller entero
+    { const a = T.puestos.aprendiz?.de, f = T.puestos.yunque?.foco || T.puestos.taller.foco; if (a) P.place(a.x, a.z, Math.atan2(f.x - a.x, f.z - a.z)); }
+    // (y el maestro, ya dentro, esperando: si se quedó junto a la plaza, se pone en el taller antes de que llegue la cámara)
+    { const m = T.puestos.maestro?.de; if (host && m && Math.hypot(host.pos.x - m.x, host.pos.z - m.z) > 1.5) { host.cancelPath?.(); host.state = 'idle'; host.target = null; host.setPos(m.x, m.z, Math.atan2(P.pos.x - m.x, P.pos.z - m.z)); } }
+    const C = F.cinematic = { pos: T.puestos.taller.cam.clone(), look: T.puestos.taller.foco.clone(), t: 0 };
+    const ve = (id) => {
+      const p = T.puestos[id]?.cam ? T.puestos[id] : T.puestos.taller;
+      T.señala(p === T.puestos.taller ? null : id);
+      if (F.cinematic !== C) F.cinematic = C;
+      C.pos.copy(p.cam); C.look.copy(p.foco);
+      if (host && p.de) this.alPuesto(T, host, p.de, p.foco);
+      host?.say?.(3.5);
+    };
+    this.ui.onMiniHit = (ok) => { if (!ok) return; P.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); const f = T.puestos[T.activo]?.foco; if (f) this.particles.emit(f, { n: 10, color: of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); };
+    let finished = false;
+    try {
+      if (!M.tstep) {
+        ve('taller'); await espera(400);
+        await pasoTaller(this.ui, { kicker: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, title: M.title, text: of.intro, button: 'Las herramientas' });
+        for (let k = 0; k < of.tools.length; k++) {
+          const [es, ek, what] = of.tools[k]; ve(T.herramientas[k]);
+          await pasoTaller(this.ui, { kicker: 'Las herramientas', i: k, n: of.tools.length, title: eu ? (ek || es) : es, eu: eu ? '' : ek, text: what, button: k < of.tools.length - 1 ? 'Siguiente' : '¡A trabajar!' });
+        }
+      }
+      while (M.tstep < n) {
+        const st = of.steps[M.tstep], id = T.pasos[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
+        ve(id);
+        if (st.game !== 'choice') await pasoTaller(this.ui, { kicker: 'Cómo se hace', i: M.tstep, n, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
+        else await espera(700);
+        escondePaso(); T.fuerza = 1;
+        let r;
+        try { r = await this.juegoPaso(of, st, title); } finally { T.fuerza = 0; }
+        if (r.quit) { quitaPaso(); this.sueltaTaller(T, host, C); await this.say(M.host, ['Cuando quieras, seguimos donde lo has dejado.']); return; }
+        if (!r.win && !r.error) { quitaPaso(); this.sueltaTaller(T, host, C); await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el taller.']); return; }
+        // lo hecho se ve en el taller: la herradura al rojo, el vapor de la pila…
+        T.paso(id); await espera(1100);
+        M.tstep++;
+      }
+      finished = true;
+    } finally { this.ui.onMiniHit = null; if (!finished) { quitaPaso(); this.sueltaTaller(T, host, C); } }
+    if (!finished) return;
+    // el final, con el taller entero detrás: la lámina técnica (si la hay), el antes y el ahora y la misión cumplida
+    quitaPaso(); ve('taller'); T.señala(null); P.rig.doCheer();
+    try {
+      const lam = laminaDe(M.m.kind); if (lam) await laminaTecnica(this.ui, lam, { button: 'Seguir' });
+      await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: eu ? `Horrela aritzen zen ${oname.toLowerCase()}.` : `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
+    } finally { this.sueltaTaller(T, host, C); }
+    const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);
+    await this.complete(M, { card: M.title, cardText: eu ? `Nola egiten zen: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(x => low(tr(x))).join(', ')}.` : `Cómo se hacía: ${(ord || of.steps.filter(s => s.game !== 'choice').map(s => s.title)).map(low).join(', ')}.` });
+  }
+  // el minijuego de un paso de oficio (el mismo en el taller y en el banco)
+  juegoPaso(of, st, title) {
+    if (st.game === 'choice') return choiceGame(this.ui, { title, icon: of.icon, q: isEU() ? `${tr(st.text)} ${tr(st.q)}` : `${st.text} ${st.q}`, options: st.options, answer: st.answer, why: st.why });
+    if (st.game === 'order') return sequenceGame(this.ui, { title, icon: of.icon, hint: 'Toca los pasos en el orden en que se hacían', steps: st.items });
+    if (st.game === 'mash') return mashGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, seconds: 7, goal: 28, art: st.art });
+    if (st.game === 'forge') return play3d('forgeGame', this.ui, { title: st.title });
+    if (st.game === 'stitch') return play3d('stitchGame', this.ui, { title: st.title });
+    if (st.game === 'shear') return play3d('shearGame', this.ui, { title: st.title });
+    return timingGame(this.ui, { title, hint: st.text, icon: of.icon, verb: st.verb, rounds: st.rounds || 4, need: st.need || 3, zone: 0.22, speed: 0.6, art: st.art });
+  }
+  // el maestro va andando a su puesto y se queda mirando a lo que enseña (si en 3,5 s no ha llegado, se pone allí: townGame.update)
+  alPuesto(T, host, de, mira) {
+    host.ignorePlayer = true; host.mira = mira; host.cancelPath?.(); host.goal = null; host.path = [];
+    if (Math.hypot(host.pos.x - de.x, host.pos.z - de.z) < 0.4) { host.state = 'idle'; host.target = null; T.dest = null; return; }
+    host.target = { x: de.x, z: de.z }; host.state = 'walk'; host.arrived = false; host.stuck = 0;
+    T.maestro = host; T.dest = { x: de.x, z: de.z, t: 0 };
+  }
+  // se acaba el taller (o se deja a medias): la cámara vuelve al explorador sin corte, el maestro deja de mirar al puesto
+  sueltaTaller(T, host, C) {
+    T.señala(null); T.fuerza = 0;
+    if (host) { host.mira = null; host.ignorePlayer = false; }
+    const F = this.follow, P = this.player, cam = this.camera;
+    if (F.cinematic === C) { F.cinematic = null; F.yaw = P.heading + Math.PI; F.salida = { pos: cam.position.clone(), look: (C.lookCur || C.look).clone(), t: 0, fov: cam.fov }; }
+    this.ui.hudVisible?.(true); P.frozen = false; this.mode = 'play';
+  }
+  async doWorkshopBanco(M) {
     const of = M.oficio, n = of.steps.length;
     // (en euskera, el oficio con su nombre vasco y las frases que se componen ya montadas en euskera)
     const eu = isEU(), oname = eu ? (of.eu || of.name) : of.name;

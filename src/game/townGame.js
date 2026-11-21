@@ -19,6 +19,7 @@ import { personajeUrl } from '../ui/laminas.js';
 import { tr } from '../i18n.js';
 import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeWorkbench, makeMemorial } from './items.js';
+import { TALLERES, sitioTaller, makeTaller } from './talleres.js';
 import COMARCAS from '../data/comarcas.json';
 import FOLKLORE from '../data/folklore.json';
 import { LEVELS, esExterior } from '../data/levels.js';
@@ -142,7 +143,7 @@ export class TownGame {
     this.mode = 'play';
     this.elapsed = 0;
     this.rnd = mulberry32(def.id.length * 131 + 7);
-    this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = [];
+    this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = []; this.talleres = [];
     // (según la edad de quien juega, sin las misiones que no tocan; cada una guarda su número en el pueblo)
     // (en el campeonato, main.js, solo el frontón: sin misiones)
     this.missions = this.campeonato ? [] : missionSlots(def, edadDe(this.P)).map(({ m, si }, i) => this.makeMission(m, i, si));
@@ -337,8 +338,18 @@ export class TownGame {
         o.userData.ring.visible = false; M.memo = { x: p2.x, z: p2.z, obj: o }; addCircle(p2.x, p2.z, 0.8);
       }
       if (M.type === 'trade') {
-        const wb = makeWorkbench(M.m.kind); const p2 = this.spot({ x: pos.x + 2.5, z: pos.z + 1.5 }, 3);
-        wb.position.set(p2.x, groundHeight(p2.x, p2.z), p2.z); wb.rotation.y = Math.atan2(pos.x - p2.x, pos.z - p2.z); this.scene.add(wb); M.bench = { x: p2.x, z: p2.z, obj: wb };
+        // el taller del oficio (game/talleres.js), si lo tiene y cabe cerca del vecino; si no, el banco de siempre
+        const libre = (x, z) => { const t = this._taken || []; for (let i = 0; i < t.length; i += 3) if (Math.abs(t[i] - x) < 5.5 + t[i + 2] && Math.abs(t[i + 1] - z) < 5.5 + t[i + 2]) return false; return true; };
+        const s = M.oficio && TALLERES[M.m.kind] ? sitioTaller(M.m.kind, pos, libre) : null;
+        if (s) {
+          const T = makeTaller(M.m.kind, s.x, s.z, s.ry, { emit: (...a) => this.particles?.emit(...a) });
+          this.scene.add(T.group, T.aro); (this.talleres ||= []).push(T);
+          const e = T.suelo(0, 3.1); M.bench = { x: e.x, z: e.z, obj: T.group }; M.taller = T;
+          (this._taken ||= []).push(s.x, s.z, 4.6);
+        } else {
+          const wb = makeWorkbench(M.m.kind); const p2 = this.spot({ x: pos.x + 2.5, z: pos.z + 1.5 }, 3);
+          wb.position.set(p2.x, groundHeight(p2.x, p2.z), p2.z); wb.rotation.y = Math.atan2(pos.x - p2.x, pos.z - p2.z); this.scene.add(wb); M.bench = { x: p2.x, z: p2.z, obj: wb };
+        }
       }
     }
     // la tienda del pueblo (productos locales, producto estrella y trueque)
@@ -682,6 +693,12 @@ export class TownGame {
       o.userData.ring.material.opacity = 0.45 + Math.sin(this.elapsed * 4) * 0.25;
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
+    // los talleres de los oficios (las brasas, el fuelle…), solo cerca; y el maestro que no llega a su puesto, se pone en él
+    for (const T of this.talleres || []) {
+      if (Math.abs(T.x - P.pos.x) + Math.abs(T.z - P.pos.z) < 90) T.update(dt, this.elapsed);
+      const h = T.maestro, d = T.dest;
+      if (h && d && (d.t += dt) > 3.5) { if (Math.hypot(h.pos.x - d.x, h.pos.z - d.z) > 0.6) { h.setPos(d.x, d.z); h.state = 'idle'; h.target = null; } T.dest = null; }
+    }
     this.agro?.update(dt, P, this.particles);
     this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
     this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
