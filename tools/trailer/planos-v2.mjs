@@ -94,7 +94,7 @@ export const PLANOS = {
     },
   },
   manadaHuyen: {
-    pueblo: 'altsasu-alsasua', hora: 20.3, tiempo: 'clear', seg: 3.0, antes: 36,
+    pueblo: 'altsasu-alsasua', hora: 20.3, tiempo: 'clear', seg: 3.0, antes: 4,   // (con 36 ya habían pasado todos al empezar)
     prep: (U, est) => {
       const G = U.G; G.manadaMomotxorros(); const D = G.desfileOn, C = D.C; est.D = D;
       for (const a of D.gente) { const s = a.sitio; a.oculto = false; a.obj.visible = true; a.pos.x = s.x; a.pos.z = s.z; a.state = 'idle'; a.target = null; a.path = null; a.enSitio = true; a.heading = a.h0 = Math.atan2(C.x - s.x, C.z - s.z); }
@@ -113,7 +113,7 @@ export const PLANOS = {
         const van = vaA.filter((g) => Math.abs(Math.atan2(Math.sin(g - a), Math.cos(g - a))) < 0.35).length;
         const v = n >= 4 ? van * 10 + n : n - 100; if (v > nota) { nota = v; mejor = a; hueco = 6 + (n - 1) * 2; }
       }
-      est.a = mejor; est.R = Math.max(8, Math.min(13, hueco - 3));
+      est.a = mejor; est.R = Math.max(9, Math.min(17, hueco - 3));
       G.player.place(C.x - Math.cos(mejor) * 60, C.z - Math.sin(mejor) * 60, 0); G.player.obj.visible = false;
       for (const g of G._carteles || []) g.visible = false;
       window.__ay.despeja(U, est.c, 30, D.gente); est.fog = [50, 700];

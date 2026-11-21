@@ -132,7 +132,7 @@ export class PuebloCharla {
         if (R) {
           const D = this.destinoCosecha(m), C = M.cos;
           if (M.step === 0) { await S([m.text, R.explica, `Cuando esté todo, llévalo a ${D.nombre}. Te espero allí, en la báscula.`]); this.startCosecha(M); }
-          else if (C?.pesado) { this.player.rig.doAct('pick', 0.8); await S([R.modo === 'cosechadora' ? '¡Qué buen grano! Con este trigo se hará harina y pan.' : `¡Qué buena cosecha! En ${D.nombre} la prepararán ahora mismo.`, 'Gracias por echar una mano: el campo es mucho trabajo.']); this.quitaTractor(M); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
+          else if (C?.pesado) { this.player.rig.doAct('pick', 0.8); await S([R.modo === 'cosechadora' ? '¡Qué buen grano! Con este trigo se hará harina y pan.' : `¡Qué buena cosecha! En ${D.nombre} la prepararán ahora mismo.`, 'Gracias por echar una mano: el campo es mucho trabajo.']); this.quitaTractor(M); await this.laminaCosecha(m, S); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
           else if (C?.fase === 'transporte') await S(['Pasa el tractor por la báscula y páralo encima: así se pesa la carga.']);
           else if (C) await S([R.modo === 'cosechadora' ? 'Sigue segando. Cuando se llene la tolva, descárgala en el remolque.' : `${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. Recoge las cajas despacio con el tractor.`]);
           else { M.step = 0; await S(['Empecemos otra vez.']); this.startCosecha(M); }
@@ -140,7 +140,7 @@ export class PuebloCharla {
         }
         if (M.step === 0) { await S([m.text, `Recoge ${M.need} ${nom} en los campos. Te los marco con un brillo.`]); this.startGather(M, M.item, 'Recoger ' + nom, 'fields'); }
         else if (M.step === 1) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. ¡Mira en los campos!`]);
-        else { this.player.rig.doAct('pick', 0.8); await S(['¡Qué buena cosecha! Esto lo llevaremos al mercado.']); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
+        else { this.player.rig.doAct('pick', 0.8); await S(['¡Qué buena cosecha! Esto lo llevaremos al mercado.']); await this.laminaCosecha(m, S); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
         return;
       }
       case 'herd':
@@ -368,6 +368,13 @@ export class PuebloCharla {
     }
   }
   // Tarjetas que explican un producto o una tradición: qué es, cómo se hace, y antes/ahora
+  /** Al acabar una cosecha cuyo cultivo tiene lámina técnica (el espárrago), se ve por dentro cómo se recoge (ui/anatomia.js) */
+  async laminaCosecha(m, S) {
+    const lam = laminaDe(m.crop);
+    if (!lam) return;
+    await S(['Antes de irte, mira cómo se recoge por dentro.']);
+    await laminaTecnica(this.ui, lam, { button: 'Seguir' });
+  }
   async explain(X, title, part, lamina = '', boton = '') {
     if (!X) return;
     const icon = this.missions.find(M => M.m.product === title || M.m.title === title)?.icon || 'book';

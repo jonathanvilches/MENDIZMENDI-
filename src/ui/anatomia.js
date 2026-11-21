@@ -1,5 +1,5 @@
 // Láminas técnicas (skill Anatomy): ilustraciones isométricas interactivas que enseñan por dentro cómo se hace o cómo
-// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado...). Se dibujan con tools/anatomia/*.mjs, que las deja en
+// funciona algo de Navarra (la almadía en el portillo, el queso, el rosado, el espárrago, el molino...). Se dibujan con tools/anatomia/*.mjs, que las deja en
 // public/anatomia/<id>.html, y aquí se abren encima del juego, casi a pantalla entera, con su título y «Seguir».
 // El autor, 21 de noviembre de 2026: «explicaciones técnicas en 3D [...] todo esto quiero que poco a poco lo vayas
 // aplicando y lo vayas metiendo en el juego y en las misiones».
@@ -10,9 +10,11 @@ export const LAMINAS_TEC = {
   almadia: { title: 'La almadía en el portillo', kicker: 'Cómo funciona' },
   queso: { title: 'Cómo se hace el queso', kicker: 'Cómo se hace' },
   vino: { title: 'Cómo se hace el rosado', kicker: 'Cómo se hace' },
+  esparrago: { title: 'Cómo se recoge el espárrago', kicker: 'Cómo se hace' },
+  molino: { title: 'Cómo funciona el molino', kicker: 'Cómo funciona' },
 };
 // los productos de las misiones (data/procesos.js) que tienen su lámina
-export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino' };
+export const LAMINA_DE = { idiazabal: 'queso', roncal: 'queso', wine: 'vino', mill: 'molino' };   // (el espárrago, por su cultivo: esparrago)
 export const laminaDe = (id) => LAMINA_DE[id] || (LAMINAS_TEC[id] ? id : null);
 
 const CSS = `.lt-ov{position:fixed;inset:0;z-index:960;display:grid;place-items:center;background:rgba(8,3,18,.92);
