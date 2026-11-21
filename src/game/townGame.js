@@ -685,7 +685,7 @@ export class TownGame {
     this.agro?.update(dt, P, this.particles);
     this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
     this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
-    // la aventura (atalaya, kutxas, montura, anillo y corazones: townAventura.js): se monta ya en la carga (montaAventura,
+    // la aventura (atalaya, kutxas, montura y anillo: townAventura.js): se monta ya en la carga (montaAventura,
     // desde main.js); si no llegó a montarse, en el primer fotograma de juego
     if (!this.av && this.mode === 'play') this.montaAventura();
     this.aventuraTick(dt);

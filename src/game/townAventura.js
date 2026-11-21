@@ -4,10 +4,9 @@
 //    estaban), lo mediano (la atalaya del pueblo, en el alto más alto que se alcanza, con su banderola a la vista desde
 //    abajo) y lo pequeño (las kutxas, cofres de madera escondidos que solo se ven al pasar cerca).
 //  · La atalaya enseña en el mapa dónde quedan las kutxas sin abrir y deja llevar una marca propia a la que elijas.
-//  · Las mejoras se ganan, nunca se compran: cada dos atalayas, un quinto más de anillo de resistencia; cada ocho
-//    kutxas, un corazón más.
-//  · Los corazones: una caída desde muy alto quita uno; sentarse en un banco los devuelve. Sin corazones, se vuelve a
-//    la plaza con todos. Nadie se hace daño de verdad: es un susto.
+//  · Las mejoras se ganan, nunca se compran: cada dos atalayas, un quinto más de anillo de resistencia.
+//  · Una caída desde muy alto es solo un susto: la cámara tiembla y sale la pista de la capa. (Antes quitaba uno de tres
+//    corazones; se quitaron el 21 de noviembre de 2026, el autor: «si no sirven para nada, elimínalos».)
 //  · Tu montura junto a la entrada: la que hayas elegido (caballo de Burguete, pottoka o burro; montura.js) o, si no has
 //    elegido, la de la comarca. Se llama desde la mochila y viene trotando. Y para moverse por el pueblo, también un
 //    tractor libre y una bici aparcados cerca (conducir.js; 20 de noviembre de 2026, el autor: «diferentes medios de
@@ -32,13 +31,13 @@ const libreEn = (x, z, r = 1.2) => Math.pow(x ** 4 + z ** 4, 0.25) < BOUNDARY - 
 /** ¿Es llano? (para aparcar: el tractor y la bici, en un sitio sin cuesta) */
 const llano = (x, z, r) => { const h = groundHeight(x, z); return Math.abs(groundHeight(x + r, z) - h) < r * 0.3 && Math.abs(groundHeight(x - r, z) - h) < r * 0.3 && Math.abs(groundHeight(x, z + r) - h) < r * 0.3 && Math.abs(groundHeight(x, z - r) - h) < r * 0.3; };
 
-export const AV = { kutxas: 5, cadaAtalayas: 2, cadaKutxas: 8, maxAguante: 5, maxCorazon: 3, corazones: 3 };
+export const AV = { kutxas: 5, cadaAtalayas: 2, maxAguante: 5 };
 /** El campo de la aventura en el perfil (se crea vacío la primera vez; lo demás del perfil no se toca). */
 export function aventuraDe(P) { const a = P.aventura ||= {}; a.atalayas ||= {}; a.kutxas ||= {}; a.pistas ||= {}; a.marcas ||= {}; return a; }
-/** Las mejoras ganadas: quintos de anillo y corazones de más. */
+/** Las mejoras ganadas: quintos de anillo. */
 export function mejorasDe(P) {
   const a = aventuraDe(P), nA = Object.keys(a.atalayas).length, nK = Object.values(a.kutxas).reduce((s, l) => s + (l?.length || 0), 0);
-  return { atalayas: nA, kutxas: nK, aguante: Math.min(AV.maxAguante, Math.floor(nA / AV.cadaAtalayas)), corazon: Math.min(AV.maxCorazon, Math.floor(nK / AV.cadaKutxas)) };
+  return { atalayas: nA, kutxas: nK, aguante: Math.min(AV.maxAguante, Math.floor(nA / AV.cadaAtalayas)) };
 }
 
 // Las piezas de madera se funden en una sola malla con el color en los vértices: la atalaya entera es una llamada de
@@ -88,7 +87,7 @@ export class PuebloAventura {
   aventuraInicia() {
     if (this.campeonato || this.av) return;
     const P = this.player, D = aventuraDe(this.P), id = this.def.id, M = mejorasDe(this.P);
-    const A = this.av = { hud: new AventuraHud(), capa: null, cor: AV.corazones + M.corazon, corMax: AV.corazones + M.corazon, kutxas: [], atalaya: null, montura: null, vehs: [], t: 0, cae: 0 };
+    const A = this.av = { hud: new AventuraHud(), capa: null, kutxas: [], atalaya: null, montura: null, vehs: [], t: 0, cae: 0 };
     P.aguanteMax = 1 + 0.2 * M.aguante; P.aguante = P.aguanteMax; P.agotado = false;
     P.onModo = (m, antes) => this.aventuraModo(m, antes);
     P.onCaida = () => this.aventuraGolpe();
@@ -164,15 +163,10 @@ export class PuebloAventura {
     if (m === 'resbala') this.ui.whisper('Sin fuerzas: resbalas. Descansa un momento y prueba por otro lado.', 3600);
   }
   aventuraGolpe() {
-    const A = this.av, P = this.player; if (!A) return;
-    A.cor = Math.max(0, A.cor - 1); if (this.sound?.sfx) this.sound.tone(150, 0.25, 'triangle', 0.25, this.sound.sfx); this.follow.shake = 0.3;
-    if (A.cor > 0) { this.ui.whisper('¡Ay, qué golpe! Desde tan alto, salta y vuelve a pulsar saltar: abres la capa y planeas.', 5200); return; }
-    A.cor = A.corMax; const pl = PLACES.plaza, s = this.spot({ x: pl.x, z: pl.z }, 5) || pl;
-    P.place(s.x, s.z, P.heading); P.aguante = P.aguanteMax; P.agotado = false; this.follow.snap?.(P);
-    this.ui.whisper('Menudo susto. Un vecino te ha acompañado a la plaza: ya estás como nuevo.', 5200);
+    const A = this.av; if (!A) return;
+    if (this.sound?.sfx) this.sound.tone(150, 0.25, 'triangle', 0.25, this.sound.sfx); this.follow.shake = 0.3;
+    this.ui.whisper('¡Ay, qué golpe! Desde tan alto, salta y vuelve a pulsar saltar: abres la capa y planeas.', 5200);
   }
-  /** Sentarse en un banco devuelve los corazones (lo llama townGame al descansar). */
-  aventuraDescansa() { const A = this.av; if (A && A.cor < A.corMax) { A.cor = A.corMax; this.ui.toast('Has descansado: todos los corazones', 'sparkle'); } }
   aventuraTick(dt) {
     const A = this.av; if (!A) return;
     const P = this.player, jugando = this.mode === 'play' && !this.pelotaMatch && !this.soloCancha && !this.altScene;
@@ -182,7 +176,6 @@ export class PuebloAventura {
     { const W = this.rt?.weather, k = W ? Math.min(1, W.k || 0) : 0; P.gasto = 1 + (W?.kind === 'rain' ? 0.35 * k : W?.kind === 'snow' ? 0.5 : 0); }
     A.capa?.update(dt);
     A.hud.anilloEn(P, this.camera, dt, jugando && !P.vehiculo && P.obj.visible);
-    A.hud.corazones(A.cor, A.corMax, dt, jugando, `Corazones: ${A.cor} de ${A.corMax}`);
     A.montura?.quieta(dt, P);
     // pista: cayendo desde un alto sin la capa abierta
     if (jugando && !P.grounded && P.modo === 'pie' && P.vy < -6) this.aventuraPista('capa', 'En el aire, pulsa saltar otra vez: abres la capa de pastor y bajas planeando.');
@@ -209,12 +202,11 @@ export class PuebloAventura {
     if (it.kind === 'desmontar') { A.montura?.baja(); return true; }
     if (it.kind === 'kutxa') {
       const k = it.k; if (k.abierta) return true;
-      const antes = mejorasDe(this.P).corazon; k.abierta = true; (D.kutxas[id] ||= []).push(k.i); addXP(15); saveProfile();
+      k.abierta = true; (D.kutxas[id] ||= []).push(k.i); addXP(15); saveProfile();
       this.sound?.fanfare?.(); this.particles?.emit({ x: k.x, y: k.obj.position.y + 0.5, z: k.z }, { n: 16, color: ['#ffd166', '#fff3c4', '#ff8a5c'], speed: 1.6, size: 0.3, life: 1.1, gravity: 1.5, spread: 0.8 });
       k.obj.userData.tapa.rotation.x = -1.1;   // (la tapa, abierta)
-      const M = mejorasDe(this.P), quedan = A.kutxas.filter(x => !x.abierta).length;
-      if (M.corazon > antes) { A.corMax = AV.corazones + M.corazon; A.cor = A.corMax; this.ui.toast('¡Un corazón más! Lo has ganado abriendo kutxas', 'sparkle', 4200); }
-      else this.ui.toast(quedan ? `¡Kutxa abierta! Quedan ${quedan} en este pueblo` : '¡Has abierto todas las kutxas de este pueblo!', 'sparkle', 3600);
+      const quedan = A.kutxas.filter(x => !x.abierta).length;
+      this.ui.toast(quedan ? `¡Kutxa abierta! Quedan ${quedan} en este pueblo` : '¡Has abierto todas las kutxas de este pueblo!', 'sparkle', 3600);
       if (D.marcas[id] === k.i) delete D.marcas[id];
       return true;
     }

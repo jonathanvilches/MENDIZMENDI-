@@ -2,7 +2,7 @@
 // enciende de noche. Si se hace de noche haciendo las misiones, se puede dormir en ella hasta la mañana, en vez de pasar
 // la noche dando vueltas (el autor, 20 de noviembre de 2026: «Si realizando las misiones se nos hace de noche, podemos
 // buscar un hostal o una borda o una posada donde pasar la noche hasta el día siguiente»). De noche, en su puerta, la
-// acción «Dormir en la posada hasta la mañana»: fundido, la mañana (las 7:45), los corazones de la aventura llenos y un
+// acción «Dormir en la posada hasta la mañana»: fundido, la mañana (las 7:45), la resistencia llena y un
 // «buenos días». Al caer la noche avisa una vez, salvo si se está siguiendo una leyenda que solo se ve de noche. Sale en
 // los postes indicadores del pueblo (townGame.carteles).
 import * as THREE from 'three';
@@ -81,14 +81,14 @@ export class Posada {
     if (!noche) this.avisada = false;
     this.noche = noche;
   }
-  /** Dormir hasta la mañana: fundido, las 7:45, los corazones llenos y un «buenos días». */
+  /** Dormir hasta la mañana: fundido, las 7:45, la resistencia llena y un «buenos días». */
   async dormir() {
     const g = this.g; if (this.durmiendo || g.mode !== 'play') return; this.durmiendo = true;
     try {
       g.player.frozen = true;
       await g.ui.fadeOut();
       g.sky.time = MANANA; this.noche = false;
-      try { g.aventuraDescansa?.(); } catch (e) { /* sin aventura */ }
+      try { g.player.aguante = g.player.aguanteMax ?? 1; g.player.agotado = false; } catch (e) { /* nada */ }   // (descansado)
       await new Promise(r => setTimeout(r, 900));
       await g.ui.fadeIn();
       g.sound?.magic?.();
