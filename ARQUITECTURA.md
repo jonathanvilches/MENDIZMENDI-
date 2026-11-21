@@ -2105,7 +2105,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   desde el centro (la fase según la distancia), unos giran sobre sí mismos y otros se balancean de cara al centro, se paran
   a bailar con el cencerro, y cada pocos saltos levantan chispas al caer. El aire se pone rojo: tinte de la luz hasta 0,72
   (`sky.tinte`), las farolas parpadean un poco, brasas rojas que flotan sobre la plaza y un velo rojo en los bordes de la
-  pantalla (`.manada-velo`, nunca oscuro). Cuando llevas 14 s a menos de 45 m (si no vienes, a los dos minutos y medio),
+  pantalla (`.manada-velo`, nunca oscuro). Las chispas y ascuas, a petición del autor esa misma tarde («me gustaba
+  añadir [...] esas chispas o ascuas de fuego [...] le daban un toque»), no paran mientras dura: cada 0,03 s (0,09 en
+  calidad baja) uno de los tres momotxorros más cercanos a la cámara suelta ascuas rojas y naranjas que suben de su
+  cabeza, y las brasas flotan la mitad por la plaza y la otra mitad a unos 9 m delante de quien mira, para que se vean
+  de cerca. Cuando llevas 14 s a menos de 45 m (si no vienes, a los dos minutos y medio),
   salen corriendo por las calles en siete direcciones, cada uno por la que le pilla, y al alejarse 55-85 m de la plaza,
   al llegar o a los 9-16 s desaparecen en un chispazo; el rojo se va en 7 s.
 - **La Foru Plaza de Altsasu, la de verdad** (`world/monuments.js`, `kiosk` con `estilo: 'altsasu'` y `escultura`;
@@ -2143,10 +2147,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   hace algo de Navarra, paso a paso al pasar el dedo o el ratón. Se dibujan con `tools/anatomia/<nombre>.mjs` (lo común,
   colores y modo juego, en `tools/anatomia/comun.mjs`), que deja `entrega/anatomia/<nombre>(-light).html` para el autor y
   `public/anatomia/<nombre>.html` para el juego; con `?juego` en la dirección, sin leyenda y del alto del visor. El visor
-  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay tres: **la almadía en el portillo** (al
-  acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal) y **el
+  (laminaTecnica) las abre casi a pantalla entera con su título y un botón. Hay cinco: **la almadía en el portillo** (al
+  acabar el minijuego de la almadía, «Ver cómo pasa el portillo»), **el queso** (misiones de Idiazabal y Roncal), **el
   rosado** (misión del vino: vendimia, despalillado y estrujado, maceración con la piel, sangrado, fermentación a 16 °C y
-  embotellado). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
+  embotellado), **el espárrago blanco** (al acabar su cosecha, `laminaCosecha` de `game/townCharla.js`: el caballón,
+  la punta que asoma, la gubia, tapar el hoyo, el agua fría a 2 °C y las latas) y **el molino de rodezno** (misión del
+  molino: el caz, el cubo, el rodezno que gira, las muelas, la tolva, el cedazo y la maquila). LAMINA_DE dice qué producto de `data/procesos.js` tiene lámina: en la charla del vecino, el paso de cómo se
   hace lleva el botón, y en el material didáctico, «Verlo por dentro, paso a paso». Cada lámina pasa la comprobación de
   líneas de la skill (`scripts/lines.mjs`: ninguna raya acaba en el aire) en tema oscuro y claro.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
