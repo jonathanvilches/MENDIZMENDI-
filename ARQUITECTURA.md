@@ -2130,6 +2130,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con su linterna (antes, el quiosco grande de piedra de cualquier plaza). Y la escultura «Altsasuko sustraiak» (Joxe
   Ulibarrena, 1994), el tronco del nogal viejo tallado con figuras, sobre peñas, en su sitio real (42,895502, -2,16818:
   `at: [-18.7, -12.8]`, metros desde el centro del pueblo). Queda pendiente el suelo, que en el juego es adoquín.
+- **El quiosco de Altsasu en su sitio, con la plaza alrededor** (`levels/townReal.js`, `KIOSKO`; `world/nature.js`,
+  townTrees; el autor, 21 de noviembre de 2026, con la foto de satélite: «La plaza de los Fueros de Alsasua tiene espacio
+  más que de sobra alrededor del kiosco»). El quiosco iba en el centro de los datos de la plaza, 10 m al oeste del de
+  verdad y pegado a la fachada de la casa de al lado, y en su sitio real se levantaba una casa: el edificio «Kiosko» de los
+  datos. Ahora, si la ficha tiene quiosco y los datos traen su edificio (solo Altsasu), la plaza se centra en él, el
+  quiosco va allí y esa casa no se levanta; queda con unos 10 m libres a cada lado, como en la foto. Y los árboles en
+  hilera de la plaza no se plantan a menos de 11 m de ningún quiosco (también en Tudela), para que quede despejado; la
+  manada de momotxorros baila alrededor del quiosco nuevo.
 - **Fuera los corazones** (`ui/aventuraHud.js`, `game/townAventura.js`; el autor, 21 de noviembre de 2026: «yo tampoco sé
   de dónde vienen los corazones… si no sirven para nada, elimínalos»). Salían unos segundos al entrar en cada pueblo y
   solo servían para las caídas desde muy alto. Una caída ahora es solo un susto (tiembla la cámara y sale la pista de la

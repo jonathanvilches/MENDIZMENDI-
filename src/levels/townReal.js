@@ -145,7 +145,12 @@ export function createRealTownLevel(def, D) {
   const vgrid = (G, x, z) => { const fx = clamp((x + half1) / VC, 0, VN - 1.001), fz = clamp((z + half1) / VC, 0, VN - 1.001), i = Math.floor(fx), j = Math.floor(fz), a = fx - i, c = fz - j; return G[j * VN + i] * (1 - a) * (1 - c) + G[j * VN + i + 1] * a * (1 - c) + G[(j + 1) * VN + i] * (1 - a) * c + G[(j + 1) * VN + i + 1] * a * c; };
   // ---------- Plazas ----------
   const LG = D.lugares || {};
-  const PL = LG.plaza || { x: 0, z: 0, r: 14, pts: null };
+  // (con kiosco en la ficha y su edificio en los datos, «Kiosko», la plaza se centra en él: en Altsasu el centro de los
+  // datos caía 10 m al oeste, pegado a las casas, el kiosco quedaba arrinconado y en su sitio de verdad se levantaba una
+  // casa. El autor, 21 nov: «La plaza de los Fueros de Alsasua tiene espacio más que de sobra alrededor del kiosco»)
+  const KIOSKO = (def.landmarks || []).some(l => l.kind === 'kiosk')
+    ? CASAS.find(c => c.n && /k[iy]osk|quiosc/i.test(c.n) && Math.hypot(c.x - (LG.plaza?.x || 0), c.z - (LG.plaza?.z || 0)) < 30) || null : null;
+  const PL = KIOSKO ? { ...(LG.plaza || { r: 14, pts: null }), x: KIOSKO.x, z: KIOSKO.z } : LG.plaza || { x: 0, z: 0, r: 14, pts: null };
   const PLAZAS = (LG.plazas || []).map(p => ({ ...p, bb: bbox(p.pts) }));
   // (¿cae el centro, donde va la fuente, dentro de una plaza de los datos? Si no, alrededor de él se hace una plaza redonda:
   // en Amaiur el centro de los datos quedaba fuera de su única plaza y la fuente iba en mitad de una cuesta)
@@ -288,7 +293,7 @@ export function createRealTownLevel(def, D) {
   // (el castillo o el palacio sobre su edificio de los datos, buscado por su nombre; la muralla alrededor de la iglesia;
   // la almadía y el molino en la orilla del río; los miradores, las ruinas y los monolitos en lo más alto; el resto, en
   // un hueco libre cerca de la plaza o fuera del casco. Las casas de los datos que caen dentro del monumento no se levantan)
-  const TAKEN = new Set();
+  const TAKEN = new Set(KIOSKO ? [KIOSKO] : []);   // (el edificio del kiosco no se levanta como casa: allí va el kiosco)
   const nrm = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const townWords = new Set(nrm(def.name).split(/[\s/-]+/));
   const GENERIC = new Set(['casa', 'torre', 'palacio', 'iglesia', 'ermita', 'puente', 'castillo', 'mirador', 'plaza', 'fuente', 'molino', 'dolmen', 'ruinas',

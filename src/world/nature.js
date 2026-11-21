@@ -651,6 +651,8 @@ function townTrees(fits) {
   if (MOD?.bosque || !PLACES?.plaza) return [];
   const rnd = mulberry32(777), out = [], cerca = (x, z, r) => out.some(o => Math.hypot(o.x - x, o.z - z) < r);
   const plazas = MOD?.real?.plazas?.length ? MOD.real.plazas.map(p => p.pts) : [Array.from({ length: 16 }, (_, i) => [PLACES.plaza.x + Math.cos(i / 16 * 6.283) * PLACES.plaza.r, PLACES.plaza.z + Math.sin(i / 16 * 6.283) * PLACES.plaza.r])];
+  // (alrededor del kiosco, nada de copas en 11 m: la plaza de los Fueros de Altsasu, despejada en torno al kiosco)
+  const kio = (PLACES.landmarks || []).find(l => l.kind === 'kiosk');
   const dentro = (P, x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, zi] = P[i], [xj, zj] = P[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
   for (const P of plazas) {
     let per = 0, area = 0;
@@ -663,7 +665,7 @@ function townTrees(fits) {
       const tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L, nx = -tz * sg, nz = tx * sg;   // (n, hacia dentro)
       for (; acc < L && k < n; acc += paso, k++) {
         const x = a[0] + tx * acc + nx * 3.6, z = a[1] + tz * acc + nz * 3.6;
-        if (!dentro(P, x, z) || cerca(x, z, 6) || !fits(x, z)) continue;
+        if (!dentro(P, x, z) || cerca(x, z, 6) || !fits(x, z) || (kio && Math.hypot(x - kio.x, z - kio.z) < 11)) continue;
         out.push({ x, z, y: terrainHeight(x, z), type: 'chestnut', s: 0.85 + rnd() * 0.2, rot: rnd() * 6.28, special: true });
       }
       acc -= L;
