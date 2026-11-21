@@ -206,6 +206,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, noche, la hizo la ventana principal: `master` hasta `fb9b7a45`. Dos láminas técnicas nuevas: cómo se hace el pan
-  (el horno de leña cortado por delante, al acabar el taller de la panadera) y cómo se hace una alpargata (al acabar el de la
-  alpargatera).
+- 21 nov, noche, la hizo la ventana principal: `master` hasta `7e2f4691`. Tres láminas técnicas nuevas: cómo se hace el pan
+  (el horno de leña cortado por delante, al acabar el taller de la panadera), cómo se hace una alpargata (al acabar el de la
+  alpargatera) y cómo se hace una cesta (al acabar el del cestero).
