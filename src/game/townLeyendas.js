@@ -314,14 +314,24 @@ export class PuebloLeyendas {
   }
   /** La manada en cada fotograma: llegan corriendo, llenan la plaza bailando y se van (ver manadaMomotxorros). */
   updateManada(D, dt) {
-    const P = this.player, C = D.C, G = D.gente, chispas = (x, y, z, k = 1) => this.particles.emit({ x, y, z }, { n: Math.round(5 * k), color: ['#ff2a12', '#ff6a2a', '#ffc08a'], speed: 1.6, size: 0.2, life: 0.8, gravity: 2.2, spread: 0.5, up: 1.4 });
+    const P = this.player, C = D.C, G = D.gente, chispas = (x, y, z, k = 1) => this.particles.emit({ x, y, z }, { n: Math.round(5 * k), color: ['#ff2a12', '#ff6a2a', '#ffc08a'], speed: 1.6, size: 0.36, life: 0.8, gravity: 2.2, spread: 0.5, up: 1.4 });
     // (el rojo: sube en 3 s hasta 0,55 mientras bailan y se va en 7 s al marcharse)
     const sube = Math.min(1, D.t / 3), baja = D.fase === 'van' ? Math.max(0, 1 - (D.t - D.van) / 7) : 1;
     D.k = sube * baja * (D.fase === 'llegan' ? 0.7 : 1);
     this.tinte = D.k > 0.01 ? { col: ROJO_MANADA, k: D.k * 0.72, parpadeo: D.k * 0.18 } : null;
     if (D.velo && Math.abs((D.veloK ?? -1) - D.k) > 0.02) { D.veloK = D.k; D.velo.style.opacity = D.k.toFixed(2); }
     // (brasas rojas que flotan sobre la plaza)
-    if (D.k > 0.2 && (D.brasa -= dt) <= 0) { D.brasa = QUALITY === 'low' ? 0.1 : 0.05; const t = this.rnd() * 6.283, r = this.rnd() * 18; this.particles.emit({ x: C.x + Math.cos(t) * r, y: groundHeight(C.x, C.z) + 0.4 + this.rnd() * 2, z: C.z + Math.sin(t) * r }, { n: 1, color: ['#ff3a1c', '#ff7a3a'], speed: 0.25, size: 0.12, life: 2.6, gravity: -0.35, spread: 0.2 }); }
+    // (el autor, 21 nov: «esas chispas o ascuas de fuego [...] me gustaban, le daban un toque»: más y más grandes, que se
+    // vean bajo el velo rojo; en el rodaje del tráiler, con 0,17 apenas eran puntitos)
+    // (la mitad, por la plaza; la otra mitad, delante de quien mira, para que siempre se vean algunas cerca)
+    if (D.k > 0.15 && (D.brasa -= dt) <= 0) {
+      D.brasa = QUALITY === 'low' ? 0.08 : 0.035;
+      const cam = this.camera?.position, cerca = cam && Math.hypot(cam.x - C.x, cam.z - C.z) < 45 && (D.lado = !D.lado);
+      let ox = C.x, oz = C.z, R = 20;
+      if (cerca) { const f = this.camera.getWorldDirection(D.dir ||= new THREE.Vector3()); ox = cam.x + f.x * 9; oz = cam.z + f.z * 9; R = 7; }
+      const t = this.rnd() * 6.283, r = this.rnd() * R, x = ox + Math.cos(t) * r, z = oz + Math.sin(t) * r;
+      this.particles.emit({ x, y: groundHeight(x, z) + 0.3 + this.rnd() * 2.6, z }, { n: QUALITY === 'low' ? 1 : 2, color: ['#ff3a1c', '#ff7a3a', '#ffc070'], speed: 0.3, size: 0.38, life: 3.4, gravity: -0.4, spread: 0.35, drag: 0.3 });
+    }
     // (de vez en cuando, uno grita)
     if ((D.grita -= dt) <= 0) { D.grita = 1.6 + this.rnd() * 2.4; const a = G[Math.floor(this.rnd() * G.length)]; if (a && !a.oculto) this.sound.creature?.('momotxorro', 'call', a.pos); }
     const dPlaza = Math.hypot(P.pos.x - C.x, P.pos.z - C.z);
@@ -390,7 +400,17 @@ export class PuebloLeyendas {
     for (const a of D.gente) { if (a.oculto) continue; const d = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z); a.obj.visible = d < 100; if (d < 100 || D.manada) a.update(dt, P); a.aura?.userData.tick?.(dt); }
     // (sus cencerros, de los que tienes cerca, uno tras otro, y chispas rojas de sus luces)
     if ((D.cen -= dt) <= 0) { D.cen = (D.manada ? 0.2 : 0.35) + this.rnd() * 0.3; const c = D.gente.filter(a => !a.oculto && Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) < 70); const a = c[Math.floor(this.rnd() * c.length)]; if (a) this.sound.cencerroCerca?.(a.pos, 3, 0.85); }
-    if (!D.manada && (D.chispa -= dt) <= 0) { D.chispa = 0.25; const a = D.gente[Math.floor(this.rnd() * D.gente.length)]; if (a?.obj.visible) this.particles.emit({ x: a.pos.x, y: a.pos.y + 2.3, z: a.pos.z }, { n: 4, color: ['#ffb45a', '#fff1c0'], speed: 0.8, size: 0.22, life: 0.9, gravity: -0.6 }); }
+    if ((D.chispa -= dt) <= 0) {
+      // (en la manada, ascuas rojas que suben de sus cabezas sin parar, como en la fiesta de antes; se apagan al irse)
+      const m = D.manada; D.chispa = m ? (QUALITY === 'low' ? 0.09 : 0.03) : 0.25;
+      // (en la manada, de tres al azar, el más cercano a quien mira: así las ascuas se ven, no se pierden al fondo)
+      let a = D.gente[Math.floor(this.rnd() * D.gente.length)];
+      const cam = m && this.camera?.position;
+      if (cam) for (let i = 0; i < 2; i++) { const b = D.gente[Math.floor(this.rnd() * D.gente.length)]; if (b && !b.oculto && b.obj.visible && (a.oculto || Math.hypot(b.pos.x - cam.x, b.pos.z - cam.z) < Math.hypot(a.pos.x - cam.x, a.pos.z - cam.z))) a = b; }
+      if (a?.obj.visible && !a.oculto && (!m || D.k > 0.05)) this.particles.emit({ x: a.pos.x, y: a.pos.y + 2.3, z: a.pos.z }, m
+        ? { n: QUALITY === 'low' ? 3 : 5, color: ['#ff4a1e', '#ff8a2a', '#ffd08a'], speed: 0.9, size: 0.46, life: 1.3, gravity: -0.75, spread: 0.35 }
+        : { n: 4, color: ['#ffb45a', '#fff1c0'], speed: 0.8, size: 0.22, life: 0.9, gravity: -0.6 });
+    }
     // (y el rumor de toda la comparsa, más fuerte cuanto más cerca, que se apaga en los últimos segundos)
     if ((D.rum = (D.rum || 0) - dt) <= 0) { D.rum = 0.5; let d = 1e9; for (const a of D.gente) if (!a.oculto) d = Math.min(d, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z)); this.sound.bucleCencerros?.(Math.max(0, 1 - d / 90) * Math.min(1, (D.dur - D.t) / 6)); }
     if (D.t > D.dur) this.finDesfile();
