@@ -8,7 +8,7 @@ con los golpes del montaje y unos pocos sonidos del propio juego.
   · golpes graves en el golpe y en las palabras que entran de golpe (Explora, Juega, Campeonatos, Descubre) y en el logo
   · un soplido en cada barrido
   · los cencerros de los momotxorros en los tres destellos rojos del silencio y, bajos, en la manada
-  · el público del frontón bajo la pelota y los aplausos en «Campeonatos»
+  · el público del frontón bajo la pelota y los aplausos en «Campeonatos», y los golpes de la pelota al pulso
   · los sonidos del juego en los avisos (misión completada, nueva misión, insignia)
 
 Uso: python3 tools/trailer/mezcla-v2.py <salida.wav>
@@ -142,8 +142,44 @@ p[-f:] *= rampa(f, 1, 0)
 pon(p, B(8), 0.3)
 apl = lee('aplausos-final.mp3')
 pon(apl[:int(2.4 * SR)] * rampa(int(2.4 * SR), 1, 0), B(12), 0.45)
-mano = lee('pelota-mano-1.mp3')
-pon(mano, B(8) + 0.05, 0.5)
+# los golpes de la pelota (los del juego, la versión A que eligió el autor): un peloteo al pulso bajo los planos del
+# Labrit (mano, frontis y bote en cada compás, como un tanto de verdad), más seco en los cortes rápidos del final de la
+# frase y uno en cada plano de pelota de Descubre
+G = {k: [lee(f'pelota-{k}-{i}.mp3') for i in (1, 2, 3)] for k in ('mano', 'frontis', 'bote', 'pared')}
+
+
+def golpea(k, t, g, n=[0]):
+    n[0] += 1
+    x = G[k][n[0] % 3].copy()
+    # (el golpe empieza donde está el impacto: el mp3 trae delante el silencio del codificador)
+    a = int(np.argmax(np.abs(x[:, 0]) > 0.02))
+    x = x[max(0, a - int(0.0015 * SR)):]
+    pan = (-0.25, 0.1, 0.3)[n[0] % 3]
+    x[:, 0] *= 1 - pan
+    x[:, 1] *= 1 + pan
+    # (los golpes vienen unos 12 dB por debajo de la música: se suben con un techo suave, para que el chasquido suba sin
+    # que el pico mande en el limitador del final, y lo que ya suena se aparta 120 ms, como un compresor de lado)
+    x = 0.55 * np.tanh(x * g / 0.55)
+    i, d = int(t * SR), int(0.12 * SR)
+    if i + d < N:
+        mix[i:i + d] *= (1 - 0.5 * np.sin(np.linspace(0, np.pi, d)) ** 0.4)[:, None]
+    pon(x, t, 1.0)
+
+
+for k in range(8, 15):
+    if k == 12:      # (el público y los aplausos: un solo golpe)
+        golpea('mano', B(k) + 0.02, 2.5)
+        continue
+    t = B(k)
+    golpea('mano', t + 0.02, 3.5)
+    golpea('frontis', t + BEAT * 1, 3.5)
+    golpea('bote', t + BEAT * 2.5, 3.2)
+    if k % 2:
+        golpea('pared', t + BEAT * 3.25, 2.8)
+for q in range(4):   # (los cortes de cuarto de compás de B(15) a B(16))
+    golpea('mano' if q % 2 == 0 else 'frontis', B(15) + q * BEAT + 0.02, 3.5)
+golpea('mano', B(22.25) + 0.02, 3.0)
+golpea('frontis', B(22.25) + BEAT * 0.5, 2.6)
 
 # ---------- los avisos ----------
 for nom, ta, g in [('ui-fanfarria.mp3', B(0) + 0.35, 0.35), ('ui-abre.mp3', B(6) + 0.1, 0.45), ('ui-moneda.mp3', B(20) + 0.3, 0.45)]:
