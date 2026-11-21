@@ -17,8 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (21 nov, tarde): lámina técnica «Cómo se hace una barrica» (taller del tonelero).
-- Principal (21 nov, tarde): golpes de la pelota arreglados (a su hora, sin golpes dobles, parejos y sin ruido de fondo).
 
 
 ## Peticiones entre ventanas
@@ -207,123 +205,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 21 nov, tarde, la hizo la ventana principal: `master` hasta `61b8c01c`. Tres láminas técnicas más: el viaje del salmón
-  (misión de la guarda del río, Lesaka), la carbonera (taller del carbonero) y «De la oveja al ovillo» (taller de la hilandera).
-- 21 nov, mediodía, la hizo la ventana principal: `master` hasta `aebce296`. Seis láminas técnicas isométricas nuevas
-  dentro de las misiones y en el material didáctico: el piquillo (conservera y cosecha de Lodosa), el aceite (almazara de
-  Tafalla y cosecha de aceitunas), la miel (Aoiz), la cuajada (kaiku y piedra al rojo), la txistorra (Pamplona) y la
-  ferrería (al acabar el taller del herrero de Lesaka).
-- 21 nov, tarde (22), la hizo la ventana principal, por encargo del autor: `master` hasta `24de3108`. Altsasu: vuelven
-  las chispas y ascuas de fuego de los momotxorros (ascuas rojas que suben de sus cabezas y brasas flotando por la
-  plaza). Láminas técnicas isométricas (Anatomy) dentro de las misiones: el queso (Idiazabal y Roncal), la almadía en el
-  portillo, el rosado (misión del vino), el espárrago (al acabar su cosecha) y el molino de rodezno; también en el
-  material didáctico. Pelota: los golpes que eligió el autor (la versión A). Fuera el vídeo de los pelotaris chocando el
-  puño, la lámina animada detrás del logo de la carga y la palabra del centro de los anillos de progreso.
-- 21 nov, mediodía (21), la hizo la ventana principal, por encargo del autor: `master` hasta `374ccfb9`. La pelotari,
-  siempre en femenino: otras 24 frases de Mikel y Edurne («Las dos en su sitio», «Ninguna se rinde», «¡Bote pronto, muy
-  agachada!», «La txapela ya tiene dueña»…). La página de progreso con aire a los lados en el móvil. Altsasu: el triple
-  de momotxorros llegan corriendo con chispas rojas, llenan la plaza bailando, el aire se pone rojo unos segundos y se
-  van corriendo por todo el pueblo hasta desaparecer; el quiosco y la escultura del nogal de la Foru Plaza, como los de
-  verdad. El arranque: la portada espera a que lleguen las cuatro imágenes del mapa (con la ortofoto).
-- 21 nov, mañana (20), la hizo la ventana principal, por encargo del autor: `master` hasta `57670ebd`. Las frases de los
-  comentaristas en femenino para las pelotaris: 29 versiones grabadas con las mismas voces de Mikel y Edurne («Es una
-  rematadora», «la rival», «Se le nota cansada», «¡Sigue viva!», «Anda fina con la mano derecha»…), que suenan cuando
-  la frase habla de una chica; con un chico, la de siempre.
-- 21 nov, madrugada (19), la hizo la ventana principal, por encargo del autor: `master` hasta `0a4036f9`. Altsasu: al
-  encontrar el tercer momotxorro, la manada llega corriendo, baila dando vueltas alrededor del kiosco de la plaza y se va
-  corriendo, con un rojo suave. Fuera los corazones de arriba. En los campeonatos (menos la final), el vídeo de entrada
-  hecho con Higgsfield antes de que salgan los pelotaris. Los golpes de la pelota, con el eco del frontón cubierto. Los
-  comentaristas ya no dicen en masculino lo que habla de una pelotari.
-- 21 nov, madrugada (18), la hizo la ventana principal, por encargo del autor: `master` hasta `dff1626e`. Pelota en casa: trotar en el sitio para que el pelotari corra (sin trotar, al paso), golpes más sensibles (desde 2,2 anchos de hombros por segundo) y la pelota más lenta (74 %); y las voces de los paseantes de Otsagabia al mismo volumen que los demás vecinos.
-- 20 nov, noche (17), la hizo la ventana principal, por encargo del autor: `master` hasta `1b7ca209`. La posada: en cada
-  pueblo, también en Otsagabia, una casa con letrero y farol donde, de noche, se puede dormir hasta la mañana.
-- 20 nov, noche (16), la hizo la ventana principal, por encargo del autor: `master` hasta `7d2b32cb`. La bici, entera: la
-  horquilla y el manillar en su sitio (se dibujaban más atrás y la rueda de delante iba suelta), con cadena, guardabarros,
-  luces, manetas y varillas en la cesta.
-- 20 nov, noche (15), la hizo la ventana principal, por encargo del autor: `master` hasta `2896d4b7`. En Altsasu, al
-  encontrar los tres momotxorros, el final es de miedo: salen muchos más de todas las calles, te rodean y se dispersan, con
-  luz y niebla rojas, farolas que parpadean y un zumbido con latido.
-- 20 nov, noche (14), la hizo la ventana principal, por encargo del autor: `master` hasta `4fd4760d`. Los cencerros
-  vuelven a oírse (y con ellos pasos, animales y ambientes: el bus de efectos llevaba desde el 11 de noviembre sin salida).
-  El avisador de proximidad de los cencerros, una píldora pequeña arriba, también en el Zarratrako de Ochagavía, que se
-  aparta de la barra de misiones. En el partido de pelota, fuera la pantalla VS vieja: de la elección de material, directo
-  al sorteo del saque.
-- 20 nov, noche (13), la hizo la ventana principal, por encargo del autor: `master` hasta `cfe3f826`. Los vecinos, casi
-  quietos al hablar: de frente a quien les habla, sin girar el cuerpo y con un gesto de brazo pequeño, también entre frase y
-  frase. Corriendo, la punta del pie en la línea de la rodilla. La ficha del pueblo en el mapa, más sencilla: fondo oscuro,
-  el escudo a la vista junto al nombre, las misiones sin caja y la siguiente misión en una línea junto al botón.
-- 20 nov, noche (12), la hizo la ventana principal, por encargo del autor: `master` hasta `2bf14292`. La carrera de los
-  pelotaris, más orgánica: zancadas más largas y menos pasos por segundo (antes hasta siete u ocho), el tronco algo hacia
-  delante y las palmas hacia el muslo, de canto, en vez de hacia arriba. Vuelven los golpes de pelota recortados de la
-  grabación del frontón que pasó el autor. Y sin los planos de la grada tras un buen tanto: de cerca, los vecinos se veían mal.
-- 20 nov, noche (11), la hizo la ventana principal, por encargo del autor: `master` hasta `386ab0a0`. La próxima parada,
-  otra vez arriba a la derecha (con su foto y el botón de jugar) y las comarcas a todo el ancho de abajo; la cámara sube al
-  mismo paso que la isla y ya no se le escapa por arriba; la ficha del pueblo en el mapa, más ancha, con el sello de la
-  comarca, el escudo del pueblo, las misiones en una fila y la siguiente misión junto al botón de jugar.
-- 20 nov, noche (10), la hizo la ventana principal, por encargo del autor: `master` hasta `388181eb`. Los montes de las
-  islas, con roca donde la hay en los de verdad: paredes, crestas y lo alto del Pirineo, pedregal al pie, menos en el norte
-  atlántico y bajo el bosque; la hierba, distinta en solanas, umbrías, vaguadas y crestas; surcos de ladera y grano de
-  piedra y de prado; nieve solo en las canales de las paredes. Solo en los aparatos que no van en modo ligero.
-- 20 nov, noche (9), la hizo la ventana principal, por encargo del autor: `master` hasta `c4ead6bd`. Las islas de las 12
-  comarcas, de una sola pieza: sin el labio de hierba del borde, el prado dobla sobre el filo y baja por la panza en
-  lenguas, con el color del terreno; y sin la raya parda fina que asomaba a lo largo del borde (rendijas entre el terreno y
-  la panza por las que se veía el interior de la roca).
-- 20 nov, noche (8), la hizo la ventana principal, por encargo del autor: `master` hasta `94c6f3a0`. «Tu progreso» como
-  panel de control: tres esferas de anillos que se llenan al entrar (explorador, pelotari y fútbol), la tabla de tu liga,
-  el ranking de pelotaris de tus campeonatos y cada comarca con su anillo. Los pelotaris celebran con los brazos en V sin
-  meter las manos en la cabeza y corren con los pies por debajo del cuerpo. Torneos ya con la música de la pelota.
-- 20 nov, noche (7), la hizo la ventana principal, por encargo del autor: `master` hasta `b2f7198f`. Lo del vídeo del
-  iPhone de las 16:46: el vuelo de dron de la isla sin parones (un programa del sombreado que faltaba por preparar y
-  medidas de la página que obligaban a recolocarlo todo a mitad de fotograma) y el terreno que baja hasta el borde de la
-  isla sin la repisa lisa. El inicio sin «0/12 comarcas»: el progreso está en el panel nuevo «Tu progreso» (menú →
-  Progreso, o tocando tu retrato). La próxima parada, abajo a la derecha como tarjeta con foto y JUGAR. Iconos de jugar y
-  pausa en glifo blanco redondeado.
-- 20 nov, noche (6), la hizo la ventana principal, por encargo del autor: `master` hasta `b0747c85`. La barra de arriba
-  del mapa del inicio, rehecha como cabecera plana igual que la del menú («No me gusta la barra que has añadido de menú,
-  comarcas y la pantalla que estamos jugando actualmente»): sin cápsulas, el texto sobre un velo fino, el botón redondo
-  del menú en la esquina, tu retrato y nivel, Navarra descubierta y la próxima parada con JUGAR.
-- 20 nov, noche (5), la hizo la ventana principal, por encargo del autor tras jugar a pelota: `master` hasta `2f70bf3b`.
-  Vuelven los golpes de la pelota del 17 de noviembre (frontis y bote distintos: «antes el sonido del golpeo contra el
-  frontis era diferente al golpeo contra el suelo y tenía sentido») y el saque sin tocar la palanca bota 1,5 m hacia la
-  contracancha en vez de en el medio («tiene que sacar un poco más hacia la contracancha»).
-- 20 nov, noche (4), la hizo la ventana principal, por la auditoría de misiones («no termines ni pares hasta tener todo
-  solucionado»): `master` hasta `e8f0b3fd`. Entran la fuente de beber de fundición en las plazas con kiosco (Pamplona,
-  Tudela: sin ella no se llenaba la cantimplora y «Sube al Ezkaba» no empezaba), la explanada de delante de los castillos
-  transitable en la rejilla de caminos (Marcilla, Cortes, Javier, Olite: no había ruta a la guía ni al patio) y la
-  escalinata de la iglesia que baja hasta el suelo, más empinada en las laderas y sin pisar casas (Tudela, Leitza, Isaba:
-  la puerta, con el sabio y la visita, quedaba en alto sin paso). Los 38 pueblos completan sus misiones con el jugador
-  automático (cosecha y almadía, con sus pruebas propias).
-- 20 nov, noche (3), la hizo la ventana principal, por el encargo del autor («al diseño de esta barra de arriba, de los
-  elementos del menú y demás, también hay que darle una vuelta de diseño porque se han quedado anticuados») y la
-  auditoría de misiones: `master` hasta `1e13ba69`. Entran la barra de arriba del mapa en cápsulas (retrato con el aro de
-  la experiencia y MENÚ, Navarra descubierta con una barra de un tramo por comarca, la próxima parada con JUGAR) y la
-  ficha del menú con el mismo lenguaje (`src/hub/barra-inicio.css`, `hub.js`, `inicio.js`), y los puentes estrechos y en
-  diagonal que la rejilla de caminos ya cruza (Ituren llega a la otra orilla; `src/world/nav.js`).
-- 20 nov, noche (2), la hizo la ventana principal, dentro de la auditoría de misiones que pidió el autor («vete poco a
-  poco y comienza a resolver todo lo que queda»): `master` hasta `b507fcc7`. Entran el redil con la puerta hacia el lado
-  libre y los animales del rebaño puestos donde hay camino hasta ella (Aribe y Etxalar ya se terminan;
-  `src/world/townBuilder.js`, `src/game/townActividades.js`, `src/world/nav.js`); la misión de observar de Orreaga, con
-  la flecha de siempre hasta el hayedo cuando los animales quedan fuera del alcance de los prismáticos
-  (`src/game/townCimas.js`, `src/game/townGame.js`); la entrada de Ituren dentro de la rejilla de caminos
-  (`src/levels/townReal.js`), y salir de la tienda con Escape (`src/game/tienda.js`).
-- 20 nov, noche, la hizo la ventana principal, por el encargo del autor («cuando recogemos basura para el Basajaun la
-  línea amarilla no se elimina»): `master` hasta `583cdc93`. Entra solo eso: al recoger una basura, la flecha y la luz
-  amarilla dejan de señalarla y pasan a la siguiente, y con la quinta van al Basajaun (`src/game/game.js`, pickItem y
-  questTarget).
-- 20 nov, tarde, la hizo la ventana principal, por el encargo del autor (carruseles, golpes, rótulo final, público):
-  `master` hasta `455103f5`. Entran los carruseles de un solo toque, también la carta de los lados y después de deslizar
-  (`src/game/carrusel3d.js`, `src/hub/galeria.js`); los golpes de pelota limpios, solo el impacto y una cola de sala corta
-  (`src/assets/sonidos/pelota-*.mp3`); el «¡Tanto y partido!» con placa oscura, título en oro y quién gana con el tanteo
-  (`src/pelota/hud.js`, `match.js`, `rules.js`); el público con las manos en las rodillas, el resto de la grada de pie
-  aplaudiendo al celebrar y 64 animados en el móvil (`src/actors/crowdAnim.js`, `crowd3d.js`, `src/game/fronton.js`); las
-  leyendas que ahora sí se pueden terminar (`src/game/townGame.js`); las voces de los vecinos que pasean y del músico de
-  Otsagabia (`src/assets/voz/vecinos/ochagavia/`) y el saludo de noche que ya no da los buenos días (`src/game/saludo.js`).
-- 20 nov, mediodía, la hizo la ventana principal, por el encargo del autor de la mañana (cencerros, carruseles,
-  Basajaun, Altsasu, golpe de la pelota y figuras pixeladas): `master` hasta `2d011202` (la web, en `1ff01139`). Entran
-  los cencerros grabados con ElevenLabs para el Zarratrako, los joaldunak y los momotxorros, con la música a un tercio
-  mientras se buscan (`src/audio.js`, cencerroGuia y buscaCencerros); el menú de un solo toque y el giro del carrusel que
-  no se frena en ordenadores lentos (`src/hub/hub.js`, `src/game/carrusel3d.js`, apuntado en «Peticiones»); los golpes
-  de pelota de verdad sacados del vídeo del autor (`src/assets/sonidos/pelota-*.mp3`); las figuras de los pelotaris sin
-  pixelar en el ordenador y la tele (`src/ui/videos.js`: la animada solo si no hay que estirarla); el Basajaun, la Lamia
-  y los vecinos de Otsagabia que pasean (`src/game/game.js`), y la comparsa de carnaval que sale por las calles al
-  encontrar todas las figuras, en Altsasu momotxorros con luces rojas y cencerros (`src/game/townLeyendas.js`).
+- 21 nov, tarde, la hizo la ventana principal: `master` hasta `6e2ae3ca`. Los golpes de la pelota arreglados (a su
+  hora, sin golpes dobles, parejos y sin el ruido del vídeo; con el comentarista ya no se apagan) y la lámina técnica
+  «Cómo se hace una barrica» (taller del tonelero).
