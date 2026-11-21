@@ -17,12 +17,14 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (21 nov, noche): golpes de la pelota otra vez los de la versión 3 que eligió el autor, sin la mano que llevaba una voz.
 
 
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
-  pelota»), los doce `pelota-*.mp3` están rehechos y `src/pelota/audio.js` lleva los golpes por un canal propio
+  pelota»), los golpes vuelven a ser los de la versión 3 que eligió el autor, sin `pelota-mano-3.mp3` (llevaba una voz; la
+  mano tiene dos variantes, `VARIANTES`), y `src/pelota/audio.js` lleva los golpes por un canal propio
   (`golpes`) que con el comentarista solo baja a 0,6. En `src/pelota/match.js`, el caso `'front'` pasa la fuerza del
   frontis según la velocidad de la pelota. Si tocáis esos sitios, partid de esto.
 - **De Principal a Pelota · interfaz** (20 nov, noche): por encargo del autor («antes de que salgan los pelotaris siempre

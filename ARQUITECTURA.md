@@ -2147,14 +2147,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `tools/sonidos/golpes-eco.py`. Las cuatro versiones que ha habido se comparan en una página para que el autor elija
   (`https://claude.ai/artifact/LZ9pjKppv73RZZFjzXhTCt`). **Eligió la A** (los primeros recortes del vídeo, con el sonido
   de la sala; commit 3bba7287): es la que suena en el juego y en el peloteo del tráiler (`tools/trailer/mezcla-v2.py`).
-  Después (el autor, 21 de noviembre: «quiero que soluciones el sonido de la pelota, que no me gusta cómo está en el juego
-  ahora mismo») se volvieron a sacar del mismo vídeo con `tools/sonidos/golpes-a-limpios.py`, porque los recortes de la A
-  tenían fallos: en cinco de los doce el impacto llegaba 25 a 160 ms tarde, dos llevaban dentro un segundo golpe, dos
-  salían del mismo instante del vídeo y entre variantes había hasta 12 dB. Ahora cada golpe es el impacto de verdad (45 ms,
-  sin el soplido de fondo del vídeo) seguido de la sala del propio frontón, siempre la misma; las tres variantes, igual de
-  fuertes, y cada tipo al nivel que tenía. En `pelota/audio.js` los golpes van por su propio canal: cuando habla el
-  comentarista bajan solo a 0,6 (la música y el ambiente, a 0,34), y el arranque del sonido se busca relativo a su pico.
-  El frontis suena más o menos fuerte según la velocidad de la pelota (`pelota/match.js`).
+  Esa tarde se probaron unos recortes nuevos del mismo vídeo (impacto limpio y sala común), pero el autor se quedó otra vez
+  con la 3 de la página: «La 3 es perfecta». Solo pidió quitar «un sonido que no corresponde ni al golpe de la pelota, ni
+  al golpe de pie contra el suelo»: la tercera variante de la mano llevaba en su cola una voz del vídeo (un tono de unos
+  450 Hz durante un tercio de segundo). Ya no está: la mano tiene dos variantes y los demás golpes, tres (`VARIANTES` en
+  `pelota/audio.js`). En `pelota/audio.js` los golpes van por su propio canal: cuando habla el comentarista bajan solo a
+  0,6 (la música y el ambiente, a 0,34), y el arranque del sonido se busca relativo a su pico. El frontis suena más o
+  menos fuerte según la velocidad de la pelota (`pelota/match.js`).
 - **Láminas técnicas (skill Anatomy)** (`ui/anatomia.js`; el autor, 21 de noviembre de 2026: «explicaciones técnicas en
   3D [...] la elaboración de diferentes alimentos, la elaboración de artesanías [...] poco a poco lo vayas aplicando y lo
   vayas metiendo en el juego y en las misiones»). Ilustraciones isométricas interactivas que enseñan por dentro cómo se

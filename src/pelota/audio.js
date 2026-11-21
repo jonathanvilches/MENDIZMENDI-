@@ -5,6 +5,10 @@ import { Crowd, PUBLICO } from '../crowdAudio.js';
 import { Grada, carga, efecto } from '../audio/pistas.js';
 // (los golpes grabados de la pelota: la mano, el frontis, el bote y la pared izquierda, tres de cada)
 const GOLPES = ['mano', 'frontis', 'bote', 'pared'];
+// (cuántas variantes tiene cada golpe: la tercera de la mano llevaba en su cola una voz del vídeo, un tono de unos 450 Hz
+// durante un tercio de segundo, y el autor pidió quitarla: «hay un sonido que no corresponde ni al golpe de la pelota, ni
+// al golpe de pie contra el suelo», 21 de noviembre de 2026)
+const VARIANTES = { mano: 2, frontis: 3, bote: 3, pared: 3 };
 const SHARED = { ctx: null };
 // (dónde empieza de verdad cada muestra de golpe, en segundos: ver golpe)
 const INICIO = new WeakMap();
@@ -41,7 +45,7 @@ export class PelotaAudio {
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
     if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.bus); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
     // (la grada grabada suena siempre; la sintetizada, solo con PUBLICO)
-    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); carga(this.ctx, 'abucheo'); for (const k of GOLPES) for (let i = 1; i <= 3; i++) carga(this.ctx, `pelota-${k}-${i}`); }
+    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); carga(this.ctx, 'abucheo'); for (const k of GOLPES) for (let i = 1; i <= VARIANTES[k]; i++) carga(this.ctx, `pelota-${k}-${i}`); }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
@@ -134,7 +138,7 @@ export class PelotaAudio {
    *  ha llegado, y entonces suena el sintetizado de antes */
   golpe(tipo, v) {
     const c = this.ctx; if (!c) return false;
-    let i = 1 + Math.floor(Math.random() * 3); if (i === this['ult' + tipo]) i = (i % 3) + 1;
+    const nv = VARIANTES[tipo] || 3; let i = 1 + Math.floor(Math.random() * nv); if (i === this['ult' + tipo]) i = (i % nv) + 1;
     const b = carga(c, `pelota-${tipo}-${i}`).buf; if (!b) return false;
     this['ult' + tipo] = i;
     const s = c.createBufferSource(), g = c.createGain(); s.buffer = b;

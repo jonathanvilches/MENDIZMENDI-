@@ -145,12 +145,12 @@ pon(apl[:int(2.4 * SR)] * rampa(int(2.4 * SR), 1, 0), B(12), 0.45)
 # los golpes de la pelota (los del juego, la versión A que eligió el autor): un peloteo al pulso bajo los planos del
 # Labrit (mano, frontis y bote en cada compás, como un tanto de verdad), más seco en los cortes rápidos del final de la
 # frase y uno en cada plano de pelota de Descubre
-G = {k: [lee(f'pelota-{k}-{i}.mp3') for i in (1, 2, 3)] for k in ('mano', 'frontis', 'bote', 'pared')}
+G = {k: [lee(f'pelota-{k}-{i}.mp3') for i in ((1, 2) if k == 'mano' else (1, 2, 3))] for k in ('mano', 'frontis', 'bote', 'pared')}   # (la tercera mano se quitó: llevaba una voz)
 
 
 def golpea(k, t, g, n=[0]):
     n[0] += 1
-    x = G[k][n[0] % 3].copy()
+    x = G[k][n[0] % len(G[k])].copy()
     # (el golpe empieza donde está el impacto: el mp3 trae delante el silencio del codificador)
     a = int(np.argmax(np.abs(x[:, 0]) > 0.02))
     x = x[max(0, a - int(0.0015 * SR)):]
