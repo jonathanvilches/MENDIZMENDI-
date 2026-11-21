@@ -23,6 +23,7 @@ import { Actor } from '../actors/people.js';
 import { MOD, riverInfo } from '../world/layout.js';
 import { removeMover } from '../world/colliders.js';
 import { infoCard } from '../ui/minigames.js';
+import { laminaTecnica } from '../ui/anatomia.js';
 import { laminaUrl } from '../ui/laminas.js';
 import { iconSVG } from '../ui/icons.js';
 import { clamp, damp, mulberry32 } from '../util/math.js';
@@ -353,7 +354,9 @@ export async function jugarAlmadia(game, M, say) {
   await infoCard(game.ui, { icon: 'raft', lamina: laminaUrl('burgui-almadia'), kicker: `Bajada del Esca · ${estrellas}`, title: r.golpes ? `¡Llegaste con ${r.golpes} ${r.golpes === 1 ? 'golpe' : 'golpes'}!` : '¡Llegaste sin un golpe!',
     text: `${r.portillo ? 'Entraste por el portillo de la presa' : 'La presa se te resistió'}${r.ojo ? ' y pasaste por el ojo grande del puente medieval.' : '.'} Así trabajaban los almadieros del Roncal.`,
     extra: '<div class="antes-ahora"><div><b>Antes</b>La madera de los bosques del Pirineo bajaba por el Esca, el Aragón y el Ebro atada en almadías. Era un oficio duro y peligroso.</div><div><b>Ahora</b>El saber de los almadieros es Patrimonio Cultural Inmaterial de la Humanidad. En Burgui hay un museo de la almadía y cada primavera se bajan otra vez.</div></div>',
-    button: '¡Lo he aprendido!' });
+    button: 'Ver cómo pasa el portillo' });
+  // (y la lámina técnica: la almadía de tres tramos bajando por el portillo de la presa, doblándose por las ataduras)
+  await laminaTecnica(game.ui, 'almadia', { button: '¡Lo he aprendido!' });
   return r;
 }
 

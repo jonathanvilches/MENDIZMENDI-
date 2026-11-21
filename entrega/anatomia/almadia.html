@@ -115,11 +115,22 @@ body{margin:0;background:var(--anatomy-page);color:var(--anatomy-text);font:14px
 .iso{--anatomy-page:#0c0618;--anatomy-card:#160c2a;--anatomy-text:#b9a9d8;--anatomy-strong:#ffd36a;--anatomy-muted:#7d6a9e;
 --anatomy-paper:#160c2a;--anatomy-face:#21123c;--anatomy-top:#24143f;--anatomy-shade-0:#120a22;--anatomy-shade-1:#160d29;--anatomy-shade-2:#1b1031;--anatomy-shade-3:#201338;
 --anatomy-lit-top:#3a1c4c;--anatomy-lit-shade:#2a1440;--anatomy-hi:#ecdcff;--anatomy-mid:#8c74b8;--anatomy-lo:#54407c;--anatomy-faint:#33244f;--anatomy-lit:#ff7ac8;
---anatomy-halo:#05020c;--anatomy-dot:#ecdcff;--agua:#2c3274;--agua-baja:#3d4392;--agua-abajo:#1d2156}
+--anatomy-halo:#05020c;--anatomy-dot:#ecdcff}
 .iso[data-theme="light"]{--anatomy-page:#f4f0fa;--anatomy-card:#fcfaff;--anatomy-text:#5a4a78;--anatomy-strong:#7a3b8f;--anatomy-muted:#8f80aa;
 --anatomy-paper:#fcfaff;--anatomy-face:#ffffff;--anatomy-top:#ffffff;--anatomy-shade-0:#ddd6ea;--anatomy-shade-1:#e6e0f0;--anatomy-shade-2:#eee9f6;--anatomy-shade-3:#f5f2fa;
 --anatomy-lit-top:#ffe9f6;--anatomy-lit-shade:#f7d9ec;--anatomy-hi:#2a1d42;--anatomy-mid:#8a78ad;--anatomy-lo:#b6a9cf;--anatomy-faint:#d8cfe8;--anatomy-lit:#d6338f;
---anatomy-halo:#8a7aa8;--anatomy-dot:#3a2d52;--agua:#d3d9f5;--agua-baja:#bcc5ef;--agua-abajo:#c4cbec}
+--anatomy-halo:#8a7aa8;--anatomy-dot:#3a2d52}
+
+body.en-juego{background:var(--anatomy-card)}
+body.en-juego .iso-page{margin:0 auto;width:min(calc(100vw - 4px),calc((100vh - 108px) * 1.8182 + 48px))}
+body.en-juego .iso-figure{margin:0}
+body.en-juego .iso-plate{box-shadow:none}
+body.en-juego .iso-legend{display:none}
+body.en-juego [data-corner="hint"],body.en-juego [data-corner="title"]{display:none}
+body.en-juego .iso-stage{touch-action:none}
+
+.iso{--agua:#2c3274;--agua-baja:#3d4392;--agua-abajo:#1d2156}
+.iso[data-theme="light"]{--agua:#d3d9f5;--agua-baja:#bcc5ef;--agua-abajo:#c4cbec}
 .agua{fill:var(--agua);stroke:none}.agua-baja{fill:var(--agua-baja)}.agua-abajo{fill:var(--agua-abajo)}
 .corriente{stroke-dasharray:2 6;animation:corre 1.6s linear infinite}
 @keyframes corre{to{stroke-dashoffset:-8}}
@@ -801,6 +812,7 @@ const ISO_CSS = `
 @media (max-width:560px){.iso-plate{padding:48px 12px 70px}.iso-plate-corner[data-corner="hint"]{bottom:18px}}
 @media (prefers-reduced-motion:reduce){.iso-line[data-flow],.iso-dots circle[data-pulse]{animation:none}}
 `;
+if (/[?&]juego\b/.test(location.search)) document.body.classList.add('en-juego');
 
 const G = (() => { 
 

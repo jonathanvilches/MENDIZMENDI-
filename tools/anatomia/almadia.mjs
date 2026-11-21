@@ -7,17 +7,15 @@
 // Por eso la almadía se dobla en las curvas»; «Cada presa tenía un portillo: un paso abierto para las almadías»).
 // Las medidas son las del juego (game/almadia.js: tramos de 7 m, 9 troncos, 3,4 m de ancho, 0,45 m entre tramos;
 // world/presas.js: 1,1 m de salto, portillo de 5,4 m).
-// Uso: node tools/anatomia/almadia.mjs [--light]  →  entrega/anatomia/almadia(-light).html
-import { writeFileSync, readFileSync, mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+// Uso: node tools/anatomia/almadia.mjs [--light]  →  entrega/anatomia/almadia(-light).html (y public/anatomia, para el juego)
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { RAIZ, KIT, COLORES, enJuego, MARCA_JUEGO, escribe } from './comun.mjs';
 import * as k from '../../.claude/skills/anatomy/kit/iso-kit.mjs';
 import * as G from '../../.claude/skills/anatomy/kit/lathe.mjs';
 import * as T from '../../.claude/skills/anatomy/kit/tube.mjs';
 import { kitScript } from '../../.claude/skills/anatomy/scripts/inline-kit.mjs';
 
-const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..');
-const KIT = join(RAIZ, '.claude/skills/anatomy/kit');
 const theme = process.argv.includes('--light') ? 'light' : 'dark';
 const WIDTH = 600, HEIGHT = 330;
 
@@ -229,7 +227,7 @@ const svg = k.figureSvg({
 // ---------- lo que se mueve en la página ----------
 const sinExport = (f) => readFileSync(join(KIT, f), 'utf8').replace(/^import .*$/gm, '').replace(/^export /gm, '');
 const NOMBRES_G = ['frameOf', 'frameAlong', 'disc', 'arcOf', 'prismOf', 'viewOf', 'dot3', 'unit3', 'sub3', 'cross3', 'add3', 'mul3', 'len3', 'lerp3', 'pathLength', 'resample', 'cut', 'pointAlong', 'tangentAlong', 'fillet', 'stepsFor', 'scaleOf', 'lightOf', 'toneOf', 'bandOf', 'hullOf', 'runsOf', 'curveRuns', 'fadeOf'];
-const live = `
+const live = MARCA_JUEGO + `
 const G = (() => { ${sinExport('lathe.mjs')}; return { ${NOMBRES_G.join(', ')} }; })();
 const TB = (() => { ${sinExport('tube.mjs')}; return { tubePieces, tubeSvg }; })();
 const P = ${JSON.stringify(P)}, MOD = ${JSON.stringify(MOD)}, TIPOS = ${JSON.stringify(TIPOS)};
@@ -293,15 +291,9 @@ draw();
 `;
 
 // ---------- los colores del juego (morados, rosa y dorado) y el agua ----------
-const CSS = `
-.iso{--anatomy-page:#0c0618;--anatomy-card:#160c2a;--anatomy-text:#b9a9d8;--anatomy-strong:#ffd36a;--anatomy-muted:#7d6a9e;
---anatomy-paper:#160c2a;--anatomy-face:#21123c;--anatomy-top:#24143f;--anatomy-shade-0:#120a22;--anatomy-shade-1:#160d29;--anatomy-shade-2:#1b1031;--anatomy-shade-3:#201338;
---anatomy-lit-top:#3a1c4c;--anatomy-lit-shade:#2a1440;--anatomy-hi:#ecdcff;--anatomy-mid:#8c74b8;--anatomy-lo:#54407c;--anatomy-faint:#33244f;--anatomy-lit:#ff7ac8;
---anatomy-halo:#05020c;--anatomy-dot:#ecdcff;--agua:#2c3274;--agua-baja:#3d4392;--agua-abajo:#1d2156}
-.iso[data-theme="light"]{--anatomy-page:#f4f0fa;--anatomy-card:#fcfaff;--anatomy-text:#5a4a78;--anatomy-strong:#7a3b8f;--anatomy-muted:#8f80aa;
---anatomy-paper:#fcfaff;--anatomy-face:#ffffff;--anatomy-top:#ffffff;--anatomy-shade-0:#ddd6ea;--anatomy-shade-1:#e6e0f0;--anatomy-shade-2:#eee9f6;--anatomy-shade-3:#f5f2fa;
---anatomy-lit-top:#ffe9f6;--anatomy-lit-shade:#f7d9ec;--anatomy-hi:#2a1d42;--anatomy-mid:#8a78ad;--anatomy-lo:#b6a9cf;--anatomy-faint:#d8cfe8;--anatomy-lit:#d6338f;
---anatomy-halo:#8a7aa8;--anatomy-dot:#3a2d52;--agua:#d3d9f5;--agua-baja:#bcc5ef;--agua-abajo:#c4cbec}
+const CSS = COLORES + enJuego(WIDTH, HEIGHT) + `
+.iso{--agua:#2c3274;--agua-baja:#3d4392;--agua-abajo:#1d2156}
+.iso[data-theme="light"]{--agua:#d3d9f5;--agua-baja:#bcc5ef;--agua-abajo:#c4cbec}
 .agua{fill:var(--agua);stroke:none}.agua-baja{fill:var(--agua-baja)}.agua-abajo{fill:var(--agua-abajo)}
 .corriente{stroke-dasharray:2 6;animation:corre 1.6s linear infinite}
 @keyframes corre{to{stroke-dashoffset:-8}}
@@ -325,9 +317,5 @@ const body = k.plateHtml({
   body: `<div class="iso-stage" tabindex="0" role="slider" aria-label="La almadía: las flechas la bajan o la suben por el río" aria-valuemin="0" aria-valuemax="100">${svg}</div>`,
 });
 
-const out = join(RAIZ, 'entrega/anatomia');
-mkdirSync(out, { recursive: true });
 const html = k.pageHtml({ title: 'La almadía en el portillo', theme, body, script: kitScript() + live }).replace('</style>', CSS + '</style>');
-const file = join(out, theme === 'light' ? 'almadia-light.html' : 'almadia.html');
-writeFileSync(file, html);
-console.log('escrita', file, Math.round(html.length / 1024) + ' KB');
+escribe('almadia', html, theme);

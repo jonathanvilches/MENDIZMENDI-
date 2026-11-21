@@ -13,6 +13,7 @@ import { KIND_LABEL } from '../data/cuentos.js';
 import { KIND_TIP, LABEL_TIP, STYLE_TIP } from '../data/sabios.js';
 import { LEVELS } from '../data/levels.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
+import { laminaTecnica, laminaDe } from '../ui/anatomia.js';
 import { TAREAS } from './rutinas.js';
 import { TOWN } from '../world/townBuilder.js';
 import { MOD } from '../world/layout.js';
@@ -116,7 +117,10 @@ export class PuebloCharla {
         else if (M.step === 2 || M.step === 3) {
           M.step = 3;
           await S([m.ahora || `¡Perfecto! Ahora hagamos ${m.product} paso a paso.`]);
-          await this.explain(PROCESOS[m.id], m.product, 'how');
+          // (si el producto tiene lámina técnica, después de «Cómo se hace» se ve por dentro: ui/anatomia.js)
+          const lam = laminaDe(m.id);
+          await this.explain(PROCESOS[m.id], m.product, 'how', '', lam ? 'Verlo por dentro' : '');
+          if (lam) await laminaTecnica(this.ui, lam, { button: '¡Vamos!' });
           await S(['Ordena los pasos: ¿qué se hace primero?']);
           const r = await sequenceGame(this.ui, { title: m.product, hint: 'Toca los pasos en el orden correcto', icon: M.icon, steps: m.steps });
           if (r.win) { await S([m.asi || `¡Así se hace ${m.product}! Es un producto de ${this.comarca?.name || 'Navarra'}.`]); await this.explain(PROCESOS[m.id], m.product, 'then'); await this.complete(M, { card: m.product, cardText: m.text }); }
@@ -364,11 +368,11 @@ export class PuebloCharla {
     }
   }
   // Tarjetas que explican un producto o una tradición: qué es, cómo se hace, y antes/ahora
-  async explain(X, title, part, lamina = '') {
+  async explain(X, title, part, lamina = '', boton = '') {
     if (!X) return;
     const icon = this.missions.find(M => M.m.product === title || M.m.title === title)?.icon || 'book';
     if (part === 'what') return infoCard(this.ui, { icon, lamina, kicker: '¿Qué es?', title, text: X.what, button: 'Entendido' });
-    if (part === 'how') return infoCard(this.ui, { icon, lamina, kicker: 'Cómo se hace', title, text: X.how, button: '¡Vamos!' });
+    if (part === 'how') return infoCard(this.ui, { icon, lamina, kicker: 'Cómo se hace', title, text: X.how, button: boton || '¡Vamos!' });
     return infoCard(this.ui, { icon, lamina, kicker: 'Antes y ahora', title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${X.then}</div><div><b>Ahora</b>${X.now}</div></div>`, button: '¡Lo he aprendido!' });
   }
   async kontalariTalk(a) {
