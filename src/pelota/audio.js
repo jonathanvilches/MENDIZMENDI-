@@ -121,7 +121,9 @@ export class PelotaAudio {
    *  ahora mismo no está bien»: los limpios sonaban secos, sin nada de frontón), las tres variantes de cada golpe igual de
    *  fuertes. Esa tarde volvieron un rato los fabricados del 17 de noviembre
    *  (tools/sonidos/golpes-pelota.py) y por la noche el autor pidió otra vez estos: «el sonido de pelota ha vuelto al sonido
-   *  que no me gustaba. El anterior había uno que sí me gustaba, que era a raíz del último vídeo que te subí». El bote suena
+   *  que no me gustaba. El anterior había uno que sí me gustaba, que era a raíz del último vídeo que te subí». El 21 de
+   *  noviembre, el autor eligió en la página de golpes la versión A, «la primera del vídeo»: los primeros que se sacaron de
+   *  su vídeo (commit 3bba7287), con el sonido de sala del propio frontón, sin eco añadido. El bote suena
    *  más sordo que el frontis (su brillo, hacia 1.100 a 1.800 Hz; el del frontis, hacia 4.300): una
    *  de sus tres variantes, distinta de la anterior, algo más aguda y fuerte cuanto más fuerte el golpe. false si aún no
    *  ha llegado, y entonces suena el sintetizado de antes */
