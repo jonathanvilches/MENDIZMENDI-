@@ -201,6 +201,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 21 nov, mediodía (21), la hizo la ventana principal, por encargo del autor: `master` hasta `374ccfb9`. La pelotari,
+  siempre en femenino: otras 24 frases de Mikel y Edurne («Las dos en su sitio», «Ninguna se rinde», «¡Bote pronto, muy
+  agachada!», «La txapela ya tiene dueña»…). La página de progreso con aire a los lados en el móvil. Altsasu: el triple
+  de momotxorros llegan corriendo con chispas rojas, llenan la plaza bailando, el aire se pone rojo unos segundos y se
+  van corriendo por todo el pueblo hasta desaparecer; el quiosco y la escultura del nogal de la Foru Plaza, como los de
+  verdad. El arranque: la portada espera a que lleguen las cuatro imágenes del mapa (con la ortofoto).
 - 21 nov, mañana (20), la hizo la ventana principal, por encargo del autor: `master` hasta `57670ebd`. Las frases de los
   comentaristas en femenino para las pelotaris: 29 versiones grabadas con las mismas voces de Mikel y Edurne («Es una
   rematadora», «la rival», «Se le nota cansada», «¡Sigue viva!», «Anda fina con la mano derecha»…), que suenan cuando

@@ -1,0 +1,1 @@
+var e=new URL(`j-botepronto-2-f-BGMip84l.mp3`,import.meta.url).href;export{e as default};
