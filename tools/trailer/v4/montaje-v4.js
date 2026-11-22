@@ -168,7 +168,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 .mini b{display:block;padding:9px 12px 11px;font:800 18px/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase}
 /* abajo, lo que dicen la narradora y Salva */
 .sub{position:absolute;left:160px;right:160px;bottom:84px;text-align:center}
-.sub p{display:inline;margin:0;font:600 46px/1.3 var(--f-ui);color:#fff;text-shadow:0 2px 4px rgba(6,1,16,.9),0 0 24px rgba(6,1,16,.8)}
+.sub p{display:inline;margin:0;font:700 46px/1.3 var(--f-ui);color:#fff;text-shadow:0 2px 4px rgba(6,1,16,.9),0 0 24px rgba(6,1,16,.8)}
 .sub .w{display:inline-block;margin-right:.26em}
 /* las frases grandes del centro */
 .frase{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
@@ -260,6 +260,7 @@ function cita(v, b, extra) {
   frasePalabras(p, ws);
   capas.appendChild(el);
   const a = ws[0].t - 0.25;
+  if (a < DROP) el.style.bottom = Math.round(H * 0.115) + 26 + 'px';   // (encima de la banda de cine de abajo, como el subtítulo)
   ventana(el, a, b, 0.15, 0.25);
   vida(marca, [[a, { transform: 'scaleX(0)' }, E.ease], [a + 0.5, { transform: 'scaleX(1)' }]]);
   vida(el, [[b - 0.3, { transform: 'none' }, E.sale], [b, { transform: 'translateY(-30px)' }]]);

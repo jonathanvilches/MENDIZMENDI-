@@ -4718,5 +4718,5 @@ git push origin master:main
   `arranca` busca la salida con el camino seco, llano y libre y sin nada entre la cámara y él (rayos contra la escena; se
   saltan las mallas sin datos en la memoria, que hacían caer el plano de Elizondo). En el montaje, antes del golpe están las
   bandas de cine encima de todo, y el subtítulo sube por encima de la de abajo (si no, la segunda línea quedaba tapada); y
-  cuando dos frases de Salva van seguidas, la primera se va antes de que llegue la segunda. Montaje del 22 nov por la tarde:
+  cuando dos frases de Salva van seguidas, la primera se va antes de que llegue la segunda; las frases de los vecinos de antes del golpe suben igual. La copia que sirve el montaje (Vite en otra carpeta, con `node_modules` enlazado al repo) necesita `server: { fs: { allow: ['.', '<repo>'] } }` en su `vite.config.js`: sin eso las fuentes del juego (Barlow, Barlow Condensed) daban 403 y el tráiler salía con otra letra. Montaje del 22 nov por la tarde:
   94,5 s a 1920 × 1080.
