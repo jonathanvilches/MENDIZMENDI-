@@ -19,7 +19,9 @@ await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click(
 await p.waitForFunction(() => ['serveWait', 'servePrep', 'rally'].includes(window.__game.pelotaMatch?.game?.phase), null, { timeout: 240000 });
 // la final, ganada 9 a 6: directamente a la entrega (sin highlights)
 await p.evaluate(() => { const M = window.__game.pelotaMatch; M.o.camp = { titulo: 'Campeonato Manomanista', donde: 'Navarra' }; M.game.score.you = 9; M.game.score.rival = 6; M.cerePend = { win: true, score: { you: 9, rival: 6 } }; M.ceremonia(); });
-const momentos = [[1.8, 'podio'], [3.4, 'txapela-baja'], [4.6, 'txapela-puesta'], [7.2, 'copa-arriba'], [10.2, 'rotulo'], [13, 'plano-abierto']];
+const momentos = [[2.4, 'podio'], [3.4, 'txapela-baja'], [4.6, 'txapela-puesta'], [7.2, 'copa-arriba'], [10.2, 'rotulo'], [13, 'plano-abierto']];
+// (primero, a que empiece la entrega: si no, la primera foto salía del partido, antes de que hubiera ceremonia)
+await p.waitForFunction(() => (window.__game.pelotaMatch?.cere?.t ?? -1) >= 0, null, { timeout: 240000 });
 const t0 = Date.now();
 for (const [ts, nombre] of momentos) {
   while (Date.now() - t0 < 600000) { const t = await p.evaluate(() => window.__game.pelotaMatch?.cere?.t ?? -1); if (t >= ts || t < 0) break; await p.waitForTimeout(250); }

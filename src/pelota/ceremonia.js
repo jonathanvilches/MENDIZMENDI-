@@ -15,7 +15,7 @@
 // (las clases del rótulo llevan el prefijo pc-: con «rotulo» a secas se le aplicaba el del nombre del pueblo,
 // ui/rotulo.css, y el rótulo entero se iba arriba, en medio y estrecho)
 import { agarrar } from '../actors/agarrar.js';
-import { loadMeshy, GlbChar, MESHY_GAIT } from '../actors/glbChar.js';
+import { loadMeshy, GlbChar, MESHY_GAIT, meshyHeight } from '../actors/glbChar.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 
 const TXT = {
@@ -126,6 +126,38 @@ function txapela(T, ano) {
   return G;
 }
 
+// la pantalla gigante del frontón, colgada en el frontis, como en las fotos del autor (17 nov): fondo azul de noche con
+// la trama de los LED, «TXAPELDUN» en oro y el nombre del campeón en grande, y debajo el campeonato y el año
+function pantalla(T, { kick, nombre, sub }) {
+  const W = 1024, H = 400, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const c = cv.getContext('2d');
+  const pinta = () => {
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a1846'); g.addColorStop(1, '#0a0a20'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    c.fillStyle = 'rgba(255,255,255,0.04)'; for (let y = 0; y < H; y += 4) c.fillRect(0, y, W, 1);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillStyle = '#f2b92e'; c.font = "900 50px 'MZ Texto', 'Barlow', sans-serif"; c.fillText(kick.toUpperCase().split('').join(' '), W / 2, 84);
+    let fs = 150; const fuente = (n) => `400 ${n}px 'MZ Display', 'MZ Texto', 'Barlow', sans-serif`; c.font = fuente(fs);
+    const N = nombre.toUpperCase(); while (c.measureText(N).width > W * 0.88 && fs > 56) { fs -= 6; c.font = fuente(fs); }
+    c.fillStyle = '#ffffff'; c.fillText(N, W / 2, 212);
+    if (sub) { c.fillStyle = '#d9d4ff'; c.font = "700 38px 'MZ Texto', 'Barlow', sans-serif"; c.fillText(sub, W / 2, 330); }
+  };
+  pinta();
+  const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = 4;
+  document.fonts?.ready?.then(() => { pinta(); tex.needsUpdate = true; });   // (con la letra del juego, si aún no estaba)
+  const grp = new T.Group(); grp.name = 'pantalla';
+  const marco = new T.Mesh(new T.BoxGeometry(4.64, 1.94, 0.12), new T.MeshStandardMaterial({ color: '#16161d', roughness: 0.6, metalness: 0.3 }));
+  // (apagada al principio: casi negra, con su trama; ceremonia.update la enciende)
+  const cara = new T.Mesh(new T.PlaneGeometry(4.4, 1.72), new T.MeshBasicMaterial({ map: tex, toneMapped: false, color: new T.Color(0.035, 0.035, 0.045) }));
+  cara.position.z = 0.062; grp.add(marco, cara); grp.userData.cara = cara;
+  return grp;
+}
+// (gira un hueso para que su hijo quede en la dirección meta, en el mundo, mezclado con su animación por w)
+function apuntaHueso(T, hb, hh, meta, w, tmp) {
+  if (!hb || !hh || w <= 0) return;
+  const a = hb.getWorldPosition(tmp.a), b = hh.getWorldPosition(tmp.b), ahora = b.sub(a).normalize();
+  tmp.q1.setFromUnitVectors(ahora, meta); tmp.q2.identity().slerp(tmp.q1, w);
+  hb.getWorldQuaternion(tmp.q3); hb.parent.getWorldQuaternion(tmp.q4);
+  hb.quaternion.copy(tmp.q4.invert().multiply(tmp.q2.multiply(tmp.q3))); hb.updateMatrixWorld(true);
+}
 const hueso = (ch, s) => Object.values(ch?.bones || {}).find((b) => new RegExp(s + '$').test(b.name)) || null;
 
 export class Ceremonia {
@@ -142,6 +174,14 @@ export class Ceremonia {
     const c1 = cajon(T, w1, this.h1, d, 1), c2 = cajon(T, w2, this.h2, d, 2);
     c1.position.set(this.P.x, this.h1 / 2, this.P.z); c2.position.set(this.P.x - (w1 + w2) / 2 - 0.02, this.h2 / 2, this.P.z);
     this.grupo.add(c1, c2); this.cajones = [c1, c2]; this.w = [w1, w2];
+    // la pantalla gigante en el frontis, alta y a la izquierda del podio, con el nombre del campeón (detrás del campeón,
+    // la copa en alto le tapaba el nombre en el plano de abajo arriba). Apagada hasta que se va el grito de «¡Txapeldun!»,
+    // que en el plano de abajo arriba le caía encima; se enciende con el rótulo del campeón (update)
+    try {
+      const L0 = TXT[o.lang] || TXT.es, nom = (o.gana || []).map((l) => l.nombre).filter(Boolean).join(' · ');
+      const pan = pantalla(T, { kick: pareja ? L0.kickN : L0.kick, nombre: nom || L0.kick, sub: [o.titulo, new Date().getFullYear()].filter(Boolean).join(' · ') });
+      pan.position.set(this.P.x - 2.75, 4.0, 0.07); this.grupo.add(pan); this.pantalla = pan;
+    } catch (e) { console.warn('ceremonia: pantalla', e); }
     // quién va dónde: los campeones en el 1 (por parejas, uno junto al otro), los otros en el 2
     const sitios = (n, x, y) => n > 1 ? [[x - 0.38, y], [x + 0.38, y]] : [[x, y]];
     const s1 = sitios(o.gana.length, this.P.x, this.h1), s2 = sitios(o.pierde.length, c2.position.x, this.h2);
@@ -172,8 +212,16 @@ export class Ceremonia {
       if (p.gana && p.B.cabeza) {
         ch.root.updateMatrixWorld(true); const hp = p.B.cabeza.getWorldPosition(new T.Vector3()), mallas = [];
         ch.root.traverse((m) => { if (m.isMesh && m.visible && !m.userData.outline) mallas.push(m); });
+        // (y no solo en el centro: con un rayo, entre dos mechones, la txapela quedaba por debajo del pelo de punta y los
+        // mechones la atravesaban. Nueve rayos alrededor del eje de la cabeza, a unos 6 cm, y el más alto)
         let d = 0;
-        try { const rc = new T.Raycaster(hp.clone().add(new T.Vector3(0, 2.5, 0)), new T.Vector3(0, -1, 0), 0, 2.5); const h = rc.intersectObjects(mallas, false).find((q) => q.point.y > hp.y + 0.05); if (h) d = h.point.y - hp.y; } catch (e) { /* sin rayo */ }
+        try {
+          const rc = new T.Raycaster(); rc.far = 2.5;
+          for (const [ox, oz] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [0.7, 0.7], [-0.7, 0.7], [0.7, -0.7], [-0.7, -0.7]]) {
+            rc.set(hp.clone().add(new T.Vector3(ox * 0.06, 2.5, oz * 0.06)), new T.Vector3(0, -1, 0));
+            const h = rc.intersectObjects(mallas, false).find((q) => q.point.y > hp.y + 0.05); if (h) d = Math.max(d, h.point.y - hp.y);
+          }
+        } catch (e) { /* sin rayo */ }
         if (!d) { const bb = new T.Box3().setFromObject(ch.root, true); d = Math.min(bb.max.y - hp.y, 0.45); }
         p.dTop = Math.max(0.15, Math.min(0.7, d));
       }
@@ -214,6 +262,27 @@ export class Ceremonia {
         ch.setSpeed?.(0); this.familia.push({ obj, ch, cuando: Math.random() * 0.8 });
       }).catch((e) => console.warn('ceremonia: familia', e));
     } catch (e) { console.warn('ceremonia: familia', e); }
+    // las autoridades, de pie a la derecha del podio y aplaudiendo, como en las fotos: los dos mayores del pueblo con
+    // chaqueta y txapela (actors/npcGlb.js), como quien pone la txapela en los frontones. Con el vecino de San Fermín
+    // teñido de negro parecían mozos de fiesta, con su faja y sus alpargatas. El aplauso, con los brazos (aplaude)
+    this.autoridades = [];
+    try {
+      const A = [[3.05, -0.05, 1.7, 'abuelo_bigote'], [3.65, 0.3, 1.66, 'abuelo_barba']];
+      let esc = o.grp; while (esc.parent) esc = esc.parent;
+      A.forEach(([dx, dz, H, modelo], i) => {
+        const x = this.P.x + dx, z = this.P.z + dz, w = o.grp.localToWorld(new T.Vector3(x, 0, z)), mira = o.grp.localToWorld(new T.Vector3(this.P.x, 0, this.P.z + 0.6)).sub(w);
+        loadMeshy(modelo).then((gl) => {
+          if (this.hecho || !gl) return;
+          const ch = new GlbChar(gl, { ...MESHY_GAIT, vary: true });
+          ch.root.scale.setScalar((gl.userData?.fit || 1) * H / meshyHeight(modelo));
+          const obj = new T.Group(); obj.add(ch.root); obj.position.copy(w); obj.rotation.y = Math.atan2(mira.x, mira.z); esc.add(obj);
+          ch.setSpeed?.(0);
+          const a = { obj, ch, fase: i * 1.7, B: { brazoR: hueso(ch, 'RightArm'), anteR: hueso(ch, 'RightForeArm'), manoR: hueso(ch, 'RightHand'), brazoL: hueso(ch, 'LeftArm'), anteL: hueso(ch, 'LeftForeArm'), manoL: hueso(ch, 'LeftHand'), pecho: hueso(ch, 'Spine2') || hueso(ch, 'Spine1') || hueso(ch, 'Spine') } };
+          ch.post = () => this.aplaude(a);
+          this.autoridades.push(a);
+        }).catch((e) => console.warn('ceremonia: autoridades', e));
+      });
+    } catch (e) { console.warn('ceremonia: autoridades', e); }
     // el rótulo
     if (!document.getElementById('cer-css')) { const st = document.createElement('style'); st.id = 'cer-css'; st.textContent = CSS; document.head.appendChild(st); }
     const Lt = this.L, nG = o.gana.map((l) => l.nombre).filter(Boolean).join(' · '), nP = o.pierde.map((l) => l.nombre).filter(Boolean).join(' · ');
@@ -314,6 +383,23 @@ export class Ceremonia {
     else { const a = Math.sin((t - 11.2) * 0.22) * 0.45, r = 7 * k; n = 3; p = [P.x - 0.4 + Math.sin(a) * r, H.y * 0.9, P.z + Math.cos(a) * r]; l = [P.x - 0.4, H.y * 0.55, P.z]; }
     return { p, l, n };
   }
+  // una autoridad aplaudiendo: los brazos hacia delante, las manos delante del pecho que se juntan y se abren, unas tres
+  // veces por segundo, con su ritmo cada uno
+  aplaude(a) {
+    const B = a.B, T = this.T; if (!B.brazoR || !B.anteR || !B.manoR || !B.brazoL || !B.anteL || !B.manoL || !B.pecho) return;
+    const tmp = this.tmpA ||= { a: new T.Vector3(), b: new T.Vector3(), q1: new T.Quaternion(), q2: new T.Quaternion(), q3: new T.Quaternion(), q4: new T.Quaternion() };
+    a.ch.root.updateMatrixWorld(true);
+    const del = new T.Vector3(0, 0, 1).applyQuaternion(a.ch.root.getWorldQuaternion(new T.Quaternion())).setY(0).normalize();
+    const hR = B.brazoR.getWorldPosition(new T.Vector3()), hL = B.brazoL.getWorldPosition(new T.Vector3()), lat = hR.clone().sub(hL).setY(0).normalize();
+    const pecho = B.pecho.getWorldPosition(new T.Vector3()), ancho = hR.distanceTo(hL);
+    const abre = 0.02 + 0.1 * ancho * (0.5 + 0.5 * Math.sin((this.t + a.fase) * 18));
+    const centro = pecho.clone().addScaledVector(del, ancho * 0.95).add(new T.Vector3(0, ancho * 0.05, 0));
+    for (const [br, an, ma, sg, h0] of [[B.brazoR, B.anteR, B.manoR, 1, hR], [B.brazoL, B.anteL, B.manoL, -1, hL]]) {
+      const mano = centro.clone().addScaledVector(lat, sg * abre), codo = h0.clone().lerp(mano, 0.5).add(new T.Vector3(0, -ancho * 0.35, 0)).addScaledVector(lat, sg * ancho * 0.18);
+      apuntaHueso(T, br, an, codo.sub(h0).normalize(), 1, tmp);
+      const c = an.getWorldPosition(new T.Vector3()); apuntaHueso(T, an, ma, mano.sub(c).normalize(), 1, tmp);
+    }
+  }
   update(dt) {
     if (this.hecho) return;
     dt = Math.min(dt, 0.05); this.t += dt; const t = this.t, T = this.T, o = this.o, g = o.grp;
@@ -327,6 +413,9 @@ export class Ceremonia {
       this.ponCopa(p);
       if (p.tx) this.ponTxapela(p, t < T_TX ? 0 : (t - T_TX) / D_TX), p.tx.visible = t >= T_TX - 0.6;
     }
+    // (la pantalla se enciende con el rótulo: un parpadeo corto, como las de LED, y se queda encendida)
+    const cara = this.pantalla?.userData.cara;
+    if (cara) { const u = t - T_ROT + 0.15, k = u <= 0 ? 0 : u < 0.12 ? 0.7 : u < 0.2 ? 0.25 : Math.min(1, 0.25 + (u - 0.2) * 3); cara.material.color.setScalar(0.035 + 0.965 * k); }
     // la txapela, posada: la grada en pie y el grito
     if (t >= T_TX + D_TX * 0.82 && this.fase < 1) { this.fase = 1; this.el.classList.add('pc-grito'); o.audio?.ovation?.(); o.audio?.aplauso?.(0.9, 5); o.onGrito?.(); }
     // la copa arriba: el confeti y la grada otra vez
@@ -339,6 +428,7 @@ export class Ceremonia {
     if (t >= T_BOTON && this.fase < 4) { this.fase = 4; this.el.classList.add('pc-listo'); this.el.querySelector('.cer-go')?.focus?.({ preventScroll: true }); }
     // la familia y los amigos: celebrando todo el rato, cada uno a su tiempo
     for (const f of this.familia) { try { if ((f.cuando -= dt) <= 0 && !f.ch.oneShot) { f.ch.playOnce('Celebrate', 1.2); f.cuando = 0.2 + Math.random() * 0.9; } f.ch.update(dt); } catch (e) { /* sigue */ } }
+    for (const a of this.autoridades || []) { try { a.ch.update(dt); } catch (e) { /* sigue */ } }
     // el confeti: cae dando vueltas, con su vaivén; el del suelo se queda allí
     if (this.conf.visible) {
       const C = this.conf, m = this.m4, e3 = this.e3, s = this.s3, x1 = this.cajones[1].position.x;
@@ -378,6 +468,8 @@ export class Ceremonia {
     }
     for (const f of this.familia || []) { try { f.obj.parent?.remove(f.obj); f.ch.dispose?.(); } catch (e) { /* ya no está */ } }
     this.familia = [];
+    for (const a of this.autoridades || []) { try { a.ch.post = null; a.obj.parent?.remove(a.obj); a.ch.dispose?.(); } catch (e) { /* ya no está */ } }
+    this.autoridades = [];
     this.grupo.parent?.remove(this.grupo);
     this.grupo.traverse((m) => { if (m.isMesh || m.isInstancedMesh) { m.geometry?.dispose(); const M = Array.isArray(m.material) ? m.material : [m.material]; for (const x of M) { x.map?.dispose(); x.dispose(); } } });
     this.env.dispose();
