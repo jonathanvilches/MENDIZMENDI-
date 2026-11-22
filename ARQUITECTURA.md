@@ -2251,6 +2251,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   taller: `?paso=n` la abre quieta en ese paso; `{anatomia:'paso', i}` la lleva; ella avisa con `{anatomia:'en', i}`). Al
   acabar, «Repaso del oficio»: la lámina entera con todas sus fichas hechas, antes de «Antes y ahora». Prueba: la misma,
   tocando la miniatura y una ficha.
+  **El visor con cámara y narrador** (22 nov, tarde; el autor: «que cuando cliques la imagen se amplíe y se vea más detalle
+  del oficio, y que una voz en off vaya explicando y cuente la historia [...] que se pueda ampliar, que cambie el ángulo
+  de la cámara [...] no pongas textos en ningún momento que se corten [...] Las tipografías siguen siendo muy toscas»).
+  `laminaTecnica` abre la lámina a pantalla entera sobre el morado del juego, sin marco: arriba el antetítulo y el título
+  (MZ Cond, nunca la Display inclinada), a la derecha el narrador y cerrar, y +, − y encuadrar en el borde derecho; abajo
+  el subtítulo (MZ Texto, sin cortar: `text-wrap: balance`, 62 caracteres) y las fichas de los pasos con «Historia» delante
+  y «Seguir». La cámara (`camara`) mueve el `viewBox` del SVG de la lámina (se acerca nítido, es vectorial) y la inclina con
+  `perspective` y `rotateX/Y`: en cada paso mide las piezas encendidas (`[data-lit]`, cuando la lámina ya dice que está en
+  ese paso) y se acerca a ellas con un giro distinto por paso, centradas en el hueco libre entre el título y el pie
+  (`margen`), como mucho 2,4 veces (2,1 con menos de 500 px de alto); con el dedo o el ratón se arrastra, con dos dedos o la
+  rueda se acerca, y tocar acerca al punto tocado. Los gestos propios de la lámina se bloquean desde fuera. El narrador
+  (`data/narraLaminas.js`, `NARRA`: la historia y un texto por paso) suena con la voz de Salva, la del tráiler, grabada con
+  ElevenLabs (`eleven_v4`) y normalizada a −16 LUFS en `public/anatomia/voz/<lámina>-h.mp3` y `<lámina>-<paso>.mp3`: al
+  abrir, la historia con la lámina entera y luego cada paso, con su subtítulo, la ficha encendida y la cámara en sus
+  piezas; tocar una ficha lo cuenta desde ahí, y en el taller solo se cuenta el paso de esa tarjeta. Hay narrador en los
+  once oficios (ferrería, palomeras, cantero, aizkolari, harrijasotzaile, alpargata, cesta, carbonera, hilandera, pan y
+  tonelero); en las láminas sin narrador, la cámara y las fichas funcionan igual y sin voz. El `PUENTE` va ya en todas
+  las láminas con pasos (todas menos la almadía). Prueba: abrir «Por dentro» de la ferrería en el menú, a 1280 × 720 y
+  844 × 390, y dejarla contar entera.
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la
   presa con su cortina de agua, la escala de ocho pozas que los salmones suben saltando, el tramo de abajo y el mar con la
   escollera; los peces son vivos: alevines, esguines que bajan al mar y adultos que vuelven y desovan).

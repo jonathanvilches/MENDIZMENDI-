@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (22 nov): láminas de los oficios con cámara que se acerca y gira, zoom y narrador con la voz de Salva en los once oficios (`ui/anatomia.js`, `data/narraLaminas.js`, `public/anatomia/voz/`).
+
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
