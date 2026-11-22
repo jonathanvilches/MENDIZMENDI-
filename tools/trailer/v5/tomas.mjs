@@ -38,6 +38,14 @@ export const AYUDA = () => {
     // fuera el caballo propio y los vehículos sueltos de la entrada (se ponían delante)
     limpia() { for (const V of G.av?.vehs || []) { try { V.dispose(); } catch (e) { } } if (G.av) G.av.vehs = []; if (G.montura && !G.player.vehiculo) { try { G.montura.dispose?.(); } catch (e) { } G.montura = null; } G.sinMontura = true; },
     teclas(ks) { G.input.keys.clear(); for (const k of ks) G.input.keys.add(k); },
+    // un plano de dron: la cámara va por su camino según el segundo de la toma (el gancho de vuelo de la cámara del juego,
+    // follow.cinematic.fly), camino(t) => { pos: [x, y, z], look: [x, y, z] }; sin el marcador ni los botones, como un plano
+    // de cine. En los pasos de antes, quieta en el principio del camino
+    dron(camino) {
+      window.__tt = 0; const c0 = window.__cada; window.__cada = (t) => { window.__tt = t; c0?.(t); };
+      rt.follow.cinematic = { t: 0, fly: (cam) => { const q = camino(window.__tt); cam.position.set(q.pos[0], q.pos[1], q.pos[2]); cam.lookAt(q.look[0], q.look[1], q.look[2]); } };
+      G.ui.hudVisible?.(false);
+    },
     // el jugador, a «lejos» metros del vecino a, mirándole, con el camino hasta él libre, seco y sin cuestas, y libre también
     // detrás, donde va la cámara del juego; o.h, desde qué lado se prefiere llegar
     hacia(a, lejos = 7, o = {}) {
@@ -82,6 +90,17 @@ const charla = (quien, hora, seg, o) => ({
   guion: o.guion,
 });
 
+// una lámina que se mueve (ui/anatomia.js), abierta como en el juego y, en cada segundo del guion, el paso que cuenta el
+// narrador (como al tocar su ficha). La voz va en la mezcla del tráiler (v5/mezcla-v5.py): aquí el visor no suena y cada paso
+// se queda con su subtítulo hasta el siguiente (el audio de la página, uno que no acaba nunca)
+const lamTec = (id, seg, pasos, o) => ({
+  en: o.en, url: `?${OT}&weather=clear&t=12`, seg, antes: 40,
+  prep: eval(`async () => { window.__j.limpia(); window.Audio = function () { return { play: () => Promise.resolve(), pause() {}, volume: 1 }; };
+    const m = await import('/src/ui/anatomia.js'); m.laminaTecnica(window.__game.ui, '${id}', { button: 'Seguir' });
+    const fr = document.querySelector('.lt iframe, iframe'); if (fr && !fr.classList.contains('lista')) await new Promise(r => fr.addEventListener('load', r, { once: true })); }`),
+  guion: pasos.map(([t, i]) => [t, (p) => p.evaluate((i) => document.querySelector(`.lt-pasos button[data-i="${i}"]`)?.click(), String(i))]),
+});
+
 // los tiempos del montaje (v5/montaje.mjs) van en cada toma: «en», cuándo empieza en el tráiler
 export const TOMAS = {
   // ---------- el principio: el mapa de inicio, Navarra, y sube el Pirineo como una isla ----------
@@ -91,9 +110,18 @@ export const TOMAS = {
     guion: [[1.9, (p) => p.evaluate(() => window.__mapa3d.comarca('pirineo'))]],
   },
   // ---------- Otsagabia: llegar corriendo, por la calle del río ----------
+  // (22 nov, el autor: «puedes jugar mucho con movimientos de cámara, con movimientos de dron»: en «Desde aquí ves Otsagabia
+  // entera», el dron sale detrás del explorador, que corre hacia la plaza, y sube hasta ver el pueblo y el río)
   llegada: {
     en: 7.5, url: `?${OT}&weather=clear&t=10.4`, seg: 4.4, antes: 30,
-    prep: () => { const J = window.__j; J.limpia(); const L = window.__layout?.PLACES; J.corre(L?.plaza, 30); },
+    prep: () => {
+      const J = window.__j, P = J.G.player; J.limpia(); const L = window.__layout?.PLACES, b = J.corre(L?.plaza, 30);
+      const fx = -Math.cos(b.a), fz = -Math.sin(b.a), e = (k) => k * k * (3 - 2 * k);
+      J.dron((t) => {
+        const k = e(Math.min(1, t / 4.4)), atras = 6 + 18 * k, x = P.pos.x - fx * atras, z = P.pos.z - fz * atras, y = Math.max(J.suelo(x, z) + 2, P.pos.y + 2.4 + 32 * k), d = 4 + 26 * k;
+        return { pos: [x, y, z], look: [P.pos.x + fx * d, P.pos.y + 1.2 - 3 * k, P.pos.z + fz * d] };
+      });
+    },
   },
   // Maite: «¡Kaixo! Soy Maite…», la fiesta y las cintas perdidas; al acabar, la primera cinta (la roja), como en el juego
   maite: {
@@ -174,7 +202,7 @@ export const TOMAS = {
   },
   // ---------- «La naturaleza y la cultura, contadas jugando» ----------
   caballo: {
-    en: 64.85, url: `?${OT}&weather=clear&t=16.8`, seg: 1.85, antes: 20,
+    en: 86.05, url: `?${OT}&weather=clear&t=16.8`, seg: 1.85, antes: 20,
     prep: () => {
       // primero el sitio (un camino recto, llano y libre de 45 m, como al correr), luego el caballo debajo del jugador y a
       // galope por él
@@ -185,12 +213,27 @@ export const TOMAS = {
     },
   },
   irati: {
-    en: 66.7, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=10.4', seg: 1.8, antes: 30,
+    en: 87.9, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=10.4', seg: 1.8, antes: 30,
     prep: () => { const J = window.__j; J.limpia(); J.corre(null, 20, { anda: true }); },
+  },
+  // ---------- «Por dentro»: las láminas que se mueven (Anatomy), con Salva contando cómo se hacen (22 nov, el autor: «es
+  // muy interesante que en el tráiler se expliquen [...] todas las ilustraciones, con las narraciones y las locuciones de
+  // cómo se hacen el queso, el vino») ----------
+  queso: lamTec('queso', 10.9, [[0, 2], [4.9, 6]], { en: 64.85 }),
+  vino: lamTec('vino', 7.7, [[0, 2], [4.05, 5]], { en: 75.75 }),
+  // todas las láminas, en su pantalla del juego (Saberes · Por dentro), de arriba abajo
+  pordentro: {
+    en: 83.45, url: '?screen=pordentro&q=high', seg: 2.6, antes: 6, espera: 5000,
+    listo: (p) => p.waitForFunction(() => window.__hub && document.querySelectorAll('.lam-rail img').length > 8 && [...document.querySelectorAll('.lam-rail img')].slice(0, 8).every(i => i.complete), null, { timeout: 300000 }),
+    prep: () => {
+      const r = document.querySelector('.lam-rail'); let sc = r?.parentElement; while (sc && !(sc.scrollHeight > sc.clientHeight + 40 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
+      sc ||= document.scrollingElement; const max = sc.scrollHeight - sc.clientHeight, e = (k) => k * k * (3 - 2 * k);
+      window.__cada = (t) => { sc.scrollTop = Math.round(max * e(Math.min(1, t / 2.6))); };
+    },
   },
   // ---------- la pelota: elegir pelotari y un partido en el Labrit ----------
   elige: {
-    en: 68.5, url: '?screen=sports&q=high', seg: 1.6, antes: 6, espera: 3000,
+    en: 89.7, url: '?screen=sports&q=high', seg: 1.6, antes: 6, espera: 3000,
     listo: async (p) => {
       await p.waitForFunction(() => window.__hub && !document.querySelector('#hub.hidden'), null, { timeout: 300000 });
       await p.evaluate(() => { document.querySelector('[data-frpick]')?.click(); document.querySelector('[data-fronton="labrit"]')?.click(); }); await p.waitForTimeout(400);
@@ -202,7 +245,7 @@ export const TOMAS = {
     guion: [[0.2, (p) => p.evaluate(() => document.querySelector('.ep-pant .c3-flecha.der')?.click())], [0.9, (p) => p.evaluate(() => document.querySelector('.ep-pant .c3-flecha.der')?.click())]],
   },
   partido: {
-    en: 70.1, url: '?screen=sports&q=high', seg: 6.0, antes: 24, espera: 4000,
+    en: 91.3, url: '?screen=sports&q=high', seg: 6.0, antes: 24, espera: 4000,
     listo: async (p) => {
       await p.waitForFunction(() => window.__hub && !document.querySelector('#hub.hidden'), null, { timeout: 300000 });
       await p.evaluate(() => { document.querySelector('[data-frpick]')?.click(); document.querySelector('[data-fronton="labrit"]')?.click(); }); await p.waitForTimeout(400);
@@ -228,14 +271,22 @@ export const TOMAS = {
   // ---------- «El Basajaun es una leyenda… ¡pero el bosque es de verdad!» ----------
   bosque: {
     // (otra parte de la selva que la toma de Irati, la del bosque cerrado, a media tarde, con la luz entre los troncos)
-    en: 76.1, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=15.4', seg: 3.8, antes: 30,
-    prep: () => { const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.forest, 24, { anda: true, snap: true }); },
+    en: 97.3, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=15.4', seg: 3.8, antes: 30,
+    // (de dron: por encima de las copas de la selva, hacia delante y bajando un poco, con la luz de la tarde)
+    prep: () => {
+      const J = window.__j, P = J.G.player; J.limpia(); const F = window.__layout.PLACES.forest, b = J.corre(F, 24, { anda: true, snap: true });
+      const fx = -Math.cos(b.a), fz = -Math.sin(b.a), e = (k) => k * (2 - k), y0 = J.suelo(F.x, F.z);
+      J.dron((t) => {
+        const k = e(Math.min(1, t / 3.8)), s = -34 + 44 * k, x = F.x + fx * s, z = F.z + fz * s, y = Math.max(J.suelo(x, z) + 24, y0 + 36 - 6 * k);
+        return { pos: [x, y, z], look: [x + fx * 30, y - 16, z + fz * 30] };
+      });
+    },
   },
   // ---------- el final: el Bobo en Muskilda con las ocho cintas, y el baile ----------
-  bobo: charla('bobo', 11.6, 3.9, { en: 79.85, habla: 0.05, frases: ['¡Las ocho cintas! ¡Los danzantes ya pueden ponerse sus trajes!'],
+  bobo: charla('bobo', 11.6, 3.9, { en: 101.05, habla: 0.05, frases: ['¡Las ocho cintas! ¡Los danzantes ya pueden ponerse sus trajes!'],
     extra: "import('/src/game/content.js').then(m => { J.G.state.ribbons = m.RIBBONS.map(r => r.id); J.G.refreshHUD?.(); });" }),
   danza: {
-    en: 83.75, url: `?${OT}&weather=clear&t=12.2`, seg: 10.75, antes: 48,
+    en: 104.95, url: `?${OT}&weather=clear&t=12.2`, seg: 10.75, antes: 48,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia();
       import('/src/game/content.js').then(m => { G.state.ribbons = m.RIBBONS.map(r => r.id); G.refreshHUD?.(); });

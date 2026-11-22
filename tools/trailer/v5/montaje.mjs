@@ -1,11 +1,12 @@
 // El montaje del tráiler v5: las tomas del juego jugado (v5/juego.mjs, a 12 por segundo) pasadas a 24 con interpolación,
 // una detrás de otra con corte seco, cada una en su segundo («en», v5/tomas.mjs), sobre la mezcla de voces y música del
-// tráiler v3 (v3/mezcla-v3.py). Encima solo los dos rótulos (v5/rotulos.mjs). Sale a 1920 × 1080.
+// tráiler v3 con el bloque de las láminas (v5/mezcla-v5.py). Encima solo los dos rótulos (v5/rotulos.mjs). Sale a 1920 × 1080.
 // Uso: node tools/trailer/v5/montaje.mjs <rodado> <planos> <mezcla.wav> <rótulos> <salida.mp4>
 import { TOMAS } from './tomas.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, existsSync, rmSync, symlinkSync, copyFileSync, statSync } from 'node:fs';
-const [, , RAW, PLA, WAV, ROT, OUT] = process.argv, FPS = 24, DURA = 94.5;
+// (con el bloque de las láminas, 21,2 s más que la mezcla de v3: v5/mezcla-v5.py; los rótulos, igual de desplazados)
+const [, , RAW, PLA, WAV, ROT, OUT] = process.argv, FPS = 24, D = 21.2, DURA = 94.5 + D;
 const lista = Object.entries(TOMAS).sort((a, b) => a[1].en - b[1].en);
 const seq = `${PLA}/_seq`; rmSync(seq, { recursive: true, force: true }); mkdirSync(seq, { recursive: true });
 let k = 0;
@@ -26,11 +27,11 @@ for (let i = 0; i < lista.length; i++) {
 }
 const f = [
   `[0]scale=1920:1080:flags=lanczos,setsar=1[b]`,
-  `[2]format=rgba,fade=t=in:st=84.0:d=0.5:alpha=1,fade=t=out:st=87.7:d=0.5:alpha=1[t]`,
-  `[3]format=rgba,fade=t=in:st=92.4:d=0.5:alpha=1[j]`,
-  `[b][t]overlay=enable='between(t,84,88.3)'[x]`,
-  `[x][j]overlay=enable='gte(t,92.4)'[y]`,
-  `[y]fade=t=in:st=0:d=0.5,fade=t=out:st=93.7:d=0.8,format=yuv420p[v]`,
+  `[2]format=rgba,fade=t=in:st=${84.0 + D}:d=0.5:alpha=1,fade=t=out:st=${87.7 + D}:d=0.5:alpha=1[t]`,
+  `[3]format=rgba,fade=t=in:st=${92.4 + D}:d=0.5:alpha=1[j]`,
+  `[b][t]overlay=enable='between(t,${84 + D},${88.3 + D})'[x]`,
+  `[x][j]overlay=enable='gte(t,${92.4 + D})'[y]`,
+  `[y]fade=t=in:st=0:d=0.5,fade=t=out:st=${93.7 + D}:d=0.8,format=yuv420p[v]`,
 ].join(';');
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-framerate', String(FPS), '-i', `${seq}/%05d.jpg`, '-i', WAV,
   '-framerate', String(FPS), '-loop', '1', '-t', String(DURA), '-i', `${ROT}/titulo.png`,

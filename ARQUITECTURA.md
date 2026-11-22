@@ -4735,3 +4735,15 @@ git push origin master:main
   (`showCreature`), el caballo, Irati, «Elige tu pelotari», un partido en el Labrit, el Bobo y el baile de Muskilda
   (`startDance`, pulsando cada flecha a su tiempo). Las charlas son `G.say` con las frases de las voces del tráiler y pasan
   de frase en su segundo, como al tocar.
+  - **Las láminas y el dron** (22 nov, noche; el autor: «es muy interesante que en el tráiler se expliquen lo que hemos
+    generado con Anatomy [...] con las narraciones y las locuciones de cómo se hacen el queso, el vino» y «puedes jugar mucho
+    con movimientos de cámara, con movimientos de dron»). Después de las leyendas va un bloque de 21,2 s (`TIN` 64,85,
+    `D` en `v5/mezcla-v5.py` y `v5/montaje.mjs`; las tomas de después, igual de desplazadas): el visor de láminas del juego
+    (`laminaTecnica`) con la del queso y la del rosado, pulsando la ficha de cada paso en su segundo (`lamTec` en
+    `v5/tomas.mjs`) con el audio de la página cambiado por uno que no acaba, para que cada subtítulo se quede hasta el
+    siguiente, y la voz de Salva de esos pasos (`public/anatomia/voz`) en la mezcla; y la pantalla «Por dentro» con todas
+    las láminas, de arriba abajo. La música se calma con la intro de la misma canción y vuelve con su silencio, la subida y
+    un golpe. El reloj propio llega también a los marcos de la página (la lámina es un iframe): `__paso` pasa el mismo
+    paso a cada marco del mismo origen. Los planos de dron (`J.dron`, con el gancho de vuelo de la cámara,
+    `follow.cinematic.fly`, y sin el marcador): en «Desde aquí ves Otsagabia entera» sale detrás del explorador y sube hasta
+    ver el pueblo y el río; en «¡pero el bosque es de verdad!», un vuelo por encima de las copas de Irati.

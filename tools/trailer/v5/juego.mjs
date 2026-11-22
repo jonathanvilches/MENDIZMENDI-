@@ -36,7 +36,7 @@ const inicio = ([av, perfil]) => {
   window.clearInterval = (k) => { if (timers.has(k)) timers.delete(k); else ci(k); };
   // (que el juego no baje la resolución ni aligere el pueblo al ver que va despacio mientras carga, ni después)
   si(() => { const rt = window.__rt; if (rt) { rt.frames = 0; rt.fpsT = 0; rt.lighten = () => { }; rt.acortaVista = () => { }; } }, 40);
-  window.__congela = () => { virt = ahora(); f0 = fecha() - virt; };
+  window.__congela = () => { virt = ahora(); f0 = fecha() - virt; window.__virtOn = true; };
   window.__paso = (dt) => {
     const fin = virt + dt * 1000;
     // los temporizadores que tocan, por orden (un intervalo puede tocar varias veces en un paso)
@@ -51,6 +51,8 @@ const inicio = ([av, perfil]) => {
     // las animaciones de la interfaz (CSS), paradas y llevadas a mano con el mismo reloj
     for (const a of document.getAnimations()) { try { if (a.__v === undefined) { a.__v = a.currentTime || 0; a.pause(); } a.__v += dt * 1000; a.currentTime = a.__v; } catch (e) { } }
     const c = cola; cola = []; for (const f of c) { try { f(virt); } catch (e) { console.error('paso', e?.message); } }
+    // (y dentro de los marcos de la página, como la lámina que se mueve del visor de láminas: su propio reloj, con el mismo paso)
+    for (let i = 0; i < window.frames.length; i++) { try { const w = window.frames[i]; if (w.__paso) { if (!w.__virtOn) w.__congela(); w.__paso(dt); } } catch (e) { } }
   };
 };
 
