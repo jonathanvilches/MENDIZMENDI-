@@ -55,18 +55,18 @@ const MONTE = [['dOlite', 'Zona Media', 'Olite'], ['dIsaba', 'Pirineo', 'Isaba']
 const FONDOS = [
   { a: 0, b: 7.45, src: 'p:isla', desde: 4.0, luz: 'mapa', velo: 0.22, entra: ['negro', 1.6] },
   { a: 7.45, b: 13.05, src: 'p:otVuelo', desde: 0.2, luz: 'dia', velo: 0.1, entra: ['funde', 0.9] },
-  { a: 13.05, b: 16.6, src: 'p:otMaite', desde: 0.6, luz: 'dia', velo: 0.35, entra: ['barre', 0.22] },
+  { a: 13.05, b: 16.6, src: 'p:otMaite', desde: 0.6, luz: 'dia', velo: 0.2, entra: ['barre', 0.22] },
   { a: 16.6, b: 19.7, src: 'p:otRio', desde: 0.6, luz: 'dia', velo: 0.4, entra: ['funde', 0.5] },
   { a: 19.7, b: 22.55, src: 'p:otExplora', desde: 0.6, luz: 'calido', velo: 0.4, entra: ['barre', 0.22] },
   { a: 22.55, b: DROP, src: 'negro' },
   { a: B(0), b: B(2), src: 'p:otValle', vel: 0.8, luz: 'ocaso', impacto: 1, velo: 0.18, entra: ['blanco', 0.4] },
   { a: B(2), b: B(3), src: 'p:horizonte', desde: 1.2, luz: 'ocaso', velo: 0.22, entra: ['barre', 0.22] },
   { a: B(3), b: B(4), src: 'p:manadaBaile', desde: 1.0, luz: 'noche', velo: 0.2, golpe: '#ff8a5a' },
-  { a: B(4), b: B(6), src: 'p:otItziar', desde: 0.1, luz: 'calido', velo: 0.3, entra: ['barre', 0.22] },
-  { a: B(6), b: B(8), src: 'p:otJoxemari', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['barre', 0.22] },
-  { a: B(8), b: B(10), src: 'p:otKike', desde: 0.1, luz: 'calido', velo: 0.3, entra: ['barre', 0.22] },
-  { a: B(10), b: B(12), src: 'p:otJoseba', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['barre', 0.22] },
-  { a: B(12), b: B(14), src: 'p:otLamia', desde: 0.1, luz: 'ocaso', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(4), b: B(6), src: 'p:otItziar', desde: 0.1, luz: 'calido', velo: 0.16, entra: ['barre', 0.22] },
+  { a: B(6), b: B(8), src: 'p:otJoxemari', desde: 0.1, luz: 'dia', velo: 0.16, entra: ['barre', 0.22] },
+  { a: B(8), b: B(10), src: 'p:otKike', desde: 0.1, luz: 'calido', velo: 0.16, entra: ['barre', 0.22] },
+  { a: B(10), b: B(12), src: 'p:otJoseba', desde: 0.1, luz: 'dia', velo: 0.16, entra: ['barre', 0.22] },
+  { a: B(12), b: B(14), src: 'p:otLamia', desde: 0.1, luz: 'ocaso', velo: 0.16, entra: ['barre', 0.22] },
   { a: B(14), b: B(17), src: 'p:otBasajaun', desde: 0, luz: 'noche', velo: 0.28, entra: ['negro', 0.25], golpe: '#ffb070' },
   { a: B(17), b: B(18), src: 'morado' },
   ...MONTE.map(([p], i) => ({ a: B(18 + i / 2), b: B(18.5 + i / 2), src: 'p:' + p, desde: 0.35, luz: i % 3 === 2 ? 'ocaso' : 'dia', velo: 0.12, entra: i === 0 ? ['blanco', 0.3] : null, golpe: i % 2 === 0 && i ? '#fff2dc' : null })),
@@ -75,7 +75,7 @@ const FONDOS = [
   { a: B(26), b: B(27), src: 'p:publico', desde: 0.6, luz: 'calido', velo: 0.4, entra: ['barre', 0.22] },
   { a: B(27), b: B(28), src: 'morado', entra: ['blanco', 0.3] },
   { a: B(28), b: B(30), src: 'p:irati', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['funde', 0.5] },
-  { a: B(30), b: B(32), src: 'p:otBobo', desde: 0.1, luz: 'calido', velo: 0.35, entra: ['barre', 0.22] },
+  { a: B(30), b: B(32), src: 'p:otBobo', desde: 0.1, luz: 'calido', velo: 0.2, entra: ['barre', 0.22] },
   { a: B(32), b: DURA + 1, src: 'p:isla', desde: 9.0, vel: 0.3, luz: 'mapa', velo: 0.5, entra: ['blanco', 0.7] },
 ];
 // (fogonazos blancos: cuándo, cuánto, cuánto dura)
@@ -126,7 +126,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 .vc{position:absolute;top:150px;width:540px;height:720px;perspective:1600px}
 .vc.izq{left:130px}.vc.der{right:130px}
 /* (con el juego de verdad detrás, la carta algo más pequeña: el vecino se ve en el plano, al otro lado) */
-.vc{top:170px;scale:.78}.vc.izq{transform-origin:0 0}.vc.der{transform-origin:100% 0}
+.vc{top:150px;scale:.7}.vc.izq{transform-origin:0 0}.vc.der{transform-origin:100% 0}
 .vc-mov,.vc-flota{position:absolute;inset:0;transform-style:preserve-3d}
 .vc-flota{animation:vcFlota 5s ease-in-out infinite alternate}
 @keyframes vcFlota{from{transform:translateY(-7px) rotateZ(-.4deg)}to{transform:translateY(7px) rotateZ(.4deg)}}
@@ -147,7 +147,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 .cita{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;width:1000px}
 .cita.izq{left:800px}.cita.der{left:150px}
 /* (y la frase abajo, a la altura del pecho del vecino, para que su cara quede limpia) */
-.cita{top:auto;bottom:96px;justify-content:flex-end;width:980px}.cita.izq{left:620px}.cita.der{left:320px}
+.cita{top:auto;bottom:64px;justify-content:flex-end;width:780px}.cita.izq{left:130px}.cita.der{left:auto;right:130px}
 .cita p{font-size:calc(var(--fs,84px) * .66)!important}
 .cita p{margin:0;font:400 var(--fs,84px)/1 var(--f-display);text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(20,6,40,.45),0 0 26px rgba(10,2,30,.7);text-wrap:balance}
 .cita p .w{display:inline-block;margin-right:.22em}
@@ -173,6 +173,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 /* el rótulo de la tele del juego (ui/rotulo.css), en grande */
 .rot{position:absolute;left:120px;bottom:120px;display:flex;gap:18px;padding:18px 40px 20px 18px;border-radius:14px;background:linear-gradient(180deg,rgba(26,12,52,.94),rgba(16,7,34,.9));box-shadow:0 20px 50px rgba(4,1,12,.5),inset 0 1px 0 rgba(255,255,255,.06)}
 .rot.peq{bottom:auto;top:84px;padding:12px 30px 14px 12px;gap:14px}
+.rot.arriba{bottom:auto;top:176px}   /* (debajo de la banda de cine de arriba, lejos de los subtítulos) */
 .rot-b{flex:none;width:6px;border-radius:3px;background:var(--c,#ff3fcf);transform-origin:50% 0}
 .rot-k,.rot-t{display:block;overflow:hidden}
 .rot-k>span{display:block;font:800 24px/1.2 var(--f-cond);letter-spacing:.12em;text-transform:uppercase;color:color-mix(in srgb,var(--c,#ff3fcf) 55%,#fff)}
@@ -305,8 +306,8 @@ function frase(v, { cls = '', kicker = '', hasta = null, estilo = 'sube' } = {})
 }
 
 // el rótulo de la tele (el antetítulo se desliza y se junta, el título sube letra a letra detrás de la máscara)
-function rotulo(a, b, k, t, { c = '#ff3fcf', peq = false } = {}) {
-  const el = h('div', 'rot' + (peq ? ' peq' : ''), `<i class="rot-b"></i><div><span class="rot-k"><span>${esc(k)}</span></span><span class="rot-t"><span>${esc(t)}</span></span></div>`);
+function rotulo(a, b, k, t, { c = '#ff3fcf', peq = false, arriba = false } = {}) {
+  const el = h('div', 'rot' + (peq ? ' peq' : '') + (arriba ? ' arriba' : ''), `<i class="rot-b"></i><div><span class="rot-k"><span>${esc(k)}</span></span><span class="rot-t"><span>${esc(t)}</span></span></div>`);
   el.style.setProperty('--c', c); capas.appendChild(el);
   ventana(el, a, b, 0.01, 0.22);
   vida(el, [[a, { transform: 'translateY(-12px) scale(.98)' }, E.muelle], [a + 0.38, { transform: 'none' }], [b - 0.22, { transform: 'none' }, E.sale], [b, { transform: 'translateY(-10px)' }]]);
@@ -353,7 +354,7 @@ function monta() {
   // las voces: su texto
   const V = SEG;
   frase(V['salva-tierra'], { hasta: 7.35 });
-  rotulo(7.95, 12.95, 'Valle de Salazar · Pirineo', 'Otsagabia', { c: '#ff7ac8' });
+  rotulo(7.95, 12.95, 'Valle de Salazar · Pirineo', 'Otsagabia', { c: '#ff7ac8', arriba: true });
   sub(V['nico-otsa']);
   cita(V['maite-kaixo'], 16.55);
   cita(V['maite-fiesta'], 22.45, (el, a, b) => {
