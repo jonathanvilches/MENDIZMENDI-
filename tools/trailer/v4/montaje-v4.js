@@ -273,7 +273,11 @@ function sub(v, hasta = null) {
   if (v.t < DROP) el.style.bottom = Math.round(H * 0.115) + 26 + 'px';
   frasePalabras(p, palabras(v), { dy: 0.3, dur: 0.3, curva: E.ease });
   capas.appendChild(el);
-  ventana(el, v.t - 0.1, hasta ?? fin(v) + 0.45, 0.1, hasta ? 0.15 : 0.3);
+  // (y se ha ido del todo antes de que hable el siguiente: su frase entra 0,25 s antes de su voz)
+  const sig = G.voces.map(x => x.t).filter(t => t > v.t + 0.01).sort((p, q) => p - q)[0] ?? Infinity;
+  const ult = v.seg?.length ? v.t + v.seg[v.seg.length - 1][1] - v.de : fin(v);   // (pero nunca antes de que acabe su última palabra)
+  const b = Math.max(ult + 0.05, Math.min(hasta ?? fin(v) + 0.45, sig - 0.3));
+  ventana(el, v.t - 0.1, b, 0.1, b < fin(v) + 0.45 ? 0.12 : 0.3);
 }
 
 // una frase grande del centro: cada trozo de la voz en su línea, letra a letra (cinetica, «sube»)
