@@ -9,7 +9,7 @@ import FOLKLORE from '../data/folklore.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { CUENTOS, KIND_LABEL, cuentoOfTown } from '../data/cuentos.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
-import { laminaDe, LAMINAS_TEC } from '../ui/anatomia.js';
+import { laminaDe, LAMINAS_TEC, LAMINA_PASOS, laminaPaso } from '../ui/anatomia.js';
 import { OFICIOS } from '../data/oficios.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
@@ -131,6 +131,14 @@ const IGLESIA_ILUS = { romanesque: 'iglesia-romanica', gothic: 'iglesia-gotica',
 const MONUMENTO_ILUS = { house: 'casa-escudo', towerhouse: 'casa-torre', ruin: 'ruinas', chapel: 'ermita', cross: 'crucero', monolith: 'monolito', lookout: 'mirador', pass: 'puerto-montana', horreo: 'horreo', stelae: 'estelas' };
 const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
 // (el botón a la lámina técnica del producto, si la tiene: ui/anatomia.js; lo atiende el menú, data-lamina)
+// (la pestaña «Por dentro» de cada oficio en el menú: la lámina técnica que se mueve, en grande, y, si tiene pasos, sus seis
+// miniaturas; cada una abre la lámina en ese paso. El autor, 22 nov: «No veo en oficios una opción de ver la parte de anatomy»)
+const porDentroOficio = (k) => {
+  const id = laminaDe(k), L = id && LAMINAS_TEC[id]; if (!L) return '';
+  const PS = LAMINA_PASOS[id];
+  return `<div class="dd-pd"><button type="button" class="dd-pd-main" data-lamina="${id}"><img src="./anatomia/${id}.jpg" alt="" loading="lazy"><span>${I('mill', 18)}Verlo por dentro</span></button>`
+    + (PS ? `<div class="dd-pd-pasos">${PS.map((t, i) => `<button type="button" data-lamina="${id}" data-paso="${i}"><img src="${laminaPaso(id, i)}" alt="" loading="lazy"><span><b>${i + 1}</b>${esc(t)}</span></button>`).join('')}</div>` : '') + '</div>';
+};
 const porDentro = (id) => { const L = laminaDe(id); return L ? `<p class="dd-more"><button type="button" class="btn ghost" data-lamina="${L}">Verlo por dentro, paso a paso</button></p>` : ''; };
 export const LM_ICON = { trinquete: 'pelota', chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
@@ -354,6 +362,7 @@ export const DIDACTICO = {
       const esc2 = oficioImg(k);
       return { k, img: laminaUrl(OFICIO_LAMINA[k], true) || '', icon: O.icon, kicker: 'Oficio de antes', title: O.name, eu: O.eu,
         secs: [['El oficio', P(O.intro) + (esc2 ? `<p class="dd-ofarms"><img src="${esc2}" alt=""><span>El escudo del oficio</span></p>` : '')],
+          ['Por dentro', porDentroOficio(k)],
           ['Herramientas', `<table class="dd-tools"><thead><tr><th>Castellano</th><th>Euskera</th><th>Para qué sirve</th></tr></thead><tbody>${O.tools.map(([es, eu, d]) => `<tr><th data-notr lang="es">${esc(es)}</th><td data-notr lang="eu">${esc(eu)}</td><td>${esc(d)}</td></tr>`).join('')}</tbody></table>`],
           ['Cómo se trabajaba', O.steps.map((s, i) => `<div class="dd-paso"><h4><span class="dd-n">${i + 1}</span>${esc(s.title)}</h4>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('')],
           ['Antes y ahora', aa(O.then, O.now)]],

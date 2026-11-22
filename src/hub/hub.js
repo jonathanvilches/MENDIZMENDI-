@@ -251,7 +251,7 @@ export class Hub {
     $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button[data-s]'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura],[data-personaje],[data-instrumento],[data-pasaka],[data-ficha],[data-lamina]'); if (!t) return;
-      if (t.dataset.lamina) return laminaTecnica({ sound: this.sound }, t.dataset.lamina, { button: 'Cerrar' });   // (una lámina técnica: ui/anatomia.js)
+      if (t.dataset.lamina) return laminaTecnica({ sound: this.sound }, t.dataset.lamina, { button: 'Cerrar', paso: t.dataset.paso != null ? +t.dataset.paso : null });   // (una lámina técnica: ui/anatomia.js)
       if (t.dataset.ficha) { this.sound?.ui('open'); return showFicha(t.dataset.ficha, { ui: { sound: this.sound }, button: 'Cerrar' }); }
       if (t.dataset.frpick != null) return this.frontonPicker();
       if (t.dataset.figura) { this.sound?.ui('open'); return openFigura({ sound: this.sound }, t.dataset.figura); }   // (la ficha de una figura de leyenda o carnaval)
