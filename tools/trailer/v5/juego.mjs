@@ -18,6 +18,11 @@ const inicio = ([av, perfil]) => {
   localStorage.setItem('herrizherri-mando-noofrecer', '1'); localStorage.setItem('herrizherri-mando-ofrecido', '1');
   localStorage.setItem('herrizherri-perfil-v1', JSON.stringify(Object.assign({ v: 1, name: 'Beñat', avatar: av, seen: { heroBenat: true, dog: true, comoJugar: true }, dogOn: false, settings: { quality: 'high' } }, perfil || {})));
   window.__paseo = true; window.__sinVideoIsla = true;
+  // (sin el aviso de Vite de recargar la página al cambiar un archivo: tocar el juego mientras se graba recargaba la toma a
+  // medias y salía la pantalla de carga; la conexión del HMR, protocolo «vite-hmr», se queda en un enchufe que no hace nada)
+  const WS = window.WebSocket;
+  window.WebSocket = function (url, protocols) { if (String(protocols || '').includes('vite-hmr')) return { readyState: 3, send() {}, close() {}, addEventListener() {}, removeEventListener() {} }; return new WS(url, protocols); };
+  window.WebSocket.prototype = WS.prototype; Object.assign(window.WebSocket, { CONNECTING: 0, OPEN: 1, CLOSING: 2, CLOSED: 3 });
   const ahora = performance.now.bind(performance), fecha = Date.now, raf = window.requestAnimationFrame.bind(window);
   const st = window.setTimeout.bind(window), si = window.setInterval.bind(window), ct = window.clearTimeout.bind(window), ci = window.clearInterval.bind(window);
   let virt = null, f0 = 0, cola = [], timers = new Map(), sig = 1e7;
@@ -71,7 +76,7 @@ for (const nombre of nombres.split(',')) {
   // (unos pasos antes de empezar, para que todo se asiente: animales, vecinos, la cámara detrás del jugador)
   // (los pasos de antes, sin dibujar salvo los dos últimos: el mundo avanza igual y así no se pierde tiempo)
   for (let i = 0; i < (T.antes ?? 24); i++) await p.evaluate(([d, dt]) => { window.__sinDibujo = d; try { window.__antes?.(); } catch (e) { console.error('antes', e?.message); } window.__paso(dt); }, [i < (T.antes ?? 24) - 2, 1 / FPS]);
-  if (process.env.DBG) console.log('DBG', JSON.stringify(await p.evaluate(() => { const G = window.__game, P = G?.player, c = window.__rt?.camera; return { P: P && [P.pos.x, P.pos.z, P.obj.visible, P.heading], cam: c && [c.position.x, c.position.y, c.position.z], d: P && c && Math.hypot(c.position.x - P.pos.x, c.position.z - P.pos.z), cin: !!G?.follow?.cinematic, tienda: G?.tienda?.pos }; })));
+  if (process.env.DBG) console.log('DBG', JSON.stringify(await p.evaluate(() => { const G = window.__game, P = G?.player, c = window.__rt?.camera; return { P: P && [P.pos.x, P.pos.z, P.obj.visible, P.heading], cam: c && [c.position.x, c.position.y, c.position.z], d: P && c && Math.hypot(c.position.x - P.pos.x, c.position.z - P.pos.z), cin: !!G?.follow?.cinematic, tienda: G?.tienda?.pos, places: Object.keys(window.__layout?.PLACES || {}).join(','), lm: (window.__layout?.TOWN?.landmarks || G?.town?.landmarks || []).map(l => l.kind).join(',') }; })));
   const acc = (T.guion || []).slice().sort((a, b) => a[0] - b[0]); let ia = 0;
   const cuales = prueba ? [0, Math.round(n * 0.25), Math.round(n * 0.5), Math.round(n * 0.75), n - 1] : null;
   const t0 = Date.now();

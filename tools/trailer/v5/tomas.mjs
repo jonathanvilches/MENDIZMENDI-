@@ -78,7 +78,7 @@ const tecla = (k) => (p) => p.evaluate((k) => window.dispatchEvent(new KeyboardE
 // una charla con un vecino de Otsagabia: quién, a qué hora, desde qué distancia llega y lo que dice (con sus segundos)
 const charla = (quien, hora, seg, o) => ({
   en: o.en, url: `?${OT}&weather=${o.tiempo || 'clear'}&t=${hora}`, seg, antes: 30,
-  prep: eval(`() => { const J = window.__j, a = J.G.npcs?.${quien}; if (!a) throw new Error('sin ${quien}'); J.limpia(); J.hacia(a, ${o.lejos ?? 2.6}${o.h != null ? `, { h: ${o.h} }` : ''}); J.charla(a, ${JSON.stringify({ habla: o.habla ?? 0.1, pasa: o.pasa || [], frases: o.frases })}); ${o.extra || ''} }`),
+  prep: eval(`() => { const J = window.__j, a = J.G.npcs?.${quien}; if (!a) throw new Error('sin ${quien}'); J.limpia(); J.hacia(a, ${o.lejos ?? 2.6}${o.h != null ? `, { h: ${o.h} }` : ''}); J.charla(a, ${JSON.stringify({ habla: o.habla ?? 0.1, pasa: o.pasa || [], frases: o.frases, para: o.para })}); ${o.extra || ''} }`),
   guion: o.guion,
 });
 
@@ -107,7 +107,8 @@ export const TOMAS = {
   },
   itziar: charla('itziar', 11.4, 4.7, { en: 29.9, lejos: 3.4, habla: 0.75, frases: ['¿Sabes que en Otsagabia hay palacios con escudos de piedra?'] }),
   joxemari: charla('joxemari', 9.6, 3.8, { en: 34.5, habla: 0.05, frases: ['Egun on, gazte. Soy Joxemari, el pastor.'] }),
-  kike: charla('kike', 17.2, 3.9, { en: 38.2, habla: 0.1, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }),
+  // (Kike es un niño, más bajo que el explorador: el explorador se para más lejos para no taparle en el plano de la charla)
+  kike: charla('kike', 17.2, 3.9, { en: 38.2, lejos: 3.6, para: 2.5, habla: 0.1, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }),
   joseba: charla('inaki', 11.0, 2.1, { en: 42.0, habla: 0.1, frases: ['Soy Joseba, guarda de Irati.'] }),
   lamia: charla('lamia', 17.6, 5.7, { en: 44.0, lejos: 6.5, habla: 1.75, frases: ['Estaba peinándome con mi peine de oro y… ¡plof!'] }),
   basajaun: charla('basajaun', 19.2, 6.1, { en: 49.6, tiempo: 'niebla', lejos: 3.2, habla: 0.1, pasa: [2.75], frases: ['¡Oooh! Una personita en mi bosque…', 'Soy el Basajaun, el señor del bosque.'] }),
@@ -226,23 +227,26 @@ export const TOMAS = {
   },
   // ---------- «El Basajaun es una leyenda… ¡pero el bosque es de verdad!» ----------
   bosque: {
-    en: 76.1, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=11.2', seg: 3.8, antes: 30,
-    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 24, { anda: true, h: 1.6 }); },
+    // (otra parte de la selva que la toma de Irati, la del bosque cerrado, a media tarde, con la luz entre los troncos)
+    en: 76.1, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=15.4', seg: 3.8, antes: 30,
+    prep: () => { const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.forest, 24, { anda: true, snap: true }); },
   },
   // ---------- el final: el Bobo en Muskilda con las ocho cintas, y el baile ----------
   bobo: charla('bobo', 11.6, 3.9, { en: 79.85, habla: 0.05, frases: ['¡Las ocho cintas! ¡Los danzantes ya pueden ponerse sus trajes!'],
     extra: "import('/src/game/content.js').then(m => { J.G.state.ribbons = m.RIBBONS.map(r => r.id); J.G.refreshHUD?.(); });" }),
   danza: {
-    en: 83.75, url: `?${OT}&weather=clear&t=12.2`, seg: 10.75, antes: 24,
+    en: 83.75, url: `?${OT}&weather=clear&t=12.2`, seg: 10.75, antes: 48,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia();
       import('/src/game/content.js').then(m => { G.state.ribbons = m.RIBBONS.map(r => r.id); G.refreshHUD?.(); });
-      window.__cada = (t) => {
-        if (!G.dn && t >= 0) G.startDance();
-        // (el jugador baila bien: pulsa la flecha de cada nota cuando llega a la línea)
+      // (el baile empieza ya, en los pasos de antes, para que la cámara llegue a su sitio antes de la toma; y el jugador
+      // baila bien: pulsa la flecha de cada nota cuando llega a la línea)
+      G.startDance();
+      const pulsa = () => {
         const d = G.dn; if (!d) return; const teclas = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight'];
         for (const s of d.seq) if (!s.__p && s.t <= d.t + 1 / 24 && s.t > d.t - 0.2) { s.__p = 1; window.dispatchEvent(new KeyboardEvent('keydown', { key: teclas[s.lane], bubbles: true })); }
       };
+      window.__antes = pulsa; window.__cada = pulsa;
     },
   },
 };

@@ -12,6 +12,7 @@ import { terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
 import { VILLAGE } from '../world/village.js';
 import { Posada } from './posada.js';
 import { LANDMARKS } from '../world/landmarks.js';
+import { TREES } from '../world/nature.js';
 import { isFree, segmentBlocked } from '../world/colliders.js';
 import { makeEguzkilore, makeComb, makeLitter } from '../fx.js';
 import { wait } from '../ui.js';
@@ -920,7 +921,19 @@ export class Game {
     this.player.frozen = true;
     this.dancers.forEach((d) => { d.visible = true; d.collider.ghost = true; d.heading = -Math.PI / 2; d.dance = 0; d.sync(); });
     this.npcs.bobo.setPos(m.x - 3.5, m.z + 4, -Math.PI / 2);
-    this.follow.cinematic = { pos: new THREE.Vector3(m.x - 14, terrainHeight(m.x, m.z) + 4.5, m.z + 7), look: new THREE.Vector3(m.x - 2, terrainHeight(m.x, m.z) + 1.4, m.z + 1), t: 0 };
+    // (la cámara del baile, sin árboles en el encuadre: desde el sitio de siempre, de -14 y +7, la copa del roble de al lado
+    // tapaba media imagen; ahora prueba ángulos alrededor y se queda con el que deja fuera del encuadre las copas cercanas
+    // (cuánto de cada copa entra en los 40° a cada lado de la mirada, más cuanto más cerca), el de siempre si está despejado)
+    const hL = terrainHeight(m.x, m.z), look = new THREE.Vector3(m.x - 2, hL + 1.4, m.z + 1), a0 = Math.atan2(7, -14 + 2), dC = Math.hypot(12, 6);
+    let mejor = null;
+    for (const da of [0, -0.25, 0.25, -0.5, 0.5, -0.8, 0.8, -1.15, 1.15]) {
+      const a = a0 + da, cx = look.x + Math.cos(a) * dC, cz = look.z + Math.sin(a) * dC, vx = look.x - cx, vz = look.z - cz, vl = Math.hypot(vx, vz); let tapa = 0;
+      for (const t of TREES) { const dx = t.x - cx, dz = t.z - cz, dc = Math.hypot(dx, dz); if (dc > 22 || dc < 0.5) continue;
+        const r = 3 * (t.s || 1) + 1, off = Math.acos(Math.max(-1, Math.min(1, (dx * vx + dz * vz) / (dc * vl)))), mitad = Math.atan(r / dc);
+        const dentro = 0.7 + mitad - off; if (dentro > 0) tapa += dentro * (22 - dc) / 22; }
+      if (!mejor || tapa < mejor.tapa - 0.02) mejor = { cx, cz, tapa };
+    }
+    this.follow.cinematic = { pos: new THREE.Vector3(mejor.cx, Math.max(hL, terrainHeight(mejor.cx, mejor.cz)) + 4.5, mejor.cz), look, t: 0 };
     this.sound.setMusic(false);
     const seq = [];
     const bpm = 100, beat = 60 / bpm;
@@ -953,7 +966,7 @@ export class Game {
     const beatIdx = Math.floor(D.t / D.beat);
     if (beatIdx !== D.lastBeat) {
       D.lastBeat = beatIdx;
-      if (D.t > 0.5) { this.sound.noiseBurst(0.08, 180, 1, beatIdx % 2 ? 0.25 : 0.45, this.sound.musicBus, 0, 'lowpass'); this.sound.musicBus.gain.value = 0.4; const sc = [587, 659, 698, 784, 880, 784, 698, 659]; this.sound.flute(sc[beatIdx % 8], D.beat * 0.9, 0); }
+      if (D.t > 0.5) { this.sound.noiseBurst(0.08, 180, 1, beatIdx % 2 ? 0.25 : 0.45, this.sound.musicBus, 0, 'lowpass'); this.sound.musicBus.gain.value = 0.4; }   // (la melodía de txistu generada se quitó con la música del autor, 28 oct: quedaba aquí la llamada y rompía el baile en cada compás)
     }
     // bailarines
     const dAmt = D.t > 1.5 ? 6.3 : 0;
