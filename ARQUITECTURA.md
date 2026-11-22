@@ -1605,7 +1605,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ficha del pueblo, la cabecera de la comarca, la ficha del mapa, la galería, la pantalla de carga, los cuentos, la
   pasaka, las tarjetas de deporte y las cabeceras del armorial. Rellenos de las cajas: 24 en el ordenador y 16 o 20 en el
   móvil. `tools/auditoria-diseno.mjs` lo comprueba («espacio»).
-- **Galería de Pueblos** (`hub/galeria.js`): un anillo con fondo, como una rueda vista desde fuera: las cartas van una
+- **Galería de Pueblos** (`hub/galeria.js`). Desde el 22 de noviembre de 2026 es el mismo carrusel 3D que el menú, los
+  campeonatos y «Elige tu pelotari» (`carrusel3d` de `game/carrusel3d.js`, en modo `banda`; el autor: «El bloque de pueblos
+  también tiene que ser un carrusel 3D rotativo 360, igual que el de la pelota y todos los demás»): las cartas en un anillo
+  que gira en redondo, la de delante encendida y a cada lado las demás, cada vez más giradas, hondas y apagadas por su velo
+  (en el ordenador, dos a cada lado: el anillo, como mucho de 26vw de alto). Cada carta mide de alto 0,8 veces su ancho
+  (`AR`): la foto 16:9 entera y su franja; en las estrechas, sin el otro nombre. La galería guarda lo suyo: las pestañas de
+  comarca (y ↑ ↓) giran el anillo hasta el primer pueblo de cada una, las fotos se piden al acercarse (`fotos`), tocar una
+  carta abre su ficha y el botón de jugar de la de delante, el pueblo (el toque no sube al menú, que también escucha
+  `[data-play]` y jugaría dos veces). Escondida detrás de un pueblo, el anillo se suelta y la escena se cambia por una copia
+  limpia, para que las flechas no lo giren a escondidas; al volver a verse se monta otro con la misma carta delante.
+  Prueba: Pueblos a 1280 × 720 y 844 × 390, ← →, ↑ ↓, una pestaña, tocar una carta de un lado (gira y abre su ficha).
+  Lo de antes, para la historia: un anillo con fondo, como una rueda vista desde fuera: las cartas van una
   junto a otra, borde con borde, cada una más girada y más honda que la anterior, hasta llegar a las flechas, y las
   siguientes se apagan. La primera de cada lado va lo más girada que deje llenar hasta las flechas con dos o tres detrás,
   entre 28° y 48°: en el ordenador, mucho; en el móvil tumbado, donde la carta es pequeña para el ancho, menos y con

@@ -152,3 +152,21 @@
 /* ---------- ordenador grande: las pantallas, más grandes ---------- */
 @media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(68vh, 640px); --dh: 100px; } .gt-ms { --mi: 26px; } .gt-nom b { font-size: min(var(--fs-xl), 7.4cqw); } .gt-nom small { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .gal-t.frente, .gal-t.frente .gt-foto::after { animation: none; } .gal-anillo.entra .gal-t { animation: none; } }
+
+/* ---------- el anillo 3D que gira en redondo (game/carrusel3d.js, el del menú y el de pelota; 22 nov 2026) ----------
+   Las cartas son las portadas del anillo: cada una, la foto 16:9 entera y su franja debajo, con el alto / ancho de AR
+   (galeria.js); las de los lados, apagadas por su velo (.c3-velo) en vez del de la carta; sin los puntos, que ya dice la
+   pestaña de arriba qué comarca es */
+.gal.gal-c3 .gal-anillo { width: var(--c3w, 200px); height: auto; aspect-ratio: var(--c3ar, .8); }
+.gal.gal-c3 .c3-anillo > .gal-t { width: auto; height: auto; inset: 0; border-radius: 10px; background: #150b2e; box-shadow: none; transition: outline-color .25s ease; }
+.gal.gal-c3 .c3-anillo > .gal-t.frente { box-shadow: 0 0 30px color-mix(in srgb, var(--c) 42%, transparent), 0 22px 44px rgba(4, 1, 12, .55); }
+.gal.gal-c3 .gt-marco { border-radius: inherit; }
+.gal.gal-c3 .gt-marco::after { display: none; }
+.gal.gal-c3 .gt-dato { overflow: hidden; }
+.gal.gal-c3 .gal-puntos { display: none; }
+.gal.gal-c3 .gal-escena::after { top: calc(50% + var(--c3w, 200px) * .38); width: min(calc(var(--c3w, 200px) * 3), 100%); height: calc(var(--c3w, 200px) * .24); }
+/* (en las cartas estrechas, la franja con el nombre, las misiones y jugar; sin el otro nombre, que no cabe) */
+@container (max-width: 340px) { .gal.gal-c3 .gt-nom small { display: none; } .gal.gal-c3 .gt-dato { row-gap: 3px; padding-top: 6px; padding-bottom: 6px; } }
+/* (en el ordenador, el anillo algo más bajo: la de delante, de un tercio del ancho, y a cada lado dos más que se van
+   girando, como el del menú; si no, la de delante llenaba media pantalla y solo asomaba una a cada lado) */
+@media (min-width: 1000px) and (min-height: 600px) { .gal.gal-c3 .gal-escena { align-self: center; height: min(100%, 26vw); } }
