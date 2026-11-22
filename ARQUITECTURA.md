@@ -479,7 +479,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Pamplona 823k triángulos, 484 dibujos, 101 MB de texturas y 34 de búferes; Tudela 521k, 423, 94 y 51. Lo que más
   pesa es la textura del jugador a 2048 (21 MB, puesta así por el autor: a 1024 se veía borrosa), luego dos texturas
   «body» de 1024 (5 MB cada una), las hojas de los árboles de cerca (5 MB) y unos 15 vecinos de 512 (1,3 MB cada uno).
-  Sin compilar programas mientras se juega (`$SP/rend/tarde.mjs`: 0).
+  Mientras se juega no se compila ningún programa nuevo (todos quedan hechos en la carga).
 - **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
   (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
   intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
