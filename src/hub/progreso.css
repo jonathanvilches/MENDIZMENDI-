@@ -69,6 +69,12 @@
 
 /* ---------- las clasificaciones ---------- */
 #hub .pg-rank { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m, 16px); }
+/* (las pestañas del ranking, una por competición: pastillas pequeñas que se deslizan si no caben) */
+#hub .pg-rkf { display: flex; gap: 6px; margin: 8px 0 2px; overflow-x: auto; scrollbar-width: none; }
+#hub .pg-rkf::-webkit-scrollbar { display: none; }
+#hub .pg-rkf button { flex: none; min-height: 30px; padding: 0 12px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .06); color: var(--dim, #a097bd); font: 700 12px/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; transition: background .2s, color .2s; }
+#hub .pg-rkf button[aria-selected="true"] { background: rgba(255, 122, 200, .2); color: #fff; }
+#hub .pg-tabla[hidden] { display: none; }   /* (si no, el display: grid de abajo las enseñaba todas a la vez) */
 #hub .pg-tabla { display: grid; gap: 2px; margin: 6px 0 0; padding: 0; list-style: none; counter-reset: none; }
 #hub .pg-tabla li { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto 44px; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px;
   opacity: 0; transform: translateX(-10px); transition: opacity .4s ease, transform .5s var(--pg-curva); }

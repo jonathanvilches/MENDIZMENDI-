@@ -117,12 +117,13 @@ export const TOMAS = {
     prep: () => {
       const J = window.__j, P = J.G.player; J.limpia(); const L = window.__layout?.PLACES, b = J.corre(L?.plaza, 30);
       const fx = -Math.cos(b.a), fz = -Math.sin(b.a), e = (k) => k * k * (3 - 2 * k);
-      // (sube casi en vertical sobre el explorador, siempre encima de la calle libre por la que corre: echándose atrás se
-      // metía en las casas; el giro, pequeño, solo cuando ya va por encima de los tejados)
+      // (sube en vertical desde un punto fijo de la calle, cuatro metros detrás de donde empieza a correr, y le deja irse
+      // hacia la plaza; la mirada pasa de él a la calle de delante y al pueblo. Detrás de él, siguiéndole, se metía en las
+      // casas y, ya arriba, en las copas de los árboles de la plaza)
+      const x0 = P.pos.x - fx * 4, z0 = P.pos.z - fz * 4, y0 = J.suelo(x0, z0);
       J.dron((t) => {
-        const k = e(Math.min(1, t / 4.4)), g = 0.5 * k * k, rx = fx * Math.cos(g) - fz * Math.sin(g), rz = fx * Math.sin(g) + fz * Math.cos(g);
-        const atras = 6 - 3 * k, x = P.pos.x - rx * atras, z = P.pos.z - rz * atras, y = Math.max(J.suelo(x, z) + 2, P.pos.y + 2.4 + 22 * k), d = 4 + 4 * k;
-        return { pos: [x, y, z], look: [P.pos.x + fx * d, P.pos.y + 1.2 - 1.2 * k, P.pos.z + fz * d] };
+        const k = e(Math.min(1, t / 4.4)), d = 2 + 22 * k;
+        return { pos: [x0, y0 + 2.2 + 17 * k, z0], look: [P.pos.x + fx * d, P.pos.y + 1.2 - 1.2 * k, P.pos.z + fz * d] };
       });
     },
   },

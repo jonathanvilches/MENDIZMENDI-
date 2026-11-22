@@ -289,8 +289,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `dedos.js`; el finalista con `agarrar.js`), la txapela que baja en primer plano y se posa a la medida de la cabeza, el
   «¡Txapeldun!» en ese momento con el diálogo de Mikel y Edurne, el campeón que levanta la copa (solo él), confeti
   dorado, la familia y los amigos en la cancha (vecinos con ropa de calle teñida, `npcOutfit.js`; casi todos del color
-  del campeón y ninguno del rival) y el rótulo de retransmisión. La medida de la cabeza sale de la figura (lo más alto
-  de la caja del personaje), no del esqueleto: en los pelotaris la cabeza es mucho mayor que su esqueleto. Las clases
+  del campeón y ninguno del rival) y el rótulo de retransmisión. Desde el 22 de noviembre, como en las fotos del autor,
+  también la pantalla gigante del frontis (alta y a la izquierda del podio, para que la copa en alto no tape el nombre:
+  «TXAPELDUN», el nombre y el campeonato con el año), apagada hasta que se va el grito de «¡Txapeldun!» (que en el plano
+  de abajo arriba le caía encima) y encendida con el rótulo; y las autoridades a la derecha, aplaudiendo: los dos
+  mayores con chaqueta y txapela de los vecinos (`abuelo_bigote`, `abuelo_barba`; unos 0,7 MB más, solo en la entrega),
+  con el aplauso hecho a mano en sus brazos (`aplaude`, las manos delante del pecho unas tres veces por segundo). La
+  medida de la cabeza sale de la figura (lo más alto del pelo, con nueve rayos alrededor del eje de la cabeza: con uno
+  solo, entre dos mechones, la txapela quedaba por debajo y los mechones la atravesaban), no del esqueleto: en los
+  pelotaris la cabeza es mucho mayor que su esqueleto. Las clases
   del rótulo llevan el prefijo `pc-`: `.rotulo` ya es el cartel del pueblo (`ui/rotulo.css`). Tras ella, el campeonato
   no repite la celebración plana de `ui/champion.js` (`r.ceremonia`). Pruebas: `tools/pelota-ceremonia.mjs` (fotos) y
   `tools/pelota-ceremonia-video.mjs` (vídeo con sonido, fotograma a fotograma con el reloj parado).
@@ -2797,8 +2804,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `tusCualidades` de `game/pelotariProgreso.js`: nivel, partidos ganados y la media de las cualidades; al lado, las cuatro
   cualidades de 40 a 99, como en las cartas, con su barra) y el fútbol (la jornada de tu liga, los ganados y los goles;
   en el centro, tu puesto). Después las clasificaciones: la tabla de tu liga de fútbol (la temporada con más jornadas
-  jugadas) y el ranking de pelotaris de tus campeonatos (ganados, perdidos y la diferencia de tantos de todos los
-  partidos jugados en ellos), con tu fila resaltada aunque no esté entre los seis primeros; si no hay, cómo empezar. Y
+  jugadas) y el ranking de pelotaris de tus campeonatos, por puntos como el de la ATP (desde el 22 de noviembre: la
+  txapela 2000, la final 1200, semifinales 720, cuartos 360, octavos 180, quedarse en la liguilla 90; el que gana una
+  ronda ya tiene los de la siguiente; tus txapelas de ediciones anteriores, 2000 cada una; además ganados-perdidos), con
+  una pestaña «Todos» y otra por cada competición jugada (Manomanista, Cuatro y Medio…; `rankingPelota().comps`, las
+  tablas ocultas con `hidden` y `.pg-tabla[hidden]`) y tu fila resaltada aunque no esté entre los seis primeros; si no
+  hay, cómo empezar. De las ediciones anteriores de los rivales no queda nada guardado (`torneo.js` empieza `past` de
+  cero en cada edición): para un ranking de verdad entre ediciones, u online, habría que guardar cada edición al acabar. Y
   las doce comarcas, cada una con su anillo alrededor de la insignia. La liga y los campeonatos se leen de su guardado
   (`herrizherri-liga-v1`, `herrizherri-torneo-v1`, `herrizherri-futbol-v1`) sin cargar `torneo.js` ni `liga.js`. Al entrar,
   los anillos se llenan uno detrás de otro (`progresoVivo` pone `.vivo`; cada módulo 0,12 s después del anterior), las

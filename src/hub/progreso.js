@@ -37,22 +37,40 @@ function tuLiga() {
   const tabla = Object.values(T).sort((a, b) => b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc) || b.gf - a.gf || (CLUBS[b.id]?.ovr || 0) - (CLUBS[a.id]?.ovr || 0));
   return { S, tabla, pos: tabla.findIndex(r => r.id === S.club) + 1, jornadas: S.rounds.length, titulos: S.titles || 0 };
 }
-/** El ranking de pelotaris de tus campeonatos: ganados, perdidos y tantos de todos los partidos jugados en ellos. */
+/** El ranking de pelotaris de tus campeonatos, por puntos como el de la ATP (el autor, noviembre de 2026: «un ranking
+ *  de pelotaris por competición… y de Mi pelotari, tipo ATP»): cada campeonato da puntos por la ronda a la que llega cada
+ *  uno (la txapela, 2000; la final, 1200; las semifinales, 720; los cuartos, 360; los octavos, 180; quedarse en la
+ *  liguilla, 90) y se suman. El que gana una ronda ya tiene los de la siguiente, aunque aún no se haya jugado. Tus
+ *  txapelas de ediciones anteriores, 2000 cada una (de las de los demás no queda nada guardado). Además, los ganados, los
+ *  perdidos y los tantos. Uno con todos y otro por cada competición (Manomanista, 4½…), para elegir en el panel. */
+const PTS = { 'Octavos de final': 180, 'Cuartos de final': 360, 'Semifinales': 720, 'Final': 1200 }, ORDEN = Object.keys(PTS), TXAPELA = 2000, LIGUILLA = 90;
+const COMP = { mano: 'Manomanista', parejas: 'Parejas', cuatro: 'Cuatro y Medio', trinquete: 'Trinquete', fiestas: 'Fiestas', valles: 'Valles', invierno: 'Invierno', promesas: 'Promesas', comarcas: 'Comarcas' };
 function rankingPelota() {
-  const fila = new Map(); let txapelas = 0, campeonatos = 0;
-  for (const T of Object.values(lee('herrizherri-torneo-v1', {}) || {})) {
-    if (!T?.players?.length) continue; campeonatos++; txapelas += T.txapelas || 0;
+  const todos = new Map(), por = new Map(); let txapelas = 0, campeonatos = 0;
+  const fila = (M, key, pl) => { let r = M.get(key); if (!r) M.set(key, r = { name: pl.you ? (profile().name || 'Tú') : pl.name, town: pl.town, you: !!pl.you, g: 0, p: 0, tf: 0, tc: 0, pts: 0 }); return r; };
+  for (const [clave, T] of Object.entries(lee('herrizherri-torneo-v1', {}) || {})) {
+    if (!T?.players?.length || !(T.past?.length || T.txapelas)) continue;
+    campeonatos++; txapelas += T.txapelas || 0;
+    const k = COMP[T.kind] ? T.kind : (clave.split(':')[1] in COMP ? clave.split(':')[1] : 'mano');
+    if (!por.has(k)) por.set(k, new Map()); const M = por.get(k), llega = new Map();
+    const key = (pl) => pl.you ? '·tú' : `${pl.name}|${pl.town}`;
     for (const P of T.past || []) for (const m of P.matches || []) {
       if (!m?.s) continue;
-      for (const [i, j, k] of [[m.a, 0, 1], [m.b, 1, 0]]) {
+      for (const [i, j, o] of [[m.a, 0, 1], [m.b, 1, 0]]) {
         const pl = T.players[i]; if (!pl) continue;
-        const key = pl.you ? '·tú' : `${pl.name}|${pl.town}`, r = fila.get(key) || { name: pl.you ? (profile().name || 'Tú') : pl.name, town: pl.town, you: !!pl.you, g: 0, p: 0, tf: 0, tc: 0 };
-        r.tf += m.s[j]; r.tc += m.s[k]; m.s[j] > m.s[k] ? r.g++ : r.p++; fila.set(key, r);
+        const gana = m.s[j] > m.s[o];
+        for (const r of [fila(todos, key(pl), pl), fila(M, key(pl), pl)]) { r.tf += m.s[j]; r.tc += m.s[o]; gana ? r.g++ : r.p++; }
+        const ix = ORDEN.indexOf(P.name), pts = P.liga || ix < 0 ? LIGUILLA : !gana ? PTS[P.name] : P.name === 'Final' ? TXAPELA : PTS[ORDEN[ix + 1]];
+        llega.set(i, Math.max(llega.get(i) || 0, pts));
       }
     }
+    for (const [i, pts] of llega) { const pl = T.players[i]; fila(todos, key(pl), pl).pts += pts; fila(M, key(pl), pl).pts += pts; }
+    // (tus txapelas de antes: la de esta edición ya cuenta arriba)
+    const yo = T.players.find((q) => q.you), antes = (T.txapelas || 0) - (T.done && T.players[T.champion]?.you ? 1 : 0);
+    if (yo && antes > 0) { fila(todos, '·tú', yo).pts += antes * TXAPELA; fila(M, '·tú', yo).pts += antes * TXAPELA; }
   }
-  const lista = [...fila.values()].sort((a, b) => b.g - a.g || (b.tf - b.tc) - (a.tf - a.tc) || b.tf - a.tf || a.p - b.p);
-  return { lista, pos: lista.findIndex(r => r.you) + 1, txapelas, campeonatos };
+  const orden = (M) => { const lista = [...M.values()].sort((a, b) => b.pts - a.pts || b.g - a.g || (b.tf - b.tc) - (a.tf - a.tc) || a.p - b.p); return { lista, pos: lista.findIndex((r) => r.you) + 1 }; };
+  return { ...orden(todos), comps: [...por].map(([k, M]) => ({ k, name: COMP[k], ...orden(M) })), txapelas, campeonatos };
 }
 
 // ---------- las piezas ----------
@@ -102,9 +120,11 @@ export function progresoHTML(cabeza) {
   const liga = LG ? `<ol class="pg-tabla">${LG.tabla.slice(0, 6).map((r, i) => `<li class="${r.id === LG.S.club ? 'tu' : ''}"><b>${i + 1}</b><span>${esc(CLUBS[r.id]?.name || r.id)}</span><small>${r.pj} PJ</small><em data-cuenta>${r.pts}</em></li>`).join('')}
       ${LG.pos > 6 ? `<li class="tu"><b>${LG.pos}</b><span>${esc(CLUBS[LG.S.club]?.name || '')}</span><small>${LG.tabla[LG.pos - 1].pj} PJ</small><em>${LG.tabla[LG.pos - 1].pts}</em></li>` : ''}</ol>`
     : `<p class="pg-vacio">${I('balon', 26)}<span>Elige tu club en Torneos y juega la liga: aquí verás la clasificación.</span></p>`;
-  const top = RK.lista.slice(0, 6), yo = RK.pos > 6 ? RK.lista[RK.pos - 1] : null;
-  const pelota = RK.lista.length ? `<ol class="pg-tabla">${top.map((r, i) => `<li class="${r.you ? 'tu' : ''}"><b>${i + 1}</b><span>${esc(r.name)}</span><small>${r.g}-${r.p}</small><em data-cuenta>${r.tf - r.tc > 0 ? '+' : ''}${r.tf - r.tc}</em></li>`).join('')}
-      ${yo ? `<li class="tu"><b>${RK.pos}</b><span>${esc(yo.name)}</span><small>${yo.g}-${yo.p}</small><em>${yo.tf - yo.tc > 0 ? '+' : ''}${yo.tf - yo.tc}</em></li>` : ''}</ol>`
+  // (cada fila: el puesto, el pelotari, ganados-perdidos y sus puntos; el que va de ti, siempre, aunque no esté entre los seis)
+  const tablaRK = ({ lista, pos }, id, oculta) => { const top = lista.slice(0, 6), yo = pos > 6 ? lista[pos - 1] : null, li = (r, n) => `<li class="${r.you ? 'tu' : ''}"><b>${n}</b><span>${esc(r.name)}</span><small>${r.g}-${r.p}</small><em data-cuenta>${r.pts}</em></li>`;
+    return `<ol class="pg-tabla" data-rk="${id}" data-n="${lista.length}"${oculta ? ' hidden' : ''}>${top.map((r, i) => li(r, i + 1)).join('')}${yo ? li(yo, pos) : ''}</ol>`; };
+  const pestanas = RK.comps.length > 1 ? `<div class="pg-rkf" role="tablist">${[['todos', 'Todos'], ...RK.comps.map((c) => [c.k, c.name])].map(([k, n], i) => `<button type="button" role="tab" data-rkf="${k}" aria-selected="${!i}">${esc(n)}</button>`).join('')}</div>` : '';
+  const pelota = RK.lista.length ? pestanas + tablaRK(RK, 'todos', false) + (RK.comps.length > 1 ? RK.comps.map((c) => tablaRK(c, c.k, true)).join('') : '')
     : `<p class="pg-vacio">${I('pelota', 26)}<span>Juega un campeonato de pelota: los pelotaris contra los que juegues entrarán en el ranking.</span></p>`;
 
   const anilloC = (f) => { const L2 = 2 * Math.PI * 15; return `<svg class="pg-mini" viewBox="0 0 40 40" aria-hidden="true"><circle class="pg-pista" cx="20" cy="20" r="15"/><circle class="pg-aro" cx="20" cy="20" r="15" transform="rotate(-90 20 20)" style="--L:${L2.toFixed(2)};--off:${(L2 * (1 - f)).toFixed(2)};--i:0;stroke:#ff7ac8"/></svg>`; };
@@ -117,7 +137,7 @@ export function progresoHTML(cabeza) {
       <section class="pg-mods">${explorador}${pelotari}${futbol}</section>
       <section class="pg-rank">
         <article class="pg-mod pg-r-lg"><header><small class="pg-k">Clasificación</small><span class="pg-chip">${LG ? `Temporada ${LG.S.year || 1}` : 'Liga'}</span></header><h3>${LG ? esc(CLUBS[LG.S.club]?.name || 'Tu liga') : 'Liga de fútbol'}</h3>${liga}</article>
-        <article class="pg-mod pg-r-pl"><header><small class="pg-k">Ranking</small><span class="pg-chip">${RK.campeonatos ? `${RK.campeonatos} ${RK.campeonatos === 1 ? 'campeonato' : 'campeonatos'}` : 'Pelota'}</span></header><h3>${RK.pos ? `Puesto ${RK.pos}.º de ${RK.lista.length}` : 'Pelotaris'}</h3>${pelota}</article>
+        <article class="pg-mod pg-r-pl"><header><small class="pg-k">Ranking</small><span class="pg-chip">Puntos</span></header><h3 data-rkh>${RK.pos ? `Puesto ${RK.pos}.º de ${RK.lista.length}` : 'Pelotaris'}</h3>${pelota}</article>
       </section>
       <h2 class="pg-h">${I('map', 22)} Comarcas</h2>
       <section class="pg-com">${PR.map(({ c, r }) => { const hecha = r.towns && r.stamps >= r.towns, f = pc(r.done + r.stamps, r.total + r.towns);
@@ -129,6 +149,15 @@ export function progresoHTML(cabeza) {
 /** Pone en marcha las animaciones del panel ya pintado: los anillos se llenan, uno detrás de otro. */
 export function progresoVivo(raiz) {
   const pan = raiz?.querySelector('.pg-panel'); if (!pan) return;
+  // (las pestañas del ranking: cada competición con su tabla y tu puesto en ella)
+  const rk = pan.querySelector('.pg-r-pl'), h = rk?.querySelector('[data-rkh]');
+  rk?.querySelector('.pg-rkf')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-rkf]'); if (!b) return;
+    rk.querySelectorAll('[data-rkf]').forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+    rk.querySelectorAll('[data-rk]').forEach((ol) => { ol.hidden = ol.dataset.rk !== b.dataset.rkf; });
+    const ol = rk.querySelector(`[data-rk="${b.dataset.rkf}"]`), tu = ol?.querySelector('.tu b')?.textContent;
+    if (h && ol) h.textContent = tu ? `Puesto ${tu}.º de ${ol.dataset.n}` : 'Pelotaris';
+  });
   if (reducido()) { pan.classList.add('vivo', 'quieto'); return; }
   requestAnimationFrame(() => requestAnimationFrame(() => pan.classList.add('vivo')));
 }
