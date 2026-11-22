@@ -204,6 +204,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 22 nov, tarde, la hizo la ventana principal: `master` hasta `d44b6072`. La sección Pueblos en el mismo carrusel 3D que gira en
-  redondo del menú y de pelota (con las pestañas de comarca, las fichas y jugar), y antes, a mediodía, las láminas de los oficios
-  con cámara, zoom y narrador con la voz de Salva.
+- 22 nov, tarde, la hizo la ventana principal: `master` hasta `d04a0f38`. En el frontón, las rayas y los números de la pared
+  izquierda, la raya roja de arriba y las del frontis, nítidos y sin parpadeo (calculados en el sombreador), y el golpe de la mano,
+  distinto del frontis y del suelo. Antes, la sección Pueblos en el carrusel 3D y las láminas de los oficios con narrador.
