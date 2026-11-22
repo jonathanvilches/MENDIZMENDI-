@@ -138,8 +138,9 @@ export const TOMAS = {
   },
   itziar: charla('itziar', 11.4, 4.7, { en: 29.9, lejos: 3.4, habla: 0.75, frases: ['¿Sabes que en Otsagabia hay palacios con escudos de piedra?'] }),
   joxemari: charla('joxemari', 9.6, 3.8, { en: 34.5, habla: 0.05, frases: ['Egun on, gazte. Soy Joxemari, el pastor.'] }),
-  // (Kike es un niño, más bajo que el explorador: el explorador se para más lejos para no taparle en el plano de la charla)
-  kike: charla('kike', 17.2, 3.9, { en: 38.2, lejos: 3.6, para: 2.5, habla: 0.1, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }),
+  // (Kike es un niño, más bajo que el explorador: el explorador se para más lejos para no taparle en el plano de la charla;
+// y quieto, que los niños corretean y se metía detrás del explorador)
+  kike: charla('kike', 17.2, 3.9, { en: 38.2, lejos: 3.6, para: 2.5, habla: 0.1, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'], extra: 'a.frozen = true; a.state = "idle";' }),
   joseba: charla('inaki', 11.0, 2.1, { en: 42.0, habla: 0.1, frases: ['Soy Joseba, guarda de Irati.'] }),
   lamia: charla('lamia', 17.6, 5.7, { en: 44.0, lejos: 6.5, habla: 1.75, frases: ['Estaba peinándome con mi peine de oro y… ¡plof!'] }),
   basajaun: charla('basajaun', 19.2, 6.1, { en: 49.6, tiempo: 'niebla', lejos: 3.2, habla: 0.1, pasa: [2.75], frases: ['¡Oooh! Una personita en mi bosque…', 'Soy el Basajaun, el señor del bosque.'] }),
