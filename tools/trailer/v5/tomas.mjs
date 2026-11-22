@@ -17,14 +17,22 @@ export const AYUDA = () => {
       const P = G.player; c ||= P.pos; let best = null;
       for (let i = 0; i < 48; i++) {
         const a = (o.h ?? 0) + i / 48 * 6.283, x = c.x + Math.cos(a) * lejos, z = c.z + Math.sin(a) * lejos; let bien = ok(x, z), sube = 0;
-        for (let s = 2; s <= lejos - 3 && bien; s += 1.5) { const xx = x - Math.cos(a) * s, zz = z - Math.sin(a) * s; if (!ok(xx, zz, 0.5)) bien = false; sube = Math.max(sube, Math.abs(suelo(xx, zz) - suelo(x, z))); }
+        for (let s = 2; s <= lejos - (o.margen ?? 3) && bien; s += 1.5) { const xx = x - Math.cos(a) * s, zz = z - Math.sin(a) * s; if (!ok(xx, zz, 0.5)) bien = false; sube = Math.max(sube, Math.abs(suelo(xx, zz) - suelo(x, z))); }
         for (let s = 1; s <= 5 && bien; s += 1) if (!ok(x + Math.cos(a) * s, z + Math.sin(a) * s, 0.35)) bien = false;
-        if (bien && (!best || sube < best.sube)) best = { x, z, a, sube };
+        // o.solo: que nadie tape al jugador: de los caminos buenos, el que pasa más lejos de vecinos, puestos y cosas (y
+        // del sitio de la cámara, detrás)
+        let tapa = 0;
+        if (bien && o.solo) for (const v of [...Object.values(G.npcs || {}), ...(G.actors || []), ...(G.walkers || []), ...(G.folk || []), ...(G.items || []).map(i => ({ pos: { x: i.x, z: i.z } })), ...(G.tienda?.pos ? [{ pos: G.tienda.pos, r: 4.5 }] : [])]) {
+          const p = v?.pos || v?.a?.pos; if (!p) continue;
+          for (let s = -5; s <= lejos * 0.6; s += 1) { const d = Math.hypot(p.x - (x - Math.cos(a) * s), p.z - (z - Math.sin(a) * s)); if (d < (v.r || 2.6)) { tapa += (v.r || 2.6) - d; } }
+        }
+        if (bien && (!best || tapa < best.tapa - 0.01 || (Math.abs(tapa - best.tapa) <= 0.01 && sube < best.sube))) best = { x, z, a, sube, tapa };
       }
       best ||= { x: c.x + lejos, z: c.z, a: 0 };
       const dx = -Math.cos(best.a), dz = -Math.sin(best.a), h = Math.atan2(dx, dz);
       P.place(best.x, best.z, h); P.obj.visible = true; rt.follow.yaw = h + Math.PI;
       J.teclas(o.anda ? ['w'] : ['w', 'shift']);
+      if (o.snap) rt.follow.snap?.(P);   // (la cámara, ya detrás, sin venir volando desde donde estaba)
       return best;
     },
     // fuera el caballo propio y los vehículos sueltos de la entrada (se ponían delante)
@@ -148,12 +156,15 @@ export const TOMAS = {
     prep: () => {
       const J = window.__j, G = J.G; J.limpia(); const M = (G.missions || []).find(m => m.type === 'carnival'); if (!M) throw new Error('sin carnaval');
       M.count = M.need; G.desfileCarnaval(M, window.__layout.PLACES.plaza);
-      const pl = window.__layout.PLACES.plaza; J.corre(pl, 18, { anda: true });
+      // la comparsa llega durante los pasos de antes; el jugador sale andando hacia la plaza 2 s antes de la toma (si
+      // espera quieto, la cámara del juego se aleja), por un camino sin vecinos que lo tapen
+      const pl = window.__layout.PLACES.plaza; let k = 0;
+      window.__antes = () => { if (++k === 150 - 24) J.corre(pl, 12, { anda: true, solo: true, snap: true, margen: 5 }); };
     },
   },
   // las leyendas: la sombra de Teodosio sale de la cueva de Aralar
   leyenda: {
-    en: 63.5, url: '?town=sierra-aralar&q=high&skipintro=1&weather=niebla&t=22.5', seg: 1.45, antes: 8,
+    en: 63.5, url: '?town=sierra-aralar&q=high&skipintro=1&weather=niebla&t=22.5', seg: 1.45, antes: 18,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia(); const M = (G.missions || []).find(m => m.type === 'legend'); if (!M) throw new Error('sin leyenda');
       M.count = M.need; G.startLegend(M);   // las pistas ya seguidas: la guarida queda fijada en M.lair
@@ -162,10 +173,14 @@ export const TOMAS = {
   },
   // ---------- «La naturaleza y la cultura, contadas jugando» ----------
   caballo: {
-    en: 64.85, url: `?${OT}&weather=clear&t=16.8`, seg: 1.85, antes: 40,
+    en: 64.85, url: `?${OT}&weather=clear&t=16.8`, seg: 1.85, antes: 20,
     prep: () => {
-      const J = window.__j, G = J.G, P = G.player; if (!G.montura) G.creaMontura?.(); const M = G.montura; if (!M?.A) throw new Error('sin montura');
-      P.place(M.A.pos.x + 1, M.A.pos.z + 1, 0); M.sube(P); J.corre(null, 30);
+      // primero el sitio (un camino recto, llano y libre de 45 m, como al correr), luego el caballo debajo del jugador y a
+      // galope por él
+      const J = window.__j, G = J.G, P = G.player; J.limpia(); J.corre(null, 45); J.teclas([]);
+      const M = G.creaMontura?.(); if (!M?.A) throw new Error('sin montura');
+      M.x = P.pos.x; M.z = P.pos.z; M.heading = P.heading; M.A.pos.set(P.pos.x, P.pos.y, P.pos.z); M.A.heading = P.heading; M.A.sync?.();
+      M.sube(P); J.rt.follow.yaw = P.heading + Math.PI; J.rt.follow.snap?.(P); J.teclas(['w', 'shift']);
     },
   },
   irati: {
@@ -195,10 +210,18 @@ export const TOMAS = {
       await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());
       await p.waitForFunction(() => document.querySelector('.ep-pant [data-a="ok"], .pel-panel [data-pel-go]'), null, { timeout: 120000 });
       await p.evaluate(() => { const b = document.querySelector('.ep-pant [data-a="ok"]'); if (b) b.click(); });
+      await p.waitForFunction(() => !document.querySelector('.ep-pant [data-a="ok"]'), null, { timeout: 60000 });
+      // «¿En qué frontón?» (el carrusel de frontones del partido libre): «Jugar aquí» en el que sale delante
+      for (let k = 0; k < 3; k++) {
+        const h = await p.waitForFunction(() => document.querySelector('.pel-panel [data-pel-go]') ? 'go' : document.querySelector('.c3-pant [data-a="ok"]') ? 'fr' : null, null, { timeout: 180000 });
+        if (await h.jsonValue() === 'go') break;
+        await p.evaluate(() => document.querySelector('.c3-pant [data-a="ok"]')?.click()); await p.waitForTimeout(1500);
+      }
       await p.waitForFunction(() => document.querySelector('.pel-panel [data-pel-go]'), null, { timeout: 180000 });
       await p.evaluate(() => document.querySelector('[data-pel-go]').click());
       await p.waitForFunction(() => { const g = window.__game?.pelotaMatch?.game; return g && g.phase !== 'intro'; }, null, { timeout: 180000 });
-      await p.evaluate(() => { window.__game.pelotaMatch.game.autoplay = true; });
+      // (juega solo; fuera la ayuda de teclas de los primeros tantos, que tapa la cancha)
+      await p.evaluate(() => { const M = window.__game.pelotaMatch; M.game.autoplay = true; const h = M.hud; if (h?.teclas) { h.teclas(false); h.teclas = () => {}; } });
     },
   },
   // ---------- «El Basajaun es una leyenda… ¡pero el bosque es de verdad!» ----------

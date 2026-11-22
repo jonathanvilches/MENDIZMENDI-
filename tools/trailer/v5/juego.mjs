@@ -59,7 +59,7 @@ for (const nombre of nombres.split(',')) {
   await ctx.addInitScript(inicio, [T.avatar || 'explorador', T.perfil || null]);
   const p = await ctx.newPage(), errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
-  p.on('console', m => { if (m.type() === 'error' && /reloj|paso/.test(m.text())) errs.push(m.text().slice(0, 200)); });
+  p.on('console', m => { if (m.type() === 'error' && /reloj|paso|antes/.test(m.text())) errs.push(m.text().slice(0, 200)); });
   await p.goto(`${URL}${T.url}`, { timeout: 300000 });
   await (T.listo ? T.listo(p) : p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 600000 }));
   await p.waitForTimeout(T.espera ?? 9000);
@@ -70,7 +70,8 @@ for (const nombre of nombres.split(',')) {
   if (T.prep) await p.evaluate(T.prep);
   // (unos pasos antes de empezar, para que todo se asiente: animales, vecinos, la cámara detrás del jugador)
   // (los pasos de antes, sin dibujar salvo los dos últimos: el mundo avanza igual y así no se pierde tiempo)
-  for (let i = 0; i < (T.antes ?? 24); i++) await p.evaluate(([d, dt]) => { window.__sinDibujo = d; try { window.__antes?.(); } catch (e) { } window.__paso(dt); }, [i < (T.antes ?? 24) - 2, 1 / FPS]);
+  for (let i = 0; i < (T.antes ?? 24); i++) await p.evaluate(([d, dt]) => { window.__sinDibujo = d; try { window.__antes?.(); } catch (e) { console.error('antes', e?.message); } window.__paso(dt); }, [i < (T.antes ?? 24) - 2, 1 / FPS]);
+  if (process.env.DBG) console.log('DBG', JSON.stringify(await p.evaluate(() => { const G = window.__game, P = G?.player, c = window.__rt?.camera; return { P: P && [P.pos.x, P.pos.z, P.obj.visible, P.heading], cam: c && [c.position.x, c.position.y, c.position.z], d: P && c && Math.hypot(c.position.x - P.pos.x, c.position.z - P.pos.z), cin: !!G?.follow?.cinematic, tienda: G?.tienda?.pos }; })));
   const acc = (T.guion || []).slice().sort((a, b) => a[0] - b[0]); let ia = 0;
   const cuales = prueba ? [0, Math.round(n * 0.25), Math.round(n * 0.5), Math.round(n * 0.75), n - 1] : null;
   const t0 = Date.now();
