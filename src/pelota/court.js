@@ -220,12 +220,8 @@ export class PelotaCourt {
       if (th.stone) ashlar(c, w, h, W + 0.6, C.FRONT_H, th.stone);
       else { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
       weather(c, w, h, C.FRONT_H, W + 0.6, DRY);
-      const Y = (y) => h - y / C.FRONT_H * h;
-      // nombre del pueblo en lo alto del frontis, como en los frontones de verdad
       // (sin el nombre del pueblo: va solo en la pared izquierda)
-      c.fillStyle = th.mark; c.fillRect(0, Y(C.FRONT_TOP) - 12, w, 24);            // raya superior
-      c.strokeStyle = th.line; c.lineWidth = 12; c.beginPath(); c.moveTo(w - 6, 0); c.lineTo(w - 6, h); c.stroke(); // raya lateral derecha
-      if (PLZ) { const xl = 0.6 / (W + 0.6) * w; c.beginPath(); c.moveTo(xl, 0); c.lineTo(xl, h); c.stroke(); }   // (y en la plaza libre, la de la izquierda)
+      // (la raya de arriba y la del lado derecho ya no se pintan aquí: van en el sombreador del frontis, rayasCara, más abajo)
     });
     // trasera del frontis (da a la calle): el nombre y «FRONTÓN» sobre la pared
     const backTex = canvasTex(T, 1024, 1024, (c, w, h) => {
@@ -237,7 +233,16 @@ export class PelotaCourt {
       paintName(c, opts.wallName || '', w / 2, h * 0.39, w * 0.6, h * 0.05, '#fdfaf2');
     });
     const frontEnd = canvasTex(T, 256, 1024, (c, w, h) => { if (th.stone) ashlar(c, w, h, 0.8, C.FRONT_H, th.stone); else { c.fillStyle = FUERA; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.06); grain(c, w, h, 2000, 0.05, false); } weather(c, w, h, C.FRONT_H, 0.8); });
-    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ map: frontEnd }), M({ map: frontEnd }), M({ color: th.stone || FUERA }), M({ color: th.stone || FUERA }), M({ map: frontTex }), M({ map: backTex })]);
+    const frontMat = M({ map: frontTex });
+    // (sus rayas, calculadas como las del suelo: la de arriba, bajo la chapa de arriba; la del lado derecho; en la plaza libre,
+    // también la del izquierdo; y la de la chapa de abajo, que de lejos crece hacia arriba para no quedarse en menos de dos
+    // píxeles y medio. La cara +z de la caja: su u va de izquierda a derecha y su v, de abajo arriba)
+    rayasCara(T, frontMat, { uv: `vec2(${f4(-0.3 - (W + 0.6) / 2)} + uv.x * ${f4(W + 0.6)}, uv.y * ${f4(C.FRONT_H)})`, line: th.line, mark: th.mark, cuerpo: `
+  r = max(r, franja(p.y, ${f4(C.FRONT_TOP + 0.01)}, 0.12, wy, -1.0));
+  r = max(r, franja(p.y, ${f4(C.CHAPA - 0.04)}, 0.08, wy, 1.0));
+  a = max(a, raya(p.x - ${f4(W / 2 - 0.062)}, 0.062, wx));${PLZ ? `
+  a = max(a, raya(p.x + ${f4(W / 2)}, 0.062, wx));` : ''}` });
+    const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ map: frontEnd }), M({ map: frontEnd }), M({ color: th.stone || FUERA }), M({ color: th.stone || FUERA }), frontMat, M({ map: backTex })]);
     front.position.set(-0.3, C.FRONT_H / 2, -0.4); front.castShadow = true; front.receiveShadow = true; g.add(front);
     // albardilla de piedra que remata el frontis y la pared izquierda
     const capMat = M({ color: th.cap, roughness: 0.8 });
@@ -302,8 +307,11 @@ export class PelotaCourt {
     // el remate: la chapa doblada de arriba, que sale un poco más y hace sombra sobre el panel
     const chapaTop = new T.Mesh(new T.BoxGeometry(W, 0.045, 0.1), M({ color: th.chapa, metalness: th.chapaMetal ? 0.35 : 0, roughness: 0.5 }));
     chapaTop.position.set(0, C.CHAPA - 0.0625, 0.05); chapaTop.castShadow = true; g.add(chapaTop);
-    const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
-    chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);   // (la raya, donde siempre: lo que da por debajo es chapa)
+    // (la raya, donde siempre: lo que da por debajo es chapa. Un centímetro más gruesa que la chapa: con su cara en el mismo
+    // plano que la de la chapa, las dos se peleaban y, según el fotograma, se veía una u otra; de lejos parpadeaba. Y, por si
+    // a lo lejos se queda en menos de un píxel, detrás, en el frontis, su franja del sombreador, de dos píxeles y medio)
+    const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.08), M({ color: th.mark, roughness: 0.6 }));
+    chapaLine.position.set(0, C.CHAPA, 0.04); g.add(chapaLine);
     // y arriba, como en los frontones de verdad, otra chapa: la franja de metal por encima de la raya de arriba del frontis
     // (lo que da ahí es fuera, y suena a chapa) con su colchón, el remate doblado que sobresale, como el de la de abajo
     const chapaArribaMat = M({ color: th.marco || th.chapa, metalness: th.chapaMetal && !th.marco ? 0.3 : 0, roughness: 0.48 }), hA = C.FRONT_H - C.FRONT_TOP;   // (con marco, del color del marco: el azul del Erminea de Isaba o de Ziordia)
@@ -325,39 +333,43 @@ export class PelotaCourt {
     // 18 de noviembre de 2026: a esa medida, jugando en el móvil no se leían («no veo los números de la pared
     // izquierda»; en su grabación eran palitos de 6 píxeles). Quedan en medio: el disco, de 58 cm, con el centro a 2,55 m,
     // y la raya, de 9 cm; el número se lee desde el fondo de la cancha y el pelotari no parece un muñeco a su lado
-    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 512, MW = 0.72, MH = MW * CH / CW;
-    const markTex = canvasTex(T, CW * nK, CH, (c, w, h) => {
-      for (let k = 1; k <= nK; k++) {
-        const cx = (k - 0.5) * CW, R = CW * 0.4, cy = R + 8;
-        c.fillStyle = th.line; c.strokeStyle = th.line;
-        c.fillRect(cx - 8, cy + R + 12, 16, h - (cy + R + 12));
-        c.lineWidth = 9; c.beginPath(); c.arc(cx, cy, R - 5, 0, Math.PI * 2); c.stroke();
-        c.font = `bold ${R * 1.12}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.fillText(String(k), cx, cy + R * 0.06);
-        // desconchones: motas del color de la pared sobre la pintura blanca
-        c.fillStyle = th.wall;
-        for (let i = 0; i < 80; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 8 + Math.random() * 16; c.fillRect(xx, yy, 1 + Math.random() * 2, 1 + Math.random() * 3); }
-        for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, rr = R - 5 + (Math.random() - 0.5) * 9; c.fillRect(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 2, 2); }
-      }
-    });
-    { const pos = [], uv = [], nrm = [], x = -W / 2 + 0.012;
+    // 22 de noviembre de 2026 (el autor, con una captura de Lesaka: «Sigue habiendo problemas con las líneas [...] de la pared,
+    // con la numerología del frontón»): la raya y el círculo eran una imagen recortada (alphaTest) y, vistos de lado y de
+    // lejos, la tarjeta gráfica mezcla la imagen con sus versiones pequeñas y el recorte la rompía en trazos y puntos. Ahora
+    // la raya y el círculo se calculan en el sombreador de la pared, como las rayas del suelo (rayasCara, abajo, con la
+    // pared): borde limpio cerca y lejos, y nunca menos de dos píxeles y medio. El número, dentro, va en su propia imagen,
+    // fundida y no recortada (de lejos se apaga en vez de romperse). Las medidas, las mismas: raya de 9 cm del suelo a
+    // 2,19 m y disco de 52 cm de diámetro (trazo de 5 cm) con el centro a 2,55 m
+    const nK = Math.floor(L / C.CUADRO + 0.01), RD = 0.26, YD = 2.547, YR = 2.192, ND = 0.46;
+    if (!TRQ) {   // (el trinquete no tiene cuadros en la pared izquierda: reglamento de la FIPV, título VI; las rayas van en el suelo)
+      const NC = 128, numTex = canvasTex(T, NC * nK, NC, (c, w, h) => {
+        c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff';
+        c.font = `bold ${NC * 0.7}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+        for (let k = 1; k <= nK; k++) c.fillText(String(k), (k - 0.5) * NC, NC * 0.53);
+      });
+      if ('colorSpace' in numTex) numTex.colorSpace = T.NoColorSpace;   // (es una máscara: blanco, número; negro, pared)
+      const pos = [], uv = [], nrm = [], x = -W / 2 + 0.012, hD = ND / 2;
       for (let k = 1; k <= nK; k++) {
         const z = k * C.CUADRO, u0 = (k - 1) / nK, u1 = k / nK;
         // mira a +x (hacia la cancha); la u crece hacia −z, que es la derecha de quien mira la pared
-        const q = [[z + MW / 2, 0, u0, 0], [z - MW / 2, 0, u1, 0], [z - MW / 2, MH, u1, 1], [z + MW / 2, 0, u0, 0], [z - MW / 2, MH, u1, 1], [z + MW / 2, MH, u0, 1]];
+        const q = [[z + hD, YD - hD, u0, 0], [z - hD, YD - hD, u1, 0], [z - hD, YD + hD, u1, 1], [z + hD, YD - hD, u0, 0], [z - hD, YD + hD, u1, 1], [z + hD, YD + hD, u0, 1]];
         for (const [zz, yy, uu, vv] of q) { pos.push(x, yy, zz); uv.push(uu, vv); nrm.push(1, 0, 0); }
       }
       const geo = new T.BufferGeometry();
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
-      const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      marks.receiveShadow = true; marks.name = 'cuadros'; if (!TRQ) g.add(marks); }   // (el trinquete no tiene cuadros en la pared izquierda: reglamento de la FIPV, título VI; las rayas van en el suelo)
+      const nums = new T.Mesh(geo, M({ color: th.line, alphaMap: numTex, transparent: true, depthWrite: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      nums.receiveShadow = true; nums.name = 'cuadros'; g.add(nums);
+    }
+    const MH = 2.88;   // (la altura de lo que antes era la imagen de los cuadros: los nombres FALTA y PASA se ponen respecto a ella)
     // y junto al 4 y al 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega). Como en
     // los frontones de verdad, pequeños y pegados a la raya, por el lado de atrás y justo debajo del disco (antes iban
     // encima, de 1,1 m de ancho)
     const LAB_DZ = this.labDZ = 0.56;
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
-      const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
-      const lab = new T.Mesh(new T.PlaneGeometry(0.9, 0.27), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      // (como los números: una máscara fundida en vez de una imagen recortada, que de lejos se rompía en puntos)
+      const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
+      if ('colorSpace' in tex) tex.colorSpace = T.NoColorSpace;
+      const lab = new T.Mesh(new T.PlaneGeometry(0.9, 0.27), M({ color: th.line, alphaMap: tex, transparent: true, depthWrite: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       lab.position.set(-W / 2 + 0.014, MH - 0.82, z + LAB_DZ); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
     }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
@@ -402,15 +414,25 @@ export class PelotaCourt {
     });
     outerTex.wrapS = outerTex.wrapT = T.RepeatWrapping;
     const outer = () => M({ map: outerTex });
-    const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [M({ map: leftTex }), outer(), outer(), outer(), outer(), outer()]);
+    const leftMat = M({ map: leftTex });
+    // (las rayas de la pared, en su sombreador: la de cada cuadro con su disco y la de arriba, la que marca lo que es malo. La
+    // de arriba era una tira aparte, a 8 mm de la pared: de lejos la tarjeta no distinguía cuál de las dos iba delante y
+    // parpadeaba; vista de lado, se quedaba en menos de un píxel y se cortaba. Ahora va pintada en la pared, pegada por
+    // arriba al colchón de la chapa y, de lejos, crece hacia abajo hasta dos píxeles y medio. En el trinquete, una sola línea
+    // amarilla fina, como en las fotos del de Elizondo, sin los cuadros. La cara +x de la caja: su u va de +z a −z)
+    rayasCara(T, leftMat, { uv: `vec2(${f4(EXT)} * (1.0 - uv.x), uv.y * ${f4(C.LEFT_H)})`, line: th.line, mark: TRQ ? (th.marco || th.line) : th.mark, cuerpo: TRQ ? `
+  r = raya(p.y - ${f4(TRINQ.LINEA)}, 0.06, wy);` : `
+  float k = floor(p.x / ${f4(C.CUADRO)} + 0.5), dz = p.x - k * ${f4(C.CUADRO)};
+  float hay = step(0.5, k) * step(k, ${f4(nK + 0.5)});
+  float dr = length(vec2(dz, p.y - ${f4(YD)})) - ${f4(RD)}, wr = max(fwidth(dr), 1e-5);
+  a = hay * max(raya(dz, 0.045, wx) * (1.0 - smoothstep(${f4(YR)} - wy, ${f4(YR)} + wy, p.y)), raya(dr, 0.025, wr));
+  r = franja(p.y, ${f4(C.LEFT_LINE + 0.03)}, 0.12, wy, -1.0);` });
+    const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [leftMat, outer(), outer(), outer(), outer(), outer()]);
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);
-    // la raya de arriba de la pared izquierda (por encima, la pelota es mala), una tira de verdad pegada a la pared: pintada
-    // en la textura, de 40 m de largo, a lo lejos y vista de lado se emborronaba hasta desaparecer
-    // (en el trinquete, como en las fotos del de Elizondo, una sola línea amarilla fina: sin la raya roja ni la chapa de encima)
-    { const raya = new T.Mesh(new T.PlaneGeometry(EXT, (TRQ ? 0.12 : 12 / 512 * C.LEFT_H)), M({ color: TRQ ? (th.marco || th.line) : th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, TRQ ? TRINQ.LINEA : C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya);
-      // (y encima de la raya, la chapa de arriba de la pared izquierda con su colchón, como la del frontis)
+    // (la raya de arriba de la pared izquierda, por encima de la cual la pelota es mala, va en el sombreador de la pared:
+    // rayasCara, arriba. En el trinquete, sin la chapa de encima)
+    { // (encima de la raya, la chapa de arriba de la pared izquierda con su colchón, como la del frontis)
       const mA = M({ color: th.marco || th.chapa, metalness: th.chapaMetal && !th.marco ? 0.3 : 0, roughness: 0.48 }), hL = C.LEFT_H - C.LEFT_LINE - 0.02;
       const chL = new T.Mesh(new T.BoxGeometry(0.05, hL, EXT), mA); chL.position.set(-W / 2 + 0.025, C.LEFT_LINE + 0.02 + hL / 2, EXT / 2); chL.receiveShadow = true; chL.name = 'chapa-izquierda'; if (!TRQ) g.add(chL);
       const coL = new T.Mesh(new T.BoxGeometry(0.11, 0.06, EXT), mA); coL.position.set(-W / 2 + 0.055, C.LEFT_LINE + 0.05, EXT / 2); coL.castShadow = true; if (!TRQ) g.add(coL); }
@@ -999,8 +1021,11 @@ export class PelotaCourt {
     // la pared derecha: solo su cara hacia la cancha (desde fuera, donde va la cámara de la contracancha, no tapa)
     // (hasta 8,5 m, como la izquierda, con su línea amarilla fina: encima, el balcón del público)
     const HW = COURT.LEFT_H, MOD = this.moderno;
-    const rt = canvasTex(T, 1024, 512, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); c.fillStyle = th.marco || th.mark; c.fillRect(0, h * (1 - TRINQ.LINEA / HW) - 4, w, 8); });   // (la línea amarilla fina, a la altura de la de la izquierda)
-    if (!MOD) { const rwall = new T.Mesh(new T.PlaneGeometry(zb - za, HW), M({ map: rt })); rwall.rotation.y = -Math.PI / 2; rwall.position.set(W / 2, HW / 2, (za + zb) / 2); rwall.name = 'pared-derecha'; g.add(rwall); }
+    const rt = canvasTex(T, 1024, 512, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); });
+    // (la línea amarilla fina, a la altura de la de la izquierda: en el sombreador, como las demás, para que de lejos no se corte)
+    const rwMat = M({ map: rt }); rayasCara(T, rwMat, { uv: `vec2(uv.x, uv.y * ${f4(HW)})`, line: th.line, mark: th.marco || th.mark, cuerpo: `
+  r = raya(p.y - ${f4(TRINQ.LINEA)}, 0.06, wy);` });
+    if (!MOD) { const rwall = new T.Mesh(new T.PlaneGeometry(zb - za, HW), rwMat); rwall.rotation.y = -Math.PI / 2; rwall.position.set(W / 2, HW / 2, (za + zb) / 2); rwall.name = 'pared-derecha'; g.add(rwall); }
     // (el moderno, como el de la foto azul que pasó el autor el 15 de noviembre de 2026: la pared derecha, de cristal hasta
     // el techo, con sus montantes y la raya blanca de arriba, y detrás, la grada del público en siete filas. El cristal es
     // de una sola cara, la de la cancha, como la pared de los otros: desde fuera, donde va la cámara, no se ve)
@@ -1288,6 +1313,35 @@ export class PelotaCourt {
     this.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (!o.isSkinnedMesh) for (const m of [].concat(o.material || [])) mats.add(m); });
     for (const m of mats) { for (const v of Object.values(m)) if (v?.isTexture) v.dispose(); m.dispose(); }
   }
+}
+
+const f4 = (v) => Number(v).toFixed(4);
+// Las rayas de una pared (la izquierda, el frontis y la derecha del trinquete), calculadas en el sombreador como las del
+// suelo (rayasNitidas, abajo): cada píxel mide su distancia a la raya y solo se suaviza lo que ocupa un píxel, y a lo lejos
+// la raya no baja de dos píxeles y medio. o.uv: las coordenadas de la cara en metros (x a lo largo, y de alto), a partir de
+// la uv de la cara; o.cuerpo: el trozo de sombreador que, con p (esas coordenadas) y wx, wy (lo que ocupa un píxel),
+// calcula a (cuánto de o.line, el blanco de las rayas) y r (cuánto de o.mark, el rojo de lo que es malo).
+// franja(): una raya pegada por un borde a algo que la tapa (la chapa, el colchón): crece desde ese borde (s = −1, hacia
+// abajo; 1, hacia arriba) y a lo lejos se ensancha solo hacia el lado que se ve.
+const GLSL_RAYAS = `float raya(float d, float media, float w) { float m = max(media, w * 1.2); return 1.0 - smoothstep(m - w * 0.8, m + w * 0.8, abs(d)); }
+float franja(float y, float borde, float alto, float w, float s) { float d = (y - borde) * s, h = max(alto, w * 2.6); return smoothstep(-w * 0.7, w * 0.7, d) * (1.0 - smoothstep(h - w * 0.7, h + w * 0.7, d)); }`;
+function rayasCara(T, mat, o) {
+  const U = { uLine: { value: new T.Color(o.line) }, uMark: { value: new T.Color(o.mark) } };
+  const clave = 'cara-' + [...(o.uv + o.cuerpo)].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) | 0, 7);
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vCara;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvCara = ${o.uv};`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying vec2 vCara; uniform vec3 uLine; uniform vec3 uMark;
+${GLSL_RAYAS}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+{ vec2 p = vCara; float wx = max(fwidth(p.x), 1e-5), wy = max(fwidth(p.y), 1e-5), a = 0.0, r = 0.0;${o.cuerpo}
+  diffuseColor.rgb = mix(diffuseColor.rgb, uLine, a);
+  diffuseColor.rgb = mix(diffuseColor.rgb, uMark, r); }`);
+  };
+  mat.customProgramCacheKey = () => clave;
+  return U;
 }
 
 // Las rayas del suelo de la cancha, calculadas en el sombreador en vez de pintadas en la textura. Pintadas, se

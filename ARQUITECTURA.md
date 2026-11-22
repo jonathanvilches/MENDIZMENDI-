@@ -253,6 +253,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`court.js rayasNitidas`), cada píxel con su distancia exacta a la raya, suavizada solo un píxel y nunca más fina que
   algo más de un píxel. Cuadros, falta y pasa, contracancha, fondo y la raya del 4½ (`uCuatro`). Cualquier raya nueva en
   el suelo, ahí; nada de rayas pintadas en texturas que se vean de lado.
+  Desde el 22 de noviembre, también las de las paredes (el autor, con una captura de Lesaka: «Sigue habiendo problemas
+  con las líneas tanto de la pared, con la numerología del frontón, como las líneas de límites que no se terminan de ver
+  o parpadean»), con `court.js rayasCara`: en la pared izquierda, la raya de cada cuadro y su disco (antes una imagen
+  recortada con `alphaTest`, que de lejos se rompía en trazos y puntos) y la raya roja de arriba (antes una tira a 8 mm de
+  la pared: de lejos la tarjeta no sabía cuál iba delante y parpadeaba); en el frontis, la raya de arriba, la del lado
+  derecho y, detrás de la de la chapa, su franja de dos píxeles y medio; y la línea amarilla de la pared derecha del
+  trinquete. Las rayas pegadas a una chapa o un colchón (`franja`) crecen de lejos solo hacia el lado que se ve. La raya
+  de la chapa del frontis, que es una pieza, va un centímetro por delante de la chapa: con las dos caras en el mismo plano,
+  se peleaban y parpadeaba. Los números de los cuadros y FALTA y PASA, en máscaras fundidas (`alphaMap`, sin recorte):
+  de lejos se apagan en vez de romperse. Ninguna pieza fina pegada a una pared ni dos caras en el mismo plano.
 - **La carga del golpe se nota de verdad** (el autor, 17 nov: no notaba la diferencia entre un toque y mantener al 100 %).
   En `game.js strike`, golpe normal: un toque sale lento (lo justo para llegar al frontis desde donde se pega) y bota
   hacia el cuadro 3; al 30 %, el 4; a medias, el 5; al 75 %, el 7; a tope, el 9 o el rebote. Quien recibe un pelotazo
@@ -655,6 +665,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pelota ha vuelto al sonido que no me gustaba. El anterior había uno que sí me gustaba, que era a raíz del último vídeo
   que te subí de pelota». Son los mismos archivos de `src/assets/sonidos/pelota-*.mp3` (los del commit 1c2594d8); los
   fabricados se pueden rehacer con `tools/sonidos/golpes-pelota.py`.
+  El 22 de noviembre, la mano, aparte (el autor: «el golpe de la pelota, cuando sale de la mano, cuando la mano golpea,
+  no es el mismo sonido que el golpe del frontis o del suelo»): los recortes de la mano sonaban casi como el frontis (el
+  mismo brillo hacia 4.000 Hz y 400 ms de sala). Los nuevos `pelota-mano-1/2.mp3` salen de esos mismos recortes
+  (`tools/sonidos/golpe-mano.py`; los de antes, en `tools/sonidos/golpes-v3/`) con el reparto de graves y agudos de la mano
+  medido en el vídeo del entrenamiento, el cuerpo de la palma (un golpe grave hacia 190 Hz) y casi sin sala: un golpe sordo
+  y seco de 0,24 s, con su brillo hacia 0,7-1 kHz y la cola apagada en 50-90 ms; el frontis sigue con su chasquido brillante
+  (3,5 kHz, 420 ms) y el bote, en medio (0,9-1,5 kHz, 300 ms).
 - **La pelota, un 10-15 % más rápida** (17 de noviembre de 2026; `pelota/rules.js`, `tempo` de cada nivel, y la fuerza
   del golpe normal según la distancia en `pelota/game.js`). En el vídeo del entrenamiento que pasó el autor, la pelota
   tarda 0,3 s del golpe al frontis desde 7 u 8 m, unos 27 m/s. Medido con partidos simulados entre dos pelotaris del
