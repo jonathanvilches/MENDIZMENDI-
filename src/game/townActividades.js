@@ -17,6 +17,7 @@ import { walkable, olvidaZona } from '../world/nav.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from '../ui/minigames.js';
 import { pasoTaller, escondePaso, quitaPaso } from '../ui/tallerPaso.js';
+import { vozTaller } from '../data/vozTalleres.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
 import { isEU, tr } from '../i18n.js';
 import { laminaUrl } from '../ui/laminas.js';
@@ -227,20 +228,21 @@ export class PuebloActividades {
     this.ui.onMiniHit = (ok) => { if (!ok) return; P.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); const f = T.puestos[T.activo]?.foco; if (f) this.particles.emit(f, { n: 10, color: T.kind === 'cantero' ? ['#e9e1cf', '#cfc3a8'] : of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); };
     // (cada tarjeta, con su paso de la lámina técnica del oficio: se abre ahí mismo, con lo ya hecho marcado)
     const lamId = laminaDe(M.m.kind), enLam = (i, hechos = []) => (lamId && T.lamina && i != null ? { id: lamId, i, hechos } : null);
+    const voz = (key) => (eu ? null : vozTaller(M.m.kind, key));
     let finished = false;
     try {
       if (!M.tstep) {
         ve('taller'); await espera(400);
-        await pasoTaller(this.ui, { kicker: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, title: M.title, text: of.intro, button: 'Las herramientas', lam: enLam(T.lamina?.intro) });
+        await pasoTaller(this.ui, { kicker: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, title: M.title, text: of.intro, button: 'Las herramientas', lam: enLam(T.lamina?.intro), audio: voz('intro') });
         for (let k = 0; k < of.tools.length; k++) {
           const [es, ek, what] = of.tools[k]; ve(T.herramientas[k]);
-          await pasoTaller(this.ui, { kicker: 'Las herramientas', i: k, n: of.tools.length, title: eu ? (ek || es) : es, eu: eu ? '' : ek, text: what, button: k < of.tools.length - 1 ? 'Siguiente' : '¡A trabajar!', lam: enLam(T.lamina?.herramientas[k]) });
+          await pasoTaller(this.ui, { kicker: 'Las herramientas', i: k, n: of.tools.length, title: eu ? (ek || es) : es, eu: eu ? '' : ek, text: what, button: k < of.tools.length - 1 ? 'Siguiente' : '¡A trabajar!', lam: enLam(T.lamina?.herramientas[k]), audio: voz('h' + k) });
         }
       }
       while (M.tstep < n) {
         const st = of.steps[M.tstep], id = T.pasos[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
         ve(id);
-        if (st.game !== 'choice') await pasoTaller(this.ui, { kicker: 'Cómo se hace', i: M.tstep, n, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo', lam: enLam(T.lamina?.pasos[M.tstep], T.lamina?.pasos.slice(0, M.tstep)) });
+        if (st.game !== 'choice') await pasoTaller(this.ui, { kicker: 'Cómo se hace', i: M.tstep, n, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo', lam: enLam(T.lamina?.pasos[M.tstep], T.lamina?.pasos.slice(0, M.tstep)), audio: voz('p' + M.tstep) });
         else await espera(700);
         escondePaso(); T.fuerza = 1;
         let r;

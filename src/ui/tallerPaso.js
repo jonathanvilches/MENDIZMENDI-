@@ -6,7 +6,9 @@ import { windowKeys } from '../util/keys.js';
 import './tallerPaso.css';
 import { laminaTecnica, laminaPaso, LAMINA_PASOS } from './anatomia.js';
 
-let P = null;
+let P = null, voz = null;
+// (la voz del maestro de la tarjeta, si la tiene: data/vozTalleres.js; se calla al pasar de tarjeta, al abrir la lámina o al quitarla)
+const calla = () => { if (voz) { voz.pause(); voz = null; } };
 function panel() {
   if (P && P.isConnected) return P;
   P = el(`<div class="tl-paso fuera" role="dialog" aria-live="polite"><div class="tl-card"><div class="tl-n"><b></b><small></small></div><button type="button" class="tl-lam" hidden><img alt=""><span><small>En la lámina</small><b></b></span></button><div class="tl-txt"><p class="tl-k"></p><h3 class="tl-t"></h3><p class="tl-p"></p></div><button class="btn primary tl-b"></button></div></div>`);
@@ -16,8 +18,9 @@ function panel() {
 // muestra un paso y espera al botón (o a Intro, la E o el espacio). eu: el nombre en euskera, junto al título. lam: { id, i },
 // la lámina técnica del oficio en el paso que se explica (ui/anatomia.js): su miniatura, con la pieza que trabaja
 // iluminada, y al tocarla la lámina entera en ese paso, con todos sus pasos para recorrerla
-export function pasoTaller(ui, { kicker = '', title = '', eu = '', text = '', button = 'Seguir', i = 0, n = 0, lam = null }) {
+export function pasoTaller(ui, { kicker = '', title = '', eu = '', text = '', button = 'Seguir', i = 0, n = 0, lam = null, audio = null }) {
   if (window.__autoWin) return Promise.resolve();
+  calla();
   return new Promise(res => {
     const o = panel(), c = o.querySelector('.tl-card');
     const pon = () => {
@@ -31,15 +34,16 @@ export function pasoTaller(ui, { kicker = '', title = '', eu = '', text = '', bu
       const lb = o.querySelector('.tl-lam'), mini = lam && laminaPaso(lam.id, lam.i);
       lb.hidden = !mini; c.classList.toggle('con-lam', !!mini);
       if (mini) { lb.querySelector('img').src = mini; lb.querySelector('b').textContent = `${lam.i + 1} · ${LAMINA_PASOS[lam.id][lam.i]}`;
-        lb.onclick = () => { ui.sound?.ui?.('card'); o.classList.add('tapada'); laminaTecnica(ui, lam.id, { paso: lam.i, hechos: lam.hechos || [], kicker: kicker || 'Cómo funciona', button: 'Volver al taller' }).then(() => { o.classList.remove('tapada'); setTimeout(() => o.querySelector('.tl-b')?.focus({ preventScroll: true }), 60); }); }; }
+        lb.onclick = () => { calla(); ui.sound?.ui?.('card'); o.classList.add('tapada'); laminaTecnica(ui, lam.id, { paso: lam.i, hechos: lam.hechos || [], kicker: kicker || 'Cómo funciona', button: 'Volver al taller' }).then(() => { o.classList.remove('tapada'); setTimeout(() => o.querySelector('.tl-b')?.focus({ preventScroll: true }), 60); }); }; }
     };
     const visible = !o.classList.contains('fuera');
     if (visible) { c.classList.add('cambia'); setTimeout(() => { pon(); c.classList.remove('cambia'); }, 140); }
     else { pon(); requestAnimationFrame(() => o.classList.remove('fuera')); }
     ui.sound?.ui?.('card');
+    if (audio) { const a = voz = new Audio(audio); setTimeout(() => { if (voz === a) a.play().catch(() => {}); }, visible ? 320 : 480); }
     const b = o.querySelector('.tl-b'); setTimeout(() => b.focus({ preventScroll: true }), 60);
     let hecho = false;
-    const fin = () => { if (hecho) return; hecho = true; removeEventListener('keydown', k, true); b.onclick = null; ui.sound?.ui?.('click'); res(); };
+    const fin = () => { if (hecho) return; hecho = true; calla(); removeEventListener('keydown', k, true); b.onclick = null; ui.sound?.ui?.('click'); res(); };
     // (con la lámina abierta encima, las teclas son suyas)
     const k = windowKeys((e) => { if (document.querySelector('.lt-ov:not(.out)')) return; if (['e', 'enter', ' '].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopImmediatePropagation(); fin(); } });
     addEventListener('keydown', k, true);
@@ -47,5 +51,5 @@ export function pasoTaller(ui, { kicker = '', title = '', eu = '', text = '', bu
   });
 }
 // la esconde (para un minijuego, que va a pantalla entera) o la quita del todo
-export function escondePaso() { P?.classList.add('fuera'); }
-export function quitaPaso() { const o = P; P = null; if (!o) return; o.classList.add('fuera'); setTimeout(() => o.remove(), 260); }
+export function escondePaso() { calla(); P?.classList.add('fuera'); }
+export function quitaPaso() { calla(); const o = P; P = null; if (!o) return; o.classList.add('fuera'); setTimeout(() => o.remove(), 260); }
