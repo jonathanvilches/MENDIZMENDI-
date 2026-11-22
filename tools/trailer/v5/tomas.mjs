@@ -95,7 +95,7 @@ const charla = (quien, hora, seg, o) => ({
 // se queda con su subtítulo hasta el siguiente (el audio de la página, uno que no acaba nunca)
 const lamTec = (id, seg, pasos, o) => ({
   en: o.en, url: `?${OT}&weather=clear&t=12`, seg, antes: 40,
-  prep: eval(`async () => { window.__j.limpia(); window.Audio = function () { return { play: () => Promise.resolve(), pause() {}, volume: 1 }; };
+  prep: eval(`async () => { window.__j.limpia(); const st = document.createElement('style'); st.textContent = '.lt-ayuda{display:none!important}'; document.head.appendChild(st); window.Audio = function () { return { play: () => Promise.resolve(), pause() {}, volume: 1 }; };
     const m = await import('/src/ui/anatomia.js'); m.laminaTecnica(window.__game.ui, '${id}', { button: 'Seguir' });
     const fr = document.querySelector('.lt iframe, iframe'); if (fr && !fr.classList.contains('lista')) await new Promise(r => fr.addEventListener('load', r, { once: true })); }`),
   guion: pasos.map(([t, i]) => [t, (p) => p.evaluate((i) => document.querySelector(`.lt-pasos button[data-i="${i}"]`)?.click(), String(i))]),
@@ -153,11 +153,11 @@ export const TOMAS = {
     prep: () => { const J = window.__j; J.limpia(); },
     guion: [[0, (p) => p.evaluate(() => window.__game.ui.openBook())]],
   },
-  // la lámina «por dentro» del queso de las ovejas latxas
+  // una lámina «por dentro» al abrirse (la de la ferrería: la del queso sale luego, en el bloque de las láminas)
   lamina: {
     en: 59.1, url: `?${OT}&weather=clear&t=12`, seg: 2.3, antes: 24,
-    prep: () => { window.__j.limpia(); },
-    guion: [[0, (p) => p.evaluate(() => import('/src/ui/anatomia.js').then(m => { m.laminaTecnica(window.__game.ui, 'queso', { button: '¡Vamos!' }); }))]],
+    prep: () => { window.__j.limpia(); const st = document.createElement('style'); st.textContent = '.lt-ayuda{display:none!important}'; document.head.appendChild(st); },
+    guion: [[0, (p) => p.evaluate(() => import('/src/ui/anatomia.js').then(m => { m.laminaTecnica(window.__game.ui, 'ferreria', { button: '¡Vamos!' }); }))]],
   },
   // el pastoreo: la misión de Joxemari, las ovejas por el monte y el jugador detrás
   pastoreo: {
@@ -224,7 +224,12 @@ export const TOMAS = {
   // todas las láminas, en su pantalla del juego (Saberes · Por dentro), de arriba abajo
   pordentro: {
     en: 83.45, url: '?screen=pordentro&q=high', seg: 2.6, antes: 6, espera: 5000,
-    listo: (p) => p.waitForFunction(() => window.__hub && document.querySelectorAll('.lam-rail img').length > 8 && [...document.querySelectorAll('.lam-rail img')].slice(0, 8).every(i => i.complete), null, { timeout: 300000 }),
+    // (las miniaturas van con carga perezosa: se piden todas ya, que el barrido pasa por todas)
+    listo: async (p) => {
+      await p.waitForFunction(() => window.__hub && document.querySelectorAll('.lam-rail img').length > 8, null, { timeout: 300000 });
+      await p.evaluate(() => document.querySelectorAll('.lam-rail img').forEach(i => { i.loading = 'eager'; }));
+      await p.waitForFunction(() => [...document.querySelectorAll('.lam-rail img')].every(i => i.complete && i.naturalWidth), null, { timeout: 300000 });
+    },
     prep: () => {
       const r = document.querySelector('.lam-rail'); let sc = r?.parentElement; while (sc && !(sc.scrollHeight > sc.clientHeight + 40 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
       sc ||= document.scrollingElement; const max = sc.scrollHeight - sc.clientHeight, e = (k) => k * k * (3 - 2 * k);
