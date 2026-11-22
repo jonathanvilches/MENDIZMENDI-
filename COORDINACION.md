@@ -204,6 +204,4 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 22 nov, tarde, la hizo la ventana principal: `master` hasta `d04a0f38`. En el frontón, las rayas y los números de la pared
-  izquierda, la raya roja de arriba y las del frontis, nítidos y sin parpadeo (calculados en el sombreador), y el golpe de la mano,
-  distinto del frontis y del suelo. Antes, la sección Pueblos en el carrusel 3D y las láminas de los oficios con narrador.
+- 22 nov, tarde, la hizo la ventana principal: `master` hasta `b27e8024`. Narrador (Salva) en las láminas del queso, el rosado, el espárrago y el piquillo; las otras nueve con pasos, con su guion y subtítulos que pasan solos hasta grabar sus voces; el visor de láminas con fondo opaco también en ordenadores con gráfica floja.
