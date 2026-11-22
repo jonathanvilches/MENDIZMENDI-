@@ -4712,3 +4712,11 @@ git push origin master:main
   PLANOS=./v4/planos-v4.mjs node tools/trailer/rodar.mjs <planos> <rodado>`, `node tools/trailer/v4/pantallas.mjs
   <rodado>`, `PLANOS=./tools/trailer/v4/planos-v4.mjs bash tools/trailer/v3/interpola.sh <rodado> <planos>` y
   `PAGINA=v4 node tools/trailer/v3/rodar-v3.mjs <planos> <sonido> <salida>`.
+  **La carrera** (el autor, 22 nov: «el personaje tenga siempre el mismo plano, corriendo o andando, y vaya cambiando el
+  escenario de atrás»): `v4/carrera.mjs` rueda cada plano con el explorador viniendo hacia la cámara, que va delante de él a
+  la misma distancia y altura, y detrás el vecino de la misión, la leyenda, el carnaval o lo más conocido del pueblo.
+  `arranca` busca la salida con el camino seco, llano y libre y sin nada entre la cámara y él (rayos contra la escena; se
+  saltan las mallas sin datos en la memoria, que hacían caer el plano de Elizondo). En el montaje, antes del golpe están las
+  bandas de cine encima de todo, y el subtítulo sube por encima de la de abajo (si no, la segunda línea quedaba tapada); y
+  cuando dos frases de Salva van seguidas, la primera se va antes de que llegue la segunda. Montaje del 22 nov por la tarde:
+  94,5 s a 1920 × 1080.
