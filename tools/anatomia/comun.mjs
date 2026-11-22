@@ -39,3 +39,14 @@ export function escribe(nombre, html, theme) {
   for (const f of sale) { mkdirSync(dirname(f), { recursive: true }); writeFileSync(f, html); }
   console.log('escrita', sale.join(' y '), Math.round(html.length / 1024) + ' KB');
 }
+
+/** El puente con el juego (ui/anatomia.js), dentro del guion vivo de la lámina, donde están s, target, touring, run…:
+ *  ?paso=N en la dirección la abre quieta en ese paso; {anatomia: 'paso', i} la lleva a un paso y la deja quieta;
+ *  {anatomia: 'tour'} la deja seguir sola; y ella avisa al juego con {anatomia: 'lista', pasos} al abrirse y con
+ *  {anatomia: 'en', i} cada vez que cambia de paso (también cuando quien juega la mueve con el dedo o el ratón). Así el
+ *  taller enseña cada paso del oficio en su lámina, y la lámina y las tarjetas del taller van a la par. */
+export const PUENTE = `
+{ const q = /[?&]paso=(\\d+)/.exec(location.search); if (q) { touring = false; target = s = Math.min(N - 0.001, +q[1] + 0.6); draw(0); } }
+addEventListener('message', (e) => { const d = e.data || {}; if (d.anatomia === 'paso') { touring = false; clearTimeout(idleTimer); target = Math.max(0, Math.min(N - 0.001, d.i + 0.6)); run(); } else if (d.anatomia === 'tour') { touring = !still.matches; clock = 0; run(); } });
+if (parent !== window) { let ya = -1; parent.postMessage({ anatomia: 'lista', pasos: PASOS }, '*'); setInterval(() => { const p = Math.min(N - 1, Math.floor(s)); if (p !== ya) { ya = p; parent.postMessage({ anatomia: 'en', i: p }, '*'); } }, 150); }
+`;

@@ -735,11 +735,11 @@ function cesteria(O, T) {
 // cada herramienta y cada paso (en el orden de data/oficios.js). Los demás oficios siguen con su banco de siempre.
 // vista: el pasillo (x0, x1, z0, z1) que tiene que estar libre para el plano del taller entero, delante
 export const TALLERES = {
-  herrero: { monta: herreria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['fragua', 'fuelle', 'yunque', 'martillo', 'tenazas'], pasos: ['tenazas', 'fragua', 'pila'] },
-  panadero: { monta: hornoPan, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['artesa', 'levadura', 'horno', 'pala'], pasos: ['artesa', 'artesa', 'horno'] },
-  cantero: { monta: canteria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['escuadra', 'cincel', 'maza', 'pico'], pasos: ['bloques', 'banco', 'banco', 'marca'] },
-  tonelero: { monta: toneleria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['duelas', 'aros', 'fuego'], pasos: ['proceso', 'barrica'] },
-  cestero: { monta: cesteria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['cuchillo', 'tiras', 'mazo'], pasos: ['proceso', 'cesta'] },
+  herrero: { monta: herreria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['fragua', 'fuelle', 'yunque', 'martillo', 'tenazas'], pasos: ['tenazas', 'fragua', 'pila'], lamina: { intro: 0, herramientas: [1, 2, 4, 4, 3], pasos: [3, 2, 5] } },
+  panadero: { monta: hornoPan, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['artesa', 'levadura', 'horno', 'pala'], pasos: ['artesa', 'artesa', 'horno'], lamina: { intro: 2, herramientas: [0, 1, 2, 4], pasos: [0, 1, 4] } },
+  cantero: { monta: canteria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['escuadra', 'cincel', 'maza', 'pico'], pasos: ['bloques', 'banco', 'banco', 'marca'], lamina: { intro: 5, herramientas: [3, 2, 2, 1], pasos: [0, 1, 2, 4] } },
+  tonelero: { monta: toneleria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['duelas', 'aros', 'fuego'], pasos: ['proceso', 'barrica'], lamina: { intro: 0, herramientas: [1, 3, 2], pasos: [1, 3] } },
+  cestero: { monta: cesteria, w: 8.4, z0: -3.5, z1: 3.6, vista: [-0.6, 3.8, 3.6, 9.4], herramientas: ['cuchillo', 'tiras', 'mazo'], pasos: ['proceso', 'cesta'], lamina: { intro: 0, herramientas: [2, 3, 4], pasos: [0, 4] } },
 };
 
 // Un sitio para el taller cerca del vecino que lo enseña: despejado (sin casas ni muros; los árboles y las matas se
@@ -786,7 +786,7 @@ export function makeTaller(kind, x, z, ry, particles) {
     const cpos = p.cam ? T.mundo(p.cam[0], p.cam[1] + O.gy(p.cam[0], p.cam[2]), p.cam[2]) : null;
     T.puestos[id] = { foco: f, cam: cpos, de: p.de ? T.suelo(p.de[0], p.de[1]) : null };
   }
-  T.herramientas = D.herramientas; T.pasos = D.pasos;
+  T.herramientas = D.herramientas; T.pasos = D.pasos; T.lamina = D.lamina || null;
   // el aro que señala en el suelo el puesto del que se habla
   const aro = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.62, 40), new THREE.MeshBasicMaterial({ color: '#ffd75a', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
   aro.rotation.x = -Math.PI / 2; aro.visible = false; aro.renderOrder = 2;

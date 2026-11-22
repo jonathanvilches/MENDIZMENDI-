@@ -19,6 +19,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 - (Principal, 21 nov) La herrería de Lesaka: el taller del herrero en grande, explicado paso a paso con la cámara en cada puesto (`src/game/talleres.js`, `src/ui/tallerPaso.js`).
 - (Principal, 22 nov) Cuatro talleres más con el mismo paso a paso: el horno de la panadera (Artajona), la cantería del cantero con su arco sobre la cimbra (Puente la Reina), la tonelería (Viana) y la cestería (Elizondo) (`src/game/talleres.js`).
+- (Principal, 22 nov) La lámina dentro de cada taller: cada tarjeta lleva la miniatura de su paso en la lámina; al tocarla, la lámina se abre en ese paso con sus seis fichas (las hechas, marcadas); al final, «Repaso del oficio» (`src/ui/anatomia.js`, `src/ui/tallerPaso.js`, `public/anatomia/`).
 
 ## Peticiones entre ventanas
 

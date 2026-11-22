@@ -225,20 +225,22 @@ export class PuebloActividades {
       host?.say?.(3.5);
     };
     this.ui.onMiniHit = (ok) => { if (!ok) return; P.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); const f = T.puestos[T.activo]?.foco; if (f) this.particles.emit(f, { n: 10, color: T.kind === 'cantero' ? ['#e9e1cf', '#cfc3a8'] : of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); };
+    // (cada tarjeta, con su paso de la lámina técnica del oficio: se abre ahí mismo, con lo ya hecho marcado)
+    const lamId = laminaDe(M.m.kind), enLam = (i, hechos = []) => (lamId && T.lamina && i != null ? { id: lamId, i, hechos } : null);
     let finished = false;
     try {
       if (!M.tstep) {
         ve('taller'); await espera(400);
-        await pasoTaller(this.ui, { kicker: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, title: M.title, text: of.intro, button: 'Las herramientas' });
+        await pasoTaller(this.ui, { kicker: eu ? oname : `${of.name}${of.eu ? ' · ' + of.eu : ''}`, title: M.title, text: of.intro, button: 'Las herramientas', lam: enLam(T.lamina?.intro) });
         for (let k = 0; k < of.tools.length; k++) {
           const [es, ek, what] = of.tools[k]; ve(T.herramientas[k]);
-          await pasoTaller(this.ui, { kicker: 'Las herramientas', i: k, n: of.tools.length, title: eu ? (ek || es) : es, eu: eu ? '' : ek, text: what, button: k < of.tools.length - 1 ? 'Siguiente' : '¡A trabajar!' });
+          await pasoTaller(this.ui, { kicker: 'Las herramientas', i: k, n: of.tools.length, title: eu ? (ek || es) : es, eu: eu ? '' : ek, text: what, button: k < of.tools.length - 1 ? 'Siguiente' : '¡A trabajar!', lam: enLam(T.lamina?.herramientas[k]) });
         }
       }
       while (M.tstep < n) {
         const st = of.steps[M.tstep], id = T.pasos[M.tstep], title = `Paso ${M.tstep + 1} de ${n}: ${st.title}`;
         ve(id);
-        if (st.game !== 'choice') await pasoTaller(this.ui, { kicker: 'Cómo se hace', i: M.tstep, n, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo' });
+        if (st.game !== 'choice') await pasoTaller(this.ui, { kicker: 'Cómo se hace', i: M.tstep, n, title: st.title, text: st.text, button: st.game === 'order' ? 'Ordenar' : st.verb || 'Hacerlo', lam: enLam(T.lamina?.pasos[M.tstep], T.lamina?.pasos.slice(0, M.tstep)) });
         else await espera(700);
         escondePaso(); T.fuerza = 1;
         let r;
@@ -255,7 +257,8 @@ export class PuebloActividades {
     // el final, con el taller entero detrás: la lámina técnica (si la hay), el antes y el ahora y la misión cumplida
     quitaPaso(); ve('taller'); T.señala(null); P.rig.doCheer();
     try {
-      const lam = laminaDe(M.m.kind); if (lam) await laminaTecnica(this.ui, lam, { button: 'Seguir' });
+      // (el repaso: la lámina entera, con todos sus pasos marcados como hechos)
+      if (lamId) await laminaTecnica(this.ui, lamId, { button: 'Seguir', kicker: 'Repaso del oficio', hechos: T.lamina ? [...new Set([...T.lamina.herramientas, ...T.lamina.pasos, T.lamina.intro])] : [] });
       await infoCard(this.ui, { icon: of.icon, lamina: laminaUrl(OFICIO_LAMINA[M.m.kind]), kicker: 'Antes y ahora', title: of.product, text: eu ? `Horrela aritzen zen ${oname.toLowerCase()}.` : `Así trabajaba ${of.name === 'Panadera' || of.name === 'Alpargatera' || of.name === 'Hilandera' ? 'la' : 'el'} ${of.name.toLowerCase()}.`, extra: `<div class="antes-ahora"><div><b>Antes</b>${of.then}</div><div><b>Ahora</b>${of.now}</div></div>`, button: '¡Lo he aprendido!' });
     } finally { this.sueltaTaller(T, host, C); }
     const ord = of.steps.find(s => s.game === 'order')?.items, low = (x) => x[0].toLowerCase() + x.slice(1);

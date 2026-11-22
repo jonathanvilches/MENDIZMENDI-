@@ -2239,6 +2239,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que cuenta en `T.hecho` lo que ya se ve: si se vuelve a medias, el taller se pone como estaba). Al
   acabar o dejarlo a medias, la cámara vuelve al explorador sin corte (`sueltaTaller`, con `follow.salida`). Prueba:
   entrar en Lesaka, poner el paso 1 de la misión del herrero y llamar a `doTrade` (los minijuegos se dan por ganados).
+  **La lámina dentro del taller** (22 nov; el autor: «que se asocien las láminas con la explicación de los oficios pero
+  más interactivos y acordes al diseño del juego»). Cada taller dice en `lamina` (`TALLERES`, en `talleres.js`) qué paso
+  de su lámina corresponde a la presentación, a cada herramienta y a cada paso. La tarjeta del taller lleva a la izquierda
+  la miniatura de ese paso (`public/anatomia/pasos/<lámina>-<n>.webp`, de `tools/anatomia/pasos-miniaturas.mjs`, la
+  lámina quieta en ese paso y recortada), con un punto rosa que late y «En la lámina · n · nombre»; al tocarla se abre la
+  lámina en ese paso, con «Volver al taller». Debajo de la lámina, sus seis pasos como fichas (`LAMINA_PASOS` de
+  `ui/anatomia.js`): número en un círculo, la que se ve encendida con el filo rosa, las ya hechas en el taller con la marca
+  verde; tocar una lleva la lámina a ese paso, y si la lámina se recorre sola o se mueve con el dedo, la ficha la sigue.
+  Lámina y visor hablan por `postMessage` (el `PUENTE` de `tools/anatomia/comun.mjs`, metido en las cinco láminas de
+  taller: `?paso=n` la abre quieta en ese paso; `{anatomia:'paso', i}` la lleva; ella avisa con `{anatomia:'en', i}`). Al
+  acabar, «Repaso del oficio»: la lámina entera con todas sus fichas hechas, antes de «Antes y ahora». Prueba: la misma,
+  tocando la miniatura y una ficha.
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la
   presa con su cortina de agua, la escala de ocho pozas que los salmones suben saltando, el tramo de abajo y el mar con la
   escollera; los peces son vivos: alevines, esguines que bajan al mar y adultos que vuelven y desovan).
@@ -4599,3 +4611,20 @@ git push origin master:main
   con la plaza real (losas, quiosco sobre su podio, la escultura del nogal y la iglesia al fondo): la cámara busca el lado
   abierto de la plaza y se apartan los vecinos y el chaval de la misión que se metían entre la manada. Montar los 1670
   fotogramas tarda unos ocho minutos.
+- **Tráiler v3, con los vecinos y sus voces** (22 de noviembre de 2026; el autor: «Aprovecha todos los diseños de cards,
+  la locuciones de Otsagabia. Los vecinos, los paisajes. Anima con Motion el texto, añade locución a el tráiler. Debe ser
+  más espectacular»). 94,5 s a 1920 × 1080 sobre la música épica del juego desde su principio (el golpe, a 22,98 s, cae
+  cuando Maite dice que las cintas se han perdido). No es un vídeo montado en un editor: es una página
+  (`tools/trailer/v3/index.html` + `montaje-v3.js`) que usa las piezas del propio juego —las cartas con su filo de neón,
+  la cinética del texto (`cinetica.js`), las curvas de Motion, las cartas FUT de los pelotaris y las de torneo—, y
+  `rodar-v3.mjs` la fotografía cuadro a cuadro (todas las animaciones van en pausa y `T3.cuadro(t)` las pone en su
+  segundo). La historia es la de Otsagabia: Salva abre («Hay una tierra donde cada pueblo guarda una historia»), Nico, la
+  narradora, enseña el pueblo, Maite da la misión de las ocho cintas, y cada vecino entra con su carta, su retrato de
+  Meshy (`retratos/`), su cinta de color dibujándose y su frase grabada palabra a palabra: Itziar, Joxemari, Kike,
+  Joseba, la lamia, el Basajaun y Bobo al final. Por medio, los paisajes de las comarcas y las láminas de los montes a
+  medio compás, el contador «12 comarcas / 38 pueblos», la pelota, Descubre con las láminas, el aviso «Misión
+  completada» y el logo. Solo voces ya grabadas (`guion-v3.json`: qué trozo de cada archivo suena y cuándo, y el texto
+  con sus tiempos). `mezcla-v3.py` iguala las voces, baja la música sola mientras hablan, y pone la subida antes del
+  golpe, los golpes graves, el soplido y el sonido de carta en cada vecino, el público y la fanfarria. Uso:
+  `python3 tools/trailer/v3/mezcla-v3.py mezcla.wav` y `node tools/trailer/v3/rodar-v3.mjs <planos de v2> mezcla.wav
+  salida.mp4` (unos 7 min; con `URL=` otro servidor: mientras se rueda no se puede tocar lo que sirve vite, que recarga).

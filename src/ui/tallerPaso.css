@@ -6,6 +6,9 @@
   transition: opacity .22s ease, transform .26s var(--ease, ease); }
 .tl-paso.fuera { opacity: 0; transform: translateY(22px); }
 .tl-paso.fuera .tl-card { pointer-events: none; }
+/* (con la lámina abierta encima, la tarjeta se aparta: vuelve al cerrarla) */
+.tl-paso.tapada { opacity: 0; transform: translateY(22px); }
+.tl-paso.tapada .tl-card { pointer-events: none; }
 .tl-card { pointer-events: auto; position: relative; width: min(780px, 100%); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center;
   gap: 14px; padding: 12px 14px 12px 12px; border-radius: 10px; color: #f3edff; overflow: hidden;
   background: linear-gradient(170deg, rgba(49, 16, 107, .95) 0%, rgba(18, 5, 42, .95) 80%); box-shadow: 0 18px 50px rgba(0, 0, 0, .5); }
@@ -23,6 +26,19 @@
 .tl-p { margin: 6px 0 0; font: 500 var(--fs-md)/1.32 var(--f-ui); color: #e9e1ff; text-wrap: pretty; }
 .tl-p[hidden] { display: none; }
 .tl-b { white-space: nowrap; min-height: 46px; padding: 0 20px; align-self: center; }
+/* la lámina del oficio en ese paso: su miniatura con la pieza que trabaja iluminada; al tocarla, la lámina entera */
+.tl-card.con-lam { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+.tl-card.con-lam.sin-n { grid-template-columns: auto minmax(0, 1fr) auto; }
+.tl-lam { position: relative; width: 132px; aspect-ratio: 1.5; padding: 0; border: 0; border-radius: 8px; overflow: hidden; cursor: pointer; background: #160c2a;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1), 0 6px 16px rgba(4, 1, 12, .35); transition: transform var(--d-encima, .2s) var(--ease, ease), box-shadow var(--d-encima, .2s) var(--ease, ease); }
+.tl-lam[hidden] { display: none; }
+.tl-lam img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tl-lam span { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 7px 5px; text-align: left; background: linear-gradient(180deg, transparent, rgba(10, 3, 24, .92) 60%); }
+.tl-lam small { display: block; color: var(--rosa); font: 800 9px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.tl-lam b { display: block; color: #fff; font: 800 12px/1.1 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-lam::after { content: ''; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; animation: tlLam 1.2s ease-in-out infinite alternate; }
+@keyframes tlLam { to { opacity: .3; } }
+@media (hover: hover) { .tl-lam:hover { transform: translateY(-2px) scale(1.03); box-shadow: inset 0 0 0 1.5px #ff7ac8, 0 10px 22px rgba(4, 1, 12, .45); } }
 .tl-n { transition: opacity .14s ease; }
 .tl-card.cambia .tl-txt { opacity: 0; transform: translateY(4px); }
 .tl-card.cambia .tl-n { opacity: 0; }
@@ -35,11 +51,14 @@
   .tl-t { font-size: 20px; }
   .tl-p { font-size: var(--fs-sm); margin-top: 4px; }
   .tl-b { min-height: 42px; padding: 0 16px; }
+  .tl-lam { width: 108px; }
 }
 /* de pie o muy estrecho: el botón debajo, a lo ancho */
 @media (max-width: 560px) {
   .tl-card, .tl-card.sin-n { grid-template-columns: auto minmax(0, 1fr); }
   .tl-card.sin-n .tl-txt { grid-column: 1 / -1; }
   .tl-b { grid-column: 1 / -1; width: 100%; }
+  .tl-card.con-lam, .tl-card.con-lam.sin-n { grid-template-columns: auto auto minmax(0, 1fr); }
+  .tl-lam { width: 96px; }
 }
-@media (prefers-reduced-motion: reduce) { .tl-paso, .tl-txt, .tl-n { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tl-paso, .tl-txt, .tl-n, .tl-lam { transition: none; } .tl-lam::after { animation: none; } }
