@@ -4720,3 +4720,18 @@ git push origin master:main
   bandas de cine encima de todo, y el subtítulo sube por encima de la de abajo (si no, la segunda línea quedaba tapada); y
   cuando dos frases de Salva van seguidas, la primera se va antes de que llegue la segunda; las frases de los vecinos de antes del golpe suben igual. La copia que sirve el montaje (Vite en otra carpeta, con `node_modules` enlazado al repo) necesita `server: { fs: { allow: ['.', '<repo>'] } }` en su `vite.config.js`: sin eso las fuentes del juego (Barlow, Barlow Condensed) daban 403 y el tráiler salía con otra letra. Montaje del 22 nov por la tarde:
   94,5 s a 1920 × 1080.
+- **Tráiler v5: el juego jugado de verdad** (22 nov, tarde; el autor, del v4: «No me gusta el tráiler. Quiero imágenes reales
+  del juego»). Ni cámaras colocadas ni dibujo aparte: `tools/trailer/v5/juego.mjs` abre el juego y lo deja correr solo, con
+  su bucle, su posprocesado (los rodajes anteriores dibujaban sin él, `rodar.mjs`), su interfaz, sus charlas y su cámara, y
+  le da teclas como a un jugador. Lo único que se toca es el reloj de la página (performance.now, Date.now,
+  requestAnimationFrame, setTimeout/setInterval y las animaciones CSS con `document.getAnimations()`), que avanza un
+  fotograma cada vez: así sale fluido aunque cada imagen tarde segundos (sin gráfica, unos 4 s a 960 × 540). Que el juego
+  no baje la resolución ni aligere el pueblo al ver que va despacio (`rt.lighten`, `fpsT`). Graba a 1280 × 720 y 12 por
+  segundo; `v5/montaje.mjs` lo pasa a 24 con interpolación, corta en seco en el segundo de cada toma (`en`) sobre la mezcla
+  del v3 y pone solo dos rótulos (`v5/rotulos.mjs`, con la Barlow metida en base64). Las tomas (`v5/tomas.mjs`): el mapa de
+  inicio con la isla, llegar a Otsagabia, la charla con Maite y la primera cinta (`completeQuest`), Itziar, Joxemari, Kike,
+  Joseba, la lamia, el Basajaun en la niebla, el cuaderno (`ui.openBook`), la lámina del queso, el pastoreo
+  (`startHerding`), la comparsa de joaldunak de Ituren (`desfileCarnaval`), la sombra de Teodosio en Aralar
+  (`showCreature`), el caballo, Irati, «Elige tu pelotari», un partido en el Labrit, el Bobo y el baile de Muskilda
+  (`startDance`, pulsando cada flecha a su tiempo). Las charlas son `G.say` con las frases de las voces del tráiler y pasan
+  de frase en su segundo, como al tocar.
