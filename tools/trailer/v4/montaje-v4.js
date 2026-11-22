@@ -268,6 +268,8 @@ function cita(v, b, extra) {
 
 function sub(v, hasta = null) {
   const el = h('div', 'sub'), p = h('p'); el.appendChild(p);
+  // (antes del golpe están las bandas de cine encima de todo: el subtítulo sube por encima de la de abajo)
+  if (v.t < DROP) el.style.bottom = Math.round(H * 0.115) + 26 + 'px';
   frasePalabras(p, palabras(v), { dy: 0.3, dur: 0.3, curva: E.ease });
   capas.appendChild(el);
   ventana(el, v.t - 0.1, hasta ?? fin(v) + 0.45, 0.1, hasta ? 0.15 : 0.3);
@@ -364,7 +366,7 @@ function monta() {
   rotulo(62.36, 63.36, 'Carnaval · Ituren', 'Joaldunak', { peq: true, c: '#ffd36a' });
   rotulo(63.46, 64.72, 'Carnaval · Altsasu', 'Momotxorros', { peq: true, c: '#ff7ac8' });
   rotulo(66.9, B(24) - 0.06, 'Por dentro · oficios', 'La ferrería', { peq: true, c: '#ffd36a' });
-  sub(V['salva-vecinos']); sub(V['salva-naturaleza']);
+  sub(V['salva-vecinos'], V['salva-naturaleza'].t - 0.14); sub(V['salva-naturaleza']);   // (el primero se va antes de que llegue el segundo)
 
   // Juega: la pantalla de elegir pelotari del juego y, en el golpe, la palabra grande sobre el partido
   frase({ t: B(25) + 0.03, de: 0, a: 1, seg: [[0, 1, 'Juega']] }, { cls: 'golpe', kicker: 'Pelota vasca', estilo: 'cae', hasta: B(26) - 0.05 });
