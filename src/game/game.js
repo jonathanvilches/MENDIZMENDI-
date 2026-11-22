@@ -362,7 +362,7 @@ export class Game {
     if (hour !== this.lastHour) { if (this.lastHour >= 0 && this.mode === 'play') { const n = hour % 12 || 12; this.sound.churchBell(Math.min(n, 6), { x: PLACES.church.x, z: PLACES.church.z }); } this.lastHour = hour; }
     // sonidos de animales
     this.ambT -= dt;
-    if (this.ambT < 0) {
+    if (this.ambT < 0 && this.mode !== 'pelota') {   // (en el partido, ni balidos ni cencerros de los animales de alrededor)
       this.ambT = 2 + Math.random() * 4;
       const near = this.fauna.animals.filter(a => a.obj.visible && Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) < 45);
       const a = near[Math.floor(Math.random() * near.length)];

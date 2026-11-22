@@ -292,8 +292,10 @@ export class Sound {
     if (Number.isFinite(rv)) this.river.g.gain.setTargetAtTime(sport ? 0 : rv, this.ctx.currentTime, sport ? 0.12 : 0.3);
     // (en los deportes, sin viento; y la altura solo cuenta en el monte: en los recintos de los partidos, a 2400 m, el viento sonaba a tope y parecía lluvia)
     this.wind.g.gain.setTargetAtTime(sport || player.pos.y > 900 ? 0 : 0.03 + clamp((player.pos.y - 20) / 60, 0, 0.1), this.ctx.currentTime, sport ? 0.12 : 0.5);
+    // (los pájaros sueltos, los grillos y el búho, tampoco en los partidos: sonaban en el frontón entre golpe y golpe, sobre
+    // todo de noche, y no eran de la pelota; el autor, 22 de noviembre de 2026: «un sonido raro»)
     this.birdT -= dt;
-    if (this.birdT < 0) {
+    if (this.birdT < 0 && !sport) {
       this.birdT = night > 0.5 ? 2 + Math.random() * 6 : (inIrati ? 0.6 : 1.2) + Math.random() * 2.5;
       const a = Math.random() * 6.28, d = 8 + Math.random() * 25;
       const p = { x: player.pos.x + Math.cos(a) * d, z: player.pos.z + Math.sin(a) * d };

@@ -8,7 +8,10 @@ const GOLPES = ['mano', 'frontis', 'bote', 'pared'];
 // (cuántas variantes tiene cada golpe: la tercera de la mano llevaba en su cola una voz del vídeo, un tono de unos 450 Hz
 // durante un tercio de segundo, y el autor pidió quitarla: «hay un sonido que no corresponde ni al golpe de la pelota, ni
 // al golpe de pie contra el suelo», 21 de noviembre de 2026)
-const VARIANTES = { mano: 2, frontis: 3, bote: 3, pared: 3 };
+// (y la tercera del bote no era un bote: una nota de unos 600 Hz que dura toda la muestra, como un zumbido o el chirrido
+// de una zapatilla, y sonaba en uno de cada tres botes; el autor, 22 de noviembre: «sigo escuchando un sonido raro que no
+// es ningún sonido referente a la pelota». Fuera: quedan las dos que son golpe de verdad)
+const VARIANTES = { mano: 2, frontis: 3, bote: 2, pared: 3 };
 const SHARED = { ctx: null };
 // (dónde empieza de verdad cada muestra de golpe, en segundos: ver golpe)
 const INICIO = new WeakMap();

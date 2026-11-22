@@ -340,11 +340,16 @@ export class PelotaCourt {
     // pared): borde limpio cerca y lejos, y nunca menos de dos píxeles y medio. El número, dentro, va en su propia imagen,
     // fundida y no recortada (de lejos se apaga en vez de romperse). Las medidas, las mismas: raya de 9 cm del suelo a
     // 2,19 m y disco de 52 cm de diámetro (trazo de 5 cm) con el centro a 2,55 m
-    const nK = Math.floor(L / C.CUADRO + 0.01), RD = 0.26, YD = 2.547, YR = 2.192, ND = 0.46;
+    // 22 de noviembre, por la tarde (el autor: «los números y barras de la pared izquierda los has puesto más gordos y ahora
+    // queda demasiado tosco y no está todo equilibrado»): la raya de 9 cm y el aro de 5 pesaban más que el número, pequeño y
+    // fino dentro del aro, y de lejos el mínimo de dos píxeles y medio las engordaba aún más. Ahora la raya, de 6 cm; el aro,
+    // de 4, con 50 cm de diámetro; y el número, grande y con cuerpo (Lilita, como el resto del juego), casi tan grueso como el
+    // aro, así que se lee y nada pesa más que lo demás. De lejos, la raya y el aro no bajan de unos dos píxeles (rayaP)
+    const nK = Math.floor(L / C.CUADRO + 0.01), RD = 0.25, YD = 2.547, YR = 2.217, ND = 0.46;
     if (!TRQ) {   // (el trinquete no tiene cuadros en la pared izquierda: reglamento de la FIPV, título VI; las rayas van en el suelo)
       const NC = 128, numTex = canvasTex(T, NC * nK, NC, (c, w, h) => {
         c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff';
-        c.font = `bold ${NC * 0.7}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.font = `900 ${NC * 0.84}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
         for (let k = 1; k <= nK; k++) c.fillText(String(k), (k - 0.5) * NC, NC * 0.53);
       });
       if ('colorSpace' in numTex) numTex.colorSpace = T.NoColorSpace;   // (es una máscara: blanco, número; negro, pared)
@@ -425,7 +430,7 @@ export class PelotaCourt {
   float k = floor(p.x / ${f4(C.CUADRO)} + 0.5), dz = p.x - k * ${f4(C.CUADRO)};
   float hay = step(0.5, k) * step(k, ${f4(nK + 0.5)});
   float dr = length(vec2(dz, p.y - ${f4(YD)})) - ${f4(RD)}, wr = max(fwidth(dr), 1e-5);
-  a = hay * max(raya(dz, 0.045, wx) * (1.0 - smoothstep(${f4(YR)} - wy, ${f4(YR)} + wy, p.y)), raya(dr, 0.025, wr));
+  a = hay * max(rayaP(dz, 0.03, wx) * (1.0 - smoothstep(${f4(YR)} - wy, ${f4(YR)} + wy, p.y)), rayaP(dr, 0.02, wr));
   r = franja(p.y, ${f4(C.LEFT_LINE + 0.03)}, 0.12, wy, -1.0);` });
     const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [leftMat, outer(), outer(), outer(), outer(), outer()]);
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
@@ -1324,6 +1329,7 @@ const f4 = (v) => Number(v).toFixed(4);
 // franja(): una raya pegada por un borde a algo que la tapa (la chapa, el colchón): crece desde ese borde (s = −1, hacia
 // abajo; 1, hacia arriba) y a lo lejos se ensancha solo hacia el lado que se ve.
 const GLSL_RAYAS = `float raya(float d, float media, float w) { float m = max(media, w * 1.2); return 1.0 - smoothstep(m - w * 0.8, m + w * 0.8, abs(d)); }
+float rayaP(float d, float media, float w) { float m = max(media, w * 0.9); return 1.0 - smoothstep(m - w * 0.6, m + w * 0.6, abs(d)); }
 float franja(float y, float borde, float alto, float w, float s) { float d = (y - borde) * s, h = max(alto, w * 2.6); return smoothstep(-w * 0.7, w * 0.7, d) * (1.0 - smoothstep(h - w * 0.7, h + w * 0.7, d)); }`;
 function rayasCara(T, mat, o) {
   const U = { uLine: { value: new T.Color(o.line) }, uMark: { value: new T.Color(o.mark) } };

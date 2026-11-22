@@ -70,7 +70,7 @@ export function temporadas(name, lv = 2) {
 /** El Cuatro y Medio: el saque bota entre la raya del 3 (falta) y la del 5 (pasa) y, en el tanto, nunca más allá de la
  *  raya del 4 y medio, pintada en el suelo entre el 4 y el 5 (Federación Española de Pelota, mano individual cuatro y
  *  medio) */
-export const CUATRO = { FALTA: 10.5, PASA: 17.5, LIMITE: 15.75 };
+export const CUATRO = { FALTA: 10.5, PASA: 17.5, LIMITE: 15.75, AYUDA: { speed: 0.86, react: 0.1, error: 0.08, smart: 0.65, dash: 0.7, reach: 0.15 } };
 // Los retos del frontón, como los de habilidad de los juegos de fútbol: el rival te pasa pelotas y tú cumples el reto.
 // Peloteo: devolver seguidas todas las que puedas, con 3 vidas (cada fallo corta la racha y quita una). Diana: dar en el
 // aro del frontis, 10 pelotas. Dejadas: que bote antes de la raya del 2, 10 pelotas. Las tres estrellas, con lo de estrellas

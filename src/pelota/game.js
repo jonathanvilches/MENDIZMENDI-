@@ -170,6 +170,10 @@ export class PelotaGame {
     this.pairs = !!o.pairs && this.mode === 'match';
     // el Cuatro y Medio (mano a mano): el saque entre la raya del 3 y la del 5, y en el tanto nada más allá del 4 y medio
     this.cuatro = !!o.cuatro && !this.pairs && this.mode === 'match';
+    // (en el Cuatro y Medio el rival, más blando: la cancha corta le deja llegar a casi todo y lo largo no vale, así que con
+    // el rival de siempre era casi imposible ganarle; el autor, 22 nov 2026: «extremadamente difícil ganar al rival».
+    // Corre algo menos, reacciona más tarde, falla más y ataca menos; y tú llegas un poco mejor)
+    if (this.cuatro) { const r = this.lvl.rival; this.lvl = { ...this.lvl, reach: this.lvl.reach + CUATRO.AYUDA.reach, rival: { ...r, speed: r.speed * CUATRO.AYUDA.speed, react: r.react + CUATRO.AYUDA.react, error: r.error + CUATRO.AYUDA.error, smart: r.smart * CUATRO.AYUDA.smart, dash: 1 + (r.dash - 1) * CUATRO.AYUDA.dash } }; }
     const yr = o.youRole === 'zaguero' ? 'zaguero' : 'delantero';
     this.role = this.pairs ? { you: yr, youMate: yr === 'delantero' ? 'zaguero' : 'delantero', rival: 'delantero', rivalMate: 'zaguero' } : {};
     this.clock = 0;
