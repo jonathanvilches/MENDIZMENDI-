@@ -16,7 +16,7 @@ const arranca = (U, est, A, o = {}) => {
   const libre = window.__colliders?.isFree || (() => true), THREE = U.THREE;
   const ok = (x, z, r = 0.7) => U.seco(x, z) && libre(x, z, r);
   const lejosL = [].concat(o.lejos ?? 2.4), lado = o.lado ?? 1.3, atras = o.atras ?? 0, ANG = o.ang ?? 0.42, D = o.D ?? 3.3;
-  const lista = []; U.rt.scene.traverse((m) => { if (m.visible && m.isMesh && !m.isSkinnedMesh && !(m.isInstancedMesh && m.count > 400) && !(m.material && (m.material.transparent || m.material.depthWrite === false))) lista.push(m); });
+  const lista = []; U.rt.scene.traverse((m) => { const g = m.geometry; if (m.visible && m.isMesh && !m.isSkinnedMesh && g?.attributes?.position?.array && (!g.index || g.index.array) && !(m.isInstancedMesh && m.count > 400) && !(m.material && (m.material.transparent || m.material.depthWrite === false))) lista.push(m); });
   const rc = new THREE.Raycaster(), tapa = (a, b) => { const d = b.clone().sub(a), L = d.length(); rc.set(a, d.multiplyScalar(1 / L)); rc.far = L - 0.5; return rc.intersectObjects(lista, false).length > 0; };
   const camDe = (x, z, dx, dz, ang) => { const ca = Math.cos(ang), sa = Math.sin(ang), fx = dx * ca - dz * sa, fz = dx * sa + dz * ca, cx = x + fx * D, cz = z + fz * D; return { cx, cz, fx, fz }; };
   let best = null;
@@ -35,6 +35,8 @@ const arranca = (U, est, A, o = {}) => {
     for (const c of cands.slice(0, 24)) {
       let vale = true;
       for (const s of [0, c.largo * 0.5, c.largo + atras]) { const x = c.sx + c.dx * s, z = c.sz + c.dz * s, y = U.suelo(x, z), k = camDe(x, z, c.dx, c.dz, c.ang); if (tapa(U.v(k.cx, y + 1.05, k.cz), U.v(x, y + 0.8, z))) { vale = false; break; } }
+      // (con un vecino detrás, que se le vea: ni una loma ni una casa entre la cámara y él, al salir y a mitad de camino)
+      if (vale && o.verAncla) for (const s of [0, c.largo * 0.5]) { const x = c.sx + c.dx * s, z = c.sz + c.dz * s, y = U.suelo(x, z), k = camDe(x, z, c.dx, c.dz, c.ang); if (tapa(U.v(k.cx, y + 1.05, k.cz), U.v(A.x, U.suelo(A.x, A.z) + 1.1, A.z))) { vale = false; break; } }
       if (vale) { best = c; break; }
     }
     if (best) break;
@@ -56,6 +58,8 @@ const sigue = (U, est, t) => {
   const cx = p.x + fx * D, cz = p.z + fz * D, cy = Math.max(U.suelo(cx, cz) + 0.5, est.yS + 1.05);
   U.cam(U.v(cx, cy, cz), U.v(p.x, est.yS + 0.76, p.z), 40);
   if (est.mira) window.__ay.cara(U, est.mira, p.x, p.z);
+  // (los que le siguen, siempre detrás de él: si se le echan encima, se quedan a 1,8 m, sin taparle nunca)
+  for (const a of est.detras || []) { const dx = a.pos.x - p.x, dz = a.pos.z - p.z, al = dx * d.x + dz * d.z; if (al > -1.8) { a.pos.x -= d.x * (al + 1.8); a.pos.z -= d.z * (al + 1.8); a.obj?.position.set(a.pos.x, U.suelo(a.pos.x, a.pos.z), a.pos.z); } }
 };
 export const AYUDA = eval(`() => { (${A4.toString()})(); Object.assign(window.__ay, { arranca: ${arranca.toString()}, sigue: ${sigue.toString()} }); }`);
 
@@ -66,7 +70,7 @@ const conVecino = (quien, hora, seg, o = {}) => ({
   prep: eval(`(U, est) => {
     const a = U.G.npcs?.${quien}; if (!a) throw new Error('sin ${quien}');
     window.__ay.limpia(U); window.__ay.posa(U, a); est.mira = a;
-    window.__ay.arranca(U, est, a.pos, ${JSON.stringify({ ...o.ar, deja: undefined })});
+    window.__ay.arranca(U, est, a.pos, ${JSON.stringify({ verAncla: true, ...o.ar, deja: undefined })});
     ${o.prep || ''}
     est.fog = ${JSON.stringify(o.fog || [90, 1100])};
   }`),
@@ -78,9 +82,11 @@ const porPueblo = (pueblo, hora, seg, o = {}) => ({
   prep: eval(`(U, est) => {
     const L = window.__layout, pl = L.PLACES.plaza, lms = L.PLACES.landmarks || [];
     let lm = null; for (const k of ${JSON.stringify(o.lugar || ['castle', 'bridge', 'walls', 'towerhouse', 'palace', 'kiosk'])}) { lm = lms.find(l => l.kind === k); if (lm) break; }
-    if (lm && lm.kind === 'bridge' && (L.BRIDGES || []).length) { const B = L.BRIDGES.slice().sort((a, b) => (b.xb - b.xa) - (a.xb - a.xa))[0]; lm = { x: (B.xa + B.xb) / 2, z: B.z }; }
+    // (el puente: sale corriendo de su extremo, a lo largo de él, con el puente entero detrás; desde lejos, la orilla lo tapaba)
+    let extra = {};
+    if (lm && lm.kind === 'bridge' && (L.BRIDGES || []).length) { const B = L.BRIDGES.slice().sort((a, b) => (b.xb - b.xa) - (a.xb - a.xa))[0]; lm = { x: B.xb + 1.5, z: B.z }; extra = { h: Math.PI / 2, lejos: [1, 4, 8] }; }
     lm ||= pl; window.__ay.limpia(U);
-    window.__ay.arranca(U, est, lm, ${JSON.stringify({ lejos: [16, 24, 34], lado: 0, paso: 'correr', largo: 10, atras: 3, ...o.ar })});
+    window.__ay.arranca(U, est, lm, { ...${JSON.stringify({ lejos: [16, 24, 34], lado: 0, paso: 'correr', largo: 10, atras: 3 })}, ...extra, ...${JSON.stringify(o.ar || {})} });
     ${o.prep || ''}
     est.fog = ${JSON.stringify(o.fog || [140, 1600])};
   }`),
@@ -154,7 +160,7 @@ export const PLANOS = {
         a.enSitio = false; a.dance = 0; a.alto = null; a.walkSpeed = 1.45; a.heading = Math.atan2(d.x, d.z);
         a.goTo({ x: P.x + d.x * 30 + d.z * l, z: P.z + d.z * 30 - d.x * l, run: true });
       });
-      est.fog = [40, 600];
+      est.detras = caza; est.fog = [40, 600];
     },
     cuadro,
   },
