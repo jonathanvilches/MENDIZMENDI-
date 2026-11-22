@@ -475,7 +475,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **El límite del iPhone, antes de nada:** cada cosa nueva que se pida se mide con el perfil del iPhone
   (`tools/presupuesto-pueblo.mjs`: en la puerta, hasta 900 mil triángulos, 520 dibujos, 80 MB de texturas y 35 MB de
   búferes en un pueblo; 760 mil, 490, 65 y 35 en un partido). Si va a pasarse, se avisa al autor antes de hacerla, con
-  lo que costaría y qué se podría quitar a cambio. Nada de vistas del pueblo entero desde lo alto.
+  lo que costaría y qué se podría quitar a cambio. Nada de vistas del pueblo entero desde lo alto. Medida del 22 nov:
+  Pamplona 823k triángulos, 484 dibujos, 101 MB de texturas y 34 de búferes; Tudela 521k, 423, 94 y 51. Lo que más
+  pesa es la textura del jugador a 2048 (21 MB, puesta así por el autor: a 1024 se veía borrosa), luego dos texturas
+  «body» de 1024 (5 MB cada una), las hojas de los árboles de cerca (5 MB) y unos 15 vecinos de 512 (1,3 MB cada uno).
+  Sin compilar programas mientras se juega (`$SP/rend/tarde.mjs`: 0).
 - **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
   (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
   intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
