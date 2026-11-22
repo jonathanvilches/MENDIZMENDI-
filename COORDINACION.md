@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Principal, 22 nov, noche) Fuera «Por dentro»: todo junto en una sola sección «Oficios» del menú (oficios de antes y láminas de cómo se hacen las cosas, por pestañas); «Verlo paso a paso» en vez de «Verlo por dentro».
+
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la

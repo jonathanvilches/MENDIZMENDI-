@@ -117,9 +117,9 @@ export class PuebloCharla {
         else if (M.step === 2 || M.step === 3) {
           M.step = 3;
           await S([m.ahora || `¡Perfecto! Ahora hagamos ${m.product} paso a paso.`]);
-          // (si el producto tiene lámina técnica, después de «Cómo se hace» se ve por dentro: ui/anatomia.js)
+          // (si el producto tiene lámina técnica, después de «Cómo se hace» se ve paso a paso: ui/anatomia.js)
           const lam = laminaDe(m.id);
-          await this.explain(PROCESOS[m.id], m.product, 'how', '', lam ? 'Verlo por dentro' : '');
+          await this.explain(PROCESOS[m.id], m.product, 'how', '', lam ? 'Verlo paso a paso' : '');
           if (lam) await laminaTecnica(this.ui, lam, { button: '¡Vamos!' });
           await S(['Ordena los pasos: ¿qué se hace primero?']);
           const r = await sequenceGame(this.ui, { title: m.product, hint: 'Toca los pasos en el orden correcto', icon: M.icon, steps: m.steps });
@@ -377,7 +377,7 @@ export class PuebloCharla {
     const lam = laminaDe(m.crop);
     if (!lam) return;
     const dice = { piquillo: 'Antes de irte, mira lo que le pasa en la conservera: del fuego a la lata.', aceite: 'Antes de irte, mira lo que pasa en la almazara: del olivo a la botella.', vino: 'Antes de irte, mira lo que pasa en la bodega: de la uva al rosado.', molino: 'Antes de irte, mira lo que pasa en el molino: del trigo a la harina.', sidra: 'Antes de irte, mira lo que pasa en la sidrería: de la manzana al txotx.' };
-    await S([dice[lam] || 'Antes de irte, mira cómo se recoge por dentro.']);
+    await S([dice[lam] || 'Antes de irte, mira cómo se recoge, paso a paso.']);
     await laminaTecnica(this.ui, lam, { button: 'Seguir' });
   }
   async explain(X, title, part, lamina = '', boton = '') {

@@ -225,19 +225,18 @@ export const TOMAS = {
   queso: lamTec('queso', 10.9, [[0, 2], [4.9, 6]], { en: 64.85 }),
   vino: lamTec('vino', 7.7, [[0, 2], [4.05, 5]], { en: 75.75 }),
   // todas las láminas, en su pantalla del juego (Saberes · Por dentro), de arriba abajo
-  pordentro: {
-    en: 83.45, url: '?screen=pordentro&q=high', seg: 2.6, antes: 6, espera: 5000,
-    // (las miniaturas van con carga perezosa: se piden todas ya, que el barrido pasa por todas)
+  // la sección Oficios del menú (el autor, 22 nov: «No me gusta que se llame por dentro. Debería unificarse todo y llamarse
+  // oficios»): los oficios de antes con sus ilustraciones y, a mitad, la pestaña de las láminas de cómo se hacen las cosas
+  oficios: {
+    en: 83.45, url: '?screen=oficios&q=high', seg: 2.6, antes: 6, espera: 5000,
+    // (las miniaturas de las dos pestañas, ya cargadas: se pasa por las dos antes de rodar y se vuelve a la primera)
     listo: async (p) => {
-      await p.waitForFunction(() => window.__hub && document.querySelectorAll('.lam-rail img').length > 8, null, { timeout: 300000 });
-      await p.evaluate(() => document.querySelectorAll('.lam-rail img').forEach(i => { i.loading = 'eager'; }));
-      await p.waitForFunction(() => [...document.querySelectorAll('.lam-rail img')].every(i => i.complete && i.naturalWidth), null, { timeout: 300000 });
+      const cargadas = () => p.waitForFunction(() => { const im = [...document.querySelectorAll('.ddc-grid img')]; im.forEach(i => { i.loading = 'eager'; }); return im.length > 6 && im.every(i => i.complete && i.naturalWidth); }, null, { timeout: 300000 });
+      await p.waitForFunction(() => window.__hub && document.querySelector('.dd-tabs [data-f="hace"]'), null, { timeout: 300000 });
+      await cargadas(); await p.evaluate(() => document.querySelector('.dd-tabs [data-f="hace"]').click()); await cargadas();
+      await p.evaluate(() => document.querySelector('.dd-tabs [data-f="oficios"]').click()); await cargadas();
     },
-    prep: () => {
-      const r = document.querySelector('.lam-rail'); let sc = r?.parentElement; while (sc && !(sc.scrollHeight > sc.clientHeight + 40 && /auto|scroll/.test(getComputedStyle(sc).overflowY))) sc = sc.parentElement;
-      sc ||= document.scrollingElement; const max = sc.scrollHeight - sc.clientHeight, e = (k) => k * k * (3 - 2 * k);
-      window.__cada = (t) => { sc.scrollTop = Math.round(max * e(Math.min(1, t / 2.6))); };
-    },
+    guion: [[1.3, (p) => p.evaluate(() => document.querySelector('.dd-tabs [data-f="hace"]').click())]],
   },
   // ---------- la pelota: elegir pelotari y un partido en el Labrit ----------
   elige: {

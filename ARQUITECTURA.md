@@ -2300,7 +2300,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   piezas; tocar una ficha lo cuenta desde ahí, y en el taller solo se cuenta el paso de esa tarjeta. Hay narrador en los
   once oficios (ferrería, palomeras, cantero, aizkolari, harrijasotzaile, alpargata, cesta, carbonera, hilandera, pan y
   tonelero) y, desde el 22 nov por la tarde, en el queso, el rosado, el espárrago y el piquillo. Las otras nueve con pasos (aceite, miel, cuajada, txistorra, sidra, molino, Bajada del Ángel, salmón y setas) tienen ya su guion en `NARRA` pero no sus audios: van en `SIN_VOZ`, y el visor pone el subtítulo y pasa solo (1,2 s más 55 ms por letra), sin pedir el audio ni enseñar el botón del narrador; cuando se graben, con Salva en `eleven_v4` (un crédito por letra: unos 4.000 para las nueve), se quitan de `SIN_VOZ`. La almadía no tiene pasos y se queda sin narrador. **La voz de los talleres** (`data/vozTalleres.js`; el autor, 22 nov: «Quería los talleres»): cada tarjeta del maestro en los talleres 3D (`pasoTaller`, con `audio`) suena con `public/talleres/voz/<oficio>-<clave>.mp3` (intro, h0… las herramientas, p0… los pasos, sin los de pregunta) cuando el oficio está en `CON_VOZ`; el texto que se graba es el de `guionTaller`, el mismo de la tarjeta, y la voz se calla al pasar de tarjeta, al abrir la lámina o al empezar el minijuego. Solo en castellano. La voz es la de Salva, la misma del narrador (el autor, 22 nov: «La misma sí, de Salva»). Falta grabarlos: 2.479 letras los cinco talleres 3D (herrero 719, panadero 475, cantero 471, cestero 444, tonelero 370), y al gastar 1.846 en las cuatro láminas por error quedaron 222; los créditos se renuevan el 14 dic. El fondo del visor va con `.lt-ov.lt-ov.mg-overlay`: en los ordenadores con gráfica floja (`html.sin-cristal`) la regla de las ventanas lo dejaba translúcido y se veía el menú detrás. El `PUENTE` va ya en todas
-  las láminas con pasos (todas menos la almadía). Prueba: abrir «Por dentro» de la ferrería en el menú, a 1280 × 720 y
+  las láminas con pasos (todas menos la almadía). Prueba: abrir «La lámina» de la ferrería en Oficios, en el menú, a 1280 × 720 y
   844 × 390, y dejarla contar entera.
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la
   presa con su cortina de agua, la escala de ocho pozas que los salmones suben saltando, el tramo de abajo y el mar con la
@@ -2357,12 +2357,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   **txotx**: se quita el palito y el chorro cae en parábola al vaso. La viga se dibuja al construir en 15 ángulos y en
   vivo se elige uno (el resto, la torta, la piedra y el husillo, sale del ángulo que se ve). Los aros de la kupela son
   solo la mitad que se ve de una banda (`aro`): un sólido torneado pinta su tapa entera encima del cuerpo. Las fichas de
-  las cosechas del material didáctico (las de cada pueblo y «Las cosechas» de Productos) llevan su botón «Verlo por
-  dentro» cuando el cultivo tiene lámina.
-  Y todas juntas en el material didáctico, en **«Por dentro»** (`hub/didactico.js`, s_pordentro; el autor, 21 nov:
-  «que esté en la parte didáctica y que podamos acceder a estas ilustraciones sin ningún problema»): una entrada más en
-  Saberes y en el menú, con todas las láminas (25 el 21 nov) en cuatro grupos (Cómo se hace, Oficio de antes, Cómo funciona, Cómo vive),
-  cada una con su miniatura; un toque y se abre como en las misiones. Las miniaturas (`public/anatomia/<nombre>.jpg`,
+  las cosechas del material didáctico (las de cada pueblo y «Las cosechas» de Productos) llevan su botón «Verlo paso a
+  paso» cuando el cultivo tiene lámina.
+  Y todas juntas en el menú, en **«Oficios»** (`hub/didactico.js`, s_oficios; el autor, 21 nov: «que esté en la parte
+  didáctica y que podamos acceder a estas ilustraciones sin ningún problema»; y el 22 nov: «No me gusta que se llame por
+  dentro. Debería unificarse todo y llamarse oficios»): una sola sección, en Saberes y en el menú del juego y del
+  didáctico, con pestañas: Oficios de antes (los once oficios, cada uno con su ficha y, en ella, la pestaña «La lámina»
+  con la lámina que se mueve y sus seis pasos), Cómo se hace, Cómo funciona y Cómo vive (las láminas que no son de un
+  oficio, `LAMINAS_SUELTAS`, cada una con su miniatura; un toque y se abre como en las misiones). La palabra «por
+  dentro» ya no sale en ningún botón; quien llegue con el nombre viejo (`?screen=pordentro`) va a la pestaña Cómo se
+  hace. Las miniaturas (`public/anatomia/<nombre>.jpg`,
   592 × 296, unos 13 kB) las saca `tools/anatomia/miniaturas.mjs` de cada lámina en modo juego.
 - **Los comentaristas, con el género del pelotari** (`pelota/comenta.js`, ELLA, deQuien y fem; `pelota/match.js`,
   `game/fronton.js`; el autor, 21 de noviembre de 2026: «en las frases de pelota también hay que cambiar el género para
@@ -4741,8 +4745,8 @@ git push origin master:main
     `D` en `v5/mezcla-v5.py` y `v5/montaje.mjs`; las tomas de después, igual de desplazadas): el visor de láminas del juego
     (`laminaTecnica`) con la del queso y la del rosado, pulsando la ficha de cada paso en su segundo (`lamTec` en
     `v5/tomas.mjs`) con el audio de la página cambiado por uno que no acaba, para que cada subtítulo se quede hasta el
-    siguiente, y la voz de Salva de esos pasos (`public/anatomia/voz`) en la mezcla; y la pantalla «Por dentro» con todas
-    las láminas, de arriba abajo. La música se calma con la intro de la misma canción y vuelve con su silencio, la subida y
+    siguiente, y la voz de Salva de esos pasos (`public/anatomia/voz`) en la mezcla; y la sección Oficios del menú (los
+    oficios de antes y, a mitad, la pestaña de las láminas de cómo se hacen las cosas). La música se calma con la intro de la misma canción y vuelve con su silencio, la subida y
     un golpe. El reloj propio llega también a los marcos de la página (la lámina es un iframe): `__paso` pasa el mismo
     paso a cada marco del mismo origen. Los planos de dron (`J.dron`, con el gancho de vuelo de la cámara,
     `follow.cinematic.fly`, y sin el marcador): en «Desde aquí ves Otsagabia entera» sale detrás del explorador y sube hasta

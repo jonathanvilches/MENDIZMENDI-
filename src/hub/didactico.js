@@ -131,15 +131,18 @@ const IGLESIA_ILUS = { romanesque: 'iglesia-romanica', gothic: 'iglesia-gotica',
 const MONUMENTO_ILUS = { house: 'casa-escudo', towerhouse: 'casa-torre', ruin: 'ruinas', chapel: 'ermita', cross: 'crucero', monolith: 'monolito', lookout: 'mirador', pass: 'puerto-montana', horreo: 'horreo', stelae: 'estelas' };
 const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
 // (el botón a la lámina técnica del producto, si la tiene: ui/anatomia.js; lo atiende el menú, data-lamina)
-// (la pestaña «Por dentro» de cada oficio en el menú: la lámina técnica que se mueve, en grande, y, si tiene pasos, sus seis
-// miniaturas; cada una abre la lámina en ese paso. El autor, 22 nov: «No veo en oficios una opción de ver la parte de anatomy»)
-const porDentroOficio = (k) => {
+// (la pestaña «La lámina» de cada oficio en el menú: la lámina técnica que se mueve, en grande, y, si tiene pasos, sus seis
+// miniaturas; cada una abre la lámina en ese paso. El autor, 22 nov: «No veo en oficios una opción de ver la parte de anatomy»;
+// y luego: «No me gusta que se llame por dentro»)
+const laminaOficio = (k) => {
   const id = laminaDe(k), L = id && LAMINAS_TEC[id]; if (!L) return '';
   const PS = LAMINA_PASOS[id];
-  return `<div class="dd-pd"><button type="button" class="dd-pd-main" data-lamina="${id}"><img src="./anatomia/${id}.jpg" alt="" loading="lazy"><span>${I('mill', 18)}Verlo por dentro</span></button>`
+  return `<div class="dd-pd"><button type="button" class="dd-pd-main" data-lamina="${id}"><img src="./anatomia/${id}.jpg" alt="" loading="lazy"><span>${I('mill', 18)}Ver la lámina</span></button>`
     + (PS ? `<div class="dd-pd-pasos">${PS.map((t, i) => `<button type="button" data-lamina="${id}" data-paso="${i}"><img src="${laminaPaso(id, i)}" alt="" loading="lazy"><span><b>${i + 1}</b>${esc(t)}</span></button>`).join('')}</div>` : '') + '</div>';
 };
-const porDentro = (id) => { const L = laminaDe(id); return L ? `<p class="dd-more"><button type="button" class="btn ghost" data-lamina="${L}">Verlo por dentro, paso a paso</button></p>` : ''; };
+// (las láminas técnicas que no son de ningún oficio: van en sus propias pestañas de Oficios)
+const LAMINAS_SUELTAS = () => { const de = new Set(Object.keys(OFICIOS).map(laminaDe).filter(Boolean)); return Object.entries(LAMINAS_TEC).filter(([id]) => !de.has(id)); };
+const pasoAPaso = (id) => { const L = laminaDe(id); return L ? `<p class="dd-more"><button type="button" class="btn ghost" data-lamina="${L}">Verlo paso a paso</button></p>` : ''; };
 export const LM_ICON = { trinquete: 'pelota', chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
 
@@ -153,8 +156,7 @@ export const DIDACTICO = {
       ['personajes', 'book', 'Personajes', 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval', nPer, 'fichas'],
       ['tradiciones', 'mask', 'Tradiciones', 'Danzas, carnavales, fiestas, romerías, ferias y pelota', '', ''],
       ['frontones', 'pelota', 'Frontones de Navarra', 'Los frontones con historia, sus fotos, los tipos de cancha y todos, pueblo a pueblo', FRONTONES_N.total, 'frontones'],
-      ['oficios', 'anvil', 'Oficios de antes', 'Cómo trabajaban, con qué herramientas y cómo es hoy', Object.keys(OFICIOS).length, 'oficios'],
-      ['pordentro', 'mill', 'Por dentro', 'Cómo se hacen el queso, el pan o una cesta y cómo funcionan el molino o la ferrería, pieza a pieza', Object.keys(LAMINAS_TEC).length, 'láminas'],
+      ['oficios', 'anvil', 'Oficios', 'Los oficios de antes y cómo se hacen el queso, el vino o el pan, paso a paso', Object.keys(OFICIOS).length + LAMINAS_SUELTAS().length, 'fichas'],
       ['productos', 'cheese', 'Producto local y campo', 'Quesos, aceite, vino, huerta, cosechas y ganadería', '', ''],
       ['historia', 'castle', 'Historia y arquitectura', 'Castillos, dólmenes, los vascones y cómo reconocer cada monumento', '', ''],
       ['nature', 'leaf', 'Naturaleza', 'Animales, árboles, plantas y flores de cada comarca', nFa + nFl, 'fichas'],
@@ -215,13 +217,13 @@ export const DIDACTICO = {
   // lo que enseña una misión, sin el juego: su texto, su explicación (qué es, cómo se hace, antes y ahora) y su pregunta
   d_mision(l, m) {
     switch (m.type) {
-      case 'process': { const X = PROCESOS[m.id]; return block('basket', 'Producto local', m.title || m.product, (X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) : P(m.text)) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id) + (X ? aa(X.then, X.now) : ''), { sub: m.product }); }
-      case 'tradition': { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + porDentro(m.kind) + aa(X.then, X.now) : sinOrdenes(m.text), { img: tradicionUrl(m.ilus) || '' }); }
+      case 'process': { const X = PROCESOS[m.id]; return block('basket', 'Producto local', m.title || m.product, (X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) : P(m.text)) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + pasoAPaso(m.id) + (X ? aa(X.then, X.now) : ''), { sub: m.product }); }
+      case 'tradition': { const X = TRADICIONES[m.title]; return block('music', 'Tradición', m.title, X ? H4('¿Qué es?') + P(X.what) + H4('Cómo se hace') + P(X.how) + pasoAPaso(m.kind) + aa(X.then, X.now) : sinOrdenes(m.text), { img: tradicionUrl(m.ilus) || '' }); }
       case 'dance': return block('dance', 'Danza', m.name, P(m.text), { img: tradicionUrl(m.ilus) || '' });
       case 'trade': return this.d_oficio(m.kind, m.title);
       case 'legend': return this.d_leyendaNoche(m.who, m.title);
       case 'carnival': return this.d_carnaval(m.character, m.title);
-      case 'harvest': { const C = CROP[m.crop]; return block(C?.[1] || 'wheat', 'Cosecha', C?.[0] || m.crop, sinOrdenes(m.text) + porDentro(m.crop), { cls: 'cap' }); }
+      case 'harvest': { const C = CROP[m.crop]; return block(C?.[1] || 'wheat', 'Cosecha', C?.[0] || m.crop, sinOrdenes(m.text) + pasoAPaso(m.crop), { cls: 'cap' }); }
       case 'herd': {
         if (m.story) return block('sheep', 'Ganadería', m.title || '', Ps(m.story) + (m.cardText ? `<p class="dd-tip">${esc(m.cardText)}</p>` : ''));
         const X = m.animal === 'cows' ? VAQUERA_INFO : PASTOR_INFO(l.family);
@@ -243,7 +245,7 @@ export const DIDACTICO = {
     const img = laminaUrl(OFICIO_LAMINA[kind], true) || '', esc2 = oficioImg(kind);
     return block(O.icon, 'Oficio de antes', title || O.name, P(O.intro)
       + H4('Sus herramientas') + `<table class="dd-tools"><tbody>${O.tools.map(([es, eu, d]) => `<tr><th data-notr lang="es">${esc(es)}</th><td data-notr lang="eu">${esc(eu)}</td><td>${esc(d)}</td></tr>`).join('')}</tbody></table>`
-      + H4('Cómo se trabajaba') + O.steps.map(s => `<div class="dd-paso"><b>${esc(s.title)}</b>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('') + porDentro(kind)
+      + H4('Cómo se trabajaba') + O.steps.map(s => `<div class="dd-paso"><b>${esc(s.title)}</b>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('') + pasoAPaso(kind)
       + aa(O.then, O.now) + (esc2 ? `<p class="dd-ofarms"><img src="${esc2}" alt=""><span>El escudo del oficio</span></p>` : ''),
     { sub: title ? O.name : '', eu: O.eu, img, where: where(towns(m => m.type === 'trade' && m.kind === kind)) });
   },
@@ -362,28 +364,25 @@ export const DIDACTICO = {
       const esc2 = oficioImg(k);
       return { k, img: laminaUrl(OFICIO_LAMINA[k], true) || '', icon: O.icon, kicker: 'Oficio de antes', title: O.name, eu: O.eu,
         secs: [['El oficio', P(O.intro) + (esc2 ? `<p class="dd-ofarms"><img src="${esc2}" alt=""><span>El escudo del oficio</span></p>` : '')],
-          ['Por dentro', porDentroOficio(k)],
+          ['La lámina', laminaOficio(k)],
           ['Herramientas', `<table class="dd-tools"><thead><tr><th>Castellano</th><th>Euskera</th><th>Para qué sirve</th></tr></thead><tbody>${O.tools.map(([es, eu, d]) => `<tr><th data-notr lang="es">${esc(es)}</th><td data-notr lang="eu">${esc(eu)}</td><td>${esc(d)}</td></tr>`).join('')}</tbody></table>`],
           ['Cómo se trabajaba', O.steps.map((s, i) => `<div class="dd-paso"><h4><span class="dd-n">${i + 1}</span>${esc(s.title)}</h4>${P(s.text)}${s.q ? quiz({ q: s.q, options: s.options, answer: s.answer, why: s.why }) : ''}</div>`).join('')],
           ['Antes y ahora', aa(O.then, O.now)]],
         towns: towns(m => m.type === 'trade' && m.kind === k) };
     });
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Saberes · Oficios</small><h1>Oficios de antes</h1>
-      <p>Cómo se hacían las cosas cuando no había máquinas. Cada oficio tiene su ficha: qué hacía, sus herramientas en castellano y en euskera, cómo se trabajaba paso a paso, con una pregunta en cada paso, y cómo es hoy.</p></div>`;
-    return galeria(this, 'oficios', tab, head, [{ k: 'oficios', name: 'Oficios', icon: 'anvil', items }]);
+    // (y en la misma sección, en sus pestañas, las láminas que no son de un oficio: cómo se hacen el queso o el vino, cómo
+    // funcionan el molino o la almadía, cómo vive el salmón. El autor, 22 nov: «Debería unificarse todo y llamarse oficios»;
+    // antes iban aparte, en «Por dentro». Cada tarjeta abre su lámina, data-lamina, como al acabar la misión)
+    const lams = (k) => LAMINAS_SUELTAS().filter(([, L]) => L.kicker === k);
+    const rejilla = (l) => `<div class="ddc-grid">${l.map(([id, L]) => `<button type="button" class="ddc" data-lamina="${id}"><span class="ddc-pic"><img src="./anatomia/${id}.jpg" alt="" loading="lazy" decoding="async"></span><span class="ddc-txt"><b>${esc(L.title)}</b></span></button>`).join('')}</div>`;
+    const sueltas = [['hace', 'Cómo se hace', 'cheese'], ['funciona', 'Cómo funciona', 'mill'], ['vive', 'Cómo vive', 'leaf']].map(([k, name, icon]) => ({ k, name, icon, l: lams(name) })).filter(g => g.l.length)
+      .map(g => ({ k: g.k, name: g.name, icon: g.icon, n: g.l.length, html: rejilla(g.l) }));
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Saberes · Oficios</small><h1>Oficios</h1>
+      <p>Cómo se trabajaba cuando no había máquinas y cómo se hacen las cosas de Navarra. Cada oficio tiene su ficha, con sus herramientas en castellano y en euskera; cada lámina se mueve y se sigue paso a paso.</p></div>`;
+    return galeria(this, 'oficios', tab, head, [{ k: 'oficios', name: 'Oficios de antes', icon: 'anvil', items }, ...sueltas]);
   },
-
-  // ---------- Por dentro: todas las láminas técnicas (ui/anatomia.js), a mano ----------
-  // (cada una con su miniatura, public/anatomia/<id>.jpg, tools/anatomia/miniaturas.mjs; al tocarla se abre la lámina que
-  // se mueve, data-lamina, como al acabar el taller. El autor, 21 nov: «que esté en la parte didáctica y que podamos acceder
-  // a estas ilustraciones sin ningún problema»)
-  s_pordentro() {
-    const card = ([id, L]) => `<button type="button" class="lam" data-lamina="${id}"><img src="./anatomia/${id}.jpg" alt="" loading="lazy"><span>${esc(L.title)}</span></button>`;
-    const grupos = ['Cómo se hace', 'Oficio de antes', 'Cómo funciona', 'Cómo vive'].map(k => [k, Object.entries(LAMINAS_TEC).filter(([, L]) => L.kicker === k)]).filter(([, l]) => l.length);
-    return `<div class="ar-head dd-head"><small class="kicker">${I('mill', 20)} Saberes · Por dentro</small><h1>Por dentro</h1>
-      <p>Cómo se hacen las cosas de Navarra y cómo funcionan sus máquinas de siempre, pieza a pieza. Toca una lámina para verla moverse y sigue el proceso paso a paso.</p></div>
-      ${grupos.map(([k, l]) => `<section class="album-sec"><h2 class="sec"><i class="adot"></i>${esc(k)}</h2><div class="lam-rail">${l.map(card).join('')}</div></section>`).join('')}`;
-  },
+  // (la sección de antes, «Por dentro», ya no existe: quien llegue por su nombre va a la pestaña de las láminas de Oficios)
+  s_pordentro(tab) { return this.s_oficios(tab || 'hace'); },
 
   // ---------- Producto local y campo (galería) ----------
   s_productos(tab) {
@@ -400,9 +399,9 @@ export const DIDACTICO = {
         items: COMARCAS.filter(c => STAR[c.id]).map(c => { const S = STAR[c.id]; return { k: 's-' + c.id, img: tradicionUrl(STAR_ILUS[c.id]) || lam(STAR_LAM[c.id]), icon: FOOD_ICON[S.food] || 'cheese', c: c.color, kicker: c.name, title: S.name, eu: S.eu, secs: [['Qué es', P(S.text)]] }; }) },
       { k: 'como', name: 'Cómo se hace', icon: 'basket', intro: 'Del campo o del animal a la mesa, paso a paso.',
         items: proc.map(({ l, m }) => { const X = PROCESOS[m.id]; return { k: 'p-' + l.id + '-' + m.id, img: tradicionUrl(PROC_ILUS[m.id]) || lam(PROC_LAM[m.id]), icon: PROC_ICON[m.id] || 'basket', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || m.product, sub: m.product,
-          secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + porDentro(m.id)], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
+          secs: X ? [['Qué es', P(X.what)], ['Cómo se hace', P(X.how) + (m.steps ? H4('Paso a paso') + ol(m.steps) : '') + pasoAPaso(m.id)], ['Antes y ahora', aa(X.then, X.now)]] : [['Qué es', P(m.text)]], towns: [l.id] }; }) },
       { k: 'cosechas', name: 'Las cosechas', icon: 'wheat', intro: 'Qué se recoge en cada sitio.',
-        items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c) + porDentro(c)]], towns: cropTowns(c).map(l => l.id) })) },
+        items: crops.map(c => ({ k: 'h-' + c, img: lam(CROP_LAM[c]), icon: CROP[c]?.[1] || 'wheat', kicker: 'Cosecha', title: cap(CROP[c]?.[0] || c), secs: [['La cosecha', cropText(c) + pasoAPaso(c)]], towns: cropTowns(c).map(l => l.id) })) },
       { k: 'ganaderia', name: 'Ganadería', icon: 'sheep', intro: 'Pastores, vaqueras y sus rebaños.',
         items: [[PASTOR_INFO('atlantic'), 'Montaña', 'etxalar-ovejas'], [PASTOR_INFO('ribera'), 'Ribera y Zona Media', 'c-bardenas'], [VAQUERA_INFO, '', 'ituren-vacas']].map(([X, sub, l], i) => ({ k: 'g-' + i, img: lam(l), icon: X.icon, kicker: 'Ganadería', title: X.title, sub, secs: [['El oficio', Ps(X.lines)], ['Antes y ahora', aa(X.then, X.now)]] }))
           .concat(herd.map(({ l, m }) => ({ k: 'g-' + l.id, img: lam(HERD_LAM[l.id]), icon: 'sheep', c: comarca(l.comarca)?.color, kicker: tn(l.id), title: m.title || '', secs: [['La historia', Ps(m.story) + (m.cardText ? `<p class="dd-tip">${esc(m.cardText)}</p>` : '')]], towns: [l.id] }))) },
