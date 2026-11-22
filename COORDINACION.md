@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Principal (22 nov): Pueblos, la galería en el mismo carrusel 3D que gira en redondo del menú y de pelota (`hub/galeria.js`, `hub/galeria.css`).
+
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
