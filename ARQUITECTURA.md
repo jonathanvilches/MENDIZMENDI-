@@ -4628,3 +4628,18 @@ git push origin master:main
   golpe, los golpes graves, el soplido y el sonido de carta en cada vecino, el público y la fanfarria. Uso:
   `python3 tools/trailer/v3/mezcla-v3.py mezcla.wav` y `node tools/trailer/v3/rodar-v3.mjs <planos de v2> mezcla.wav
   salida.mp4` (unos 7 min; con `URL=` otro servidor: mientras se rueda no se puede tocar lo que sirve vite, que recarga).
+  **Con imágenes reales del juego** (22 nov, el autor: «Pero aprovecha imágenes del juego. Reales como el zelda»): debajo ya
+  no hay ilustraciones, todo es el juego rodado con su motor (`planos-v3.mjs`, con `tools/trailer/rodar.mjs`): el dron que
+  baja sobre Otsagabia, la cámara por el río Anduña hacia el puente, el explorador llegando a la plaza, cada vecino de Meshy
+  en su sitio (Maite junto al cartel, Itziar ante la iglesia, Joxemari con sus ovejas, Kike en el frontón, Joseba en el
+  prado, la lamia con su laguna detrás, el Basajaun en la niebla al anochecer, el Bobo en Muskilda), el valle al
+  atardecer en el golpe, el explorador mirando el pueblo, el bosque de Irati, un vuelo de dron de 1,4 s por cada uno de
+  los doce pueblos del montaje a medio compás (`dron(pueblo, hora, movimiento, ángulo)`: hacia su castillo, su puente
+  más largo, sus murallas o su plaza) y la pelota. Cada vecino se encuadra al lado contrario de su carta (`enc` en
+  `frente`, una ayuda propia de `planos-v3.mjs` que se compone sobre las de `planos-inversores.mjs`), la carta va algo
+  más pequeña y su frase abajo, para que la cara quede limpia; los raíles de «Descubre» son fotogramas del propio rodaje.
+  Se rueda a 1280 × 720 (`TAM=`) y casi todo a 12 fotogramas por segundo (`fps: 12` en el plano: a 1080p cada
+  fotograma tardaba 10 s), y `interpola.sh` los pasa a 24 con interpolación de movimiento; el montaje los escala a 1080p
+  y al codificar se afina un poco (`unsharp`). Uso: `TAM=1280x720 PLANOS=./v3/planos-v3.mjs node tools/trailer/rodar.mjs
+  <planos> <rodado>`, `bash tools/trailer/v3/interpola.sh <rodado> <planos>` y luego `rodar-v3.mjs` con esa carpeta
+  (que también acepta planos enlazados, como la isla y la pelota de los planos v2).

@@ -45,31 +45,37 @@ const CARTAS = [
 // a-b: cuándo · src: 'l:lámina' (src/assets/laminas/grande), 'p:plano' (rodado), 'negro', 'morado' · kb: la imagen se
 // acerca o se aleja [z0, z1, x0, y0, x1, y1] · luz: el color · velo: lo que se oscurece (para leer encima) · entra:
 // ['funde'|'negro'|'blanco'|'barre', s] · impacto: golpe de cámara · desde/vel: para lo rodado
-const MONTE = [['c-bardenas', 'Ribera', 'Bardenas Reales'], ['olite', 'Zona Media', 'Olite'], ['isaba-larra', 'Pirineo', 'Larra-Belagua'], ['pamplona', 'Cuenca de Pamplona', 'Iruña · Pamplona'],
-  ['puente-la-reina', 'Valdizarbe', 'Puente la Reina'], ['javier', 'Prepirineo', 'Javier'], ['tudela', 'Ribera', 'Tudela'], ['lumbier-buitres', 'Prepirineo', 'Foz de Lumbier'],
-  ['c-vendimia', 'Tierra Estella', 'La vendimia'], ['orreaga-roncesvalles', 'Pirineo', 'Orreaga · Roncesvalles'], ['estella', 'Tierra Estella', 'Lizarra · Estella'], ['ujue', 'Zona Media', 'Ujué']];
+// (los doce pueblos a medio compás: el vuelo de dron de cada uno, rodado en el juego — planos-v3.mjs)
+const MONTE = [['dOlite', 'Zona Media', 'Olite'], ['dIsaba', 'Pirineo', 'Isaba'], ['dPamplona', 'Cuenca de Pamplona', 'Iruña · Pamplona'],
+  ['dPuente', 'Valdizarbe', 'Puente la Reina'], ['dJavier', 'Prepirineo', 'Javier'], ['dTudela', 'Ribera', 'Tudela'], ['dLumbier', 'Prepirineo', 'Lumbier'],
+  ['dViana', 'Tierra Estella', 'Viana'], ['dOrreaga', 'Pirineo', 'Orreaga · Roncesvalles'], ['dEstella', 'Tierra Estella', 'Lizarra · Estella'],
+  ['dUjue', 'Zona Media', 'Ujué'], ['dElizondo', 'Baztan', 'Elizondo']];
+// (todo lo de debajo es el juego tal cual, rodado con su motor: rodar.mjs con planos-v3.mjs, y la isla, la manada y la
+// pelota de los planos v2; el autor: «aprovecha imágenes del juego. Reales como el zelda»)
 const FONDOS = [
   { a: 0, b: 7.45, src: 'p:isla', desde: 4.0, luz: 'mapa', velo: 0.22, entra: ['negro', 1.6] },
-  { a: 7.45, b: 16.6, src: 'l:otsagabia-ochagavia', luz: 'dia', kb: [1.0, 1.16, 0.5, 0.56, 0.56, 0.5], entra: ['funde', 0.9], veloEn: [[7.45, 0.12], [12.9, 0.12], [13.5, 0.5]] },
-  { a: 16.6, b: 22.55, src: 'l:elizondo-danza', luz: 'calido', kb: [1.06, 1.18, 0.55, 0.5, 0.5, 0.48], velo: 0.55, entra: ['funde', 0.6] },
+  { a: 7.45, b: 13.05, src: 'p:otVuelo', desde: 0.2, luz: 'dia', velo: 0.1, entra: ['funde', 0.9] },
+  { a: 13.05, b: 16.6, src: 'p:otMaite', desde: 0.6, luz: 'dia', velo: 0.35, entra: ['barre', 0.22] },
+  { a: 16.6, b: 19.7, src: 'p:otRio', desde: 0.6, luz: 'dia', velo: 0.4, entra: ['funde', 0.5] },
+  { a: 19.7, b: 22.55, src: 'p:otExplora', desde: 0.6, luz: 'calido', velo: 0.4, entra: ['barre', 0.22] },
   { a: 22.55, b: DROP, src: 'negro' },
-  { a: B(0), b: B(2), src: 'l:c-pirineos', luz: 'dia', kb: [1.3, 1.02, 0.5, 0.5, 0.5, 0.52], impacto: 1, velo: 0.18, entra: ['blanco', 0.4] },
-  { a: B(2), b: B(3), src: 'l:isaba-izaba', luz: 'dia', kb: [1.0, 1.1, 0.4, 0.5, 0.6, 0.5], velo: 0.2, entra: ['barre', 0.22] },
-  { a: B(3), b: B(4), src: 'l:zugarramurdi-noche', luz: 'noche', kb: [1.12, 1.0, 0.5, 0.5, 0.5, 0.5], velo: 0.2, golpe: '#b6ff9a' },
-  { a: B(4), b: B(6), src: 'l:elizondo', luz: 'calido', kb: [1.0, 1.1, 0.6, 0.5, 0.45, 0.5], velo: 0.5, entra: ['barre', 0.22] },
-  { a: B(6), b: B(8), src: 'l:etxalar-ovejas', luz: 'dia', kb: [1.1, 1.0, 0.5, 0.5, 0.5, 0.5], velo: 0.5, entra: ['barre', 0.22] },
-  { a: B(8), b: B(10), src: 'l:dep-fronton', luz: 'calido', kb: [1.0, 1.1, 0.4, 0.5, 0.55, 0.5], velo: 0.5, entra: ['barre', 0.22] },
-  { a: B(10), b: B(12), src: 'l:aribe-irati', luz: 'dia', kb: [1.1, 1.0, 0.5, 0.45, 0.5, 0.55], velo: 0.5, entra: ['barre', 0.22] },
-  { a: B(12), b: B(14), src: 'l:c-pitillas', luz: 'ocaso', kb: [1.0, 1.1, 0.5, 0.5, 0.42, 0.5], velo: 0.5, entra: ['barre', 0.22] },
-  { a: B(14), b: B(17), src: 'l:amaiur-basajaun', luz: 'noche', kb: [1.0, 1.14, 0.55, 0.5, 0.5, 0.45], velo: 0.45, entra: ['negro', 0.25], golpe: '#ffb070' },
+  { a: B(0), b: B(2), src: 'p:otValle', vel: 0.8, luz: 'ocaso', impacto: 1, velo: 0.18, entra: ['blanco', 0.4] },
+  { a: B(2), b: B(3), src: 'p:horizonte', desde: 1.2, luz: 'ocaso', velo: 0.22, entra: ['barre', 0.22] },
+  { a: B(3), b: B(4), src: 'p:manadaBaile', desde: 1.0, luz: 'noche', velo: 0.2, golpe: '#ff8a5a' },
+  { a: B(4), b: B(6), src: 'p:otItziar', desde: 0.1, luz: 'calido', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(6), b: B(8), src: 'p:otJoxemari', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(8), b: B(10), src: 'p:otKike', desde: 0.1, luz: 'calido', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(10), b: B(12), src: 'p:otJoseba', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(12), b: B(14), src: 'p:otLamia', desde: 0.1, luz: 'ocaso', velo: 0.3, entra: ['barre', 0.22] },
+  { a: B(14), b: B(17), src: 'p:otBasajaun', desde: 0, luz: 'noche', velo: 0.28, entra: ['negro', 0.25], golpe: '#ffb070' },
   { a: B(17), b: B(18), src: 'morado' },
-  ...MONTE.map(([l], i) => ({ a: B(18 + i / 2), b: B(18.5 + i / 2), src: 'l:' + l, luz: i % 3 === 2 ? 'ocaso' : 'dia', kb: i % 2 ? [1.12, 1.02, 0.55, 0.5, 0.45, 0.5] : [1.02, 1.12, 0.45, 0.5, 0.55, 0.5], velo: 0.15, entra: i === 0 ? ['blanco', 0.3] : null, golpe: i % 2 === 0 && i ? '#fff2dc' : null })),
+  ...MONTE.map(([p], i) => ({ a: B(18 + i / 2), b: B(18.5 + i / 2), src: 'p:' + p, desde: 0.35, luz: i % 3 === 2 ? 'ocaso' : 'dia', velo: 0.12, entra: i === 0 ? ['blanco', 0.3] : null, golpe: i % 2 === 0 && i ? '#fff2dc' : null })),
   { a: B(24), b: B(25), src: 'p:pelotari', desde: 0.75, luz: 'calido', impacto: 1, velo: 0.15, entra: ['blanco', 0.3] },
-  { a: B(25), b: B(26), src: 'l:dep-torneo', luz: 'calido', kb: [1.08, 1.0, 0.5, 0.5, 0.5, 0.5], velo: 0.62 },
-  { a: B(26), b: B(27), src: 'p:publico', desde: 1.0, luz: 'calido', velo: 0.45, entra: ['barre', 0.22] },
+  { a: B(25), b: B(26), src: 'p:pelotariAtras', desde: 0.8, luz: 'calido', velo: 0.55 },
+  { a: B(26), b: B(27), src: 'p:publico', desde: 0.6, luz: 'calido', velo: 0.4, entra: ['barre', 0.22] },
   { a: B(27), b: B(28), src: 'morado', entra: ['blanco', 0.3] },
-  { a: B(28), b: B(30), src: 'l:aribe-irati', luz: 'dia', kb: [1.0, 1.14, 0.5, 0.55, 0.5, 0.45], velo: 0.35, entra: ['funde', 0.5] },
-  { a: B(30), b: B(32), src: 'l:lesaka-danza', luz: 'calido', kb: [1.0, 1.12, 0.5, 0.5, 0.45, 0.5], velo: 0.45, entra: ['barre', 0.22] },
+  { a: B(28), b: B(30), src: 'p:irati', desde: 0.1, luz: 'dia', velo: 0.3, entra: ['funde', 0.5] },
+  { a: B(30), b: B(32), src: 'p:otBobo', desde: 0.1, luz: 'calido', velo: 0.35, entra: ['barre', 0.22] },
   { a: B(32), b: DURA + 1, src: 'p:isla', desde: 9.0, vel: 0.3, luz: 'mapa', velo: 0.5, entra: ['blanco', 0.7] },
 ];
 // (fogonazos blancos: cuándo, cuánto, cuánto dura)
@@ -118,7 +124,9 @@ html,body{margin:0;background:#000;overflow:hidden}
 .vis{visibility:hidden}
 /* la carta del vecino: la tarjeta del juego, con su esquina, su filo de color y su sombra; el retrato de Meshy dentro */
 .vc{position:absolute;top:150px;width:540px;height:720px;perspective:1600px}
-.vc.izq{left:150px}.vc.der{right:150px}
+.vc.izq{left:130px}.vc.der{right:130px}
+/* (con el juego de verdad detrás, la carta algo más pequeña: el vecino se ve en el plano, al otro lado) */
+.vc{top:170px;scale:.78}.vc.izq{transform-origin:0 0}.vc.der{transform-origin:100% 0}
 .vc-mov,.vc-flota{position:absolute;inset:0;transform-style:preserve-3d}
 .vc-flota{animation:vcFlota 5s ease-in-out infinite alternate}
 @keyframes vcFlota{from{transform:translateY(-7px) rotateZ(-.4deg)}to{transform:translateY(7px) rotateZ(.4deg)}}
@@ -138,6 +146,9 @@ html,body{margin:0;background:#000;overflow:hidden}
 /* la frase del vecino, al lado de su carta, palabra a palabra con su voz */
 .cita{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;width:1000px}
 .cita.izq{left:800px}.cita.der{left:150px}
+/* (y la frase abajo, a la altura del pecho del vecino, para que su cara quede limpia) */
+.cita{top:auto;bottom:96px;justify-content:flex-end;width:980px}.cita.izq{left:620px}.cita.der{left:320px}
+.cita p{font-size:calc(var(--fs,84px) * .66)!important}
 .cita p{margin:0;font:400 var(--fs,84px)/1 var(--f-display);text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(20,6,40,.45),0 0 26px rgba(10,2,30,.7);text-wrap:balance}
 .cita p .w{display:inline-block;margin-right:.22em}
 .cita p .em{color:var(--c)}
@@ -401,12 +412,14 @@ function monta() {
   });
   sub(V['kike-campeon'], B(27) - 0.02);
 
-  // Descubre: las láminas del juego en dos filas que corren, y el Basajaun
+  // Descubre: imágenes del juego en dos filas que corren, y el Basajaun
   frase({ t: B(27) + 0.03, de: 0, a: 1, seg: [[0, 1, 'Descubre']] }, { cls: 'golpe', kicker: 'Leyendas · oficios · fiestas', estilo: 'cae', hasta: B(28) - 0.05 });
-  const L1 = [['of-herreria', 'La herrería'], ['of-pan', 'El horno'], ['puente-cantero', 'El cantero'], ['viana-tonelero', 'La barrica'], ['of-cesteria', 'La cesta'], ['roncal-queso', 'El queso']];
-  const L2 = [['altsasu-momotxorro', 'Momotxorros'], ['leitza-aizkolari', 'Aizkolaris'], ['burgui-almadia', 'Las almadías'], ['irulegi-mano', 'La mano de Irulegi'], ['etxalar-palomeras', 'Las palomeras'], ['lesaka-salmon', 'El salmón']];
+  // (fotogramas del propio juego: lo rodado, a mitad de cada plano)
+  const fot = (p) => `/tv3p/${p}/${String(Math.floor((CUANTOS[p] || 2) / 2)).padStart(4, '0')}.jpg`;
+  const L1 = [['herreria', 'La herrería'], ['otLamia', 'La lamia'], ['otJoxemari', 'El pastoreo'], ['dPuente', 'Puente la Reina'], ['otBobo', 'Muskilda'], ['otRio', 'Otsagabia']];
+  const L2 = [['manadaBaile', 'Momotxorros'], ['otBasajaun', 'El Basajaun'], ['irati', 'Irati'], ['dOlite', 'Olite'], ['otKike', 'La pelota'], ['otItziar', 'Los escudos']];
   [[L1, 64, 1], [L2, 712, -1]].forEach(([L, top, dir]) => {
-    const r = h('div', 'rail'); r.style.top = top + 'px'; L.forEach(([img, n]) => r.appendChild(h('div', 'lam', `<img src="${LAM}${img}.webp" alt=""><span>${esc(n)}</span>`))); capas.appendChild(r);
+    const r = h('div', 'rail'); r.style.top = top + 'px'; L.forEach(([p, n]) => r.appendChild(h('div', 'lam', `<img src="${fot(p)}" alt=""><span>${esc(n)}</span>`))); capas.appendChild(r);
     ventana(r, B(27) + 0.02, B(28) + 0.05, 0.15, 0.2);
     vida(r, [[B(27), { transform: `translateX(${dir * 260}px)` }], [B(28) + 0.05, { transform: `translateX(${-dir * 260}px)` }]]);
   });
@@ -474,7 +487,7 @@ async function toma(x, T, t, dx = 0) {
   }
   const im = await carga(urlDe(T, t)), L = LUZ[T.luz] || LUZ.dia, F = fuerza(t);
   const z = 1 + 0.03 * Math.exp(-(t - T.a) * 8) + F * 0.06, sx = F * 20 * ruido(t, 1), sy = F * 14 * ruido(t, 2);
-  x.save(); x.filter = L.f;
+  x.save(); x.filter = L.f; x.imageSmoothingQuality = 'high';   // (lo rodado va a 1280 × 720: se escala con el mejor filtro)
   x.translate(W / 2 + sx + dx, H / 2 + sy); x.scale(z, z); x.translate(-W / 2, -H / 2);
   if (T.kb) {
     const [z0, z1, x0, y0, x1, y1] = T.kb, k = ease((t - T.a) / (T.b - T.a)), base = Math.max(W / im.width, H / im.height);

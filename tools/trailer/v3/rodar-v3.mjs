@@ -4,13 +4,13 @@
 //   CUADROS=s1,s2,…  en vez del vídeo, fotos sueltas en esos segundos (en la carpeta de la salida), para revisar
 //   DESDE=s HASTA=s  solo ese trozo · URL=http://127.0.0.1:5173  el servidor de Vite
 import { chromium } from 'playwright-core';
-import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync, statSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import { dirname, join } from 'node:path';
 const [, , planos, sonido, salida] = process.argv;
 const URL = process.env.URL || 'http://127.0.0.1:5173', FPS = 24;
 const cuantos = {};
-for (const d of readdirSync(planos, { withFileTypes: true })) if (d.isDirectory()) cuantos[d.name] = readdirSync(join(planos, d.name)).filter(f => f.endsWith('.jpg')).length;
+for (const d of readdirSync(planos, { withFileTypes: true })) if (d.isDirectory() || (d.isSymbolicLink() && statSync(join(planos, d.name)).isDirectory())) cuantos[d.name] = readdirSync(join(planos, d.name)).filter(f => f.endsWith('.jpg')).length;
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 200))); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
@@ -28,7 +28,7 @@ if (process.env.CUADROS) {
   const conSonido = sonido && sonido !== '-';
   const ff = spawn('ffmpeg', ['-nostdin', '-loglevel', 'error', '-y', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
     ...(conSonido ? ['-ss', String(i0 / FPS), '-t', String((i1 - i0) / FPS), '-i', sonido] : []),
-    '-vf', 'noise=alls=3:allf=t,format=yuv420p', '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-tune', 'film', '-profile:v', 'high', '-level', '4.1',
+    '-vf', 'unsharp=5:5:0.3:5:5:0,noise=alls=3:allf=t,format=yuv420p', '-c:v', 'libx264', '-preset', 'slow', '-crf', '17', '-tune', 'film', '-profile:v', 'high', '-level', '4.1',
     ...(conSonido ? ['-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-shortest'] : []), '-movflags', '+faststart', salida], { stdio: ['pipe', 'inherit', 'inherit'] });
   const fin = new Promise((ok) => ff.on('close', ok));
   for (let i = i0; i < i1; i++) {

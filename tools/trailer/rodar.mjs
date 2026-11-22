@@ -11,13 +11,15 @@ import { mkdirSync, writeFileSync, readdirSync } from 'node:fs';
 const { PLANOS, FPS, AYUDA } = await import(process.env.PLANOS || './planos.mjs');
 const [, , nombres, out, modo] = process.argv;
 const prueba = modo === 'prueba', URL = process.env.URL || 'http://127.0.0.1:5173/';
-const [W, H] = prueba ? [960, 540] : [1920, 1080];
+// (TAM=1280x720: otro tamaño, más rápido de rodar; el montaje lo escala)
+const [W, H] = prueba ? [960, 540] : process.env.TAM ? process.env.TAM.split('x').map(Number) : [1920, 1080];
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 for (const nombre of nombres.split(',')) {
   const P = PLANOS[nombre]; if (!P) { console.log('no hay plano', nombre); continue; }
   const dir = `${out}/${nombre}`; mkdirSync(dir, { recursive: true });
   // (si ya está entero, no se vuelve a rodar: así se puede seguir donde se quedó)
-  if (!prueba && readdirSync(dir).filter(f => f.endsWith('.jpg')).length >= Math.round(P.seg * FPS)) { console.log(nombre, 'ya estaba'); continue; }
+  // (P.fps: un plano a menos fotogramas por segundo, para rodar antes; luego se interpolan)
+  if (!prueba && readdirSync(dir).filter(f => f.endsWith('.jpg')).length >= Math.round(P.seg * (P.fps || FPS))) { console.log(nombre, 'ya estaba'); continue; }
   const ctx = await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
   await ctx.addInitScript((av) => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Beñat', avatar: av, seen: { heroBenat: true, dog: true, comoJugar: true }, dogOn: false, settings: { quality: 'high' } })); }, P.avatar || 'pastor');
   const p = await ctx.newPage(); const errs = [];
@@ -108,7 +110,7 @@ for (const nombre of nombres.split(',')) {
       return rt.renderer.domElement.toDataURL('image/jpeg', 0.93);
     };
   }, [P.prep.toString(), P.cuadro.toString(), P.despues ? P.despues.toString() : null, AYUDA ? AYUDA.toString() : null]);
-  const n = Math.round(P.seg * FPS), dt = 1 / FPS;
+  const n = Math.round(P.seg * (P.fps || FPS)), dt = 1 / (P.fps || FPS);
   // (unos pasos antes de empezar, para que el mundo esté asentado: animales, vecinos y luz)
   const antes = P.antes ?? 12;
   for (let i = 0; i < antes; i++) await p.evaluate(([dt, d]) => { window.__shot.t = 0; window.__paso(dt, 0, d); }, [dt, i === antes - 1]);
