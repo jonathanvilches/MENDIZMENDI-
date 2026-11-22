@@ -47,41 +47,47 @@ const VECINOS = {
 const FONDOS = [
   { a: 0, b: 7.45, src: 'p:isla', desde: 4.0, luz: 'mapa', velo: 0.22, entra: ['negro', 1.6] },
   { a: 7.45, b: 13.05, src: 'p:otVuelo', desde: 0.2, luz: 'dia', velo: 0.1, entra: ['funde', 0.9] },
-  { a: 13.05, b: 16.6, src: 'p:v4Maite', desde: 0, luz: 'dia', velo: 0.14, entra: ['barre', 0.22] },
-  { a: 16.6, b: 19.7, src: 'p:otRio', desde: 0.6, luz: 'dia', velo: 0.3, entra: ['funde', 0.5] },
-  { a: 19.7, b: 22.55, src: 'p:otExplora', desde: 0.6, luz: 'calido', velo: 0.3, entra: ['barre', 0.22] },
+  // (LA CARRERA, 22 nov; el autor: «que el personaje tenga siempre el mismo plano, corriendo o andando, y vaya cambiando el
+  // escenario de atrás, de diferentes pueblos, diferentes misiones, diferentes personajes»: carrera.mjs, el explorador
+  // siempre en el mismo sitio del encuadre y detrás cada vez otra cosa; los cortes, a corte seco, para que se note)
+  { a: 13.05, b: 16.6, src: 'p:cMaite', desde: 0, luz: 'dia', velo: 0.12, entra: ['barre', 0.22] },
+  { a: 16.6, b: 19.7, src: 'p:cRio', desde: 0, luz: 'dia', velo: 0.22 },
+  { a: 19.7, b: 22.55, src: 'p:cPlaza', desde: 0, luz: 'calido', velo: 0.22 },
   { a: 22.55, b: DROP, src: 'negro' },
-  { a: B(0), b: B(2), src: 'p:otValle', vel: 0.8, luz: 'ocaso', impacto: 1, velo: 0.18, entra: ['blanco', 0.4] },
-  { a: B(2), b: B(3), src: 'p:horizonte', desde: 1.2, luz: 'ocaso', velo: 0.22, entra: ['barre', 0.22] },
-  { a: B(3), b: B(4), src: 'p:manadaBaile', desde: 1.0, luz: 'noche', velo: 0.2, golpe: '#ff8a5a' },
+  { a: B(0), b: B(2), src: 'p:cValle', desde: 0, luz: 'ocaso', impacto: 1, velo: 0.16, entra: ['blanco', 0.4] },
+  // (y corriendo por Navarra, un pueblo en cada medio compás: Pamplona, Puente la Reina, Olite y Elizondo)
+  { a: B(2), b: B(2.5), src: 'p:cPamplona', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
+  { a: B(2.5), b: B(3), src: 'p:cPuente', desde: 0.2, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
+  { a: B(3), b: B(3.5), src: 'p:cOlite', desde: 0.2, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
+  { a: B(3.5), b: B(4), src: 'p:cElizondo', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
   // (cada vecino con el explorador delante: «hablando en euskera», con su frase a la izquierda)
-  { a: B(4), b: B(6), src: 'p:v4Itziar', desde: 0, luz: 'calido', velo: 0.12, entra: ['barre', 0.22] },
-  { a: B(6), b: B(8), src: 'p:v4Joxemari', desde: 0, luz: 'dia', velo: 0.12, entra: ['barre', 0.22] },
-  { a: B(8), b: B(10), src: 'p:v4Kike', desde: 0, luz: 'calido', velo: 0.12, entra: ['barre', 0.22] },
-  { a: B(10), b: B(12), src: 'p:v4Joseba', desde: 0, luz: 'dia', velo: 0.12, entra: ['barre', 0.22] },
-  { a: B(12), b: B(14), src: 'p:v4Lamia', desde: 0, luz: 'ocaso', velo: 0.12, entra: ['barre', 0.22] },
-  { a: B(14), b: B(17), src: 'p:v4Basajaun', desde: 0, luz: 'noche', velo: 0.2, entra: ['negro', 0.25], golpe: '#ffb070' },
+  { a: B(4), b: B(6), src: 'p:cItziar', desde: 0, luz: 'calido', velo: 0.12 },
+  { a: B(6), b: B(8), src: 'p:cJoxemari', desde: 0, luz: 'dia', velo: 0.12 },
+  { a: B(8), b: B(10), src: 'p:cKike', desde: 0, luz: 'calido', velo: 0.12 },
+  { a: B(10), b: B(12), src: 'p:cJoseba', desde: 0, luz: 'dia', velo: 0.12 },
+  { a: B(12), b: B(14), src: 'p:cLamia', desde: 0, luz: 'ocaso', velo: 0.12 },
+  { a: B(14), b: B(17), src: 'p:cBasajaun', desde: 0, luz: 'noche', velo: 0.16, entra: ['negro', 0.25], golpe: '#ffb070' },
   { a: B(17), b: B(18), src: 'morado' },
   // (jugando: «cada vecino te pide ayuda, y cada misión te enseña algo: el pastoreo, el carnaval, las leyendas. La
   // naturaleza y la cultura, contadas jugando», cada cosa con su imagen cuando se dice)
   { a: B(18), b: 61.42, src: 'p:v4Mision', desde: 0, luz: 'dia', velo: 0, entra: ['blanco', 0.3] },
-  { a: 61.42, b: 62.32, src: 'p:v4Pastoreo', desde: 0.6, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
-  { a: 62.32, b: 63.42, src: 'p:joaldun', desde: 0.6, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
-  { a: 63.42, b: 64.78, src: 'p:manadaHuyen', desde: 0.8, luz: 'noche', velo: 0.1, golpe: '#ff8a5a' },
+  { a: 61.42, b: 62.32, src: 'p:cOvejas', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
+  { a: 62.32, b: 63.42, src: 'p:cJoaldunak', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
+  { a: 63.42, b: 64.78, src: 'p:cMomotxorros', desde: 0, luz: 'noche', velo: 0.1, golpe: '#ff8a5a' },
   { a: 64.78, b: 66.86, src: 'p:v4Caballo', desde: 0.1, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
-  { a: 66.86, b: B(24), src: 'p:v4Lamina', desde: 0.2, luz: 'mapa', velo: 0, entra: ['barre', 0.22] },
+  { a: 66.86, b: B(24), src: 'p:v4Lamina', desde: 0.2, luz: 'mapa', velo: 0, kb: [1.14, 1.2, 0.5, 0.44, 0.5, 0.44], entra: ['barre', 0.22] },
   // (la pelota: elegir pelotari en la pantalla del juego y a jugar)
   { a: B(24), b: B(25), src: 'p:v4Elige', desde: 0, luz: 'mapa', velo: 0, entra: ['blanco', 0.3] },
   { a: B(25), b: B(26), src: 'p:pelotari', desde: 0.75, luz: 'calido', impacto: 1, velo: 0.12 },
   { a: B(26), b: B(27), src: 'p:pelotariAtras', desde: 0.8, luz: 'calido', velo: 0.25, entra: ['barre', 0.22] },
   { a: B(27), b: B(28), src: 'morado', entra: ['blanco', 0.3] },
-  { a: B(28), b: B(30), src: 'p:v4Irati', desde: 0, luz: 'dia', velo: 0.2, entra: ['funde', 0.5] },
-  { a: B(30), b: B(32), src: 'p:v4Bobo', desde: 0, luz: 'calido', velo: 0.14, entra: ['barre', 0.22] },
+  { a: B(28), b: B(30), src: 'p:cIrati', desde: 0, luz: 'dia', velo: 0.16, entra: ['funde', 0.5] },
+  { a: B(30), b: B(32), src: 'p:cBobo', desde: 0, luz: 'calido', velo: 0.12 },
   { a: B(32), b: DURA + 1, src: 'p:isla', desde: 9.0, vel: 0.3, luz: 'mapa', velo: 0.5, entra: ['blanco', 0.7] },
 ];
 // (fogonazos blancos: cuándo, cuánto, cuánto dura)
 const DESTELLOS = [[DROP, 1, 0.55], [B(17), 0.35, 0.3], [B(18), 0.6, 0.35], [B(24), 0.6, 0.35], [B(27), 0.6, 0.4], [B(32), 1, 0.7]];
-const IMPACTOS = [[DROP, 1], [B(4), 0.4], [B(8), 0.4], [B(12), 0.4], [B(14), 0.7], [B(18), 0.6], [61.42, 0.35], [62.32, 0.45], [63.42, 0.6], [B(25), 1], [B(27), 0.7], [B(32), 0.8]];
+const IMPACTOS = [[DROP, 1], [B(2), 0.3], [B(2.5), 0.3], [B(3), 0.3], [B(3.5), 0.3], [B(4), 0.4], [B(8), 0.4], [B(12), 0.4], [B(14), 0.7], [B(18), 0.6], [61.42, 0.35], [62.32, 0.45], [63.42, 0.6], [B(25), 1], [B(27), 0.7], [B(32), 0.8]];
 
 // ---------- utilidades ----------
 const cl = (x, a = 0, b = 1) => x < a ? a : x > b ? b : x;
@@ -148,7 +154,7 @@ html,body{margin:0;background:#000;overflow:hidden}
 .cita{position:absolute;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;width:1000px}
 .cita.izq{left:800px}.cita.der{left:150px}
 /* (y la frase abajo, a la altura del pecho del vecino, para que su cara quede limpia) */
-.cita{top:auto;bottom:64px;justify-content:flex-end;width:780px}.cita.izq{left:130px}.cita.der{left:auto;right:130px}
+.cita{top:auto;bottom:64px;justify-content:flex-end;width:660px}.cita.izq{left:130px}.cita.der{left:auto;right:130px}
 .cita p{font-size:calc(var(--fs,84px) * .66)!important}
 .cita p{margin:0;font:400 var(--fs,84px)/1 var(--f-display);text-transform:uppercase;color:#fff;text-shadow:0 4px 0 rgba(20,6,40,.45),0 0 26px rgba(10,2,30,.7);text-wrap:balance}
 .cita p .w{display:inline-block;margin-right:.22em}
