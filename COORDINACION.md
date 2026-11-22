@@ -17,10 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal, 21 nov) La herrería de Lesaka: el taller del herrero en grande, explicado paso a paso con la cámara en cada puesto (`src/game/talleres.js`, `src/ui/tallerPaso.js`).
-- (Principal, 22 nov) Cuatro talleres más con el mismo paso a paso: el horno de la panadera (Artajona), la cantería del cantero con su arco sobre la cimbra (Puente la Reina), la tonelería (Viana) y la cestería (Elizondo) (`src/game/talleres.js`).
-- (Principal, 22 nov) La lámina dentro de cada taller: cada tarjeta lleva la miniatura de su paso en la lámina; al tocarla, la lámina se abre en ese paso con sus seis fichas (las hechas, marcadas); al final, «Repaso del oficio» (`src/ui/anatomia.js`, `src/ui/tallerPaso.js`, `public/anatomia/`).
-
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
@@ -208,6 +204,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 22 nov, mañana, la hizo la ventana principal: `master` hasta `e8e2e55e`. Los talleres de oficios paso a paso (la herrería de
+  Lesaka, el horno de Artajona, la cantería de Puente la Reina, la tonelería de Viana y la cestería de Elizondo), con la lámina de
+  cada oficio dentro del taller (miniatura en cada paso y «Repaso del oficio» al final); y en el menú, Oficios, la pestaña «Por
+  dentro» de cada oficio con su lámina y sus seis pasos.
 - 21 nov, noche (más tarde aún), la hizo la ventana principal: `master` hasta `195f78a2`. Lámina 25: cómo se hace la
   sidra (la trituradora, el dolare con su viga, su husillo y su piedra, la kupela y el chorro del txotx al vaso), al
   acabar la cosecha de manzanas de Irurtzun y en «Por dentro» (25 láminas); y las fichas de las cosechas del material

@@ -935,4 +935,8 @@ stage.addEventListener('pointerdown', (ev) => steer(puesto(ev)));
 stage.addEventListener('keydown', (ev) => { if (ev.key === 'ArrowRight' || ev.key === 'ArrowDown') { ev.preventDefault(); steer(Math.floor(target) + 1.6); } if (ev.key === 'ArrowLeft' || ev.key === 'ArrowUp') { ev.preventDefault(); steer(Math.floor(target) - 0.4); } });
 window.__pasoCesta = (v) => { touring = false; target = s = v; draw(0); };
 draw(0);
+
+{ const q = /[?&]paso=(\d+)/.exec(location.search); if (q) { touring = false; target = s = Math.min(N - 0.001, +q[1] + 0.6); draw(0); } }
+addEventListener('message', (e) => { const d = e.data || {}; if (d.anatomia === 'paso') { touring = false; clearTimeout(idleTimer); target = Math.max(0, Math.min(N - 0.001, d.i + 0.6)); run(); } else if (d.anatomia === 'tour') { touring = !still.matches; clock = 0; run(); } });
+if (parent !== window) { let ya = -1; parent.postMessage({ anatomia: 'lista', pasos: PASOS }, '*'); setInterval(() => { const p = Math.min(N - 1, Math.floor(s)); if (p !== ya) { ya = p; parent.postMessage({ anatomia: 'en', i: p }, '*'); } }, 150); }
 </script></body></html>
