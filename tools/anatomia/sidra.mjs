@@ -12,7 +12,7 @@ import * as k from '../../.claude/skills/anatomy/kit/iso-kit.mjs';
 import * as G from '../../.claude/skills/anatomy/kit/lathe.mjs';
 import * as T from '../../.claude/skills/anatomy/kit/tube.mjs';
 import { kitScript } from '../../.claude/skills/anatomy/scripts/inline-kit.mjs';
-import { COLORES, enJuego, MARCA_JUEGO, escribe } from './comun.mjs';
+import { COLORES, enJuego, MARCA_JUEGO, escribe, PUENTE } from './comun.mjs';
 
 const theme = process.argv.includes('--light') ? 'light' : 'dark';
 const WIDTH = 600, HEIGHT = 340;
@@ -390,6 +390,7 @@ stage.addEventListener('pointerdown', (e) => { const r = svgEl.getBoundingClient
 stage.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); steer(Math.floor(target) + 1.6); } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); steer(Math.floor(target) - 0.4); } });
 window.__pasoSidra = (v) => { touring = false; target = s = clamp(v, 0, N - 0.001); draw(0); };
 draw(0);
+${PUENTE}
 `;
 
 // los colores de los materiales: relleno, las cuatro sombras y la cara de arriba (como en las otras láminas)

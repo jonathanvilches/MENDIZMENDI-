@@ -9,7 +9,7 @@
 import * as k from '../../.claude/skills/anatomy/kit/iso-kit.mjs';
 import * as G from '../../.claude/skills/anatomy/kit/lathe.mjs';
 import { kitScript } from '../../.claude/skills/anatomy/scripts/inline-kit.mjs';
-import { COLORES, enJuego, MARCA_JUEGO, escribe } from './comun.mjs';
+import { COLORES, enJuego, MARCA_JUEGO, escribe, PUENTE } from './comun.mjs';
 
 const theme = process.argv.includes('--light') ? 'light' : 'dark';
 const WIDTH = 600, HEIGHT = 340;
@@ -254,7 +254,7 @@ stage.addEventListener('pointermove', (e) => steer(puesto(e)));
 stage.addEventListener('pointerdown', (e) => steer(puesto(e)));
 stage.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); steer(Math.floor(target) + 1.6); } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); steer(Math.floor(target) - 0.4); } });
 draw(0);
-`;
+${PUENTE}`;
 
 const tonos = (pre, cls, [f, s0, s1, s2, s3, t]) => `${pre}.${cls}>.iso-fill{fill:${f}}${pre}.${cls}>.iso-top{fill:${t}}${pre}.${cls}[data-seamless]>.iso-top{stroke:${t}}` +
   [s0, s1, s2, s3].map((c, i) => `${pre}.${cls}>.iso-shade[data-shade="${i}"]{fill:${c}}${pre}.${cls}[data-seamless]>.iso-shade[data-shade="${i}"]{stroke:${c}}`).join('');

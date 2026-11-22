@@ -13,7 +13,7 @@ import * as k from '../../.claude/skills/anatomy/kit/iso-kit.mjs';
 import * as G from '../../.claude/skills/anatomy/kit/lathe.mjs';
 import * as T from '../../.claude/skills/anatomy/kit/tube.mjs';
 import { kitScript } from '../../.claude/skills/anatomy/scripts/inline-kit.mjs';
-import { KIT, COLORES, enJuego, MARCA_JUEGO, escribe } from './comun.mjs';
+import { KIT, COLORES, enJuego, MARCA_JUEGO, escribe, PUENTE } from './comun.mjs';
 
 const theme = process.argv.includes('--light') ? 'light' : 'dark';
 const WIDTH = 600, HEIGHT = 340;
@@ -271,6 +271,7 @@ stage.addEventListener('pointermove', (e) => { const b = svgEl.getBoundingClient
 stage.addEventListener('pointerdown', (e) => { const b = svgEl.getBoundingClientRect(); steer(clamp((e.clientX - b.left) / b.width, 0, 1) * N); });
 stage.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); steer(Math.floor(target) + 1.6); } if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); steer(Math.floor(target) - 0.4); } });
 draw(0);
+${PUENTE}
 `;
 
 const CSS = COLORES + enJuego(WIDTH, HEIGHT) + `
