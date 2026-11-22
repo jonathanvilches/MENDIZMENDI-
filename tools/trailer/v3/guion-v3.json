@@ -1,0 +1,27 @@
+{
+  "nota": "Las voces del tráiler v3 (22 nov 2026), todas ya grabadas: los vecinos y la narradora de Otsagabia (src/assets/voz/vecinos/ochagavia) y las frases de Salva del tráiler para inversores (tools/trailer/v3/voz). t: cuándo suena en el tráiler el segundo «de» del archivo; de/a: el trozo del archivo; seg: [inicio, fin, texto] en segundos del archivo (de silencedetect), para que el texto salga a la vez que la voz; como: cita (al lado de la carta del vecino), sub (abajo), frase (grande en el centro), grito (enorme, en el golpe), nada.",
+  "dura": 94.5,
+  "voces": [
+    { "id": "salva-tierra", "f": "v3:salva-tierra.mp3", "t": 0.6, "de": 0, "a": 6.84, "como": "frase", "seg": [[0.05, 3.1, "Hay una tierra donde cada pueblo"], [3.7, 6.5, "guarda una historia."]] },
+    { "id": "nico-otsa", "f": "ot:narra-01.mp3", "t": 7.5, "de": 0, "a": 5.62, "como": "sub", "seg": [[0, 2.22, "Desde aquí ves Otsagabia entera:"], [2.72, 5.6, "casas de piedra a los dos lados del río Anduña."]] },
+    { "id": "maite-kaixo", "f": "ot:maite-00.mp3", "t": 13.25, "de": 0, "a": 3.6, "como": "cita", "quien": "maite", "seg": [[0, 0.54, "¡Kaixo!"], [0.84, 1.49, "Soy Maite."], [2.02, 3.43, "¡Ongi etorri a Otsagabia!"]] },
+    { "id": "maite-fiesta", "f": "ot:maite-02.mp3", "t": 16.7, "de": 0, "a": 5.85, "como": "cita", "quien": "maite", "seg": [[0, 5.79, "Mañana es la fiesta de Muskilda y los danzantes necesitan ocho cintas de colores para sus trajes…"]] },
+    { "id": "maite-perdido", "f": "ot:maite-02.mp3", "t": 23.02, "de": 6.2, "a": 8.31, "como": "grito", "seg": [[6.25, 8.31, "¡Pero se han perdido por todo el valle!"]] },
+    { "id": "maite-siete", "f": "ot:maite-06.mp3", "t": 25.9, "de": 2.62, "a": 7.42, "como": "sub", "seg": [[2.71, 4.96, "Las otras siete las tienen vecinos del valle…"], [5.63, 7.42, "y algún ser de leyenda."]] },
+    { "id": "itziar", "f": "ot:itziar-04.mp3", "t": 30.85, "de": 0, "a": 3.63, "como": "cita", "quien": "itziar", "seg": [[0, 3.4, "¿Sabes que en Otsagabia hay palacios con escudos de piedra?"]] },
+    { "id": "joxemari", "f": "ot:joxemari-00.mp3", "t": 34.6, "de": 0, "a": 3.32, "como": "cita", "quien": "joxemari", "seg": [[0, 0.96, "Egun on, gazte."], [1.42, 2.4, "Soy Joxemari,"], [2.6, 3.21, "el pastor."]] },
+    { "id": "kike", "f": "ot:kike-00.mp3", "t": 38.35, "de": 0, "a": 3.45, "como": "cita", "quien": "kike", "seg": [[0, 0.5, "¡Aupa!"], [1.17, 2.06, "Soy Kike."], [2.54, 3.45, "¿Juegas a pelota?"]] },
+    { "id": "joseba", "f": "ot:inaki-00.mp3", "t": 42.15, "de": 0.8, "a": 2.7, "como": "cita", "quien": "joseba", "seg": [[0.88, 1.52, "Soy Joseba,"], [1.78, 2.63, "guarda de Irati."]] },
+    { "id": "lamia", "f": "ot:lamia-02.mp3", "t": 45.95, "de": 0, "a": 3.25, "como": "cita", "quien": "lamia", "seg": [[0, 1.72, "Estaba peinándome con mi peine de oro"], [2.14, 2.28, "y…"], [2.77, 3.06, "¡plof!"]] },
+    { "id": "basajaun-a", "f": "ot:basajaun-00.mp3", "t": 49.75, "de": 0, "a": 2.32, "como": "cita", "quien": "basajaun", "seg": [[0, 2.25, "¡Oooh! Una personita en mi bosque…"]] },
+    { "id": "basajaun-b", "f": "ot:basajaun-00.mp3", "t": 52.4, "de": 3.62, "a": 6.64, "como": "cita", "quien": "basajaun", "seg": [[3.67, 5.06, "Soy el Basajaun,"], [5.26, 6.64, "el señor del bosque."]] },
+    { "id": "salva-vecinos", "f": "v3:salva-vecinos.mp3", "t": 57.25, "de": 0, "a": 7.47, "como": "sub", "seg": [[0, 1.57, "Cada vecino te pide ayuda,"], [1.84, 3.76, "y cada misión te enseña algo:"], [4.24, 6.06, "el pastoreo, el carnaval,"], [6.25, 7.24, "las leyendas."]] },
+    { "id": "salva-naturaleza", "f": "v3:salva-naturaleza.mp3", "t": 64.85, "de": 0, "a": 3.47, "como": "sub", "seg": [[0, 1.64, "La naturaleza y la cultura,"], [2.08, 3.29, "contadas jugando."]] },
+    { "id": "kike-campeon", "f": "ot:kike-05.mp3", "t": 69.95, "de": 0, "a": 4.08, "como": "sub", "seg": [[0, 1.6, "¡Seis seguidas!"], [1.75, 4.0, "¡Eres un txapeldun, un campeón!"]] },
+    { "id": "basajaun-tag", "f": "ot:basajaun-05.mp3", "t": 76.2, "de": 2.45, "a": 6.01, "como": "frase", "seg": [[2.53, 4.18, "El Basajaun es una leyenda…"], [4.51, 6.01, "¡pero el bosque es de verdad!"]] },
+    { "id": "bobo-cintas", "f": "ot:bobo-02.mp3", "t": 79.9, "de": 0, "a": 3.68, "como": "cita", "quien": "bobo", "seg": [[0, 1.1, "¡Las ocho cintas!"], [1.35, 3.68, "¡Los danzantes ya pueden ponerse sus trajes!"]] },
+    { "id": "salva-herrizherri", "f": "v3:salva-herrizherri.mp3", "t": 83.9, "de": 0, "a": 0.99, "como": "nada", "seg": [] },
+    { "id": "salva-navarra", "f": "v3:salva-navarra.mp3", "t": 85.4, "de": 0, "a": 2.35, "como": "nada", "seg": [[0, 2.1, "Navarra, pueblo a pueblo."]] },
+    { "id": "bobo-fiesta", "f": "ot:bobo-00.mp3", "t": 88.3, "de": 0, "a": 4.31, "como": "sub", "seg": [[0, 1.31, "¡Qué fiesta más bonita!"], [1.72, 2.8, "Vuelve el año que viene,"], [3.12, 4.31, "que aquí te esperamos."]] }
+  ]
+}
