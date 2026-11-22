@@ -74,12 +74,12 @@ export const PLANOS = {
   v4Joseba: vecino('inaki', 11.0, 3.8, { cam: { d: 4.6, acerca: 0.4, der: 0.8, giro: -0.2, lado: -1 } }),
   v4Lamia: vecino('lamia', 17.6, 3.8, { par: { sep: 2.0 }, fog: [60, 900], cam: { d: 5.0, acerca: 0.6, der: 0.9, alto: 1.4, giro: 0.25, lado: -1 } }),
   // el Basajaun, enorme, y el explorador, pequeño, entre la niebla: la cámara baja, mirándole desde abajo
-  v4Basajaun: vecino('basajaun', 19.2, 5.6, { tiempo: 'niebla', fog: [8, 160], par: { sep: 2.4 }, cam: { d: 7.4, acerca: 1.4, der: 0.9, alto: 0.55, mira: 1.55, sube: 0.4, giro: 0.3, fov: 44 } }),
+  v4Basajaun: vecino('basajaun', 19.2, 5.8, { tiempo: 'niebla', fog: [8, 160], par: { sep: 2.4 }, cam: { d: 7.4, acerca: 1.4, der: 0.9, alto: 0.55, mira: 1.55, sube: 0.4, giro: 0.3, fov: 44 } }),
   v4Bobo: vecino('bobo', 11.6, 3.8, { cam: { d: 4.4, acerca: 0.4, der: 0.75, giro: 0.2 } }),
 
   // ---------- jugando: una misión con la interfaz del juego, la cámara del juego detrás del explorador que corre ----------
   v4Mision: {
-    pueblo: OT, hora: 10.6, tiempo: 'clear', seg: 2.4, antes: 96, ui: true,
+    pueblo: OT, hora: 10.6, tiempo: 'clear', seg: 4.5, fps: 12, antes: 96, ui: true,
     prep: (U, est) => {
       const pl = window.__layout.PLACES.plaza; let best = null;
       for (let i = 0; i < 32; i++) {
@@ -137,14 +137,20 @@ export const PLANOS = {
   },
   // el bosque de verdad: el explorador entre las hayas de Irati, la cámara delante, de lado, retrocediendo
   v4Irati: {
-    pueblo: 'selva-irati', hora: 10.4, tiempo: 'clear', seg: 3.6, fps: 12, antes: 30,
+    pueblo: 'selva-irati', hora: 10.4, tiempo: 'clear', seg: 3.9, fps: 12, antes: 30,
     prep: (U, est) => {
-      const P = U.G.player, p = P.pos; let best = null;
-      for (let i = 0; i < 24; i++) { const b = i / 24 * 6.283, dx = Math.cos(b), dz = Math.sin(b); let ok = true; for (let s = 2; s <= 14; s += 2) if (!U.seco(p.x + dx * s, p.z + dz * s)) ok = false; if (ok) { best = { dx, dz }; break; } }
-      best ||= { dx: 1, dz: 0 }; window.__ay.limpia(U); window.__ay.anda(U, est, p.x, p.z, best.dx, best.dz); est.fog = [40, 700];
+      // (hacia +z desde la salida está el hayedo, como en los planos de flores e irati: el explorador, 24 m adentro, sigue
+      // hacia el bosque; si ahí no hay suelo seco, el sitio seco más cercano)
+      const P = U.G.player, p0 = P.pos.clone(); let best = null;
+      for (let r = 0; r <= 12 && !best; r += 2) for (let i = 0; i < 12 && !best; i++) {
+        const x = p0.x + Math.cos(i / 12 * 6.283) * r, z = p0.z + 24 + Math.sin(i / 12 * 6.283) * r; let ok = U.seco(x, z);
+        for (let s = 2; s <= 12 && ok; s += 2) ok = U.seco(x, z + s);
+        if (ok) best = { x, z };
+      }
+      best ||= { x: p0.x, z: p0.z }; window.__ay.limpia(U); window.__ay.anda(U, est, best.x, best.z, 0, 1); window.__ay.despeja(U, U.G.player.pos, 20, []); est.fog = [40, 700];
     },
     cuadro: (t, U, est) => {
-      const P = U.G.player.pos, d = est.dir, y = U.suelo(P.x, P.z), k = t / 3.6;
+      const P = U.G.player.pos, d = est.dir, y = U.suelo(P.x, P.z), k = t / 3.9;
       U.cam(U.v(P.x + d.x * (5.2 - k * 0.8) - d.z * 2.4, y + 1.0, P.z + d.z * (5.2 - k * 0.8) + d.x * 2.4), U.v(P.x + d.z * 0.6, y + 1.05, P.z - d.x * 0.6), 42);
     },
   },

@@ -4,7 +4,7 @@
 set -e
 RAW=$1; OUT=$2; shift 2
 cd "$(dirname "$0")/../../.."
-FPS=$(node -e "import('./tools/trailer/v3/planos-v3.mjs').then(m=>{for(const [k,v] of Object.entries(m.PLANOS)) console.log(k+' '+(v.fps||24))})")
+FPS=$(node -e "import('${PLANOS:-./tools/trailer/v3/planos-v3.mjs}').then(m=>{for(const [k,v] of Object.entries(m.PLANOS)) console.log(k+' '+(v.fps||24))})")
 for d in ${@:-$(ls "$RAW")}; do
   [ -d "$RAW/$d" ] || continue
   f=$(echo "$FPS" | awk -v k="$d" '$1==k{print $2}')

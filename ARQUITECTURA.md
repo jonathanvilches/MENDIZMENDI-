@@ -4643,3 +4643,21 @@ git push origin master:main
   y al codificar se afina un poco (`unsharp`). Uso: `TAM=1280x720 PLANOS=./v3/planos-v3.mjs node tools/trailer/rodar.mjs
   <planos> <rodado>`, `bash tools/trailer/v3/interpola.sh <rodado> <planos>` y luego `rodar-v3.mjs` con esa carpeta
   (que también acepta planos enlazados, como la isla y la pelota de los planos v2).
+- **Tráiler v4: jugando de verdad** (22 nov; el autor: «Quiero que metas imágenes reales del juego, jugando, haciendo
+  misiones, escogiendo un pelotari, hablando en euskera, viendo animales, con el basajaun, con la lamia, con los
+  momochorros, con los yoaldunak» y «no metas personajes o fotos de personajes cortados»). Las mismas voces y la misma
+  música que el v3 (`v3/guion-v3.json`), con otro montaje (`tools/trailer/v4/montaje-v4.js`, página `v4/index.html`): sin
+  cartas, sin retratos recortados y sin raíles de miniaturas; debajo, solo el juego. Cada vecino sale **con el explorador
+  delante, los dos de cuerpo entero** (`planos-v4.mjs`: `pareja` pone al vecino quieto y al explorador a 1,5 m en suelo
+  seco y llano, `charla` hace que se miren y `dos` pone la cámara de lado, con la pareja a la derecha del cuadro para que
+  la frase quepa a la izquierda; Maite llega andando, junto al cartel de Otsagabia). `limpia` quita antes el caballo propio y
+  el tractor y la bici sueltos, que se colaban delante. Planos de juego: `v4Mision` con la interfaz de verdad encima (barra
+  de misiones, minimapa, «Hablar con…») y la cámara del juego detrás del explorador que corre (en `rodar.mjs`, `ui: true`
+  deja la interfaz y hace la foto de la página entera, y `est.juego` deja la cámara que sigue al jugador), `v4Pastoreo`
+  entre las ovejas, `v4Caballo` al galope en su caballo, `v4Irati` entre los árboles; los joaldunak de Ituren y los
+  momotxorros de Altsasu son los planos del v2. `v4/pantallas.mjs` rueda dos pantallas tal cual, con el reloj de la página
+  parado (`page.clock`) y 1/24 s por foto: «Elige tu pelotari» girando de Beñat a Mikel y la lámina de la ferrería en el
+  paso del mazo. `interpola.sh` lee los fotogramas por segundo de otros planos con `PLANOS=`. Uso: `TAM=1280x720
+  PLANOS=./v4/planos-v4.mjs node tools/trailer/rodar.mjs <planos> <rodado>`, `node tools/trailer/v4/pantallas.mjs
+  <rodado>`, `PLANOS=./tools/trailer/v4/planos-v4.mjs bash tools/trailer/v3/interpola.sh <rodado> <planos>` y
+  `PAGINA=v4 node tools/trailer/v3/rodar-v3.mjs <planos> <sonido> <salida>`.

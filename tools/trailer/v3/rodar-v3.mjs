@@ -3,6 +3,7 @@
 // Uso: node tools/trailer/v3/rodar-v3.mjs <planos rodados> <sonido.wav|-> <salida.mp4>
 //   CUADROS=s1,s2,…  en vez del vídeo, fotos sueltas en esos segundos (en la carpeta de la salida), para revisar
 //   DESDE=s HASTA=s  solo ese trozo · URL=http://127.0.0.1:5173  el servidor de Vite
+//   PAGINA=v4  el montaje del tráiler v4 (tools/trailer/v4/index.html) en vez del v3
 import { chromium } from 'playwright-core';
 import { readFileSync, readdirSync, existsSync, mkdirSync, writeFileSync, statSync } from 'node:fs';
 import { spawn } from 'node:child_process';
@@ -15,7 +16,7 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/
 const p = await b.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 200))); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 await p.route('**/tv3p/**', (r) => { const f = join(planos, decodeURIComponent(new globalThis.URL(r.request().url()).pathname).replace(/^.*\/tv3p\//, '')); existsSync(f) ? r.fulfill({ status: 200, contentType: 'image/jpeg', body: readFileSync(f) }) : r.fulfill({ status: 404, body: 'no' }); });
-await p.goto(`${URL}/tools/trailer/v3/index.html`, { timeout: 120000 });
+await p.goto(`${URL}/tools/trailer/${process.env.PAGINA || 'v3'}/index.html`, { timeout: 120000 });
 await p.waitForFunction(() => window.T3, null, { timeout: 120000 });
 const info = await p.evaluate((c) => window.T3.prepara(c), cuantos); console.log(info);
 const N = info.fotogramas, i0 = Math.round((+process.env.DESDE || 0) * FPS), i1 = Math.min(N, Math.round((+process.env.HASTA || N / FPS) * FPS));

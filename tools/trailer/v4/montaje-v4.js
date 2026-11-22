@@ -69,7 +69,7 @@ const FONDOS = [
   { a: 62.32, b: 63.42, src: 'p:joaldun', desde: 0.6, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
   { a: 63.42, b: 64.78, src: 'p:manadaHuyen', desde: 0.8, luz: 'noche', velo: 0.1, golpe: '#ff8a5a' },
   { a: 64.78, b: 66.86, src: 'p:v4Caballo', desde: 0.1, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
-  { a: 66.86, b: B(24), src: 'p:v4Lamina', desde: 0.4, luz: 'mapa', velo: 0, entra: ['barre', 0.22] },
+  { a: 66.86, b: B(24), src: 'p:v4Lamina', desde: 0.2, luz: 'mapa', velo: 0, entra: ['barre', 0.22] },
   // (la pelota: elegir pelotari en la pantalla del juego y a jugar)
   { a: B(24), b: B(25), src: 'p:v4Elige', desde: 0, luz: 'mapa', velo: 0, entra: ['blanco', 0.3] },
   { a: B(25), b: B(26), src: 'p:pelotari', desde: 0.75, luz: 'calido', impacto: 1, velo: 0.12 },
