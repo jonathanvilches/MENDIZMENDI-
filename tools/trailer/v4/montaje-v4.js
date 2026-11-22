@@ -55,9 +55,9 @@ const FONDOS = [
   { a: 19.7, b: 22.55, src: 'p:cPlaza', desde: 0, luz: 'calido', velo: 0.22 },
   { a: 22.55, b: DROP, src: 'negro' },
   { a: B(0), b: B(2), src: 'p:cValle', desde: 0, luz: 'ocaso', impacto: 1, velo: 0.16, entra: ['blanco', 0.4] },
-  // (y corriendo por Navarra, un pueblo en cada medio compás: Pamplona, Puente la Reina, Olite y Elizondo)
+  // (y corriendo por Navarra, un pueblo en cada medio compás: Pamplona, Tudela, Olite y Elizondo)
   { a: B(2), b: B(2.5), src: 'p:cPamplona', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
-  { a: B(2.5), b: B(3), src: 'p:cPuente', desde: 0.2, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
+  { a: B(2.5), b: B(3), src: 'p:cTudela', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
   { a: B(3), b: B(3.5), src: 'p:cOlite', desde: 0.2, luz: 'ocaso', velo: 0.1, golpe: '#fff2dc' },
   { a: B(3.5), b: B(4), src: 'p:cElizondo', desde: 0.2, luz: 'dia', velo: 0.1, golpe: '#fff2dc' },
   // (cada vecino con el explorador delante: «hablando en euskera», con su frase a la izquierda)

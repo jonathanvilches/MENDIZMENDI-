@@ -17,8 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (22 nov): Pueblos, la galería en el mismo carrusel 3D que gira en redondo del menú y de pelota (`hub/galeria.js`, `hub/galeria.css`).
-
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
@@ -206,6 +204,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 22 nov, mediodía, la hizo la ventana principal: `master` hasta `82d505e8`. Las láminas de los oficios a pantalla entera, con
-  cámara que se acerca y gira a cada paso, zoom con los dedos, la rueda y botones, y un narrador con la voz de Salva que cuenta la
-  historia y cada paso, con subtítulos, en los once oficios; las láminas de alimentos también siguen los pasos.
+- 22 nov, tarde, la hizo la ventana principal: `master` hasta `d44b6072`. La sección Pueblos en el mismo carrusel 3D que gira en
+  redondo del menú y de pelota (con las pestañas de comarca, las fichas y jugar), y antes, a mediodía, las láminas de los oficios
+  con cámara, zoom y narrador con la voz de Salva.
