@@ -4761,5 +4761,6 @@ git push origin master:main
     oficios de antes y, a mitad, la pestaña de las láminas de cómo se hacen las cosas). La música se calma con la intro de la misma canción y vuelve con su silencio, la subida y
     un golpe. El reloj propio llega también a los marcos de la página (la lámina es un iframe): `__paso` pasa el mismo
     paso a cada marco del mismo origen. Los planos de dron (`J.dron`, con el gancho de vuelo de la cámara,
-    `follow.cinematic.fly`, y sin el marcador): en «Desde aquí ves Otsagabia entera» sale detrás del explorador y sube hasta
-    ver el pueblo y el río; en «¡pero el bosque es de verdad!», un vuelo por encima de las copas de Irati.
+    `follow.cinematic.fly`, y sin el marcador): en «Desde aquí ves Otsagabia entera» sube en vertical desde un punto fijo de la
+    calle, junto a una casa, y deja al explorador irse hacia la plaza hasta ver los tejados y el valle (siguiéndole se
+    metía en las casas y, ya arriba, en las copas de los árboles de la plaza); en «¡pero el bosque es de verdad!», un vuelo por encima de las copas de Irati.
