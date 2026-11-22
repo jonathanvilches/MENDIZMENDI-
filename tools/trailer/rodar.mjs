@@ -48,10 +48,10 @@ for (const nombre of nombres.split(',')) {
   // (que suba antes todo lo que se ve: texturas pintadas, árboles, vecinos; si no, salían las casas sin textura)
   await p.waitForTimeout(P.espera ?? 9000);
   // el rodaje: el bucle parado; cada paso avanza el mundo, mueve la cámara del plano y devuelve la imagen
-  await p.evaluate(async ([prep, cuadro, despues, ayuda]) => {
+  await p.evaluate(async ([prep, cuadro, despues, ayuda, ui]) => {
     const rt = window.__rt, G = window.__game, THREE = window.__THREE, H = window.__hf;
     const CF = await import('/src/engine/charLight.js').catch(() => null);
-    rt.active = false; G.ui.hudVisible?.(false);
+    rt.active = false; G.ui.hudVisible?.(!!ui);   // (P.ui: con la interfaz del juego encima, como al jugar)
     const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x), lerp = (a, b, k) => a + (b - a) * k;
     const U = {
       THREE, G, rt, H, ease, lerp, v: (x, y, z) => new THREE.Vector3(x, y, z), suelo: (x, z) => H.groundHeight(x, z),
@@ -96,7 +96,7 @@ for (const nombre of nombres.split(',')) {
       S.t += dt * (k ?? 1); const d = dt * (S.est.lento ?? 1);
       rt.elapsed += d; try { rt.subeAlgo?.(); } catch (e) { }
       rt.applySize();
-      rt.follow.cinematic ||= { t: 0, fly: (cam) => S.cuadro(S.t, U, S.est) };
+      if (!S.est.juego) rt.follow.cinematic ||= { t: 0, fly: (cam) => S.cuadro(S.t, U, S.est) };   // (est.juego: la cámara del juego, la que sigue al jugador)
       rt.step(d, G, G.input);
       S.despues?.(S.t, U, S.est);
       if (S.est.fog) { const f = rt.scene.fog; f.near = S.est.fog[0]; f.far = S.est.fog[1]; if (S.est.fogColor) f.color.set(S.est.fogColor); }
@@ -107,9 +107,10 @@ for (const nombre of nombres.split(',')) {
       rt.renderer.render(rt.scene, rt.camera);
       CF?.applyCharFill?.(null);
       G.input.endFrame?.();
+      if (ui) { G.ui.tick?.(d); return 'ui'; }   // (con interfaz, la foto la hace la página entera: page.screenshot)
       return rt.renderer.domElement.toDataURL('image/jpeg', 0.93);
     };
-  }, [P.prep.toString(), P.cuadro.toString(), P.despues ? P.despues.toString() : null, AYUDA ? AYUDA.toString() : null]);
+  }, [P.prep.toString(), P.cuadro.toString(), P.despues ? P.despues.toString() : null, AYUDA ? AYUDA.toString() : null, !!P.ui]);
   const n = Math.round(P.seg * (P.fps || FPS)), dt = 1 / (P.fps || FPS);
   // (unos pasos antes de empezar, para que el mundo esté asentado: animales, vecinos y luz)
   const antes = P.antes ?? 12;
@@ -120,7 +121,8 @@ for (const nombre of nombres.split(',')) {
   for (let i = 0; i < n; i++) {
     const sale = !cuales || cuales.includes(i);
     const url = await p.evaluate(([dt, sale]) => window.__paso(dt, 1, sale), [dt, sale]);
-    if (sale) writeFileSync(`${dir}/${String(i).padStart(4, '0')}.jpg`, Buffer.from(url.split(',')[1], 'base64'));
+    if (sale && url === 'ui') await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92 });
+    else if (sale) writeFileSync(`${dir}/${String(i).padStart(4, '0')}.jpg`, Buffer.from(url.split(',')[1], 'base64'));
     if (prueba && i > cuales[cuales.length - 1]) break;
   }
   console.log(nombre, `${n} fotogramas`, `${Math.round((Date.now() - t0) / 1000)} s`, errs.length ? 'errores: ' + errs.slice(0, 3).join(' | ') : 'sin errores');
