@@ -65,8 +65,9 @@ for (const nombre of nombres.split(',')) {
   await p.waitForTimeout(T.espera ?? 9000);
   await p.evaluate(AYUDA);
   await p.evaluate(() => { const R = (window.__rt || window.__mapa3d)?.renderer || window.__mapa3d?.ren; if (!R) return; const r0 = R.render.bind(R); R.render = (...a) => { if (!window.__sinDibujo) r0(...a); }; });
-  if (T.prep) await p.evaluate(T.prep);
+  // primero se congela el reloj y luego se prepara: así nada avanza a tiempo real mientras la página dibuja despacio
   await p.evaluate(() => window.__congela());
+  if (T.prep) await p.evaluate(T.prep);
   // (unos pasos antes de empezar, para que todo se asiente: animales, vecinos, la cámara detrás del jugador)
   // (los pasos de antes, sin dibujar salvo los dos últimos: el mundo avanza igual y así no se pierde tiempo)
   for (let i = 0; i < (T.antes ?? 24); i++) await p.evaluate(([d, dt]) => { window.__sinDibujo = d; try { window.__antes?.(); } catch (e) { } window.__paso(dt); }, [i < (T.antes ?? 24) - 2, 1 / FPS]);
@@ -79,7 +80,7 @@ for (const nombre of nombres.split(',')) {
     const sale = !cuales || cuales.includes(i);
     // (en la prueba, los fotogramas que no se guardan no se dibujan: el mundo avanza igual)
     await p.evaluate(([t, sale, FPS]) => { window.__sinDibujo = !sale; try { window.__cada?.(t); } catch (e) { console.error('reloj cada', e?.message); } window.__paso(1 / FPS); }, [t, sale, FPS]);
-    if (sale) await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92 });
+    if (sale) await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92, timeout: 240000 });
   }
   console.log(nombre, `${n} fotogramas`, `${Math.round((Date.now() - t0) / 1000)} s`, errs.length ? 'errores: ' + [...new Set(errs)].slice(0, 4).join(' | ') : 'sin errores');
   } catch (e) { console.log(nombre, 'FALLA', e.message.split('\n')[0].slice(0, 300)); }

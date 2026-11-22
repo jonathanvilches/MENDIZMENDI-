@@ -124,11 +124,22 @@ export const TOMAS = {
   },
   // el pastoreo: la misión de Joxemari, las ovejas por el monte y el jugador detrás
   pastoreo: {
-    en: 61.4, url: `?${OT}&weather=clear&t=9.4`, seg: 1.2, antes: 60,
+    en: 61.4, url: `?${OT}&weather=clear&t=9.4`, seg: 1.2, antes: 24,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia(); G.activate('ovejas'); G.advance('ovejas', 1); G.startHerding(false);
-      const fl = (G.sheep || G.herd || []).filter(o => o.pos); const o = fl[0];
-      if (o) { const P = G.player; P.place(o.pos.x - 6, o.pos.z - 2, Math.atan2(6, 2)); J.rt.follow.yaw = Math.atan2(6, 2) + Math.PI; J.teclas(['w', 'shift']); }
+      // a media misión: el rebaño ya juntado a unos 25 m del redil y el jugador detrás, andando hacia él
+      const pen = window.__LANDMARKS.pen, H = G.herd || [];
+      const cx = H.reduce((a, s) => a + s.pos.x, 0) / H.length, cz = H.reduce((a, s) => a + s.pos.z, 0) / H.length;
+      const L = Math.hypot(pen.x - cx, pen.z - cz) || 1, ux = (pen.x - cx) / L, uz = (pen.z - cz) / L;
+      const C = { x: pen.x - ux * 26, z: pen.z - uz * 26 };
+      const hueco = [[0, 0], [-2.6, 1.8], [2.4, 1.2], [-1.2, -2.2], [1.8, -2.6], [0.4, 3.4]];
+      H.forEach((s, i) => {
+        const [a, b] = hueco[i % hueco.length], x = C.x + ux * b - uz * a, z = C.z + uz * b + ux * a;
+        s.pos.x = x; s.pos.z = z; s.home = { x, z }; s.heading = Math.atan2(ux, uz); s.state = 'walk'; s.timer = 3;
+      });
+      const P = G.player, h = Math.atan2(ux, uz); P.place(C.x - ux * 10, C.z - uz * 10, h); P.obj.visible = true; J.rt.follow.yaw = h + Math.PI;
+      if (G.dog) { G.dog.pos.x = C.x - ux * 7 + uz * 2.5; G.dog.pos.z = C.z - uz * 7 - ux * 2.5; }
+      J.teclas(['w']);
     },
   },
   // el carnaval: la comparsa de joaldunak por las calles de Ituren, con sus cencerros
@@ -142,11 +153,11 @@ export const TOMAS = {
   },
   // las leyendas: la sombra de Teodosio sale de la cueva de Aralar
   leyenda: {
-    en: 63.5, url: '?town=sierra-aralar&q=high&skipintro=1&weather=niebla&t=19.4', seg: 1.45, antes: 30,
+    en: 63.5, url: '?town=sierra-aralar&q=high&skipintro=1&weather=niebla&t=22.5', seg: 1.45, antes: 8,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia(); const M = (G.missions || []).find(m => m.type === 'legend'); if (!M) throw new Error('sin leyenda');
-      const L = M.lair || M.m?.lairPos || G.player.pos; const P = G.player; P.place(L.x + 9, L.z + 9, Math.atan2(-9, -9)); J.rt.follow.yaw = Math.atan2(-9, -9) + Math.PI;
-      G.showCreature(M);
+      M.count = M.need; G.startLegend(M);   // las pistas ya seguidas: la guarida queda fijada en M.lair
+      const L = M.lair; J.hacia({ pos: L }, 6.5); G.showCreature(M);
     },
   },
   // ---------- «La naturaleza y la cultura, contadas jugando» ----------
