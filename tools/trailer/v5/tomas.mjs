@@ -280,13 +280,15 @@ export const TOMAS = {
   bosque: {
     // (otra parte de la selva que la toma de Irati, la del bosque cerrado, a media tarde, con la luz entre los troncos)
     en: 97.3, url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=15.4', seg: 3.8, antes: 30,
-    // (de dron: por encima de las copas de la selva, hacia delante y bajando un poco, con la luz de la tarde)
+    // (de dron: casi cenital sobre el explorador, que anda por el sendero, y se va levantando hasta descubrir la selva
+    // delante, con la luz de la tarde; pasando solo por encima de las copas salían copas oscuras y nada más)
     prep: () => {
       const J = window.__j, P = J.G.player; J.limpia(); const F = window.__layout.PLACES.forest, b = J.corre(F, 24, { anda: true, snap: true });
-      const fx = -Math.cos(b.a), fz = -Math.sin(b.a), e = (k) => k * (2 - k), y0 = J.suelo(F.x, F.z);
+      const fx = -Math.cos(b.a), fz = -Math.sin(b.a), e = (k) => k * k * (3 - 2 * k);
       J.dron((t) => {
-        const k = e(Math.min(1, t / 3.8)), s = -34 + 44 * k, x = F.x + fx * s, z = F.z + fz * s, y = Math.max(J.suelo(x, z) + 24, y0 + 36 - 6 * k);
-        return { pos: [x, y, z], look: [x + fx * 30, y - 16, z + fz * 30] };
+        const k = e(Math.min(1, t / 3.8)), atras = 5 + 6 * k, x = P.pos.x - fx * atras, z = P.pos.z - fz * atras;
+        const y = Math.max(J.suelo(x, z) + 20, P.pos.y + 24 + 4 * k), d = 3 + 45 * k;
+        return { pos: [x, y, z], look: [P.pos.x + fx * d, P.pos.y + 14 * k, P.pos.z + fz * d] };
       });
     },
   },
