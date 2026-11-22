@@ -2207,20 +2207,36 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`townActividades.doWorkshop`), y en el material didáctico, en la ficha del oficio.
 - **Los talleres de los oficios** (`src/game/talleres.js`, 21 de noviembre de 2026; el autor: «Vete ampliando las zonas de
   elaboración de los oficios y explicándolos paso a paso, que sea más visual»). En vez del banco diminuto de
-  `items.makeWorkbench`, el oficio que tiene taller (`TALLERES`; de momento el herrero de Lesaka) monta una zona de trabajo
+  `items.makeWorkbench`, el oficio que tiene taller (`TALLERES`: el herrero de Lesaka, la panadera de Artajona, el cantero de Puente la Reina, el tonelero de Viana y el
+  cestero de Elizondo) monta una zona de trabajo
   de unos 8 × 7 m: la herrería con el muro de piedra, la fragua con su campana y la chimenea que sale por el tejado, las
   brasas que laten (más cuando sopla el fuelle, y sueltan chispas), el fuelle de cuero en forma de lágrima que sube y baja,
   el yunque en su tronco con la herradura que se pone al rojo, la pila de templar (vapor al acabar), la pared de
-  herramientas, el banco con su tornillo, el carbón, las barras y la piedra de afilar. Se monta en coordenadas propias
+  herramientas, el banco con su tornillo, el carbón, las barras y la piedra de afilar. **El horno del pueblo** (la panadera
+  de Artajona): el horno de leña con su bóveda de barro y la boca donde laten las brasas, la leña y los sarmientos, la
+  artesa (la masa aparece al amasar y crece tapada con un paño), el cuenco de la levadura madre, la pala con la hoja
+  arriba, la mesa con las hogazas marcadas que se doran al cocer y la estantería de los panes. **La cantería** (el cantero
+  de Puente la Reina): la piedra de la cantera contra el muro y, delante, las tres piedras para elegir (la buena, una
+  bonita pero partida y un canto de río); al elegir, la buena pasa al banco, y con cada paso el bloque va de bruto a
+  desbastado y a sillar labrado, con polvo y lascas, y al final lleva la marca que elijas (`choiceGame` devuelve `pick`);
+  la escuadra, el compás, la plantilla y la plomada que se balancea en su tabla; el cincel y la maza; el pico; los
+  sillares acabados con marcas de otros canteros y un arco a medio hacer sobre su cimbra, como los del puente, con la
+  clave esperando en el suelo. **La tonelería** (Viana): el castillo de duelas, los aros en su tabla, la barrica en rosa
+  sobre el trípode con las llamas del brasero y su humo, la barrica del trabajo que se cierra cuando baja el aro (el perfil
+  pasa de rosa a barriga) y la pirámide de barricas acabadas. **La cestería** (Elizondo): los haces de varas, la tina de
+  remojo, el tajo con el cuchillo abriendo una vara, las tiras colgadas a secar, la cesta del trabajo que sube vuelta a
+  vuelta hasta el borde, el otarre, el saski y una xistera colgada en el muro. Todos comparten el cobertizo (`cobertizo`). Se monta en coordenadas propias
   (x a lo ancho, z hacia lo abierto) sobre el suelo de cada punto; lo fijo va junto en una malla por material. Sitio
   (`sitioTaller`): cerca del vecino, despejado, casi llano, fuera del agua, de las calles y de la plaza (la primera vez
   salió junto a la fuente de Lesaka), con el pasillo del plano general libre y la entrada alcanzable; se quitan árboles,
   matas, hierba y flores bajo las losas. Si no cabe, el banco de siempre.
-  Cada puesto dice adónde mira la cámara, desde dónde y dónde se pone el maestro. `townActividades.doWorkshop`: el
+  Cada puesto dice adónde mira la cámara, desde dónde y dónde se pone el maestro (si en 0,6 s no se acerca a su sitio, es
+  que rodea algo y acabaría cruzando por delante de la cámara: se pone en él; `townGame`, junto a `T.update`). `townActividades.doWorkshop`: el
   explorador entra como aprendiz, el maestro ya está dentro, la cámara (un `follow.cinematic` que se desliza de puesto en
   puesto) enseña el taller entero, luego cada herramienta en su sitio y cada paso en su puesto, con un aro que late en el
   suelo; la leyenda es `ui/tallerPaso.js`, una tarjeta baja sin velo con el número del paso (la ficha a pantalla entera
-  tapaba justo lo que se explicaba). Los minijuegos no cambian (`juegoPaso`); lo hecho se ve en el taller (`T.paso`). Al
+  tapaba justo lo que se explicaba). Los minijuegos no cambian (`juegoPaso`); lo hecho se ve en el taller (`T.paso`,
+  que cuenta en `T.hecho` lo que ya se ve: si se vuelve a medias, el taller se pone como estaba). Al
   acabar o dejarlo a medias, la cámara vuelve al explorador sin corte (`sueltaTaller`, con `follow.salida`). Prueba:
   entrar en Lesaka, poner el paso 1 de la misión del herrero y llamar a `doTrade` (los minijuegos se dan por ganados).
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la

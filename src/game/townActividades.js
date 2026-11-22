@@ -213,6 +213,8 @@ export class PuebloActividades {
     { const a = T.puestos.aprendiz?.de, f = T.puestos.yunque?.foco || T.puestos.taller.foco; if (a) P.place(a.x, a.z, Math.atan2(f.x - a.x, f.z - a.z)); }
     // (y el maestro, ya dentro, esperando: si se quedó junto a la plaza, se pone en el taller antes de que llegue la cámara)
     { const m = T.puestos.maestro?.de; if (host && m && Math.hypot(host.pos.x - m.x, host.pos.z - m.z) > 1.5) { host.cancelPath?.(); host.state = 'idle'; host.target = null; host.setPos(m.x, m.z, Math.atan2(P.pos.x - m.x, P.pos.z - m.z)); } }
+    // (si se vuelve a medias, el taller enseña lo ya hecho: la masa, el bloque desbastado...)
+    while (T.hecho < (M.tstep || 0)) T.paso(T.pasos[T.hecho]);
     const C = F.cinematic = { pos: T.puestos.taller.cam.clone(), look: T.puestos.taller.foco.clone(), t: 0 };
     const ve = (id) => {
       const p = T.puestos[id]?.cam ? T.puestos[id] : T.puestos.taller;
@@ -222,7 +224,7 @@ export class PuebloActividades {
       if (host && p.de) this.alPuesto(T, host, p.de, p.foco);
       host?.say?.(3.5);
     };
-    this.ui.onMiniHit = (ok) => { if (!ok) return; P.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); const f = T.puestos[T.activo]?.foco; if (f) this.particles.emit(f, { n: 10, color: of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); };
+    this.ui.onMiniHit = (ok) => { if (!ok) return; P.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); const f = T.puestos[T.activo]?.foco; if (f) this.particles.emit(f, { n: 10, color: T.kind === 'cantero' ? ['#e9e1cf', '#cfc3a8'] : of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); };
     let finished = false;
     try {
       if (!M.tstep) {
@@ -244,7 +246,7 @@ export class PuebloActividades {
         if (r.quit) { quitaPaso(); this.sueltaTaller(T, host, C); await this.say(M.host, ['Cuando quieras, seguimos donde lo has dejado.']); return; }
         if (!r.win && !r.error) { quitaPaso(); this.sueltaTaller(T, host, C); await this.say(M.host, ['¡Casi! Así se aprende: vuelve a probar este paso en el taller.']); return; }
         // lo hecho se ve en el taller: la herradura al rojo, el vapor de la pila…
-        T.paso(id); await espera(1100);
+        T.paso(id, r); await espera(1100);
         M.tstep++;
       }
       finished = true;
@@ -290,7 +292,7 @@ export class PuebloActividades {
     const eu = isEU(), oname = eu ? (of.eu || of.name) : of.name;
     this.player.frozen = true; this.mode = 'mini';
     this.player.heading = Math.atan2(M.bench.x - this.player.pos.x, M.bench.z - this.player.pos.z);
-    this.ui.onMiniHit = (ok) => { if (ok) { this.player.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); this.particles.emit({ x: M.bench.x, y: groundHeight(M.bench.x, M.bench.z) + 1, z: M.bench.z }, { n: 10, color: of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); } };
+    this.ui.onMiniHit = (ok) => { if (ok) { this.player.rig.doAct(of.act === 'wave' ? 'point' : of.act, 0.45); this.particles.emit({ x: M.bench.x, y: groundHeight(M.bench.x, M.bench.z) + 1, z: M.bench.z }, { n: 10, color: T.kind === 'cantero' ? ['#e9e1cf', '#cfc3a8'] : of.act === 'hammer' ? ['#ffb34a', '#ffe38a'] : ['#c9a27a', '#ffffff'], speed: 2.5, size: 0.18, life: 0.5 }); } };
     let finished = false;
     try {
       if (!M.tstep) {

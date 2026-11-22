@@ -162,18 +162,18 @@ function choiceGame_(ui, { title, icon = 'quiz', q, options, answer, why }) {
     const o = overlay(ui, 'seq choice', `<div class="mg-top">${iconSVG(icon, 48)}<div><h3>${esc(title)}</h3><small>${esc(q)}</small></div></div>
       <div class="opts">${options.map((t, i) => `<button class="opt" data-i="${i}">${esc(t)}</button>`).join('')}</div><div class="fb"></div>
       <button class="btn primary next" style="display:none">Seguir</button>`);
-    let errors = 0, ok = false;
+    let errors = 0, ok = false, pick = -1;
     const fb = o.querySelector('.fb'), next = o.querySelector('.next');
     o.querySelectorAll('.opt').forEach(b => b.onclick = () => {
       if (ok) return;
       const i = +b.dataset.i;
       if (answer < 0 || i === answer) {
-        ok = true; b.classList.add('right'); ui.sound.ui('coin'); fb.textContent = why || '¡Correcto!';
+        ok = true; pick = i; b.classList.add('right'); ui.sound.ui('coin'); fb.textContent = why || '¡Correcto!';
         o.querySelectorAll('.opt').forEach(x => { if (x !== b) x.disabled = true; });
         next.style.display = ''; setTimeout(() => next.focus({ preventScroll: true }), 60);
       } else { errors++; b.classList.add('shake', 'wrong'); b.disabled = true; setTimeout(() => b.classList.remove('shake'), 400); ui.sound.ui('error'); fb.textContent = 'Piénsalo otra vez…'; }
     });
-    const close = () => { done(ui, o, k); res({ win: true, errors }); };
+    const close = () => { done(ui, o, k); res({ win: true, errors, pick }); };
     next.onclick = close;
     const k = (e) => { e.stopImmediatePropagation(); if (ok && ['enter', ' ', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); return; } const m = /^[1-9]$/.test(e.key) ? +e.key - 1 : -1; const bs = o.querySelectorAll('.opt'); if (m >= 0 && bs[m]) bs[m].click(); };
     addEventListener('keydown', k, true);

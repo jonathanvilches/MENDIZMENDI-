@@ -697,7 +697,12 @@ export class TownGame {
     for (const T of this.talleres || []) {
       if (Math.abs(T.x - P.pos.x) + Math.abs(T.z - P.pos.z) < 90) T.update(dt, this.elapsed);
       const h = T.maestro, d = T.dest;
-      if (h && d && (d.t += dt) > 3.5) { if (Math.hypot(h.pos.x - d.x, h.pos.z - d.z) > 0.6) { h.setPos(d.x, d.z); h.state = 'idle'; h.target = null; } T.dest = null; }
+      // (si en 0,6 s no se ha acercado ni un palmo, es que rodea algo y acabaría cruzando por delante de la cámara: se pone ya)
+      if (h && d) {
+        d.t += dt; const dist = Math.hypot(h.pos.x - d.x, h.pos.z - d.z);
+        if (d.mejor === undefined || dist < d.mejor - 0.2) { d.mejor = dist; d.tm = d.t; }
+        if (dist < 0.45 || d.t > 3 || d.t - d.tm > 0.6) { if (dist > 0.6) { h.setPos(d.x, d.z); h.state = 'idle'; h.target = null; } T.dest = null; }
+      }
     }
     this.agro?.update(dt, P, this.particles);
     this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
