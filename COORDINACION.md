@@ -17,8 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Principal (22 nov): láminas de los oficios con cámara que se acerca y gira, zoom y narrador con la voz de Salva en los once oficios (`ui/anatomia.js`, `data/narraLaminas.js`, `public/anatomia/voz/`).
-
 ## Peticiones entre ventanas
 
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
@@ -206,12 +204,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 22 nov, mañana, la hizo la ventana principal: `master` hasta `e8e2e55e`. Los talleres de oficios paso a paso (la herrería de
-  Lesaka, el horno de Artajona, la cantería de Puente la Reina, la tonelería de Viana y la cestería de Elizondo), con la lámina de
-  cada oficio dentro del taller (miniatura en cada paso y «Repaso del oficio» al final); y en el menú, Oficios, la pestaña «Por
-  dentro» de cada oficio con su lámina y sus seis pasos.
-- 21 nov, noche (más tarde aún), la hizo la ventana principal: `master` hasta `195f78a2`. Lámina 25: cómo se hace la
-  sidra (la trituradora, el dolare con su viga, su husillo y su piedra, la kupela y el chorro del txotx al vaso), al
-  acabar la cosecha de manzanas de Irurtzun y en «Por dentro» (25 láminas); y las fichas de las cosechas del material
-  didáctico con su botón «Verlo por dentro». Antes, en la misma noche (`b362de57`): las láminas 19 a 24, las de las
-  cosechas de uva y trigo y el menú del iPhone tumbado sin texto bajo la isla.
+- 22 nov, mediodía, la hizo la ventana principal: `master` hasta `82d505e8`. Las láminas de los oficios a pantalla entera, con
+  cámara que se acerca y gira a cada paso, zoom con los dedos, la rueda y botones, y un narrador con la voz de Salva que cuenta la
+  historia y cada paso, con subtítulos, en los once oficios; las láminas de alimentos también siguen los pasos.
