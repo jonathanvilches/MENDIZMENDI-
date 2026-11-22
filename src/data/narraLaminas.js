@@ -126,6 +126,153 @@ export const NARRA = {
       'Se llena de agua: si no sale ni una gota, ya puede guardar vino.',
     ],
   },
+  // ---- las demás láminas (22 nov, tarde; el autor: «Quiero las láminas»; la almadía no tiene pasos y se queda sin
+  // narrador). Las que aún no tienen sus audios van en SIN_VOZ
+  queso: {
+    h: { t: 'Los pastores de Navarra hacen queso con la leche de sus ovejas. Los más famosos son el Idiazabal y el Roncal, el primer queso de España con denominación de origen.', v: 'Los pastores de Navarra hacen queso con la leche de sus ovejas. Los más famosos son el Idiazábal y el Roncal, el primer queso de España con denominación de origen.' },
+    p: [
+      'La leche de oveja se templa hasta unos treinta grados.',
+      'Se añade el cuajo, y en media hora la leche se vuelve sólida.',
+      'Con la lira, la cuajada se corta en granos pequeños, como de arroz.',
+      'Los granos sueltan el suero, el líquido que sobra.',
+      'La masa entra en los moldes y se prensa unas horas.',
+      'Se sala uno o dos días, y así hace corteza.',
+      { t: 'Y a curar: el Idiazabal, al menos dos meses; el Roncal, cuatro.', v: 'Y a curar: el Idiazábal, al menos dos meses; el Roncal, cuatro.' },
+    ],
+  },
+  vino: {
+    h: 'Navarra es tierra de rosado. Se hace con uva garnacha, y su color no sale de mezclar vino blanco y tinto, sino de la piel de la uva.',
+    p: [
+      'En septiembre y octubre se vendimia la garnacha.',
+      'La máquina quita el raspón y rompe los granos.',
+      'El mosto pasa unas horas con las pieles, que le dan su color.',
+      'Se sangra el depósito: el mosto rosado sale solo, sin prensar.',
+      'Fermenta a unos dieciséis grados, durante unas dos semanas.',
+      'Y se embotella: rosado de Navarra.',
+    ],
+  },
+  esparrago: {
+    h: 'El espárrago blanco de Navarra crece en la Ribera, junto al Ebro. Es blanco porque crece bajo tierra, sin ver nunca el sol.',
+    p: [
+      'La tierra se amontona en caballones, y el espárrago crece dentro, a oscuras.',
+      'Al amanecer, la punta agrieta la tierra: es la señal.',
+      'Con la gubia se corta a unos veintidós centímetros, sin tocar la garra.',
+      'Se tapa el hoyo, para que el siguiente también salga blanco.',
+      'Ese mismo día se enfría en agua fría.',
+      'Se pela, se separa por grosores y se envasa.',
+    ],
+  },
+  piquillo: {
+    h: 'El pimiento del piquillo se cultiva en Lodosa y otros pueblos de la Ribera. Es pequeño, rojo y acaba en punta, como un pico.',
+    p: [
+      'Se recoge a mano, de septiembre a noviembre.',
+      'Se asa a la llama, que tuesta la piel.',
+      'Se pela a mano, sin agua, para que no pierda sabor.',
+      'Se le quitan el rabo y las pepitas.',
+      'Entero, uno a uno, entra en la lata.',
+      'Se esteriliza, y cada lata lleva su contraetiqueta numerada.',
+    ],
+  },
+  aceite: {
+    h: 'En el sur de Navarra hay olivos desde hace siglos. Su variedad propia es la arróniz, que da un aceite verde y afrutado.',
+    p: [
+      'En invierno se varean los olivos, y las olivas caen sobre el manto.',
+      'Se lavan, y se quitan las hojas, la tierra y las piedras.',
+      'Se muelen enteras, con hueso, hasta hacer una pasta.',
+      'La pasta se bate despacio y en frío, a menos de veintisiete grados.',
+      'La centrífuga separa el aceite del agua y del orujo.',
+      'Se guarda en la bodega. Para un litro hacen falta de cuatro a seis kilos de olivas.',
+    ],
+  },
+  miel: {
+    h: 'En los montes de Navarra, las abejas hacen miel de brezo, de tomillo o de castaño, según las flores que tienen cerca.',
+    p: [
+      'Las abejas liban el néctar de las flores.',
+      'En la colmena lo guardan en celdillas de cera, y se vuelve miel.',
+      'El apicultor usa el ahumador: el humo calma a las abejas.',
+      'Con un cuchillo, quita la tapa de cera de las celdillas.',
+      'En el extractor, los cuadros giran y la miel sale despedida.',
+      'Reposa, se cuela y se envasa.',
+    ],
+  },
+  cuajada: {
+    h: 'La cuajada es el postre de los pastores del norte de Navarra. Antes se hacía en un kaiku de madera, calentando la leche con piedras al rojo.',
+    p: [
+      'Se cuela la leche de oveja recién ordeñada.',
+      'En el fuego se calientan piedras de río hasta ponerlas al rojo.',
+      'Las piedras entran en la leche: hierve y coge sabor a tostado.',
+      'Cuando baja a unos treinta y siete grados, unas gotas de cuajo.',
+      'Se reparte en cuencos y, sin moverla, cuaja.',
+      'Se come fresca, con miel o con azúcar.',
+    ],
+  },
+  txistorra: {
+    h: { t: 'La txistorra es el embutido de las fiestas y las ferias de Navarra. Es fina, roja y se come recién hecha, frita en la sartén.', v: 'La chistorra es el embutido de las fiestas y las ferias de Navarra. Es fina, roja y se come recién hecha, frita en la sartén.' },
+    p: [
+      'Se elige magro y tocino de cerdo.',
+      'La carne se pica por la placa de agujeros.',
+      'Se adoba con sal, ajo y pimentón.',
+      'Se embute en una tripa fina.',
+      'Se cuelga unos días para que se oree.',
+      'Y a la sartén: frita, o en bocadillo.',
+    ],
+  },
+  sidra: {
+    h: 'En el norte de Navarra se hace sidra desde hace siglos, con las manzanas ácidas y dulces de los caseríos.',
+    p: [
+      'En otoño se recogen las manzanas.',
+      'Se trituran hasta hacerlas pulpa.',
+      'La pulpa se prensa en el dolare: de cien kilos de manzana salen unos sesenta y cinco litros de mosto.',
+      'Todo el invierno fermenta en la kupela, y el azúcar se vuelve alcohol.',
+      'De enero a abril se abre la kupela: la sidra sale en un chorro fino, para que se airee.',
+      'Y se embotella: sidra natural.',
+    ],
+  },
+  molino: {
+    h: 'Casi cada pueblo tenía su molino junto al río. Allí llevaban los vecinos su trigo y su maíz para hacer harina.',
+    p: [
+      'Un canal, el caz, desvía el agua del río hasta el cubo.',
+      'El chorro empuja las cucharas del rodezno y lo hace girar.',
+      'Arriba, la muela volandera gira sobre la solera, que está quieta.',
+      'Desde la tolva, el grano cae al ojo de la muela.',
+      'El cedazo separa la harina del salvado.',
+      'El molinero cobraba en harina: era la maquila.',
+    ],
+  },
+  angel: {
+    h: 'Cada Domingo de Resurrección, en la plaza de los Fueros de Tudela, un niño vestido de ángel baja por una maroma para anunciar la Resurrección.',
+    p: [
+      'La maroma cruza la plaza de lado a lado, del balcón al mástil.',
+      'El ángel baja colgado de una polea, mientras desde el balcón sueltan la cuerda.',
+      'Al llegar, le quita a la Virgen el velo negro de luto.',
+      'Dice sus versos. Suenan las campanas y vuelan las palomas.',
+      'Tiran de la cuerda, y el ángel vuelve al balcón.',
+    ],
+  },
+  salmon: {
+    h: 'El salmón nace en ríos como el Bidasoa, viaja hasta el mar y, años después, vuelve al mismo río donde nació.',
+    p: [
+      'En invierno, los huevos esperan en la grava del río.',
+      'Los alevines crecen en el río uno o dos años.',
+      'Después bajan hasta el mar Cantábrico.',
+      'Años más tarde, vuelven a su río.',
+      'Saltan la presa por la escala, de poza en poza.',
+      'Y ponen sus huevos en la grava donde nacieron.',
+    ],
+  },
+  setas: {
+    h: 'En otoño, los bosques de Navarra se llenan de setas. Pero la seta es solo el fruto: el hongo vive escondido bajo tierra todo el año.',
+    p: [
+      'Bajo tierra, el hongo es una red de hilos finísimos: el micelio.',
+      'El micelio se abraza a las raíces: le da agua al árbol, y el árbol le da azúcar.',
+      'Tras la lluvia, la seta empuja la hojarasca y sale.',
+      'De las láminas del sombrero caen las esporas, que harán nuevos hongos.',
+      'Se corta por el pie, con navaja, y las pequeñas se quedan en el monte.',
+    ],
+  },
 };
+/** Las que tienen guion pero aún no sus audios: el visor pone el subtítulo y pasa solo, sin pedir la voz ni enseñar
+ *  el botón del narrador. Cuando se graban, se quitan de aquí */
+export const SIN_VOZ = new Set(['aceite', 'miel', 'cuajada', 'txistorra', 'sidra', 'molino', 'angel', 'salmon', 'setas']);
 /** El texto que se lee y el que se le da a la voz */
 export const narraTexto = (x) => (typeof x === 'string' ? { t: x, v: x } : { t: x.t, v: x.v || x.t });

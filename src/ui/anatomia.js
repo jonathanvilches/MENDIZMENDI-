@@ -5,7 +5,7 @@
 // aplicando y lo vayas metiendo en el juego y en las misiones».
 import { esc, el } from '../util/html.js';
 import { windowKeys } from '../util/keys.js';
-import { NARRA, narraTexto } from '../data/narraLaminas.js';
+import { NARRA, SIN_VOZ, narraTexto } from '../data/narraLaminas.js';
 
 export const LAMINAS_TEC = {
   almadia: { title: 'La almadía en el portillo', kicker: 'Cómo funciona' },
@@ -63,6 +63,7 @@ export const laminaPaso = (id, i) => (LAMINA_PASOS[id] && i != null ? `./anatomi
 const CSS = `.lt-ov{position:fixed;inset:0;z-index:960;background:radial-gradient(120% 90% at 50% 40%,#21123c 0%,#160c2a 55%,#0c0618 100%);opacity:0;transition:opacity .3s ease;overflow:hidden;
   --lt-pad-t:max(12px,env(safe-area-inset-top));--lt-pad-r:max(14px,env(safe-area-inset-right));--lt-pad-b:max(12px,env(safe-area-inset-bottom));--lt-pad-l:max(14px,env(safe-area-inset-left))}
 .lt-ov.on{opacity:1}.lt-ov.out{opacity:0;pointer-events:none}
+.lt-ov.lt-ov.mg-overlay{background:radial-gradient(120% 90% at 50% 40%,#21123c 0%,#160c2a 55%,#0c0618 100%)}
 .lt-ov iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;color-scheme:normal;opacity:0;transition:opacity .45s ease}
 .lt-ov iframe.lista{opacity:1}
 .lt-top{position:absolute;left:var(--lt-pad-l);right:var(--lt-pad-r);top:var(--lt-pad-t);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;pointer-events:none}
@@ -227,14 +228,14 @@ export function laminaTecnica(ui, id, { button = 'Seguir', paso = null, hechos =
   if (!css) { css = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
   return new Promise((res) => {
     ui?.closeModal?.(); ui?.sound?.ui?.('card');
-    const N = NARRA[id], hecho = new Set(hechos);
+    const N = NARRA[id], mudo = SIN_VOZ.has(id), hecho = new Set(hechos);
     let PS = LAMINA_PASOS[id] || null;
     const chips = (lista) => (N ? `<button type="button" class="hist" data-i="h" style="--k:0"><i></i><span>Historia</span></button>` : '')
       + lista.map((t, i) => `<button type="button" data-i="${i}" style="--k:${i + 1}" class="${hecho.has(i) ? 'hecho' : ''}"><i>${i + 1}</i><span>${esc(t)}</span></button>`).join('');
     const o = el(`<div class="lt-ov mg-overlay" role="dialog" aria-label="${esc(L.title)}">
       <iframe src="./anatomia/${id}.html?juego${paso != null ? '&paso=' + paso : ''}" title="${esc(L.title)}" loading="eager"></iframe>
       <div class="lt-top"><div class="lt-tit"><small>${esc(kicker || L.kicker)}</small><b>${esc(L.title)}</b></div>
-        <div class="lt-acc">${N ? `<button type="button" class="lt-bt" data-a="voz" aria-label="Narrador">${ICON.voz}</button>` : ''}<button type="button" class="lt-bt" data-a="cerrar" aria-label="Cerrar">${ICON.cerrar}</button></div></div>
+        <div class="lt-acc">${N && !mudo ? `<button type="button" class="lt-bt" data-a="voz" aria-label="Narrador">${ICON.voz}</button>` : ''}<button type="button" class="lt-bt" data-a="cerrar" aria-label="Cerrar">${ICON.cerrar}</button></div></div>
       <div class="lt-zoom"><button type="button" class="lt-bt" data-a="mas" aria-label="Acercar">${ICON.mas}</button><button type="button" class="lt-bt" data-a="menos" aria-label="Alejar">${ICON.menos}</button><button type="button" class="lt-bt" data-a="encuadre" aria-label="Ver entera">${ICON.encuadre}</button></div>
       <div class="lt-ayuda">Toca la lámina para acercarte</div>
       <div class="lt-pie"><div class="lt-sub" aria-live="polite"></div>
@@ -260,7 +261,7 @@ export function laminaTecnica(ui, id, { button = 'Seguir', paso = null, hechos =
       const x = narraTexto(k === 'h' ? N.h : N.p[k]);
       if (k === 'h') { enciende('h'); cam?.encuadra(true); fr.contentWindow?.postMessage({ anatomia: 'tour' }, '*'); } else vaPaso(k);
       subtitulo(x.t);
-      if (!vozOn) { voz = null; const t = setTimeout(suena, 1200 + x.t.length * 55); voz = { pause: () => clearTimeout(t) }; return; }
+      if (!vozOn || mudo) { voz = null; const t = setTimeout(suena, 1200 + x.t.length * 55); voz = { pause: () => clearTimeout(t) }; return; }
       const a = new Audio(VOZ(id, k)); voz = a; a.volume = 1;
       a.onended = () => { if (voz === a) setTimeout(() => { if (voz === a) suena(); }, 650); };
       a.onerror = () => { if (voz === a) setTimeout(() => { if (voz === a) suena(); }, 1200 + x.t.length * 55); };

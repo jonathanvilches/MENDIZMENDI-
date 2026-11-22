@@ -2299,7 +2299,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   abrir, la historia con la lámina entera y luego cada paso, con su subtítulo, la ficha encendida y la cámara en sus
   piezas; tocar una ficha lo cuenta desde ahí, y en el taller solo se cuenta el paso de esa tarjeta. Hay narrador en los
   once oficios (ferrería, palomeras, cantero, aizkolari, harrijasotzaile, alpargata, cesta, carbonera, hilandera, pan y
-  tonelero); en las láminas sin narrador, la cámara y las fichas funcionan igual y sin voz. El `PUENTE` va ya en todas
+  tonelero) y, desde el 22 nov por la tarde, en el queso, el rosado, el espárrago y el piquillo. Las otras nueve con pasos (aceite, miel, cuajada, txistorra, sidra, molino, Bajada del Ángel, salmón y setas) tienen ya su guion en `NARRA` pero no sus audios: van en `SIN_VOZ`, y el visor pone el subtítulo y pasa solo (1,2 s más 55 ms por letra), sin pedir el audio ni enseñar el botón del narrador; cuando se graben, con Salva en `eleven_v4` (un crédito por letra: unos 4.000 para las nueve), se quitan de `SIN_VOZ`. La almadía no tiene pasos y se queda sin narrador. El fondo del visor va con `.lt-ov.lt-ov.mg-overlay`: en los ordenadores con gráfica floja (`html.sin-cristal`) la regla de las ventanas lo dejaba translúcido y se veía el menú detrás. El `PUENTE` va ya en todas
   las láminas con pasos (todas menos la almadía). Prueba: abrir «Por dentro» de la ferrería en el menú, a 1280 × 720 y
   844 × 390, y dejarla contar entera.
   También **el viaje del salmón** (misión de Nerea, la guarda del río, en Lesaka: la grava con los frezaderos y los huevos, la

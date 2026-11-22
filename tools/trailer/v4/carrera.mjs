@@ -16,7 +16,7 @@ const arranca = (U, est, A, o = {}) => {
   const libre = window.__colliders?.isFree || (() => true), THREE = U.THREE;
   const ok = (x, z, r = 0.7) => U.seco(x, z) && libre(x, z, r);
   const lejosL = [].concat(o.lejos ?? 2.4), lado = o.lado ?? 1.3, atras = o.atras ?? 0, ANG = o.ang ?? 0.42, D = o.D ?? 3.3;
-  const lista = []; U.rt.scene.traverse((m) => { const g = m.geometry; if (m.visible && m.isMesh && !m.isSkinnedMesh && g?.attributes?.position?.array && (!g.index || g.index.array) && !(m.isInstancedMesh && (m.count > 400 || !m.instanceMatrix?.array)) && !(m.material && (m.material.transparent || m.material.depthWrite === false))) lista.push(m); });
+  const lista = []; U.rt.scene.traverse((m) => { const g = m.geometry; if (m.visible && m.isMesh && !m.isSkinnedMesh && g?.attributes?.position && Object.values(g.attributes).every((a) => a.array || a.data?.array) && (!g.index || g.index.array) && !(m.isInstancedMesh && (m.count > 400 || !m.instanceMatrix?.array)) && !(m.material && (m.material.transparent || m.material.depthWrite === false))) lista.push(m); });
   const rc = new THREE.Raycaster(), tapa = (a, b, mg = 0.5) => { const d = b.clone().sub(a), L = d.length(); if (L <= mg) return false; rc.set(a, d.multiplyScalar(1 / L)); rc.far = L - mg; return rc.intersectObjects(lista, false).length > 0; };
   const camDe = (x, z, dx, dz, ang) => { const ca = Math.cos(ang), sa = Math.sin(ang), fx = dx * ca - dz * sa, fz = dx * sa + dz * ca, cx = x + fx * D, cz = z + fz * D; return { cx, cz, fx, fz }; };
   let best = null;
