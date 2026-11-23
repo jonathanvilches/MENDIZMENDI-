@@ -118,7 +118,7 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a, { s: 1.1 }); } }),  // (más a un lado: con 0,55 un poste del porche tapaba el borde derecho),
+    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a, { s: -0.1 }); } }),  // (el cartel del pueblo, detrás de ella a la derecha: con s 0,55 asomaba en el borde y con 1,1 en medio; con la cámara al otro lado queda fuera)
   kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
     prep: () => { const J = window.__j, a = J.G.npcs.kike; if (!a) throw new Error('sin kike'); J.limpia(); a.frozen = true; a.state = 'idle'; J.hacia(a, 2.4); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }); J.cara(a, { d: 1.9, y: 1.15, ly: 1.0 }); } }),
   // («el pastoreo, el carnaval, las leyendas»)
