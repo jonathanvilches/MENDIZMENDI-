@@ -4821,3 +4821,26 @@ git push origin master:main
   (`compilarAsync`, que espera con temporizadores) no acababa, `rt.holds` no bajaba y el juego dejaba de dibujar. Las caras
   de «Cada vecino te pide ayuda» van a un cuarto de compás. La exploradora no sale: sigue apagada en el juego (`solo:
   false` en `cast.js`) hasta que tenga todas sus animaciones.
+  Cuarta vuelta, v8 (`tools/trailer/v8/`; el autor, del v7: parpadeos, imágenes que no se ven bien, «lo importante son la
+  gastronomía, la agricultura, los personajes y los productos locales», el explorador corriendo por detrás, que se vea que
+  se puede ir en tractor, bici, burro y a caballo, fuera los personajes antiguos y los que sean un apaño, más valor a las
+  mujeres). Los parpadeos eran del montaje: las tomas se rodaban a 12 por segundo y `minterpolate` se inventaba las de en
+  medio, y una de cada dos salía emborronada; ahora todas se ruedan a 24 de verdad (`fps: 24`; las del v6, con el doble de
+  pasos de antes para que el mundo llegue igual de asentado) y el montaje solo las copia. Fábricas nuevas en
+  `v8/tomas.mjs`: `detras` (el explorador corriendo hacia la plaza y la cámara a su espalda, pasando de un lado al otro:
+  Otsagabia, Olite, Pamplona, Bardenas, Lesaka, Isaba, Irati, Puente la Reina), `vehiculo` (bici o tractor del juego,
+  `Vehiculo` de `conducir.js`, con la cámara de lado y nunca a menos de 1,9 m del suelo, que a 1,3 m se metía en los
+  setos), `montura` (el burro de la zona media y el caballo, de lado), `cosechadora` (la del trigo de Artajona: el juego
+  la deja a 34 m del trigo y mirando a otro lado, aquí se pone al principio de la hilera con más trigo), `tractorCampo`
+  (el tractor del remolque en el pimiento de Estella), `mercado` (un puesto entero de la plaza con `?market=1`, a 3 m y a
+  la altura de quien compra; pegada a la mesa, las cajas del género se veían toscas), `lamina` (las láminas de cómo se
+  hace de `public/anatomia`, sacadas del resto de la página, enteras y pasando de paso con las flechas) y `retrato` (una
+  vecina de oficio, con la cámara un poco por debajo de su cara y el cielo detrás). Quien pasa por delante en el mercado o
+  en un retrato se quita fijando a «no» el `visible` de su cuerpo: el juego se lo vuelve a poner en cada fotograma. Las
+  vecinas, cuatro modelos distintos (Maite, la bodeguera de Viana, Felisa y Nerea) y la panadera: la del vestido rojo es
+  la misma en la bodeguera, la conservera, la almazarera y las temporeras, y Arantxa lleva hoy el mismo modelo que Maite
+  (pañuelo blanco y delantal marrón, como la quesera, la carnicera y la apicultora), así que no sale. Fuera los temporeros de cerca (las
+  matas de piquillo, alcachofa y viña son bloques toscos de cerca), la pelota y el «txapeldun», los dantzaris, la
+  sorgina, Roldán, el herrero y el tonelero (niños) y la exploradora. Rótulos: «Explora 38 pueblos», «Cosecha sus
+  campos», «Saborea su tierra», «Vive sus tradiciones» (`v8/rotulos.mjs`); mezcla en `v8/mezcla-v8.py`, con el burro,
+  el galope, los cencerros y el bullicio del mercado en el segundo en que `CORTES` pone su toma.
