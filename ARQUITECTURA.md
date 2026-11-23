@@ -4872,3 +4872,9 @@ git push origin master:main
   laguna y el dron vuela hasta Pamplona, sobre la Plaza del Castillo (en vez de las cuatro carreras de Estella, Tudela,
   Viana y Artajona); «Vive sus tradiciones»: el encierro, la almadía y el galope. El público del encierro suena en la
   mezcla (`publico-grada`).
+
+  Cuarta pasada, v10, a medias (el autor, del v9: «que se vea lo más bonito de cada pueblo, más espectacular; no hay
+  pelota; que el mundo esté ya cargado»). Tomas nuevas: `dronPueblo` (órbita de dron sobre el centro de Olite, Puente
+  la Reina e Isaba, sin jugador), `pelota` (un tanto en el frontón de Lumbier, el juego solo) y la isla del Bidasoa; las
+  caras de los vecinos ya no se apagan lejos (`CARAS` en `AYUDA`). Fuera los soplidos de los cambios de plano. El
+  sanferminero adulto no sale (el autor no lo quiere); queda por decidir con él quién protagoniza las carreras.

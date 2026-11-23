@@ -15,7 +15,11 @@ export { BEAT, BAR, T0, DURA, b };
 // interfaz, y cuando la cámara pasaba cerca de una, un círculo verde y blanco tapaba media pantalla. El juego les vuelve a
 // poner «visible» al moverlas: se les fija a «no»)
 const SIN_MARCAS = () => { const F = window.__game?.flora; if (!F?.group) return; F.group.traverse(o => { if (o.isSprite) Object.defineProperty(o, 'visible', { get: () => false, set: () => { }, configurable: true }); }); };
-export const AYUDA = new Function(`(${AYUDA6.toString()})(); (${SIN_MARCAS.toString()})();`);
+// (y las caras de los vecinos, siempre: el juego solo se las pone a menos de 18 m (actors/people.js, cullActor) y en las
+// carreras se veía cómo aparecían al acercarse; el autor, del v9: «que en los planos esté ya el mundo cargado, no que se vaya
+// cargando conforme vas andando». Se repite cada medio segundo para los que salen después, como los del mercado)
+const CARAS = () => { const fija = () => { const G = window.__game; if (!G) return; for (const a of [...(G.actors || []), ...(G.walkers || []), ...Object.values(G.npcs || {})]) { const g = a?.glb; if (g?.setFaceVisible && !g.__cara) { const f = g.setFaceVisible.bind(g); g.setFaceVisible = () => f(true); g.__cara = true; f(true); } } }; fija(); setInterval(fija, 500); };
+export const AYUDA = new Function(`(${AYUDA6.toString()})(); (${SIN_MARCAS.toString()})(); (${CARAS.toString()})();`);
 
 const URL = (town, h = 11.5, extra = '') => `?town=${town}&q=high&skipintro=1&weather=clear&t=${h}${extra}`;
 // (los pasos de antes, el doble: van de 1/24 s y así el mundo llega igual de asentado que a 12 por segundo)
@@ -23,7 +27,10 @@ const F24 = (t, o = {}) => ({ ...t, fps: 24, antes: (t.antes ?? 24) * 2, ...o })
 
 // el explorador corriendo, visto por detrás, hacia la plaza del pueblo (o hacia donde diga o.hacia): la cámara a su
 // espalda, baja, que va pasando de un lado al otro mientras corre, y delante el pueblo, el castillo o el puente
-const detras = (town, o = {}) => ({
+// (desde el v10, el explorador de antes, el sanferminero, vestido de blanco y rojo: el autor, del v9, «quiero el otro
+// explorador, vestido de San Fermín», no el de la mochila; y 16 s de espera antes de grabar, con el pueblo ya entero)
+const YO = { espera: 16000 };
+const detras = (town, o = {}) => ({ ...YO,
   url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 1.1, fps: 24, antes: 48, limpio: true,
   prep: eval(`() => {
     const J = window.__j, L = window.__layout?.PLACES || {}; J.limpia();
@@ -45,7 +52,7 @@ const sigue = (o) => `(V) => J.dron((t) => {
 })`;
 
 // en bici o en tractor por el pueblo: el vehículo debajo del explorador, ya en marcha por un camino libre
-const vehiculo = (town, tipo, o = {}) => ({
+const vehiculo = (town, tipo, o = {}) => ({ ...YO,
   url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 2.0, fps: 24, antes: 48, limpio: true,
   prep: eval(`async () => {
     const J = window.__j, G = J.G, P = G.player, L = window.__layout?.PLACES || {}; J.limpia();
@@ -59,7 +66,7 @@ const vehiculo = (town, tipo, o = {}) => ({
 
 // a lomos de la montura del pueblo (el caballo burguete en la montaña, el burro en la Ribera y la zona media), al trote o
 // a galope
-const montura = (town, o = {}) => ({
+const montura = (town, o = {}) => ({ ...YO,
   url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 2.0, fps: 24, antes: 48, limpio: true,
   prep: eval(`() => {
     const J = window.__j, G = J.G, P = G.player, L = window.__layout?.PLACES || {}; J.limpia();
@@ -71,7 +78,7 @@ const montura = (town, o = {}) => ({
 
 // una cosecha en marcha (game/townTractor.js): los temporeros cogiendo en sus hileras y dejando las cajas, y el explorador
 // en el tractor del remolque por la linde del campo; la cámara a su lado, con el campo detrás
-const tractorCampo = (town, crop, o = {}) => ({
+const tractorCampo = (town, crop, o = {}) => ({ ...YO,
   url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 2.2, fps: 24, antes: o.antes ?? 150, limpio: true,
   prep: eval(`() => {
     const J = window.__j, G = J.G, P = G.player; J.limpia();
@@ -84,7 +91,7 @@ const tractorCampo = (town, crop, o = {}) => ({
 });
 
 // la cosechadora segando el trigo, pasada a pasada
-const cosechadora = (town, o = {}) => ({
+const cosechadora = (town, o = {}) => ({ ...YO,
   url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 2.2, fps: 24, antes: o.antes ?? 60, limpio: true,
   prep: eval(`() => {
     const J = window.__j, G = J.G, P = G.player; J.limpia();
@@ -273,40 +280,68 @@ Object.assign(TOMAS, {
   encierro: encierro({ seg: 4 }),
 });
 
+// ---------- cuarta pasada, v10 (el autor, del v9: «el otro explorador, vestido de San Fermín»; «lo más bonito de cada
+// pueblo, más espectacular»; «no hay nada de pelota»; «que esté ya el mundo cargado»; «humo para tapar» el canto de la
+// isla al despegarse, que ahora es parte del juego: hub/mapa3dIsla.js) ----------
+// el dron sobre lo más bonito del pueblo (el castillo de Olite, el puente de Puente la Reina, la plaza de Isaba con el
+// Pirineo detrás): más bajo y más cerca que en el v6, girando más deprisa alrededor
+const dronPueblo = (town, o = {}) => ({ url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 1.6, fps: 24, antes: 48, espera: 16000, limpio: true,
+  prep: eval(`() => { const J = window.__j, P = J.G.player; J.limpia(); P.obj.visible = false; window.__antes = () => { P.obj.visible = false; };
+    const C = J.centro(); J.orbita(C, ${JSON.stringify({ seg: o.seg ?? 1.6, a0: (o.a0 ?? 0.1) * 6.283, a1: (o.a1 ?? 0.2) * 6.283, r0: o.r0 ?? 40, r1: o.r1 ?? 30, y0: o.y0 ?? 16, y1: o.y1 ?? 11, mira: o.mira ?? 4 })}); }`),
+});
+// un partido de pelota en el frontón (game/fronton.js), jugando solo, con la cámara del juego
+const pelota = (o = {}) => ({
+  url: '?town=lumbier&q=high&weather=clear&skipintro=1', seg: o.seg ?? 4.0, fps: 24, antes: 4, espera: 0, limpio: true,
+  listo: async (p) => {
+    await p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 1500000 });
+    await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host, {}); });
+    await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 900000 });
+    await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click());
+    await p.waitForFunction(() => ['serveWait', 'servePrep', 'rally'].includes(window.__game.pelotaMatch?.game?.phase), null, { timeout: 900000 });
+    await p.evaluate(() => { const M = window.__game.pelotaMatch; M.game.autoplay = true; const h = M.hud; if (h?.teclas) { h.teclas(false); h.teclas = () => {}; } });
+    await p.waitForTimeout(6000);
+  },
+});
+Object.assign(TOMAS, {
+  // (las del jugador que ya estaban, ahora con el sanferminero)
+  pastoreo: F24(T6.pastoreo, YO), almadia: F24(T6.almadia, YO), bosque: F24(T6.bosque, YO),
+  // (las islas, más largas: el humo y la subida no tardan siempre lo mismo; en CORTES se elige el trozo)
+  isla2: islaDe('bidasoa', { seg: 5.5 }),
+  olite: dronPueblo('olite', { a0: 0.02, a1: 0.13, r0: 34, r1: 25, y0: 13, y1: 9, mira: 7 }),
+  puente: dronPueblo('puente-la-reina', { a0: 0.18, a1: 0.3, r0: 30, r1: 24, y0: 9, y1: 6, mira: 2 }),
+  isaba: dronPueblo('isaba-izaba', { a0: 0.5, a1: 0.6, r0: 75, r1: 60, y0: 30, y1: 24, mira: 14 }),
+  pelota: pelota(),
+});
+
 // el montaje: [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]; cada corte dura hasta
 // el siguiente. Las frases de Salva y las voces caen donde en el v6 (v6/mezcla-v6.py), y debajo de cada frase lo que dice
 export const CORTES = [
-  // ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: el Pirineo sube como una isla, el dron del mapa baja
-  // entre las nubes hasta Otsagabia (tercera pasada: «que se vean las comarcas; el vuelo de dron por las comarcas y
-  // pueblos») y el explorador echa a correr, visto por detrás
-  [0, 'isla', 0.27], [b(-2), 'vOts', 1.6, 1.4], [b(-1), 'dOts', 0.1],
-  // el golpe: sigue corriendo y el pueblo cambia a su alrededor (la cámara, clavada a su espalda en todas las carreras)
-  [b(0), 'dPamplona', 0.1], [b(0.5), 'dBardenas', 0.1], [b(1), 'dLesaka', 0.1], [b(1.5), 'dElizondo', 0.1],
-  // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite,
-  // la bodeguera de Viana, la amona Felisa que hila, Nerea la guarda del río) y la panadera en su horno. Arantxa no: hoy el
-  // juego la viste con el mismo modelo que a Maite (pañuelo blanco y delantal marrón) y saldrían dos mujeres iguales
+  // v10 (el autor, del v9). ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: el Pirineo se despega del mapa
+  // entre el polvo, el dron se acerca a la comarca, pasa las nubes y entra en Otsagabia, de una sola toma; y el explorador
+  // (el sanferminero) echa a correr
+  [0, 'vOts', 0.4, 0.85], [b(-1), 'dOts', 0.1],
+  // el golpe: corre y el pueblo cambia detrás (Pamplona, Lesaka); luego, a caballo
+  [b(0), 'dPamplona', 0.1], [b(0.5), 'dLesaka', 0.1], [b(1), 'galope', 0],
+  // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda…»: las vecinas y la panadera; «el pastoreo, el carnaval, las
+  // leyendas»; «¡Oooh! Una personita en mi bosque…»
   [b(2), 'rMaite', 0.12], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1], [b(4), 'panadera', 0.3],
-  // «el pastoreo, el carnaval, las leyendas»; «¡Oooh! Una personita en mi bosque…»
-  [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0], [b(6), 'basajaun', 0], [b(7.5), 'rio', 0],
-  // «La naturaleza y la cultura, contadas jugando»: la grúa sobre el bosque y otra vez a correr, por Irati y por
-  // Lekunberri (la del Roncal no: el juego lo pone a correr metido en el río)
-  [b(8), 'bosque', 0.6], [b(9), 'dIrati', 0.1], [b(9.5), 'dLekunberri', 0.1],
-  // llega corriendo a cada sitio y se ve el sitio: Isaba, el puente de Puente la Reina, el castillo de Olite
+  [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0], [b(6), 'basajaun', 0], [b(7.5), 'dIrati', 0.1],
+  // «La naturaleza y la cultura, contadas jugando»: la selva y otra vez a correr (las Bardenas, Elizondo)
+  [b(8), 'bosque', 0.6], [b(9), 'dBardenas', 0.1], [b(9.5), 'dElizondo', 0.1],
+  // llega corriendo a lo más bonito de cada pueblo y el dron lo enseña: Isaba, el puente de Puente la Reina, el castillo
+  // de Olite
   [b(10), 'dIsaba', 0.1], [b(10.5), 'isaba', 0], [b(11), 'dPuente', 0.1], [b(11.5), 'puente', 0], [b(12), 'dOlite', 0.1],
   [b(12.5), 'olite', 0],
-  // en bici, en burro y en tractor; el dron sobre la isla, para respirar antes de la última parte
-  [b(13), 'bici', 0], [b(13.5), 'burro', 0], [b(14), 'tractor', 0], [b(15), 'isla2', 0],
-  // ACTO 3 · COSECHA SUS CAMPOS: la cosechadora en el trigo y el tractor en el pimiento
+  // en bici, en burro y en tractor; la Bidasoa que sube del mapa entre el polvo
+  [b(13), 'bici', 0], [b(13.5), 'burro', 0], [b(14), 'tractor', 0], [b(15), 'isla2', 1.5],
+  // ACTO 3 · COSECHA SUS CAMPOS
   [b(16), 'cosechadora', 0], [b(17), 'piquillo', 0],
-  // SABOREA SU TIERRA: los puestos del mercado (queso, txistorra, miel, huerta)
+  // SABOREA SU TIERRA
   [b(18), 'mercQueso', 0], [b(18.5), 'mercTxistorra', 0], [b(19), 'mercMiel', 0], [b(19.5), 'mercHuerta', 0],
-  // EXPLORA SUS COMARCAS: la Ribera sube como una isla, con su laguna en el hueco, y el dron vuela hasta Pamplona y
-  // planea sobre la Plaza del Castillo
+  // EXPLORA SUS COMARCAS: la Ribera sube con su laguna, y el dron vuela hasta Pamplona
   [b(20), 'islaRibera', 1.5], [b(21), 'vPamplona', 3.6],
-  // VIVE SUS TRADICIONES: el encierro de San Fermín (la manada que alcanza al explorador por la Estafeta), la almadía río
-  // abajo y el galope, hasta el logo
-  [b(22), 'encierro', 1.3], [b(23), 'almadia', 0.4], [b(23.5), 'galope', 0],
-  // el logo
+  // VIVE SUS TRADICIONES: el encierro, la pelota y la almadía
+  [b(22), 'encierro', 1.3], [b(23), 'pelota', 1.0], [b(23.5), 'almadia', 0.4],
   // el logo: el mapa del juego 1,9 s y luego se va a negro, con el logo encima (v8/montaje.mjs, NEGRO)
   [b(24), 'final', 0],
 ];

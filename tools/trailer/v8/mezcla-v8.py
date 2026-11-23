@@ -163,8 +163,8 @@ def soplido(d=0.45):
     return np.stack([s * (1 - pan) / 2, s * (1 + pan) / 2], 1).astype(np.float32) * 2.2
 
 
-for tb in [b(16), b(18), b(20), b(22)]:
-    pon(efectos, soplido(0.4), tb - 0.12, 0.4)
+# (desde el v10, sin los soplidos de los cambios de rótulo: el autor, del v9, «no me gusta mucho el sonido de cambio de
+# escena»)
 magia = lee(SON + 'ui-magia.mp3')
 pon(efectos, magia, b(24) + 0.2, 0.35)
 
@@ -173,7 +173,7 @@ CORTES = json.loads(subprocess.run(['node', '-e', "import('./tools/trailer/v8/to
 fin = lambda i: CORTES[i + 1][0] if i + 1 < len(CORTES) else DUR
 MERCADO = ('ambiente-pueblo.mp3', 0.0, 0.3)
 SUENA = {'burro': ('burro.mp3', 0.3, 0.25), 'galope': ('caballo-galope.mp3', 0.0, 0.3), 'pastoreo': ('cencerro-2.mp3', 0.0, 0.25),
-         'encierro': ('publico-grada.mp3', 0.0, 0.32),
+         'encierro': ('publico-grada.mp3', 0.0, 0.32), 'pelota': ('publico-grada.mp3', 3.0, 0.28),
          'mercQueso': MERCADO, 'mercTxistorra': MERCADO, 'mercMiel': MERCADO, 'mercHuerta': MERCADO}
 # (los cortes seguidos con el mismo sonido, como los cuatro puestos del mercado, van con uno solo de punta a punta, sin
 # volver a empezar en cada corte)
