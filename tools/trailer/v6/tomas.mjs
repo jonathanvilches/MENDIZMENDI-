@@ -32,7 +32,10 @@ const EXTRA = () => {
   });
   // a caballo: el caballo debajo del jugador, ya en su sitio y a galope
   J.galope = () => {
-    const G = J.G, P = G.player, M = G.creaMontura?.(); if (!M?.A) throw new Error('sin montura');
+    // (el juego busca un hueco libre de 1,6 m a un lado del jugador para dejar el caballo; en una calle estrecha no lo hay y
+    // no lo crea: aquí se crea sin mirar, que enseguida se pone debajo del jugador)
+    const G = J.G, P = G.player, lib = G.libreEn; G.sinMontura = false; G.libreEn = () => true;
+    let M; try { M = G.creaMontura?.(); } finally { G.libreEn = lib; } if (!M?.A) throw new Error('sin montura');
     M.x = P.pos.x; M.z = P.pos.z; M.heading = P.heading; M.A.pos.set(P.pos.x, P.pos.y, P.pos.z); M.A.heading = P.heading; M.A.sync?.();
     M.sube(P); J.rt.follow.yaw = P.heading + Math.PI; J.rt.follow.snap?.(P); J.teclas(['w', 'shift']);
   };
