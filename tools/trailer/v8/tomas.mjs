@@ -248,7 +248,7 @@ export const CORTES = [
   // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite,
   // la bodeguera de Viana, la amona Felisa que hila, Nerea la guarda del río) y la panadera en su horno. Arantxa no: hoy el
   // juego la viste con el mismo modelo que a Maite (pañuelo blanco y delantal marrón) y saldrían dos mujeres iguales
-  [b(2), 'rMaite', 0.15], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1], [b(4), 'panadera', 0.3],
+  [b(2), 'rMaite', 0.12], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1], [b(4), 'panadera', 0.3],
   // «el pastoreo, el carnaval, las leyendas»; «¡Oooh! Una personita en mi bosque…»
   [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0], [b(6), 'basajaun', 0], [b(7.5), 'rio', 0],
   // «La naturaleza y la cultura, contadas jugando»: la grúa sobre el bosque y otra vez a correr, por Irati y por

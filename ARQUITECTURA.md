@@ -4854,4 +4854,9 @@ git push origin master:main
   Bardenas, Lesaka, Elizondo); las vecinas, las leyendas, el bosque, y el explorador que llega corriendo a Isaba, a Puente
   la Reina y a Olite y se ve cada sitio; la bici, el burro, el tractor y el dron de la isla; y, con sus rótulos, la
   cosecha, el mercado, otra carrera por cuatro pueblos más, la almadía y el galope hasta el logo. Las láminas siguen en
-  `v8/tomas.mjs`, pero ya no entran en el montaje.
+  `v8/tomas.mjs`, pero ya no entran en el montaje. Cambios al grabar: Roncal deja el sitio a Lekunberri (el camino de
+  `detras` metía al explorador en el río) y la quesería del mercado se graba en Estella (Isaba con el mercado no llegaba
+  a cargar). Algunas tomas empiezan unos fotogramas más tarde (la columna de desfase de `CORTES`) para no abrir con un
+  poste en el borde. El logo sale sobre negro: la isla funde a negro a los `b(24) + 1,9` s (`v8/montaje.mjs`). Con
+  cuatro grabadoras a la vez, la carga de un pueblo pasa de los 10 min: `CARGA_MS` alarga la espera de
+  `v5/juego.mjs`.
