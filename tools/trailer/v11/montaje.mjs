@@ -14,7 +14,7 @@ if (!existsSync(NEGRO)) execFileSync('ffmpeg', ['-v', 'error', '-f', 'lavfi', '-
 const a24 = (nom) => {
   const T = TOMAS[nom] || {}, src = `${RAW}/${nom}`, dst = `${PLA}/${nom}`;
   const hay = existsSync(src) ? readdirSync(src).filter(f => f.endsWith('.jpg')).length : 0;
-  if (!hay) { console.log('falta la toma', nom); process.exit(1); }
+  if (!hay) { console.log('falta la toma', nom); if (process.env.BORRADOR) return null; process.exit(1); }
   if (!existsSync(dst) || statSync(`${src}/0000.jpg`).mtimeMs > statSync(dst).mtimeMs) {
     rmSync(dst, { recursive: true, force: true }); mkdirSync(dst, { recursive: true });
     const fps = T.fps || (nom === 'vOts' || nom === 'final' ? 24 : 12);
@@ -28,7 +28,8 @@ for (let i = 0; i < CORTES.length; i++) {
   const [t, nom, desde = 0, vel = 1] = CORTES[i], fin = i + 1 < CORTES.length ? CORTES[i + 1][0] : DURA;
   const N = Math.round(fin * FPS) - Math.round(t * FPS);
   if (nom.startsWith('#')) { for (let j = 0; j < N; j++) symlinkSync(NEGRO, `${seq}/${String(k++).padStart(5, '0')}.jpg`); console.log(nom.padEnd(13), `${t.toFixed(2)}–${fin.toFixed(2)} s`, 'capítulo'); continue; }
-  const fr = hechas[nom] ||= a24(nom), j0 = Math.round(desde * FPS), jz = j0 + Math.round((N - 1) * vel);
+  // (BORRADOR=1: las tomas que aún no están, en negro, para ver el montaje y el sonido antes de tenerlo todo)
+  const fr = hechas[nom] ||= (a24(nom) || [NEGRO]), j0 = Math.round(desde * FPS), jz = j0 + Math.round((N - 1) * vel);
   for (let j = 0; j < N; j++) symlinkSync(fr[Math.min(j0 + Math.round(j * vel), fr.length - 1)], `${seq}/${String(k++).padStart(5, '0')}.jpg`);
   console.log(nom.padEnd(13), `${t.toFixed(2)}–${fin.toFixed(2)} s`, `${N} fotogramas desde ${j0}${vel !== 1 ? ` a ×${vel}` : ''}`, jz >= fr.length ? `(faltan ${jz - fr.length + 1})` : '');
 }
