@@ -2,7 +2,7 @@
 // interpolar: las imágenes inventadas eran los parpadeos del v7), y además las animaciones de Higgsfield que ya tiene el
 // juego (public/videos), que entran como una toma más (video: 'c-vendimia').
 // Uso: node tools/trailer/v8/montaje.mjs <rodado> <planos> <mezcla.wav> <rótulos> <salida.mp4>
-import { TOMAS, CORTES, ROTULOS, DURA } from './tomas.mjs';
+import { TOMAS, CORTES, ROTULOS, DURA, b } from './tomas.mjs';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readdirSync, existsSync, rmSync, symlinkSync, statSync } from 'node:fs';
 const [, , RAW, PLA, WAV, ROT, OUT] = process.argv, FPS = 24;
@@ -40,7 +40,9 @@ for (let i = 0; i < CORTES.length; i++) {
 // (el color: algo más de contraste y de color, y un poco de nitidez, que el juego grabado sale lavado y blando; el autor,
 // 23 nov: «muchos fallos de iluminación, de contraste»)
 const GRADO = 'eq=contrast=1.08:saturation=1.14:gamma=0.98,unsharp=5:5:0.55:5:5:0';
-const ins = [], filt = [`[0]scale=1920:1080:flags=lanczos,setsar=1,${GRADO}[b0]`];
+// (al final, el mapa del juego se va a negro y el logo se queda solo, como en los tráileres de Zelda)
+const NEGRO = b(24) + 1.9;
+const ins = [], filt = [`[0]scale=1920:1080:flags=lanczos,setsar=1,${GRADO},fade=t=out:st=${NEGRO.toFixed(3)}:d=0.9[b0]`];
 ROTULOS.forEach(([a, z, img], n) => {
   ins.push('-framerate', String(FPS), '-loop', '1', '-t', String(DURA), '-i', `${ROT}/${img}.png`);
   const sale = z >= DURA - 0.01 ? '' : `,fade=t=out:st=${(z - 0.22).toFixed(3)}:d=0.22:alpha=1`;

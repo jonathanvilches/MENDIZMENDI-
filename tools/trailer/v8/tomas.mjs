@@ -24,7 +24,7 @@ const F24 = (t, o = {}) => ({ ...t, fps: 24, antes: (t.antes ?? 24) * 2, ...o })
 // el explorador corriendo, visto por detrás, hacia la plaza del pueblo (o hacia donde diga o.hacia): la cámara a su
 // espalda, baja, que va pasando de un lado al otro mientras corre, y delante el pueblo, el castillo o el puente
 const detras = (town, o = {}) => ({
-  url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 2.0, fps: 24, antes: 48, limpio: true,
+  url: URL(town, o.hora ?? 11.5), seg: o.seg ?? 1.1, fps: 24, antes: 48, limpio: true,
   prep: eval(`() => {
     const J = window.__j, L = window.__layout?.PLACES || {}; J.limpia();
     const C = ${o.hacia || 'L.plaza'};
@@ -127,7 +127,7 @@ const DESPEJA = `const despeja = (c, r, deja) => { const keep = new Set(deja.map
 // compra, pasando despacio de un lado al otro. (De lejos, entre dos puestos, salía la plaza vacía; pegada a la mesa, las
 // cajas del género se veían toscas)
 const mercado = (town, puesto, o = {}) => ({
-  url: URL(town, o.hora ?? 11.5, '&market=1'), seg: o.seg ?? 2.0, fps: 24, antes: 48, limpio: true,
+  url: URL(town, o.hora ?? 11.5, '&market=1'), seg: o.seg ?? 1.1, fps: 24, antes: 48, limpio: true,
   prep: eval(`() => {
     const J = window.__j, G = J.G, P = G.player; J.limpia();
     const S = (G.mercado?.stalls || []).find(s => s.name === ${JSON.stringify(puesto)});
@@ -186,13 +186,13 @@ const lamina = (id, o = {}) => ({
 
 export const TOMAS = {
   // ---------- las del v6, ahora a 24 por segundo ----------
-  isla: F24(T6.isla), isla2: F24(T6.isla2), final: F24(T6.final), llegada: F24(T6.llegada),
-  momo: F24(T6.momo, { seg: 3.2 }), pastoreo: F24(T6.pastoreo), lamia: F24(T6.lamia), basajaun: F24(T6.basajaun),
+  isla: F24(T6.isla), isla2: F24(T6.isla2), final: F24(T6.final, { seg: 2.9 }), llegada: F24(T6.llegada),
+  momo: F24(T6.momo, { seg: 1.1 }), pastoreo: F24(T6.pastoreo), lamia: F24(T6.lamia, { seg: 1.1 }), basajaun: F24(T6.basajaun),
   bosque: F24(T6.bosque), rio: F24(T6.rio), olite: F24(T6.olite), isaba: F24(T6.isaba), puente: F24(T6.puente),
   almadia: F24(T6.almadia), panadera: F24(T6.panadera), maite: F24(T6.maite), nerea: F24(T6.nerea), arantxa: F24(T6.arantxa),
   felisa: F24(T6.felisa),
   // ---------- el explorador corriendo, por detrás, en sitios distintos ----------
-  dOts: detras('otsagabia-ochagavia', { hora: 11 }), dEstella: detras('estella'), dElizondo: detras('elizondo'),
+  dOts: detras('otsagabia-ochagavia', { hora: 11, seg: 2.0 }), dEstella: detras('estella'), dElizondo: detras('elizondo'),
   dRoncal: detras('erronkari-roncal'), dTudela: detras('tudela'), dViana: detras('viana'), dArtajona: detras('artajona'),
   dOlite: detras('olite'),
   dPuente: detras('puente-la-reina', { hora: 11 }),
@@ -233,7 +233,7 @@ export const TOMAS = {
   rHortelana: retrato('sanguesa', "m.type === 'harvest'", 'Las pochas, tiernas, de septiembre.'),
   rEsparraguera: retrato('marcilla', "m.type === 'harvest'", 'El espárrago se corta al amanecer.'),
   rConfitera: retrato('ujue', "m.type === 'harvest'", 'Almendras garrapiñadas de Ujué.'),
-  rMaite: retrato('otsagabia-ochagavia', null, '¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!', { npc: 'maite', hora: 11.2, a0: -0.15, giro: 0.35 }),
+  rMaite: retrato('otsagabia-ochagavia', null, '¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!', { npc: 'maite', hora: 11.2, a0: -0.15, giro: 0.35, seg: 1.1 }),
   rQuesera: retrato('isaba-izaba', "m.m.id === 'roncal'", 'Del queso Roncal me sé todos los secretos.', { extra: '&market=1' }),
 };
 
@@ -267,7 +267,8 @@ export const CORTES = [
   // VIVE SUS TRADICIONES: la almadía río abajo y el galope, hasta el logo
   [b(22), 'almadia', 0], [b(23), 'galope', 0],
   // el logo
-  [b(24), 'final', 0, 0.985],
+  // el logo: el mapa del juego 1,9 s y luego se va a negro, con el logo encima (v8/montaje.mjs, NEGRO)
+  [b(24), 'final', 0],
 ];
 // los rótulos: [desde, hasta, imagen] (v8/rotulos.mjs)
 export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'cosecha'], [b(18) + 0.1, b(20) - 0.12, 'saborea'], [b(20) + 0.1, b(22) - 0.12, 'explora'], [b(22) + 0.1, b(24) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];
