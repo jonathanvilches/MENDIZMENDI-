@@ -76,7 +76,7 @@ for (const nombre of nombres.split(',')) {
   p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
   p.on('console', m => { if (m.type() === 'error' && /reloj|paso|antes/.test(m.text())) errs.push(m.text().slice(0, 200)); });
   await p.goto(`${URL}${T.url}`, { timeout: 300000 });
-  await (T.listo ? T.listo(p) : p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 600000 }));
+  await (T.listo ? T.listo(p) : p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: +(process.env.CARGA_MS || 600000) }));
   await p.waitForTimeout(T.espera ?? 9000);
   if (T.limpio) await p.addStyleTag({ content: LIMPIO });
   await p.evaluate(AYUDA);
