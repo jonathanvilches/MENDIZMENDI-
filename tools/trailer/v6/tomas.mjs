@@ -107,9 +107,12 @@ export const TOMAS = {
   carnaval: de5('carnaval', { seg: 2.2,
     prep: () => {
       const J = window.__j, G = J.G; J.limpia(); const M = (G.missions || []).find(m => m.type === 'carnival'); if (!M) throw new Error('sin carnaval');
-      M.count = M.need; G.desfileCarnaval(M, window.__layout.PLACES.plaza);
+      // (el jugador, en la plaza y sin verse: la comparsa solo se ve y se mueve cerca de él; a la entrada del pueblo no salía)
+      const pl = window.__layout.PLACES.plaza, P = G.player; P.place(pl.x + 5, pl.z + 5, 0); J.teclas([]); window.__antes = () => { P.obj.visible = false; };
+      M.count = M.need; G.desfileCarnaval(M, pl);
       J.dron((t) => {
-        const g = (G.desfileOn?.gente || []).filter(a => a.obj?.visible !== false), a = g[Math.min(2, g.length - 1)];
+        P.obj.visible = false;
+        const g = G.desfileOn?.gente || [], a = g[Math.min(2, g.length - 1)];
         if (!a) { const p = J.G.player.pos; return { pos: [p.x + 6, p.y + 3, p.z + 6], look: [p.x, p.y + 1, p.z] }; }
         const h = a.heading ?? 0, fx = Math.sin(h), fz = Math.cos(h), d = 4.6 - t * 0.35, y = J.suelo(a.pos.x, a.pos.z);
         return { pos: [a.pos.x + fx * d + fz * 1.4, y + 1.05, a.pos.z + fz * d - fx * 1.4], look: [a.pos.x, y + 1.7, a.pos.z] };
