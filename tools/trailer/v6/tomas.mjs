@@ -174,12 +174,13 @@ export const TOMAS = {
   isla2: { url: '?skipintro=1&q=high', seg: 2.2, antes: 4, espera: 12000, limpio: true, listo: MAPA,
     guion: [[0, (p) => p.evaluate(() => window.__mapa3d.comarca('bidasoa'))]] },
   // ---------- el explorador corriendo y a caballo, con la cámara pegada ----------
-  // (Otsagabia: corre por la calle hacia la plaza; de frente y desde abajo y, en el segundo trozo, de lado)
+  // (Otsagabia: corre por la calle hacia la plaza, que pasa por el puente; de frente y desde abajo y, en el segundo trozo,
+  // desde detrás y algo arriba: de lado, el pretil del puente lo tapaba)
   correcalle: {
     url: `?${OT}&weather=clear&t=11`, seg: 3.6, antes: 24, limpio: true,
     prep: () => {
       const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.plaza, 40, { solo: true, snap: true, margen: 4 });
-      J.pegada((t) => t < 2.3 ? { f: 4.6, s: 0.9, y: 0.75, lf: 0, ly: 1.15 } : { f: 0.6, s: 4.2, y: 1.2, lf: 1.2, ly: 1.1 });
+      J.pegada((t) => t < 2.3 ? { f: 4.6, s: 0.9, y: 0.75, lf: 0, ly: 1.15 } : { f: -4.2, s: 1.4, y: 2.4, lf: 8, ly: 1.0 });
     },
   },
   // (Isaba, con el Pirineo detrás: de lado, un poco por detrás)
