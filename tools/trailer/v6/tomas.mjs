@@ -68,16 +68,19 @@ export const TOMAS = {
   llegada: de5('llegada', { seg: 2.2 }),
   // ---------- el golpe de la música: la manada de momotxorros en la plaza de Altsasu, rojos y echando chispas ----------
   momo: {
-    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=18.2', seg: 4.0, antes: 84, limpio: true,
+    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=13', seg: 4.0, antes: 84, limpio: true,
     prep: () => {
       const J = window.__j, G = J.G, P = G.player; J.limpia(); const PL = window.__layout.PLACES.plaza;
       P.place(PL.x + 3, PL.z + 3, 0); P.obj.visible = true; J.teclas([]);
       G.manadaMomotxorros();
       const T = window.__townB?.TOWN || {}, k = (T.landmarks || []).find(l => l.kind === 'kiosk' || l.kind === 'nogal'), C = k ? { x: k.x, z: k.z } : { x: PL.x, z: PL.z };
-      // (cerca y bajo, girando alrededor del kiosco entre los que bailan; a los 2 s, el segundo trozo, desde más arriba)
+      // (girando alrededor del kiosco por encima de los que bailan, a 3,6 m, sobre los postes y carteles de la plaza; a los
+      // 2 s, el segundo trozo: desde arriba, dentro de la plaza, mirando la manada. A 2,6 m tapaba un poste indicador y, a
+      // 17 m del kiosco, la cámara quedaba detrás de las casas. A mediodía: por la tarde, con el rojo de la fiesta, oscura)
+      const R = Math.min(10, (PL.r || 14) * 0.6);
       J.dron((t) => {
-        const y0 = J.suelo(C.x, C.z), alto = t < 2 ? 0 : 1, a = (alto ? 2.2 : 0.4) + t * 0.32, r = alto ? 17 : 10.5;
-        return { pos: [C.x + Math.cos(a) * r, y0 + (alto ? 9 : 2.6), C.z + Math.sin(a) * r], look: [C.x, y0 + (alto ? 0.5 : 1.6), C.z] };
+        const y0 = J.suelo(C.x, C.z), alto = t < 2 ? 0 : 1, a = (alto ? 2.2 : 0.4) + t * 0.3, r = alto ? R : 8;
+        return { pos: [C.x + Math.cos(a) * r, y0 + (alto ? 14 : 3.6), C.z + Math.sin(a) * r], look: [C.x, y0 + (alto ? 0 : 1.0), C.z] };
       });
     },
   },
