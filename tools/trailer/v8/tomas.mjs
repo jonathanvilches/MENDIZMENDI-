@@ -215,7 +215,7 @@ export const TOMAS = {
   olivar: temporeros('lumbier', 'olivo'),
   alcachofa: temporeros('tudela', 'alcachofa'),
   // ---------- los productos: el mercado de la plaza ----------
-  mercQueso: mercado('isaba-izaba', 'Quesería'),
+  mercQueso: mercado('estella', 'Quesería'),
   mercTxistorra: mercado('estella', 'Txistorra y pan', { u0: 1.6, u1: -1.6 }),
   mercMiel: mercado('estella', 'Miel y cuajada'),
   mercHuerta: mercado('estella', 'Huerta', { u0: 1.6, u1: -1.6 }),
