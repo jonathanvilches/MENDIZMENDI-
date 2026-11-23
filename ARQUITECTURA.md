@@ -4773,3 +4773,20 @@ git push origin master:main
     `follow.cinematic.fly`, y sin el marcador): en «Desde aquí ves Otsagabia entera» sube en vertical desde un punto fijo de la
     calle, junto a una casa, y deja al explorador irse hacia la plaza hasta ver los tejados y el valle (siguiéndole se
     metía en las casas y, ya arriba, en las copas de los árboles de la plaza); en «¡pero el bosque es de verdad!», un vuelo por encima de las copas de Irati.
+- **Tráiler v6: 60 s con ritmo y sin interfaz** (23 nov; el autor, del v5: «No me gusta nada de nada», y luego «La voz me
+  gusta. Quiero más ritmo»). Se rueda con la grabadora del v5 (`TOMAS=tools/trailer/v6/tomas.mjs node
+  tools/trailer/v5/juego.mjs <tomas> <carpeta>`): `TOMAS` elige otra lista de tomas y `T.limpio` esconde todo lo de la
+  página menos la imagen del juego (los lienzos `pantalla3d`, `stage3d`, `m3-cv` con sus nubes y su luz, y el velo rojo
+  de la fiesta de los momotxorros): ni botones, ni cuadros de diálogo, ni menús, ni el marcador. La música (`v6/mezcla-v6.py`)
+  es la épica del juego cortada al compás: 4 compases de intro con Salva («Hay una tierra…»), el golpe a los 7,58 s, 16
+  compases de la parte fuerte y un empalme al compás 24 de la canción para llegar a su final de verdad (el compás 32) justo
+  en el logo; las voces ya grabadas («¡Kaixo!», «Cada vecino te pide ayuda…», «¡Oooh! Una personita en mi bosque…», «La
+  naturaleza y la cultura, contadas jugando», «¡Eres un txapeldun, un campeón!», «Herrizherri. Navarra, pueblo a pueblo»)
+  caen en sus compases y la música baja sola debajo. El volumen va a uno fijo de tráiler y los golpes graves se redondean
+  con una rodilla suave en vez de bajar todo por ellos. El montaje (`v6/montaje.mjs`) sigue la lista `CORTES` de
+  `v6/tomas.mjs` (segundo del tráiler, toma y desde qué segundo de la toma): cortes de un compás (1,89 s) o de medio, y
+  varias tomas dan dos trozos (uno en la primera mitad y otro en el remate). Muchos planos van con la cámara en movimiento
+  (`J.dron`, y `J.orbita` para girar alrededor del centro de un pueblo: su puente famoso, su palacio o su plaza). La entrega
+  de la txapela se rueda a 24 por segundo (la ceremonia no avanza más de 0,05 s por imagen) y salta de la txapela a la copa
+  con el confeti cambiando `cere.t`. Encima, tres frases (`v6/rotulos.mjs`: «Explora / 38 pueblos», «Descubre / sus
+  leyendas», «Vive / sus tradiciones», la palabra pequeña en oro y la grande en blanco, sin cajas) y el logo.

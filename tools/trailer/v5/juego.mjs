@@ -3,11 +3,19 @@
 // posprocesado, su interfaz y sus charlas, y se le dan teclas como a un jugador. Lo único que se toca es el reloj de la
 // página: performance.now, Date.now, requestAnimationFrame, los temporizadores y las animaciones de la interfaz van con
 // un reloj propio que avanza 1/24 s por fotograma, así sale fluido aunque cada imagen tarde segundos en pintarse.
-// Uso: node tools/trailer/v5/juego.mjs <toma[,toma…]> <carpeta> [prueba]   (URL=http://127.0.0.1:5173/ por defecto)
+// Uso: node tools/trailer/v5/juego.mjs <toma[,toma…]> <carpeta> [prueba]   (URL=http://127.0.0.1:5173/ por defecto; TOMAS=otra lista)
 //   prueba: 960 × 540 y solo unos fotogramas repartidos; si no, 1280 × 720 (TAM=1920x1080 para otro tamaño)
 import { chromium } from 'playwright-core';
 import { mkdirSync, readdirSync } from 'node:fs';
-import { TOMAS, AYUDA } from './tomas.mjs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+// (TOMAS=<archivo>: otra lista de tomas, como la del tráiler v6, v6/tomas.mjs; si no, la de aquí)
+const { TOMAS, AYUDA } = await import(process.env.TOMAS ? pathToFileURL(resolve(process.env.TOMAS)).href : './tomas.mjs');
+// la toma limpia (T.limpio, tráiler v6; el autor, 23 nov: sin botones, cuadros de diálogo ni menús): todo lo de la página
+// se esconde menos la imagen del juego (el lienzo del pueblo y del partido, el del mapa de inicio con sus nubes y su luz,
+// y el velo rojo de la fiesta de los momotxorros, que es luz de la escena y no interfaz)
+const VEN = 'canvas.pantalla3d, canvas.stage3d, canvas.m3-cv, canvas.m3-nubes, .m3-sol, .m3-luz, .m3-destello, .m3-onda, .manada-velo';
+const LIMPIO = `body * { visibility: hidden !important; } ${VEN} { visibility: visible !important; } body { cursor: none !important; }`;
 const [, , nombres, out, modo] = process.argv, prueba = modo === 'prueba', URL = process.env.URL || 'http://127.0.0.1:5173/';
 const [W, H] = prueba ? [960, 540] : (process.env.TAM || '1280x720').split('x').map(Number);
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
@@ -70,6 +78,7 @@ for (const nombre of nombres.split(',')) {
   await p.goto(`${URL}${T.url}`, { timeout: 300000 });
   await (T.listo ? T.listo(p) : p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 600000 }));
   await p.waitForTimeout(T.espera ?? 9000);
+  if (T.limpio) await p.addStyleTag({ content: LIMPIO });
   await p.evaluate(AYUDA);
   await p.evaluate(() => { const R = (window.__rt || window.__mapa3d)?.renderer || window.__mapa3d?.ren; if (!R) return; const r0 = R.render.bind(R); R.render = (...a) => { if (!window.__sinDibujo) r0(...a); }; });
   // primero se congela el reloj y luego se prepara: así nada avanza a tiempo real mientras la página dibuja despacio
