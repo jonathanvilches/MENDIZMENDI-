@@ -193,10 +193,10 @@ export const TOMAS = {
     url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=12.2', seg: 1.2, antes: 24, limpio: true,
     prep: () => { const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.forest, 28, { snap: true }); J.pegada(() => ({ f: -3.4, s: 0.7, y: 1.0, lf: 6, ly: 1.3 })); },
   },
-  // (las Bardenas: de lado y de lejos, el explorador pequeño en el desierto)
+  // (las Bardenas: de lado, con las rocas del suelo pasando por delante y los cabezos detrás)
   correbardenas: {
     url: '?town=bardenas-reales&q=high&skipintro=1&weather=clear&t=11.8', seg: 2.5, antes: 24, limpio: true,
-    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 45, { snap: true }); J.pegada((t) => ({ f: 1.5 - t * 0.6, s: 8.5, y: 2.4, lf: 1, ly: 1.0 })); },
+    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 45, { snap: true }); J.pegada((t) => ({ f: 1.2 - t * 0.5, s: 6, y: 1.8, lf: 1, ly: 1.0 })); },
   },
   // (a caballo por el prado de Isaba: de frente y desde abajo; en el segundo trozo, desde detrás y arriba)
   caballo2: {
