@@ -123,7 +123,9 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a, { s: -0.1 }); } }),  // (el cartel del pueblo, detrás de ella a la derecha: con s 0,55 asomaba en el borde y con 1,1 en medio; con la cámara al otro lado queda fuera)
+    // (la cámara, del lado del frontón, que así queda detrás de ella: Maite se mueve por la plaza y, desde otros lados, el
+    // canto oscuro del frontón y su rótulo «Otsagabia / Ochagavía» se metían en el plano)
+    prep: () => { const J = window.__j, a = J.G.npcs.maite, F = J.G.fronton?.spot; J.limpia(); J.hacia(a, 2.6, F ? { h: Math.atan2(F.x - a.pos.x, F.z - a.pos.z) } : {}); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a); } }),
   kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
     prep: () => { const J = window.__j, a = J.G.npcs.kike; if (!a) throw new Error('sin kike'); J.limpia(); a.frozen = true; a.state = 'idle'; J.hacia(a, 2.4); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }); J.cara(a, { d: 1.9, y: 1.15, ly: 1.0 }); } }),
   // («el pastoreo, el carnaval, las leyendas»)
@@ -260,7 +262,8 @@ export const TOMAS = {
   },
   // ---------- «Explora 38 pueblos»: pueblos desde el aire ----------
   olite: pueblo('olite', { a0: 0.05, a1: 0.11 }),
-  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61, r0: 55, r1: 48, y0: 32, y1: 28 }),
+  // (más alto y más lejos: a 30 m, con el pueblo en cuesta, el plano eran tejados de cerca y no se veía Isaba)
+  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61, r0: 80, r1: 72, y0: 48, y1: 44 }),
   puente: pueblo('puente-la-reina', { a0: 0.2, a1: 0.27, r0: 34, r1: 28, y0: 14, y1: 11 }),
   // ---------- debajo del logo: la isla del Pirineo ya arriba, con la cámara girando despacio ----------
   final: { url: '?skipintro=1&q=high', seg: 7.0, antes: 72, espera: 12000, limpio: true, listo: MAPA,
