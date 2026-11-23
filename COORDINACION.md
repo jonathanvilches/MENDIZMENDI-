@@ -17,10 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Mapa: tres islotes flotantes hechos en 3D con Higgsfield alrededor del Pirineo cuando sube (`src/hub/islotesHF.js`, enganche en `src/hub/mapa3d.js`). Vistos a 1280×720 y 844×390.
-- Otsagabia: caserío, casa de piedra y borda hechos en 3D con Higgsfield, y tres ovejas latxas, junto al camino del río a la salida del crucero (`src/world/modelosHF.js`, `src/assets/hf3d/`, enganche en `src/game/game.js`). Vistos a 1280×720 y 844×390.
-- Mapa: la comarca echa humo (polvo) en cuanto se despega y mientras sube, que tapa el canto (`src/hub/mapa3dIsla.js`). Encierro: tu corredor, Fermín, como el original de Meshy: cabeza a su tamaño y talla del explorador (`src/game/encierro.js`). Vistos a 1280×720 y 844×390.
-
 
 ## Peticiones entre ventanas
 
@@ -209,6 +205,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 23 nov, noche, la hizo la ventana del tráiler (el autor pidió verlo en el juego): `master` hasta `b868745c`. En Otsagabia, caserío, casa de piedra y borda hechos en 3D con Higgsfield y tres ovejas latxas, junto al camino del río a la salida del crucero; en el mapa, tres islotes flotantes de Higgsfield alrededor del Pirineo cuando sube; el humo al despegarse la comarca; en el encierro, Fermín como el original (cabeza a su tamaño y talla del explorador).
 - 23 nov, madrugada, la hizo la ventana principal: `master` hasta `0f020592`. La entrega de la txapela con la pantalla
   gigante del frontón y las autoridades aplaudiendo (la txapela ya no la atraviesa el pelo); en Progreso, el ranking de
   pelotaris por puntos tipo ATP con una pestaña por competición; y la elección de material con la caja de pelotas en 3D.
