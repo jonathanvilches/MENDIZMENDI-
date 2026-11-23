@@ -97,8 +97,13 @@ export const TOMAS = {
       // 2 s, el segundo trozo: desde arriba, dentro de la plaza, mirando la manada. A 2,6 m tapaba un poste indicador y, a
       // 17 m del kiosco, la cámara quedaba detrás de las casas. A mediodía: por la tarde, con el rojo de la fiesta, oscura)
       const R = Math.min(10, (PL.r || 14) * 0.6);
+      // (el giro bajo, hacia el otro lado: hacia 0,8 rad lo cruzaba otro poste indicador. Y el rojo de la fiesta, a menos de
+      // la mitad: a tope, el velo y el tinte dejaban la plaza oscura y turbia; así se nota la fiesta y se ve la manada)
+      const menosRojo = () => { const D = G.desfileOn; if (D?.manada && D.k > 0.22) D.k = 0.22; };
+      window.__antes = menosRojo;
       J.dron((t) => {
-        const y0 = J.suelo(C.x, C.z), alto = t < 2 ? 0 : 1, a = (alto ? 2.2 : 0.4) + t * 0.3, r = alto ? R : 8;
+        menosRojo();
+        const y0 = J.suelo(C.x, C.z), alto = t < 2 ? 0 : 1, a = alto ? 2.2 + t * 0.3 : 0.4 - t * 0.3, r = alto ? R : 8;
         return { pos: [C.x + Math.cos(a) * r, y0 + (alto ? 14 : 3.6), C.z + Math.sin(a) * r], look: [C.x, y0 + (alto ? 0 : 1.0), C.z] };
       });
     },
