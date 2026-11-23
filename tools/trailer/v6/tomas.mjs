@@ -150,13 +150,19 @@ export const TOMAS = {
   // ---------- la almadía por el Esca de Burgui, hacia el puente medieval ----------
   almadia: {
     url: '?town=burgui-burgi&q=high&skipintro=1&weather=clear&t=11', seg: 3.0, antes: 40, limpio: true,
-    listo: (p) => p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 600000 }),
-    prep: async () => {
-      const J = window.__j, G = J.G; J.limpia(); window.__autoWin = true;
-      const mod = await import('/src/game/almadia.js'), M = G.missions.find(m => m.type === 'race' && m.m.kind === 'almadia');
-      mod.jugarAlmadia(G, M, async () => { });
-      for (let i = 0; i < 40 && !G.almadia; i++) { window.__paso(0.05); }
-      const A = G.almadia; if (!A) throw new Error('sin almadía');
+    // (la bajada se monta en la carga, a tiempo real: el juego la prepara con cargas y esperas que, con el reloj de la
+    // grabación ya parado, no acababan nunca)
+    listo: async (p) => {
+      await p.waitForFunction(() => window.__game?.mode === 'play' && window.__rt?.active, null, { timeout: 600000 });
+      await p.evaluate(async () => {
+        const G = window.__game; window.__autoWin = true;
+        const mod = await import('/src/game/almadia.js'), M = G.missions.find(m => m.type === 'race' && m.m.kind === 'almadia');
+        mod.jugarAlmadia(G, M, async () => { });
+      });
+      await p.waitForFunction(() => window.__game?.almadia, null, { timeout: 180000 });
+    },
+    prep: () => {
+      const J = window.__j, G = J.G, A = G.almadia; if (!A) throw new Error('sin almadía');
       if (A.flechas?.P) for (const f of A.flechas.P) if (f?.visible != null) f.visible = false;
       const flechas = G.scene.getObjectByName('flechas de la almadía'); if (flechas) flechas.visible = false;
       // (a unos 70 m del puente; el piloto la lleva por el ojo del puente y lejos de las peñas, a buen ritmo)
