@@ -4886,3 +4886,23 @@ git push origin master:main
   con el explorador se reaprovechan del v8; solo se grabaron de nuevo los drones de pueblo, la pelota, las islas y el
   encierro. La isla echa humo en cuanto se mueve y
   mientras sube (mapa3dIsla.js), que tapa el canto mientras se forma.
+
+- **Tráiler v11 (23 nov 2026): la historia del explorador, con la interfaz del juego** (`tools/trailer/v11/`). El autor,
+  del v10: «que dure más, que cuente la historia del explorador: llega a Navarra y debe cumplir diferentes misiones […]
+  pantallas reales del juego, de conversaciones, de ejecución de misiones, de la mochila, de la compra de productos
+  locales, de la explicación de la elaboración de un producto local, de animales, de tractores, de agricultura».
+  2 min 14 s en cinco capítulos con su rótulo sobre negro (`rotulos.mjs`): «Un explorador llega a Navarra» (el mapa del
+  inicio con su barra y sus comarcas, el Pirineo que sube, el dron hasta Otsagabia, correr por la calle), «Los vecinos te
+  piden ayuda» (la charla de Maite con su voz y la tarjeta de la cinta roja, el cuaderno, Joxemari de cara y el rebaño),
+  «En cada pueblo, una misión» (en Isaba, la misión de proceso del queso Roncal tal cual: la charla de Arantxa, «¿Qué
+  es?», «Cómo se hace», la lámina con dos pasos y la voz del narrador, ordenar los pasos y «¡Misión cumplida!»; la tienda
+  con el producto estrella y la mochila), «Trabaja el campo» (el tractor en el piquillo de Estella y la cosechadora de
+  Artajona con el objetivo y el porcentaje en pantalla) y «Vive sus tradiciones» (la pelota en Lumbier, el Bobo con las
+  ocho cintas y la danza de Muskilda con sus flechas). La música del juego (`musica-juego`) mientras se cuenta la
+  historia y la épica del autor desde su golpe en el campo, con el empalme al compás 24 para que el compás 32 caiga en
+  el logo (`mezcla-v11.py`). Todas las voces ya estaban grabadas.
+  La grabadora del v5 (`v5/juego.mjs`) tiene dos cosas nuevas para que una toma larga no tarde una hora: `usa` (los
+  trozos de la toma que entran en el montaje; fuera, no se dibuja ni se guarda, y el hueco se rellena con la imagen
+  anterior) y `tapa` (un selector: con esa pantalla encima —la lámina, la tienda, la mochila, las tarjetas— el pueblo de
+  detrás no se vuelve a dibujar, se queda la última imagen quieta debajo del velo). Las tomas con interfaz usan las ayudas
+  del v8 pero con la flecha amarilla y el haz del objetivo a la vista (el v6 los escondía).

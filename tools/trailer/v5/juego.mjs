@@ -6,7 +6,7 @@
 // Uso: node tools/trailer/v5/juego.mjs <toma[,toma…]> <carpeta> [prueba]   (URL=http://127.0.0.1:5173/ por defecto; TOMAS=otra lista)
 //   prueba: 960 × 540 y solo unos fotogramas repartidos; si no, 1280 × 720 (TAM=1920x1080 para otro tamaño)
 import { chromium } from 'playwright-core';
-import { mkdirSync, readdirSync } from 'node:fs';
+import { mkdirSync, readdirSync, existsSync, copyFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 // (TOMAS=<archivo>: otra lista de tomas, como la del tráiler v6, v6/tomas.mjs; si no, la de aquí)
@@ -94,11 +94,17 @@ for (const nombre of nombres.split(',')) {
   for (let i = 0; i < n; i++) {
     const t = i / FPS;
     while (ia < acc.length && acc[ia][0] <= t + 1e-6) { await acc[ia][1](p); ia++; }
-    const sale = !cuales || cuales.includes(i);
+    // (T.usa, v11: los trozos de la toma que entran en el montaje, [[desde, hasta], …] en segundos; fuera de ellos no se
+    // dibuja ni se guarda, el mundo avanza igual, y al acabar cada hueco se rellena con la imagen anterior)
+    const sale = (!cuales || cuales.includes(i)) && (prueba || !T.usa || T.usa.some(([a, z]) => t >= a - 1e-6 && t <= z + 1e-6));
     // (en la prueba, los fotogramas que no se guardan no se dibujan: el mundo avanza igual)
-    await p.evaluate(([t, sale, FPS]) => { window.__sinDibujo = !sale; try { window.__cada?.(t); } catch (e) { console.error('reloj cada', e?.message); } window.__paso(1 / FPS); }, [t, sale, FPS]);
+    // (T.tapa, v11: con una pantalla del juego encima que tapa el pueblo —la lámina, la tienda, la mochila, las tarjetas—,
+    // el pueblo de detrás no se vuelve a dibujar: se queda la última imagen, quieta debajo del velo, y cada fotograma tarda
+    // mucho menos)
+    await p.evaluate(([t, sale, FPS, tapa]) => { window.__sinDibujo = !sale; try { window.__cada?.(t); } catch (e) { console.error('reloj cada', e?.message); } if (tapa && window.__yaTapa) window.__sinDibujo = true; window.__paso(1 / FPS); window.__yaTapa = !!(tapa && document.querySelector(tapa)); }, [t, sale, FPS, T.tapa || null]);
     if (sale) await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92, timeout: +(process.env.FOTO_MS || 240000) });   // (FOTO_MS: más margen para el mapa 3D a 1280 × 720, que con otros navegadores a la vez tardaba más de 4 min en la primera imagen)
   }
+  if (!prueba && T.usa) { let ult = null; for (let i = 0; i < n; i++) { const f = `${dir}/${String(i).padStart(4, '0')}.jpg`; if (existsSync(f)) ult = f; else if (ult) copyFileSync(ult, f); } const f0 = `${dir}/0000.jpg`; if (!existsSync(f0)) { const pr = readdirSync(dir).filter(x => x.endsWith('.jpg')).sort()[0]; if (pr) for (let i = 0; i < n; i++) { const f = `${dir}/${String(i).padStart(4, '0')}.jpg`; if (existsSync(f)) break; copyFileSync(`${dir}/${pr}`, f); } } }
   console.log(nombre, `${n} fotogramas`, `${Math.round((Date.now() - t0) / 1000)} s`, errs.length ? 'errores: ' + [...new Set(errs)].slice(0, 4).join(' | ') : 'sin errores');
   } catch (e) { console.log(nombre, 'FALLA', e.message.split('\n')[0].slice(0, 300)); }
   await ctx.close().catch(() => { });
