@@ -97,7 +97,7 @@ for (const nombre of nombres.split(',')) {
     const sale = !cuales || cuales.includes(i);
     // (en la prueba, los fotogramas que no se guardan no se dibujan: el mundo avanza igual)
     await p.evaluate(([t, sale, FPS]) => { window.__sinDibujo = !sale; try { window.__cada?.(t); } catch (e) { console.error('reloj cada', e?.message); } window.__paso(1 / FPS); }, [t, sale, FPS]);
-    if (sale) await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92, timeout: 240000 });
+    if (sale) await p.screenshot({ path: `${dir}/${String(i).padStart(4, '0')}.jpg`, type: 'jpeg', quality: 92, timeout: +(process.env.FOTO_MS || 240000) });   // (FOTO_MS: más margen para el mapa 3D a 1280 × 720, que con otros navegadores a la vez tardaba más de 4 min en la primera imagen)
   }
   console.log(nombre, `${n} fotogramas`, `${Math.round((Date.now() - t0) / 1000)} s`, errs.length ? 'errores: ' + [...new Set(errs)].slice(0, 4).join(' | ') : 'sin errores');
   } catch (e) { console.log(nombre, 'FALLA', e.message.split('\n')[0].slice(0, 300)); }
