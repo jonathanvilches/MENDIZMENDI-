@@ -127,17 +127,35 @@ const criatura = (town, who, o = {}) => ({
     const J = window.__j, G = J.G, P = G.player; J.limpia();
     const M = (G.missions || []).find(m => m.type === 'legend' && m.m.who === '${who}'); if (!M) throw new Error('sin leyenda');
     const T = window.__townB?.TOWN || {}, PL = window.__layout.PLACES, lm = (k) => (T.landmarks || []).find(l => l.kind === k), L = M.leg || {};
-    const lp = L.lair === 'cave' ? (lm('cave')?.spot || PL.forest) : L.lair === 'river' ? (lm('bridge')?.spot || PL.riverSpot || PL.forest) : (PL.forest || PL.plaza);
+    // (en un claro a menos de 170 m de la plaza, el que más hueco libre tenga alrededor: el bosque de las misiones queda a
+    // 260 m o más y allí el juego no dibuja; y en el claro más apartado, la sorgina quedaba entre casas)
+    const C0 = PL.center || PL.plaza, dc = (q) => Math.hypot(q.x - C0.x, q.z - C0.z);
+    const hueco = (x, z, R) => { let n = 0; for (let i = 0; i < 16; i++) { const h = i * Math.PI / 8; if (J.ok(x + Math.sin(h) * R, z + Math.cos(h) * R, 1)) n++; } return n; };
+    const cls = (PL.clearings || []).filter(q => dc(q) < 170).map(q => ({ x: q.x, z: q.z, n: hueco(q.x, q.z, 5) + hueco(q.x, q.z, 9) })).sort((p, q) => q.n - p.n || dc(q) - dc(p));
+    const lp = (L.lair === 'cave' && lm('cave')?.spot) || cls[0] || { x: C0.x + 40, z: C0.z + 40 };
     M.lair = G.spot(lp, 6);
-    const st = window.setTimeout; window.setTimeout = () => 0; try { G.showCreature(M); } finally { window.setTimeout = st; }
+    // (sin el relevo de la persecución, a los 3,4 s; los demás temporizadores sí: con todos anulados, la compilación de sus
+    // sombreadores, que espera con uno, no acababa nunca y el juego dejaba de dibujar)
+    const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => (+ms >= 3000 ? 0 : st(f, ms, ...r)); try { G.showCreature(M); } finally { window.setTimeout = st; }
     const a = M.creature; if (!a) throw new Error('sin criatura'); a.frozen = true; a.appear = 1;
     P.place(a.pos.x + 9, a.pos.z + 9, 0); P.frozen = true; J.teclas([]); P.obj.visible = false;
     window.__antes = () => { P.obj.visible = false; };
-    const H = a.obj.userData.H || 2.4, h0 = (a.heading ?? 0) + ${o.a ?? 0.3};
+    // (la cámara, del lado más despejado: sin casas ni aleros entre ella y la criatura ni a su espalda; con el giro de la
+    // criatura, en Orreaga se metía el alero negro de una casa en una esquina)
+    const H = a.obj.userData.H || 2.4, G0 = ${o.giro ?? 0.2}, S = ${o.seg ?? 2.2};
+    let h0 = (a.heading ?? 0) + ${o.a ?? 0.3}, bn = -1;
+    for (let i = 0; i < 36; i++) {
+      const h = i * Math.PI / 18; let n = 0;
+      for (const k of [-0.25, 0, 0.25]) for (const d of [1.5, 3, 4.5, 6, 8, 10]) if (J.ok(a.pos.x + Math.sin(h + k) * d, a.pos.z + Math.cos(h + k) * d, 1.5)) n++;
+      if (n > bn) { bn = n; h0 = h - G0 * S / 2; }
+    }
+    // (y la criatura de cara a la cámara: se quedaba mirando a su cueva, de espaldas)
+    const hm = h0 + G0 * S / 2, mira = () => { a.heading = hm; a.obj.rotation.y = hm; };
+    mira(); window.__antes = () => { P.obj.visible = false; mira(); };
     J.dron((t) => {
-      P.obj.visible = false;
-      const y = J.suelo(a.pos.x, a.pos.z), h = h0 + t * ${o.giro ?? 0.2}, d = H * ${o.d ?? 1.7} - t * 0.25;
-      return { pos: [a.pos.x + Math.sin(h) * d, y + H * ${o.y ?? 0.35}, a.pos.z + Math.cos(h) * d], look: [a.pos.x, y + H * ${o.ly ?? 0.6}, a.pos.z] };
+      P.obj.visible = false; mira();
+      const y = J.suelo(a.pos.x, a.pos.z), h = h0 + t * G0, d = H * ${o.d ?? 1.7} - t * 0.25, x = a.pos.x + Math.sin(h) * d, z = a.pos.z + Math.cos(h) * d;
+      return { pos: [x, Math.max(J.suelo(x, z) + 0.5, y + H * ${o.y ?? 0.35}), z], look: [a.pos.x, y + H * ${o.ly ?? 0.6}, a.pos.z] };
     });
   }`),
 });
@@ -366,9 +384,10 @@ export const TOMAS = {
   // Roncal, la amona Graxi, que cuenta la noche de las sorginak de Zugarramurdi, y Nerea, la guarda del río de Lesaka
   itziar: de5('itziar', { seg: 1.3, antes: 30, url: `?${OT}&weather=clear&t=11.6`,
     prep: () => { const J = window.__j, a = J.G.npcs.itziar; if (!a) throw new Error('sin itziar'); a.frozen = true; J.limpia(); J.hacia(a, 2.6); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¿Sabes que en Otsagabia hay palacios con escudos de piedra?'] }); J.cara(a); } }),
-  maialen: vecina('leitza', "m.type === 'trade' && m.m.kind === 'aizkolari'", '¡Kaixo! Soy Maialen, aizkolari.'),
   felisa: vecina('erronkari-roncal', "m.type === 'trade' && m.m.kind === 'hilandera'", 'De la oveja al ovillo, como hacía mi amona.'),
-  graxi: vecina('zugarramurdi', "m.type === 'legend' && m.m.who === 'sorgina'", 'En la noche de San Juan, las sorginak bailan en la cueva…'),
+  // (más mujeres con oficio: la quesera de Isaba. Se probaron también Maialen, Graxi y Maddi: Maialen sale con un tronco
+  // flotando, Graxi delante de una pared lisa y Maddi es el mismo modelo que Nerea)
+  arantxa: vecina('isaba-izaba', "m.m.id === 'roncal'", 'Del queso Roncal me sé todos los secretos.'),
   nerea: vecina('lesaka', "m.m.id === 'salmon'", 'El salmón vuelve río arriba. ¡Cuidemos el agua!'),
   // las leyendas que faltaban: la sorgina junto a la cueva de Zugarramurdi y la sombra de Roldán en Orreaga
   sorgina: criatura('zugarramurdi', 'sorgina'),
@@ -394,28 +413,34 @@ export const CORTES = [
   // [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]
   // (cada trozo empieza lo bastante pronto para no quedarse sin imágenes al final: si no, la última se repetía y el plano
   // se paraba justo antes del corte)
+  // (v7, 23 nov 2026: el autor echaba en falta «toda la parte de oficios y mujeres y personajes y leyendas». Cortes de medio
+  // compás y de un cuarto en las caras de los vecinos; los talleres, las vecinas con oficio, la sorgina y Roldán)
   // la intro (4 compases): la isla, el dron de Otsagabia y el explorador que echa a correr en el silencio de antes del golpe
   [0, 'isla', 0.27], [b(-2), 'llegada', 0.15], [b(-1), 'correcalle', 0, 1.2],
-  // el golpe: los momotxorros y el caballo
-  [b(0), 'momo', 0], [b(1), 'caballo', 0, 1.2],
-  // «Cada vecino te pide ayuda, y cada misión te enseña algo: el pastoreo, el carnaval, las leyendas»
-  [b(2), 'maite', 0], [b(3), 'correcalle', 2.32, 1.2], [b(3.5), 'kike', 0], [b(4), 'caballo2', 0, 1.2],
+  // el golpe: los momotxorros, a galope, corriendo por Roncal y el caballo
+  [b(0), 'momo', 0], [b(0.5), 'galopeA', 0, 1.2], [b(1), 'correA', 0, 1.2], [b(1.5), 'caballo', 0, 1.2],
+  // «Cada vecino te pide ayuda»: las caras, un cuarto de compás cada una (Maite, la amona Felisa, Nerea, Kike y Arantxa la
+  // quesera); «y cada misión te enseña algo»: el herrero y la panadera
+  [b(2), 'maite', 0], [b(2.25), 'felisa', 0.1], [b(2.5), 'nerea', 0.1], [b(2.75), 'kike', 0], [b(3), 'arantxa', 0.1],
+  [b(3.25), 'herrero', 0.1], [b(4), 'panadera', 0.3],
+  // «el pastoreo, el carnaval, las leyendas»
   [b(4.5), 'pastoreo', 0], [b(5), 'carnaval', 0], [b(5.5), 'lamia', 0],
-  // «¡Oooh! Una personita en mi bosque…», la almadía y la carrera por las Bardenas
-  [b(6), 'basajaun', 0], [b(7), 'almadia', 0], [b(7.5), 'correbardenas', 0, 1.2],
+  // «¡Oooh! Una personita en mi bosque…», y la sorgina y Roldán
+  [b(6), 'basajaun', 0], [b(7), 'sorgina', 0.2], [b(7.5), 'roldan', 0.2],
   // «La naturaleza y la cultura, contadas jugando»
-  [b(8), 'bosque', 1.6], [b(8.5), 'correirati', 0, 1.1], [b(9), 'danza', 0],
+  [b(8), 'bosque', 1.6], [b(8.5), 'almadia', 0], [b(9), 'danza', 0], [b(9.5), 'tonelero', 0.3],
   // la pelota y «¡Eres un txapeldun, un campeón!» (el partido, desde que el pelotari echa a andar: antes está 0,7 s quieto)
   [b(10), 'partido', 0.75], [b(11), 'partido', 2.7], [b(12), 'cere', 0], [b(13), 'cere', 2.0],
-  [b(14), 'rio', 0], [b(14.5), 'correisaba', 0, 1.2], [b(15), 'isla2', 0],
+  [b(14), 'rio', 0], [b(14.5), 'correA', 1.3, 1.2], [b(15), 'isla2', 0],
   // EXPLORA 38 PUEBLOS
   [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.25, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
   // DESCUBRE SUS LEYENDAS (la cueva de Aralar se quitó: de día no se ve la sombra de Teodosio y de noche sale oscura)
-  [b(18), 'lamia', 1.07], [b(18.5), 'basajaun', 1.92], [b(19), 'momo', 2.0],
-  // VIVE SUS TRADICIONES
-  [b(20), 'carnaval', 1.07], [b(20.5), 'danza', 2.0], [b(21), 'almadia', 1.92], [b(21.5), 'partido', 4.6],
+  [b(18), 'sorgina', 1.2], [b(18.5), 'lamia', 1.07], [b(19), 'roldan', 1.2], [b(19.5), 'basajaun', 1.92],
+  // VIVE SUS TRADICIONES: la fiesta, los oficios y la danza
+  [b(20), 'momo', 2.0], [b(20.5), 'herrero', 1.2], [b(20.75), 'carnaval', 1.07], [b(21), 'danza', 2.0],
+  [b(21.5), 'panadera', 1.2], [b(21.75), 'tonelero', 1.2],
   // los últimos, a galope y corriendo, y el logo
-  [b(22), 'caballo2', 1.25, 1.2], [b(22.5), 'correisaba', 1.25, 1.2], [b(23), 'caballo', 2.0, 1.2], [b(24), 'final', 0, 0.985],
+  [b(22), 'galopeA', 1.25, 1.2], [b(22.5), 'correisaba', 1.25, 1.2], [b(23), 'caballo', 2.0, 1.2], [b(24), 'final', 0, 0.985],
 ];
 // los rótulos: [desde, hasta, imagen] (v6/rotulos.mjs)
 export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'explora'], [b(18) + 0.1, b(20) - 0.12, 'descubre'], [b(20) + 0.1, b(22) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];
