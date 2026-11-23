@@ -49,8 +49,12 @@ const EXTRA = () => {
   J.galope = () => {
     // (el juego busca un hueco libre de 1,6 m a un lado del jugador para dejar el caballo; en una calle estrecha no lo hay y
     // no lo crea: aquí se crea sin mirar, que enseguida se pone debajo del jugador)
-    const G = J.G, P = G.player, lib = G.libreEn; G.sinMontura = false; G.libreEn = () => true;
-    let M; try { M = G.creaMontura?.(); } finally { G.libreEn = lib; } if (!M?.A) throw new Error('sin montura');
+    // (en Otsagabia el caballo es del juego, G.creaMontura; en los demás pueblos es de la aventura, G.av.montura, y ya
+    // está junto a la entrada desde que se llega; si no lo hay, cambiaMontura lo crea)
+    const G = J.G, P = G.player; let M;
+    if (G.creaMontura) { const lib = G.libreEn; G.sinMontura = false; G.libreEn = () => true; try { M = G.creaMontura(); } finally { G.libreEn = lib; } }
+    else { M = G.av?.montura; if (!M) { G.cambiaMontura?.('burguete'); M = G.av?.montura; } }
+    if (!M?.A) throw new Error('sin montura');
     M.x = P.pos.x; M.z = P.pos.z; M.heading = P.heading; M.A.pos.set(P.pos.x, P.pos.y, P.pos.z); M.A.heading = P.heading; M.A.sync?.();
     M.sube(P); J.rt.follow.yaw = P.heading + Math.PI; J.rt.follow.snap?.(P); J.teclas(['w', 'shift']);
   };
@@ -114,7 +118,7 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a); } }),
+    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a, { s: 1.1 }); } }),  // (más a un lado: con 0,55 un poste del porche tapaba el borde derecho),
   kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
     prep: () => { const J = window.__j, a = J.G.npcs.kike; if (!a) throw new Error('sin kike'); J.limpia(); a.frozen = true; a.state = 'idle'; J.hacia(a, 2.4); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }); J.cara(a, { d: 1.9, y: 1.15, ly: 1.0 }); } }),
   // («el pastoreo, el carnaval, las leyendas»)
