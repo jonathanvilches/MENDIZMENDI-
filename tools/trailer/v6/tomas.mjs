@@ -267,8 +267,9 @@ export const TOMAS = {
   },
   // ---------- «Explora 38 pueblos»: pueblos desde el aire ----------
   olite: pueblo('olite', { a0: 0.05, a1: 0.11 }),
-  // (más alto y más lejos: a 30 m, con el pueblo en cuesta, el plano eran tejados de cerca y no se veía Isaba)
-  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61, r0: 80, r1: 72, y0: 48, y1: 44 }),
+  // (mucho más alto y lejos, fuera del pueblo: a 30 m y a 80 m de su centro el dron aún iba encima de las casas y el
+  // plano eran tejados de cerca; Isaba es grande y en cuesta)
+  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.6, r0: 150, r1: 135, y0: 80, y1: 72 }),
   puente: pueblo('puente-la-reina', { a0: 0.2, a1: 0.27, r0: 34, r1: 28, y0: 14, y1: 11 }),
   // ---------- debajo del logo: la isla del Pirineo ya arriba, con la cámara girando despacio ----------
   final: { url: '?skipintro=1&q=high', seg: 7.0, antes: 72, espera: 12000, limpio: true, listo: MAPA,
