@@ -300,28 +300,30 @@ export const TOMAS = {
 // el montaje: [segundo del tráiler, toma, desde qué segundo de la toma]; cada corte dura hasta el siguiente
 export const CORTES = [
   // [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]
+  // (cada trozo empieza lo bastante pronto para no quedarse sin imágenes al final: si no, la última se repetía y el plano
+  // se paraba justo antes del corte)
   // la intro (4 compases): la isla, el dron de Otsagabia y el explorador que echa a correr en el silencio de antes del golpe
-  [0, 'isla', 0.35], [b(-2), 'llegada', 0.15], [b(-1), 'correcalle', 0, 1.2],
+  [0, 'isla', 0.27], [b(-2), 'llegada', 0.15], [b(-1), 'correcalle', 0, 1.2],
   // el golpe: los momotxorros y el caballo
   [b(0), 'momo', 0], [b(1), 'caballo', 0, 1.2],
   // «Cada vecino te pide ayuda, y cada misión te enseña algo: el pastoreo, el carnaval, las leyendas»
-  [b(2), 'maite', 0], [b(3), 'correcalle', 2.4, 1.2], [b(3.5), 'kike', 0], [b(4), 'caballo2', 0, 1.2],
+  [b(2), 'maite', 0], [b(3), 'correcalle', 2.32, 1.2], [b(3.5), 'kike', 0], [b(4), 'caballo2', 0, 1.2],
   [b(4.5), 'pastoreo', 0], [b(5), 'carnaval', 0], [b(5.5), 'lamia', 0],
   // «¡Oooh! Una personita en mi bosque…», la almadía y la carrera por las Bardenas
   [b(6), 'basajaun', 0], [b(7), 'almadia', 0], [b(7.5), 'correbardenas', 0, 1.2],
   // «La naturaleza y la cultura, contadas jugando»
-  [b(8), 'bosque', 1.6], [b(8.5), 'correirati', 0, 1.2], [b(9), 'danza', 0],
-  // la pelota y «¡Eres un txapeldun, un campeón!»
-  [b(10), 'partido', 0], [b(11), 'partido', 2.4], [b(12), 'cere', 0], [b(13), 'cere', 2.0],
+  [b(8), 'bosque', 1.6], [b(8.5), 'correirati', 0, 1.1], [b(9), 'danza', 0],
+  // la pelota y «¡Eres un txapeldun, un campeón!» (el partido, desde que el pelotari echa a andar: antes está 0,7 s quieto)
+  [b(10), 'partido', 0.75], [b(11), 'partido', 2.7], [b(12), 'cere', 0], [b(13), 'cere', 2.0],
   [b(14), 'rio', 0], [b(14.5), 'correisaba', 0, 1.2], [b(15), 'isla2', 0],
   // EXPLORA 38 PUEBLOS
-  [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.3, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
+  [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.25, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
   // DESCUBRE SUS LEYENDAS (la cueva de Aralar se quitó: de día no se ve la sombra de Teodosio y de noche sale oscura)
-  [b(18), 'lamia', 1.2], [b(18.5), 'basajaun', 2.0], [b(19), 'momo', 2.05],
+  [b(18), 'lamia', 1.07], [b(18.5), 'basajaun', 1.92], [b(19), 'momo', 2.0],
   // VIVE SUS TRADICIONES
-  [b(20), 'carnaval', 1.2], [b(20.5), 'danza', 2.05], [b(21), 'almadia', 2.0], [b(21.5), 'partido', 4.6],
+  [b(20), 'carnaval', 1.07], [b(20.5), 'danza', 2.0], [b(21), 'almadia', 1.92], [b(21.5), 'partido', 4.6],
   // los últimos, a galope y corriendo, y el logo
-  [b(22), 'caballo2', 1.3, 1.2], [b(22.5), 'correisaba', 1.3, 1.2], [b(23), 'caballo', 2.0, 1.2], [b(24), 'final', 0],
+  [b(22), 'caballo2', 1.25, 1.2], [b(22.5), 'correisaba', 1.25, 1.2], [b(23), 'caballo', 2.0, 1.2], [b(24), 'final', 0, 0.985],
 ];
 // los rótulos: [desde, hasta, imagen] (v6/rotulos.mjs)
 export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'explora'], [b(18) + 0.1, b(20) - 0.12, 'descubre'], [b(20) + 0.1, b(22) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];

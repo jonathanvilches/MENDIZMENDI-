@@ -4803,4 +4803,8 @@ git push origin master:main
   madera y no se pueden esconder; la tabla sí); la fiesta de los momotxorros, con el rojo al 40 % (`G.tinte` y el velo se
   recalculan en cada vuelta, así que se rebajan dentro del propio dron); el dron de Isaba, fuera del pueblo (r 135, y 72);
   el caballo de los pueblos que no son Otsagabia es el de la aventura (`G.av.montura`, o `G.cambiaMontura('burguete')`), y
-  la grabadora acepta `FOTO_MS` para dar más margen a la primera imagen del mapa 3D a 1280 × 720.
+  la grabadora acepta `FOTO_MS` para dar más margen a la primera imagen del mapa 3D a 1280 × 720. En la grabación definitiva, los
+  dantzaris de Muskilda tenían un banco de la explanada entre las dos filas (el juego lo pone en el mismo sitio del baile):
+  va en los lotes comunes de madera y hierro, que sueltan su copia de los vértices al subirlos a la tarjeta, así que en la
+  toma se recorta con una caja de seis planos de corte en esos dos materiales. En el montaje, cada trozo empieza lo bastante
+  pronto para no quedarse sin imágenes antes del corte, y el partido entra cuando el pelotari ya se mueve.
