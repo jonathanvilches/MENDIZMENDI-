@@ -4808,3 +4808,16 @@ git push origin master:main
   va en los lotes comunes de madera y hierro, que sueltan su copia de los vértices al subirlos a la tarjeta, así que en la
   toma se recorta con una caja de seis planos de corte en esos dos materiales. En el montaje, cada trozo empieza lo bastante
   pronto para no quedarse sin imágenes antes del corte, y el partido entra cuando el pelotari ya se mueve.
+  Tercera vuelta, v7 (el autor: «falta toda la parte de oficios y mujeres y personajes y leyendas»): la misma mezcla y tres
+  fábricas de tomas en `v6/tomas.mjs`. `oficio(pueblo, {kind, puesto, act, fx})` rueda un taller (`makeTaller`): el
+  maestro en su puesto haciendo su gesto (`rig.doAct`) con chispas, brasas o harina en el foco, el fuego encendido y la
+  cámara entrando del plano del taller al del puesto (herrero de Lesaka, panadera de Artajona, tonelero de Viana).
+  `vecina(pueblo, misión, frase)` es la cara de quien da una misión (Felisa en Roncal, Nerea en Lesaka, Arantxa la quesera
+  de Isaba); varias vecinas comparten modelo (Itziar, Felisa y Graxi; Nerea y Maddi), así que sale una de cada.
+  `criatura(pueblo, ser)` hace aparecer una leyenda de día (`G.showCreature`) en su cueva o en el claro con más hueco a
+  menos de 170 m (el bosque de las misiones queda a 260 m o más y allí el juego no dibuja), con la cámara del lado más
+  despejado y la criatura de cara (la sorgina de Zugarramurdi, Roldán junto a la cruz de Roncesvalles). Para que no empiece
+  la persecución se anula solo el temporizador de 3,4 s: con todos anulados, la compilación de sus sombreadores
+  (`compilarAsync`, que espera con temporizadores) no acababa, `rt.holds` no bajaba y el juego dejaba de dibujar. Las caras
+  de «Cada vecino te pide ayuda» van a un cuarto de compás. La exploradora no sale: sigue apagada en el juego (`solo:
+  false` en `cast.js`) hasta que tenga todas sus animaciones.
