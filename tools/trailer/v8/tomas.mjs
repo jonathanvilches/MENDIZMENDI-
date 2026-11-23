@@ -29,7 +29,10 @@ const detras = (town, o = {}) => ({
     const J = window.__j, L = window.__layout?.PLACES || {}; J.limpia();
     const C = ${o.hacia || 'L.plaza'};
     J.corre(C, ${o.lejos ?? 36}, { solo: true, snap: true, margen: ${o.margen ?? 8} });
-    J.pegada((t) => ({ f: -(${o.f ?? 3.4}) + t * 0.3, s: ${o.s0 ?? 1.4} - t * ${o.sv ?? 1.1}, y: ${o.y ?? 1.3}, lf: 7, ly: ${o.ly ?? 1.55} }));
+    // la cámara clavada a la espalda, la misma en todos los pueblos: al cortar de uno a otro el explorador no se mueve
+    // de su sitio en la pantalla y lo que cambia es el pueblo a su alrededor (el autor: «el personaje corriendo y va
+    // cambiando el pueblo a la vez que corre»)
+    J.pegada(() => ({ f: -(${o.f ?? 3.3}), s: ${o.s ?? 0.75}, y: ${o.y ?? 1.35}, lf: 7, ly: ${o.ly ?? 1.5} }));
   }`),
 });
 
@@ -189,7 +192,8 @@ export const TOMAS = {
   almadia: F24(T6.almadia), panadera: F24(T6.panadera), maite: F24(T6.maite), nerea: F24(T6.nerea), arantxa: F24(T6.arantxa),
   felisa: F24(T6.felisa),
   // ---------- el explorador corriendo, por detrás, en sitios distintos ----------
-  dOts: detras('otsagabia-ochagavia', { hora: 11 }),
+  dOts: detras('otsagabia-ochagavia', { hora: 11 }), dEstella: detras('estella'), dElizondo: detras('elizondo'),
+  dRoncal: detras('erronkari-roncal'), dTudela: detras('tudela'), dViana: detras('viana'), dArtajona: detras('artajona'),
   dOlite: detras('olite'),
   dPuente: detras('puente-la-reina', { hora: 11 }),
   dPamplona: detras('pamplona', { hora: 12 }),
@@ -236,35 +240,34 @@ export const TOMAS = {
 // el montaje: [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]; cada corte dura hasta
 // el siguiente. Las frases de Salva y las voces caen donde en el v6 (v6/mezcla-v6.py), y debajo de cada frase lo que dice
 export const CORTES = [
-  // la intro (4 compases): la isla, el dron de Otsagabia y el explorador que echa a correr, de espaldas, antes del golpe
-  [0, 'isla', 0.27], [b(-2), 'llegada', 0.15], [b(-1), 'dOts', 0],
-  // el golpe: el explorador corriendo, visto por detrás, por cuatro sitios distintos
-  [b(0), 'dOlite', 0, 1.15], [b(0.5), 'dPamplona', 0, 1.15], [b(1), 'dBardenas', 0, 1.15], [b(1.5), 'dLesaka', 0, 1.15],
-  // «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite, la
-  // bodeguera de Viana, la amona Felisa que hila, Nerea la guarda del río) y la panadera en su horno. Arantxa no: hoy el
+  // ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: la isla sube, el explorador llega a Otsagabia y echa a
+  // correr, visto por detrás
+  [0, 'isla', 0.27], [b(-2), 'llegada', 0.15], [b(-1), 'dOts', 0.1],
+  // el golpe: sigue corriendo y el pueblo cambia a su alrededor (la cámara, clavada a su espalda en todas las carreras)
+  [b(0), 'dPamplona', 0.1], [b(0.5), 'dBardenas', 0.1], [b(1), 'dLesaka', 0.1], [b(1.5), 'dElizondo', 0.1],
+  // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite,
+  // la bodeguera de Viana, la amona Felisa que hila, Nerea la guarda del río) y la panadera en su horno. Arantxa no: hoy el
   // juego la viste con el mismo modelo que a Maite (pañuelo blanco y delantal marrón) y saldrían dos mujeres iguales
-  [b(2), 'rMaite', 0.1], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1],
-  [b(4), 'panadera', 0.3],
-  // «el pastoreo, el carnaval, las leyendas»
-  [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0],
-  // «¡Oooh! Una personita en mi bosque…»
-  [b(6), 'basajaun', 0], [b(7.5), 'rio', 0],
-  // «La naturaleza y la cultura, contadas jugando»
-  [b(8), 'bosque', 1.6], [b(8.5), 'almadia', 0], [b(9), 'dIrati', 0, 1.15], [b(9.5), 'dIsaba', 0, 1.15],
-  // en tractor, en bici, en burro y a caballo; la cosechadora en el trigo y el tractor en el pimiento
-  [b(10), 'tractor', 0], [b(10.5), 'bici', 0], [b(11), 'burro', 0], [b(11.5), 'galope', 0],
-  [b(12), 'cosechadora', 0], [b(12.5), 'piquillo', 0], [b(13), 'dPuente', 0.6, 1.15], [b(13.5), 'dOts', 0.85, 1.15],
-  [b(14), 'dBardenas', 0.85, 1.15], [b(14.5), 'dLesaka', 0.85, 1.15], [b(15), 'isla2', 0],
-  // EXPLORA 38 PUEBLOS
-  [b(16), 'olite', 0], [b(16.5), 'dPamplona', 0.85, 1.15], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
-  // COSECHA SUS CAMPOS
-  [b(18), 'cosechadora', 1.0], [b(18.5), 'tractor', 1.0], [b(19), 'piquillo', 1.0], [b(19.5), 'lamVino', 0],
-  // SABOREA SU TIERRA: el queso, la txistorra y el piquillo, en el mercado y en sus láminas de cómo se hacen
-  [b(20), 'mercQueso', 0], [b(20.5), 'lamQueso', 0], [b(21), 'mercTxistorra', 0], [b(21.5), 'lamTxistorra', 0],
-  // VIVE SUS TRADICIONES
-  [b(22), 'momo', 2.0], [b(22.5), 'almadia', 1.2], [b(23), 'galope', 1.0], [b(23.5), 'bici', 1.0],
+  [b(2), 'rMaite', 0.1], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1], [b(4), 'panadera', 0.3],
+  // «el pastoreo, el carnaval, las leyendas»; «¡Oooh! Una personita en mi bosque…»
+  [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0], [b(6), 'basajaun', 0], [b(7.5), 'rio', 0],
+  // «La naturaleza y la cultura, contadas jugando»: la grúa sobre el bosque y otra vez a correr, por Irati y por el Roncal
+  [b(8), 'bosque', 0.6], [b(9), 'dIrati', 0.1], [b(9.5), 'dRoncal', 0.1],
+  // llega corriendo a cada sitio y se ve el sitio: Isaba, el puente de Puente la Reina, el castillo de Olite
+  [b(10), 'dIsaba', 0.1], [b(10.5), 'isaba', 0], [b(11), 'dPuente', 0.1], [b(11.5), 'puente', 0], [b(12), 'dOlite', 0.1],
+  [b(12.5), 'olite', 0],
+  // en bici, en burro y en tractor; el dron sobre la isla, para respirar antes de la última parte
+  [b(13), 'bici', 0], [b(13.5), 'burro', 0], [b(14), 'tractor', 0], [b(15), 'isla2', 0],
+  // ACTO 3 · COSECHA SUS CAMPOS: la cosechadora en el trigo y el tractor en el pimiento
+  [b(16), 'cosechadora', 0], [b(17), 'piquillo', 0],
+  // SABOREA SU TIERRA: los puestos del mercado (queso, txistorra, miel, huerta)
+  [b(18), 'mercQueso', 0], [b(18.5), 'mercTxistorra', 0], [b(19), 'mercMiel', 0], [b(19.5), 'mercHuerta', 0],
+  // EXPLORA 38 PUEBLOS: la carrera otra vez, por cuatro pueblos más
+  [b(20), 'dEstella', 0.1], [b(20.5), 'dTudela', 0.1], [b(21), 'dViana', 0.1], [b(21.5), 'dArtajona', 0.1],
+  // VIVE SUS TRADICIONES: la almadía río abajo y el galope, hasta el logo
+  [b(22), 'almadia', 0], [b(23), 'galope', 0],
   // el logo
   [b(24), 'final', 0, 0.985],
 ];
 // los rótulos: [desde, hasta, imagen] (v8/rotulos.mjs)
-export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'explora'], [b(18) + 0.1, b(20) - 0.12, 'cosecha'], [b(20) + 0.1, b(22) - 0.12, 'saborea'], [b(22) + 0.1, b(24) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];
+export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'cosecha'], [b(18) + 0.1, b(20) - 0.12, 'saborea'], [b(20) + 0.1, b(22) - 0.12, 'explora'], [b(22) + 0.1, b(24) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];

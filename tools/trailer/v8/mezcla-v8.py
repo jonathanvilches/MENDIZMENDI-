@@ -174,17 +174,24 @@ fin = lambda i: CORTES[i + 1][0] if i + 1 < len(CORTES) else DUR
 MERCADO = ('ambiente-pueblo.mp3', 0.0, 0.3)
 SUENA = {'burro': ('burro.mp3', 0.3, 0.25), 'galope': ('caballo-galope.mp3', 0.0, 0.3), 'pastoreo': ('cencerro-2.mp3', 0.0, 0.25),
          'mercQueso': MERCADO, 'mercTxistorra': MERCADO, 'mercMiel': MERCADO, 'mercHuerta': MERCADO}
+# (los cortes seguidos con el mismo sonido, como los cuatro puestos del mercado, van con uno solo de punta a punta, sin
+# volver a empezar en cada corte)
+tramos = []
 for i, c in enumerate(CORTES):
     if c[1] not in SUENA:
         continue
-    son, de, g = SUENA[c[1]]
+    if tramos and tramos[-1][2] == SUENA[c[1]] and abs(tramos[-1][1] - c[0]) < 1e-6:
+        tramos[-1][1] = fin(i)
+    else:
+        tramos.append([c[0], fin(i), SUENA[c[1]]])
+for t0, t1, (son, de, g) in tramos:
     x = lee(SON + son)[S(de):]
-    d = min(len(x), S(fin(i) - c[0]))
+    d = min(len(x), S(t1 - t0))
     x = x[:d].copy()
     f = min(S(0.06), d // 3)
     x[:f] *= rampa(f, 0, 1)
     x[-f:] *= rampa(f, 1, 0)
-    pon(efectos, x, c[0], g)
+    pon(efectos, x, t0, g)
 
 # ---------- todo junto: a un volumen de tráiler y sin pasar de -1 dB ----------
 # (el cuerpo, del golpe al logo, a un volumen medio fijo; los picos, los golpes graves, se redondean con una rodilla suave

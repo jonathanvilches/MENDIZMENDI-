@@ -4843,4 +4843,15 @@ git push origin master:main
   matas de piquillo, alcachofa y viña son bloques toscos de cerca), la pelota y el «txapeldun», los dantzaris, la
   sorgina, Roldán, el herrero y el tonelero (niños) y la exploradora. Rótulos: «Explora 38 pueblos», «Cosecha sus
   campos», «Saborea su tierra», «Vive sus tradiciones» (`v8/rotulos.mjs`); mezcla en `v8/mezcla-v8.py`, con el burro,
-  el galope, los cencerros y el bullicio del mercado en el segundo en que `CORTES` pone su toma.
+  el galope, los cencerros y el bullicio del mercado en el segundo en que `CORTES` pone su toma (uno solo de punta a
+  punta cuando varios cortes seguidos llevan el mismo sonido).
+  Segunda pasada del v8 (el autor: fuera las láminas, solo escenas del juego; ningún plano repetido; que cuente una
+  historia y sea más cinematográfico, como el tráiler general de Ocarina of Time; el personaje corriendo y el pueblo
+  cambiando a la vez). `detras` lleva ahora la cámara clavada a la espalda, la misma en todos los pueblos (antes pasaba de
+  un lado al otro y el explorador saltaba de sitio en cada corte): al cortar, él sigue en su sitio de la pantalla y lo
+  que cambia es el pueblo. Carreras en 13 sitios (más Estella, Elizondo, Roncal, Tudela, Viana y Artajona). `CORTES`, en
+  tres actos y con 43 tomas sin repetir ninguna: la isla, la llegada a Otsagabia y la primera carrera (Pamplona,
+  Bardenas, Lesaka, Elizondo); las vecinas, las leyendas, el bosque, y el explorador que llega corriendo a Isaba, a Puente
+  la Reina y a Olite y se ve cada sitio; la bici, el burro, el tractor y el dron de la isla; y, con sus rótulos, la
+  cosecha, el mercado, otra carrera por cuatro pueblos más, la almadía y el galope hasta el logo. Las láminas siguen en
+  `v8/tomas.mjs`, pero ya no entran en el montaje.
