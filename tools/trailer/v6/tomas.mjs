@@ -66,11 +66,9 @@ export const TOMAS = {
     guion: [[0, (p) => p.evaluate(() => window.__mapa3d.comarca('pirineo'))]] },
   // ---------- Otsagabia: el dron que sube desde la calle mientras el explorador corre hacia la plaza ----------
   llegada: de5('llegada', { seg: 2.2 }),
-  // ---------- la sombra de Teodosio en la cueva de Aralar, de día (los planos de noche o con niebla salían oscuros) ----------
-  leyenda: de5('leyenda', { seg: 3.2, url: '?town=sierra-aralar&q=high&skipintro=1&weather=clear&t=13.5' }),
   // ---------- el golpe de la música: la manada de momotxorros en la plaza de Altsasu, rojos y echando chispas ----------
   momo: {
-    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=18.2', seg: 3.2, antes: 84, limpio: true,
+    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=18.2', seg: 4.0, antes: 84, limpio: true,
     prep: () => {
       const J = window.__j, G = J.G, P = G.player; J.limpia(); const PL = window.__layout.PLACES.plaza;
       P.place(PL.x + 3, PL.z + 3, 0); P.obj.visible = true; J.teclas([]);
@@ -234,8 +232,8 @@ export const CORTES = [
   [b(14), 'rio', 0], [b(14.5), 'correisaba', 0, 1.2], [b(15), 'isla2', 0],
   // EXPLORA 38 PUEBLOS
   [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.3, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
-  // DESCUBRE SUS LEYENDAS
-  [b(18), 'lamia', 1.2], [b(18.5), 'basajaun', 2.0], [b(19), 'leyenda', 0.8], [b(19.5), 'momo', 2.15],
+  // DESCUBRE SUS LEYENDAS (la cueva de Aralar se quitó: de día no se ve la sombra de Teodosio y de noche sale oscura)
+  [b(18), 'lamia', 1.2], [b(18.5), 'basajaun', 2.0], [b(19), 'momo', 2.05],
   // VIVE SUS TRADICIONES
   [b(20), 'carnaval', 1.2], [b(20.5), 'danza', 2.05], [b(21), 'almadia', 2.0], [b(21.5), 'partido', 4.6],
   // los últimos, a galope y corriendo, y el logo
