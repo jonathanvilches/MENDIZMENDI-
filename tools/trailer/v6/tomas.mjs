@@ -123,9 +123,14 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    // (la cámara, del lado del frontón, que así queda detrás de ella: Maite se mueve por la plaza y, desde otros lados, el
-    // canto oscuro del frontón y su rótulo «Otsagabia / Ochagavía» se metían en el plano)
-    prep: () => { const J = window.__j, a = J.G.npcs.maite, F = J.G.fronton?.spot; J.limpia(); J.hacia(a, 2.6, F ? { h: Math.atan2(F.x - a.pos.x, F.z - a.pos.z) } : {}); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a); } }),
+    // (la cámara, del lado del cartel «OTSAGABIA / Ochagavía» que hay junto al crucero, que así queda detrás de ella:
+    // Maite se mueve por la plaza y, desde otros lados, sus postes y su tabla oscura se metían en el plano)
+    prep: () => {
+      const J = window.__j, a = J.G.npcs.maite, d = (o) => Math.hypot(o.position.x - a.pos.x, o.position.z - a.pos.z);
+      const S = J.G.scene.children.filter(c => c.isGroup && c.children.length === 3 && c.children[1]?.material?.map?.isCanvasTexture).sort((p, q) => d(p) - d(q))[0];
+      J.limpia(); J.hacia(a, 2.6, S ? { h: Math.atan2(S.position.x - a.pos.x, S.position.z - a.pos.z) } : {});
+      J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a);
+    } }),
   kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
     prep: () => { const J = window.__j, a = J.G.npcs.kike; if (!a) throw new Error('sin kike'); J.limpia(); a.frozen = true; a.state = 'idle'; J.hacia(a, 2.4); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }); J.cara(a, { d: 1.9, y: 1.15, ly: 1.0 }); } }),
   // («el pastoreo, el carnaval, las leyendas»)
