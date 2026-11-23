@@ -97,7 +97,7 @@ const cosechadora = (town, o = {}) => ({
     const [uc, vs] = Object.entries(cols).sort((p, q) => q[1].length - p[1].length)[0], p0 = C.enCampo(+uc * 4.6, Math.min(...vs) - ${o.antesDe ?? 6});
     const V = C.cos; V.x = p0.x; V.z = p0.z; V.heading = Math.atan2(-sa, ca); V.place(0);
     P.place(V.x, V.z, V.heading); V.sube(P); J.teclas(['w']);
-    (${sigue(o.cam || { f0: 3, fv: -1.2, s0: 12, sv: -1.4, y: 4.4, lf: 0, ly: 1.6 })})(V);
+    (${sigue(o.cam || { f0: 7, fv: -2.5, s0: 12, sv: -1.5, y: 8.5, lf: 1, ly: 1.2 })})(V);
   }`),
 });
 
