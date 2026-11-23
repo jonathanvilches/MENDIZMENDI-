@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
+import { IslotesHF, ISLOTES_HF } from './islotesHF.js';
 import { islaAmpliada } from './mapa3dAmplia.js';
 import { hazNubes } from './mapa3dNubes.js';
 import { VIDEOS_ISLA } from '../data/videos-isla.js';
@@ -325,7 +326,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (c.isla) return c.isla;
     const A = losaDe(c);
     return (c.isla = hazIsla({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
-      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }), c.amp?.olvida?.(), c.isla);
+      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }), c.amp?.olvida?.(),
+      // (y los islotes de Higgsfield que flotan alrededor, de momento solo en el Pirineo: islotesHF.js)
+      ISLOTES_HF[c.id] && !c.islotes && (c.islotes = new IslotesHF(scene)), c.isla);
   };
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
@@ -2223,6 +2226,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
           if (MOV_REDUCIDO) volar({ x: alta.x, z: alta.z, d: alta.d, pitch: alta.pitch, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
       if (c.isla) { let hund = 0; if ((c.isla.k || 0) > 0.004) for (const o of C) if (o !== c) hund = Math.max(hund, 0.35 * o.fondo);   // (lo que se hunden las vecinas de fondo: la boca del hueco baja con ellas)
         c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam, hund);
+        c.islotes?.update(c.isla, c.py + c.isla.base * c.sy, Math.min(1, c.isla.k || 0), t);
         c.mesh.material[1].visible = (c.isla.k || 0) < 0.02;
         // (y sin las cintas de la muga y del contorno, que subían con la losa y dibujaban una raya clara a trozos sobre el labio)
         if (c.cintas) { const ve = (c.isla.k || 0) < 0.3; if (c.cintas[0].visible !== ve) for (const me of c.cintas) me.visible = ve; } }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
