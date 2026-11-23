@@ -431,11 +431,11 @@ export const CORTES = [
   [b(8), 'bosque', 1.6], [b(8.5), 'almadia', 0], [b(9), 'danza', 0], [b(9.5), 'tonelero', 0.3],
   // la pelota y «¡Eres un txapeldun, un campeón!» (el partido, desde que el pelotari echa a andar: antes está 0,7 s quieto)
   [b(10), 'partido', 0.75], [b(11), 'partido', 2.7], [b(12), 'cere', 0], [b(13), 'cere', 2.0],
-  [b(14), 'rio', 0], [b(14.5), 'correA', 1.3, 1.2], [b(15), 'isla2', 0],
+  [b(14), 'rio', 0], [b(14.5), 'correA', 1.24, 1.2], [b(15), 'isla2', 0],
   // EXPLORA 38 PUEBLOS
   [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.25, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
   // DESCUBRE SUS LEYENDAS (la cueva de Aralar se quitó: de día no se ve la sombra de Teodosio y de noche sale oscura)
-  [b(18), 'sorgina', 1.2], [b(18.5), 'lamia', 1.07], [b(19), 'roldan', 1.2], [b(19.5), 'basajaun', 1.92],
+  [b(18), 'sorgina', 1.05], [b(18.5), 'lamia', 1.07], [b(19), 'roldan', 1.05], [b(19.5), 'basajaun', 1.92],
   // VIVE SUS TRADICIONES: la fiesta, los oficios y la danza
   [b(20), 'momo', 2.0], [b(20.5), 'herrero', 1.2], [b(20.75), 'carnaval', 1.07], [b(21), 'danza', 2.0],
   [b(21.5), 'panadera', 1.2], [b(21.75), 'tonelero', 1.2],
