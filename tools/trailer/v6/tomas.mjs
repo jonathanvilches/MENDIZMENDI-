@@ -2,6 +2,9 @@
 // más ritmo». Así que: 60 s, la voz de Salva, cortes de un compás (1,89 s) o de medio (0,95 s) al golpe de la música épica
 // del juego, nada de interfaz (sin botones, cuadros de diálogo ni menús: T.limpio en v5/juego.mjs) y los planos más
 // vistosos, muchos con la cámara en movimiento (un dron que vuela, gira o acompaña). Encima, tres frases cortas y el logo.
+// Y luego (23 nov): «hay muchos fallos de iluminación, de contraste, de legibilidad, falta de ritmo, imágenes del juego
+// corriendo, andando en caballo, pero mucho más ágil»: todo a horas con buena luz (nada de noche, niebla ni atardecer), más
+// carreras y galopes con la cámara al lado, delante o detrás del explorador, y esos trozos un poco acelerados (CORTES, vel).
 // Se ruedan con la grabadora del v5: TOMAS=tools/trailer/v6/tomas.mjs node tools/trailer/v5/juego.mjs <toma[,toma…]> <carpeta>
 // CORTES dice qué trozo de qué toma va en cada segundo del tráiler (v6/montaje.mjs); la música y las voces, v6/mezcla-v6.py.
 import { AYUDA as AYUDA5, TOMAS as T5 } from '../v5/tomas.mjs';
@@ -20,6 +23,19 @@ const EXTRA = () => {
     const y = Math.max(J.suelo(x, z) + 2.5, y0 + o.y0 + (o.y1 - o.y0) * k);
     return { pos: [x, y, z], look: [C.x, y0 + (o.mira ?? 2), C.z] };
   });
+  // una cámara que acompaña al jugador (corriendo o a caballo): o(t) => { f, s, y, lf, ly }: delante (f), al lado (s) y
+  // arriba (y) de él según hacia dónde va, mirando a un punto lf metros por delante y ly de alto
+  J.pegada = (o) => J.dron((t) => {
+    const P = J.G.player, h = P.heading, fx = Math.sin(h), fz = Math.cos(h), sx = fz, sz = -fx, q = o(t), y = P.pos.y;
+    const x = P.pos.x + fx * q.f + sx * q.s, z = P.pos.z + fz * q.f + sz * q.s;
+    return { pos: [x, Math.max(J.suelo(x, z) + 0.45, y + q.y), z], look: [P.pos.x + fx * (q.lf || 0), y + (q.ly ?? 1.2), P.pos.z + fz * (q.lf || 0)] };
+  });
+  // a caballo: el caballo debajo del jugador, ya en su sitio y a galope
+  J.galope = () => {
+    const G = J.G, P = G.player, M = G.creaMontura?.(); if (!M?.A) throw new Error('sin montura');
+    M.x = P.pos.x; M.z = P.pos.z; M.heading = P.heading; M.A.pos.set(P.pos.x, P.pos.y, P.pos.z); M.A.heading = P.heading; M.A.sync?.();
+    M.sube(P); J.rt.follow.yaw = P.heading + Math.PI; J.rt.follow.snap?.(P); J.teclas(['w', 'shift']);
+  };
   // (el centro de un pueblo para el dron: su puente famoso, su palacio o castillo, o la plaza)
   J.centro = () => {
     const L = window.__layout, T = window.__townB?.TOWN || {}, f = L?.MOD?.real?.puentes?.find(p => p.famoso)?.famoso;
@@ -47,11 +63,11 @@ export const TOMAS = {
     guion: [[0, (p) => p.evaluate(() => window.__mapa3d.comarca('pirineo'))]] },
   // ---------- Otsagabia: el dron que sube desde la calle mientras el explorador corre hacia la plaza ----------
   llegada: de5('llegada', { seg: 2.2 }),
-  // ---------- la sombra de Teodosio en la cueva de Aralar, con niebla («…guarda una historia») ----------
-  leyenda: de5('leyenda', { seg: 3.2 }),
+  // ---------- la sombra de Teodosio en la cueva de Aralar, de día (los planos de noche o con niebla salían oscuros) ----------
+  leyenda: de5('leyenda', { seg: 3.2, url: '?town=sierra-aralar&q=high&skipintro=1&weather=clear&t=13.5' }),
   // ---------- el golpe de la música: la manada de momotxorros en la plaza de Altsasu, rojos y echando chispas ----------
   momo: {
-    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=20.2', seg: 3.2, antes: 84, limpio: true,
+    url: '?town=altsasu-alsasua&q=high&skipintro=1&weather=clear&t=18.2', seg: 3.2, antes: 84, limpio: true,
     prep: () => {
       const J = window.__j, G = J.G, P = G.player; J.limpia(); const PL = window.__layout.PLACES.plaza;
       P.place(PL.x + 3, PL.z + 3, 0); P.obj.visible = true; J.teclas([]);
@@ -66,12 +82,9 @@ export const TOMAS = {
   },
   // ---------- a caballo, a galope por el prado: de lado, acompañándole, y luego de frente, desde abajo ----------
   caballo: {
-    url: `?${OT}&weather=clear&t=17.4`, seg: 4.0, antes: 20, limpio: true,
+    url: `?${OT}&weather=clear&t=15.6`, seg: 4.4, antes: 20, limpio: true,
     prep: () => {
-      const J = window.__j, G = J.G, P = G.player; J.limpia(); J.corre(null, 45); J.teclas([]);
-      const M = G.creaMontura?.(); if (!M?.A) throw new Error('sin montura');
-      M.x = P.pos.x; M.z = P.pos.z; M.heading = P.heading; M.A.pos.set(P.pos.x, P.pos.y, P.pos.z); M.A.heading = P.heading; M.A.sync?.();
-      M.sube(P); J.rt.follow.yaw = P.heading + Math.PI; J.rt.follow.snap?.(P); J.teclas(['w', 'shift']);
+      const J = window.__j, P = J.G.player; J.limpia(); J.corre(null, 55); J.teclas([]); J.galope();
       J.dron((t) => {
         const h = P.heading, fx = Math.sin(h), fz = Math.cos(h), sx = fz, sz = -fx, y = P.pos.y;
         if (t < 2) return { pos: [P.pos.x + sx * 6.5 + fx * (0.5 - t * 0.6), y + 1.9, P.pos.z + sz * 6.5 + fz * (0.5 - t * 0.6)], look: [P.pos.x + fx * 1.5, y + 1.5, P.pos.z + fz * 1.5] };
@@ -81,12 +94,11 @@ export const TOMAS = {
     },
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
-  maite: de5('maite', { seg: 2.0, antes: 30,
+  maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
     prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); } }),
-  kike: de5('kike', { seg: 2.0 }),
-  joxemari: de5('joxemari', { seg: 1.05 }),
+  kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4` }),
   // («el pastoreo, el carnaval, las leyendas»)
-  pastoreo: de5('pastoreo', { seg: 1.05 }),
+  pastoreo: de5('pastoreo', { seg: 1.05, url: `?${OT}&weather=clear&t=10.8` }),
   // (los joaldunak de Ituren, de frente y desde abajo, con la cámara que va hacia atrás delante de la comparsa)
   carnaval: de5('carnaval', { seg: 2.2,
     prep: () => {
@@ -100,15 +112,15 @@ export const TOMAS = {
       });
     } }),
   // (la lamia peinándose junto a la poza: el dron se le acerca despacio)
-  lamia: de5('lamia', { seg: 2.2, antes: 30,
+  lamia: de5('lamia', { seg: 2.2, antes: 30, url: `?${OT}&weather=clear&t=12.6`,
     prep: () => {
       const J = window.__j, a = J.G.npcs.lamia; if (!a) throw new Error('sin lamia'); J.limpia(); J.hacia(a, 7); J.teclas([]);
       const P = J.G.player, dx = P.pos.x - a.pos.x, dz = P.pos.z - a.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L;
       P.obj.visible = false;
       J.dron((t) => { const y = J.suelo(a.pos.x, a.pos.z), d = 5.2 - t * 0.7, s = 0.25 + t * 0.12; return { pos: [a.pos.x + (ux * Math.cos(s) - uz * Math.sin(s)) * d, y + 1.7, a.pos.z + (uz * Math.cos(s) + ux * Math.sin(s)) * d], look: [a.pos.x, y + 1.25, a.pos.z] }; });
     } }),
-  // (el Basajaun en el bosque con niebla, enorme, desde abajo, girando a su alrededor)
-  basajaun: de5('basajaun', { seg: 3.0, antes: 30,
+  // (el Basajaun en el bosque, enorme, desde abajo, girando a su alrededor)
+  basajaun: de5('basajaun', { seg: 3.0, antes: 30, url: `?${OT}&weather=clear&t=13.2`,
     prep: () => {
       const J = window.__j, a = J.G.npcs.basajaun; if (!a) throw new Error('sin basajaun'); J.limpia(); J.hacia(a, 6); J.teclas([]);
       J.G.player.obj.visible = false;
@@ -135,7 +147,6 @@ export const TOMAS = {
   },
   // ---------- «La naturaleza y la cultura, contadas jugando» ----------
   bosque: de5('bosque', { seg: 2.65 }),
-  irati: de5('irati', { seg: 1.05 }),
   danza: de5('danza', { seg: 3.05 }),
   // ---------- la pelota: un partido en el Labrit y la txapela ----------
   partido: de5('partido', { seg: 6.0 }),
@@ -159,13 +170,42 @@ export const TOMAS = {
   rio: pueblo('otsagabia-ochagavia', { seg: 2.0, hora: 10.6, a0: 0.62, a1: 0.7, r0: 58, r1: 48, y0: 34, y1: 28 }),
   isla2: { url: '?skipintro=1&q=high', seg: 2.2, antes: 4, espera: 12000, limpio: true, listo: MAPA,
     guion: [[0, (p) => p.evaluate(() => window.__mapa3d.comarca('bidasoa'))]] },
-  // ---------- «Explora 38 pueblos»: cuatro pueblos desde el aire ----------
+  // ---------- el explorador corriendo y a caballo, con la cámara pegada ----------
+  // (Otsagabia: corre por la calle hacia la plaza; de frente y desde abajo y, en el segundo trozo, de lado)
+  correcalle: {
+    url: `?${OT}&weather=clear&t=11`, seg: 3.6, antes: 24, limpio: true,
+    prep: () => {
+      const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.plaza, 40, { solo: true, snap: true, margen: 4 });
+      J.pegada((t) => t < 2.3 ? { f: 4.6, s: 0.9, y: 0.75, lf: 0, ly: 1.15 } : { f: 0.6, s: 4.2, y: 1.2, lf: 1.2, ly: 1.1 });
+    },
+  },
+  // (Isaba, con el Pirineo detrás: de lado, un poco por detrás)
+  correisaba: {
+    url: '?town=isaba-izaba&q=high&skipintro=1&weather=clear&t=11.4', seg: 2.5, antes: 24, limpio: true,
+    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 40, { solo: true, snap: true }); J.pegada((t) => ({ f: -1.2 + t * 0.5, s: -4.6, y: 1.4, lf: 2, ly: 1.3 })); },
+  },
+  // (la selva de Irati: detrás y abajo, con los troncos pasando)
+  correirati: {
+    url: '?town=selva-irati&q=high&skipintro=1&weather=clear&t=12.2', seg: 1.2, antes: 24, limpio: true,
+    prep: () => { const J = window.__j; J.limpia(); J.corre(window.__layout.PLACES.forest, 28, { snap: true }); J.pegada(() => ({ f: -3.4, s: 0.7, y: 1.0, lf: 6, ly: 1.3 })); },
+  },
+  // (las Bardenas: de lado y de lejos, el explorador pequeño en el desierto)
+  correbardenas: {
+    url: '?town=bardenas-reales&q=high&skipintro=1&weather=clear&t=11.8', seg: 2.5, antes: 24, limpio: true,
+    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 45, { snap: true }); J.pegada((t) => ({ f: 1.5 - t * 0.6, s: 8.5, y: 2.4, lf: 1, ly: 1.0 })); },
+  },
+  // (a caballo por el prado de Isaba: de frente y desde abajo; en el segundo trozo, desde detrás y arriba)
+  caballo2: {
+    url: '?town=isaba-izaba&q=high&skipintro=1&weather=clear&t=12', seg: 2.5, antes: 20, limpio: true,
+    prep: () => {
+      const J = window.__j; J.limpia(); J.corre(null, 55); J.teclas([]); J.galope();
+      J.pegada((t) => t < 1.25 ? { f: 7.2 - t * 0.8, s: 1.8, y: 0.8, lf: 0, ly: 1.9 } : { f: -6, s: -1.5, y: 3.2, lf: 8, ly: 1.2 });
+    },
+  },
+  // ---------- «Explora 38 pueblos»: pueblos desde el aire ----------
   olite: pueblo('olite', { a0: 0.05, a1: 0.11 }),
-  bardenas: pueblo('bardenas-reales', { hora: 17.6, a0: 0.3, a1: 0.36, r0: 60, r1: 52, y0: 30, y1: 26 }),
   isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61 }),
   puente: pueblo('puente-la-reina', { a0: 0.2, a1: 0.27, r0: 34, r1: 28, y0: 14, y1: 11 }),
-  // ---------- el último plano antes del logo: Otsagabia al atardecer ----------
-  atardecer: pueblo('otsagabia-ochagavia', { seg: 2.0, hora: 19.3, a0: 0.15, a1: 0.24, r0: 40, r1: 30, y0: 16, y1: 22 }),
   // ---------- debajo del logo: la isla del Pirineo ya arriba, con la cámara girando despacio ----------
   final: { url: '?skipintro=1&q=high', seg: 7.0, antes: 72, espera: 12000, limpio: true, listo: MAPA,
     prep: () => { window.__mapa3d.comarca('pirineo'); } },
@@ -173,27 +213,29 @@ export const TOMAS = {
 
 // el montaje: [segundo del tráiler, toma, desde qué segundo de la toma]; cada corte dura hasta el siguiente
 export const CORTES = [
-  // la intro (4 compases): la isla, el dron de Otsagabia y la leyenda en el silencio de antes del golpe
-  [0, 'isla', 0.35], [b(-2), 'llegada', 0.15], [b(-1), 'leyenda', 0],
+  // [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]
+  // la intro (4 compases): la isla, el dron de Otsagabia y el explorador que echa a correr en el silencio de antes del golpe
+  [0, 'isla', 0.35], [b(-2), 'llegada', 0.15], [b(-1), 'correcalle', 0, 1.2],
   // el golpe: los momotxorros y el caballo
-  [b(0), 'momo', 0], [b(1), 'caballo', 0],
+  [b(0), 'momo', 0], [b(1), 'caballo', 0, 1.2],
   // «Cada vecino te pide ayuda, y cada misión te enseña algo: el pastoreo, el carnaval, las leyendas»
-  [b(2), 'maite', 0], [b(3), 'kike', 0], [b(4), 'joxemari', 0], [b(4.5), 'pastoreo', 0], [b(5), 'carnaval', 0], [b(5.5), 'lamia', 0],
-  // «¡Oooh! Una personita en mi bosque…» y la almadía
-  [b(6), 'basajaun', 0], [b(7), 'almadia', 0],
+  [b(2), 'maite', 0], [b(3), 'correcalle', 2.4, 1.2], [b(3.5), 'kike', 0], [b(4), 'caballo2', 0, 1.2],
+  [b(4.5), 'pastoreo', 0], [b(5), 'carnaval', 0], [b(5.5), 'lamia', 0],
+  // «¡Oooh! Una personita en mi bosque…», la almadía y la carrera por las Bardenas
+  [b(6), 'basajaun', 0], [b(7), 'almadia', 0], [b(7.5), 'correbardenas', 0, 1.2],
   // «La naturaleza y la cultura, contadas jugando»
-  [b(8), 'bosque', 1.6], [b(8.5), 'irati', 0], [b(9), 'danza', 0],
+  [b(8), 'bosque', 1.6], [b(8.5), 'correirati', 0, 1.2], [b(9), 'danza', 0],
   // la pelota y «¡Eres un txapeldun, un campeón!»
   [b(10), 'partido', 0], [b(11), 'partido', 2.4], [b(12), 'cere', 0], [b(13), 'cere', 2.0],
-  [b(14), 'rio', 0], [b(15), 'isla2', 0],
+  [b(14), 'rio', 0], [b(14.5), 'correisaba', 0, 1.2], [b(15), 'isla2', 0],
   // EXPLORA 38 PUEBLOS
-  [b(16), 'olite', 0], [b(16.5), 'bardenas', 0], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
+  [b(16), 'olite', 0], [b(16.5), 'correbardenas', 1.3, 1.2], [b(17), 'isaba', 0], [b(17.5), 'puente', 0],
   // DESCUBRE SUS LEYENDAS
-  [b(18), 'lamia', 1.2], [b(18.5), 'basajaun', 2.0], [b(19), 'leyenda', 2.1], [b(19.5), 'momo', 2.15],
+  [b(18), 'lamia', 1.2], [b(18.5), 'basajaun', 2.0], [b(19), 'leyenda', 0.8], [b(19.5), 'momo', 2.15],
   // VIVE SUS TRADICIONES
   [b(20), 'carnaval', 1.2], [b(20.5), 'danza', 2.05], [b(21), 'almadia', 2.0], [b(21.5), 'partido', 4.6],
-  // los dos últimos y el logo
-  [b(22), 'caballo', 2.0], [b(23), 'atardecer', 0], [b(24), 'final', 0],
+  // los últimos, a galope y corriendo, y el logo
+  [b(22), 'caballo2', 1.3, 1.2], [b(22.5), 'correisaba', 1.3, 1.2], [b(23), 'caballo', 2.0, 1.2], [b(24), 'final', 0],
 ];
 // los rótulos: [desde, hasta, imagen] (v6/rotulos.mjs)
 export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'explora'], [b(18) + 0.1, b(20) - 0.12, 'descubre'], [b(20) + 0.1, b(22) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];

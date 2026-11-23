@@ -22,13 +22,17 @@ const a24 = (nom) => {
 const hechas = {};
 let k = 0;
 for (let i = 0; i < CORTES.length; i++) {
-  const [t, nom, desde] = CORTES[i], fin = i + 1 < CORTES.length ? CORTES[i + 1][0] : DURA;
-  const N = Math.round(fin * FPS) - Math.round(t * FPS), fr = hechas[nom] ||= a24(nom), j0 = Math.round(desde * FPS);
-  for (let j = 0; j < N; j++) symlinkSync(fr[Math.min(j0 + j, fr.length - 1)], `${seq}/${String(k++).padStart(5, '0')}.jpg`);
-  console.log(nom.padEnd(10), `${t.toFixed(2)}–${fin.toFixed(2)} s`, `${N} fotogramas desde ${j0}`, j0 + N > fr.length ? `(faltan ${j0 + N - fr.length})` : '');
+  // (vel: las carreras y los galopes, un poco acelerados, saltando fotogramas de la toma a 24)
+  const [t, nom, desde, vel = 1] = CORTES[i], fin = i + 1 < CORTES.length ? CORTES[i + 1][0] : DURA;
+  const N = Math.round(fin * FPS) - Math.round(t * FPS), fr = hechas[nom] ||= a24(nom), j0 = Math.round(desde * FPS), jz = j0 + Math.round((N - 1) * vel);
+  for (let j = 0; j < N; j++) symlinkSync(fr[Math.min(j0 + Math.round(j * vel), fr.length - 1)], `${seq}/${String(k++).padStart(5, '0')}.jpg`);
+  console.log(nom.padEnd(13), `${t.toFixed(2)}–${fin.toFixed(2)} s`, `${N} fotogramas desde ${j0}${vel !== 1 ? ` a ×${vel}` : ''}`, jz >= fr.length ? `(faltan ${jz - fr.length + 1})` : '');
 }
 // los rótulos: suben 26 px y se funden al entrar (0,3 s), se funden al salir (0,22 s)
-const ins = [], filt = ['[0]scale=1920:1080:flags=lanczos,setsar=1[b0]'];
+// (el color: algo más de contraste y de color, y un poco de nitidez, que el juego grabado sale lavado y blando; el autor,
+// 23 nov: «muchos fallos de iluminación, de contraste»)
+const GRADO = 'eq=contrast=1.08:saturation=1.14:gamma=0.98,unsharp=5:5:0.55:5:5:0';
+const ins = [], filt = [`[0]scale=1920:1080:flags=lanczos,setsar=1,${GRADO}[b0]`];
 ROTULOS.forEach(([a, z, img], n) => {
   ins.push('-framerate', String(FPS), '-loop', '1', '-t', String(DURA), '-i', `${ROT}/${img}.png`);
   const sale = z >= DURA - 0.01 ? '' : `,fade=t=out:st=${(z - 0.22).toFixed(3)}:d=0.22:alpha=1`;
