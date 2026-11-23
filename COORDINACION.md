@@ -20,6 +20,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - (Principal, 22 nov, noche) La entrega de la txapela con la pantalla gigante del frontón (el nombre del campeón) y las
   autoridades aplaudiendo; la txapela ya no la atraviesa el pelo (`d8853ff6`). En Progreso, el ranking de pelotaris por
   puntos tipo ATP y una pestaña por competición (`208cb2b0`). Probado a 1280×720, 844×390 y 852×393.
+- (Principal, 23 nov, madrugada) La elección de material con la caja de pelotas en 3D: los dos pelotaris la sostienen
+  delante del frontis y las elegidas se encienden con su color. Probado a 1280×720, 844×390 y 852×393.
 
 ## Peticiones entre ventanas
 
