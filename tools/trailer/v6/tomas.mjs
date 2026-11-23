@@ -99,7 +99,9 @@ export const TOMAS = {
       const R = Math.min(10, (PL.r || 14) * 0.6);
       // (el giro bajo, hacia el otro lado: hacia 0,8 rad lo cruzaba otro poste indicador. Y el rojo de la fiesta, a menos de
       // la mitad: a tope, el velo y el tinte dejaban la plaza oscura y turbia; así se nota la fiesta y se ve la manada)
-      const menosRojo = () => { const D = G.desfileOn; if (D?.manada && D.k > 0.22) D.k = 0.22; };
+      // (el juego rehace el tinte en cada fotograma y lo aplica después de mover la cámara: se rebaja aquí, al 40 %, con el
+      // velo de los bordes)
+      const menosRojo = () => { const T = G.tinte, D = G.desfileOn; if (T && !T.__m) { T.__m = 1; T.k *= 0.4; T.parpadeo *= 0.4; } if (D?.velo) D.velo.style.opacity = (D.k * 0.4).toFixed(2); };
       window.__antes = menosRojo;
       J.dron((t) => {
         menosRojo();
