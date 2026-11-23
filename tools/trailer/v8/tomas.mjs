@@ -260,7 +260,12 @@ const encierro = (o = {}) => ({
   prep: eval(`async () => {
     const J = window.__j; J.limpia(); const { Encierro } = await import('/src/game/encierro.js');
     new Encierro(J.G).run();
-    window.__cada = () => { const e = window.__game.encierro; if (e?.me) { e.me.safe = 99; e.camMode = ${JSON.stringify(o.cam ?? 'toros')}; } };
+    // (Fermín, el original de Meshy: la cabeza a su tamaño y entero a la altura del explorador, 1,45 m; lo mismo que hace
+    // encierro.js desde el 23 de noviembre de 2026, aquí también para grabarlo mientras el juego no se toca)
+    const T3 = await import('/node_modules/three/build/three.module.js');
+    const orig = (me) => { const r = me.char?.root; if (!r || me.__orig) return; me.__orig = true; let cab = null; r.traverse(o => { if (!cab && o.isBone && /Head$/.test(o.name)) cab = o; });
+      if (cab) cab.scale.setScalar(1); r.scale.setScalar(1); r.updateMatrixWorld(true); const c = new T3.Box3().setFromObject(r, true); r.scale.setScalar(1.45 / Math.max(0.1, c.max.y - c.min.y)); };
+    window.__cada = () => { const e = window.__game.encierro; if (e?.me) { orig(e.me); e.me.safe = 99; e.camMode = ${JSON.stringify(o.cam ?? 'toros')}; } };
   }`),
   guion: [[0, async (p) => {
     for (let i = 0; i < 2000; i++) {
@@ -333,15 +338,15 @@ export const CORTES = [
   [b(10), 'dIsaba', 0.1], [b(10.5), 'isaba', 0], [b(11), 'dPuente', 0.1], [b(11.5), 'puente', 0], [b(12), 'dOlite', 0.1],
   [b(12.5), 'olite', 0],
   // en bici, en burro y en tractor; la Bidasoa que sube del mapa entre el polvo
-  [b(13), 'bici', 0], [b(13.5), 'burro', 0], [b(14), 'tractor', 0], [b(15), 'isla2', 1.5],
+  [b(13), 'bici', 0], [b(13.5), 'burro', 0], [b(14), 'tractor', 0], [b(15), 'isla2', 1.9],
   // ACTO 3 · COSECHA SUS CAMPOS
   [b(16), 'cosechadora', 0], [b(17), 'piquillo', 0],
   // SABOREA SU TIERRA
   [b(18), 'mercQueso', 0], [b(18.5), 'mercTxistorra', 0], [b(19), 'mercMiel', 0], [b(19.5), 'mercHuerta', 0],
   // EXPLORA SUS COMARCAS: la Ribera sube con su laguna, y el dron vuela hasta Pamplona
-  [b(20), 'islaRibera', 1.5], [b(21), 'vPamplona', 3.6],
+  [b(20), 'islaRibera', 1.7], [b(21), 'vPamplona', 3.6],
   // VIVE SUS TRADICIONES: el encierro, la pelota y la almadía
-  [b(22), 'encierro', 1.3], [b(23), 'pelota', 1.0], [b(23.5), 'almadia', 0.4],
+  [b(22), 'encierro', 1.3], [b(23), 'pelota', 2.6], [b(23.5), 'almadia', 0.4],
   // el logo: el mapa del juego 1,9 s y luego se va a negro, con el logo encima (v8/montaje.mjs, NEGRO)
   [b(24), 'final', 0],
 ];

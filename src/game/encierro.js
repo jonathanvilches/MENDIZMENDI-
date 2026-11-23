@@ -322,7 +322,17 @@ export class Encierro {
     };
     // (tú, el sanferminero del principio del juego: el mismo chico que el explorador, de su misma talla, no un mozo adulto;
     // el autor, 23 de noviembre de 2026: «me gustaba cuando el sanferminero era del mismo tamaño que el explorador»)
-    let me = sf ? sanfermin(meshyHeight('explorador') / meshyHeight('sanfermin'), false, false, null, sfMe) : null;
+    let me = sf ? sanfermin(1, false, false, null, sfMe) : null;
+    // (y con su cuerpo de siempre: la cabeza a su tamaño, sin las proporciones de adulto que se dieron a los vecinos el 18 de
+    // noviembre de 2026 (CABEZA de glbChar.js, que achica la de Fermín al 58 % y le estira el cuerpo), y medido entero a la
+    // altura del explorador, como el modelo de Meshy de octubre; el autor: «no tiene el mismo cuerpo que el explorador»)
+    if (me && !sfMe) {
+      let cab = null; me.char.root.traverse(o => { if (!cab && o.isBone && /Head$/.test(o.name)) cab = o; });
+      if (cab) { cab.scale.setScalar(1); cab.userData.cabK = 1; }
+      me.char.root.scale.setScalar(1); me.char.root.updateMatrixWorld(true);
+      const caja = new THREE.Box3().setFromObject(me.char.root, true);
+      me.char.root.scale.setScalar(meshyHeight('explorador') / Math.max(0.1, caja.max.y - caja.min.y)); me.obj.userData.H = meshyHeight('explorador');
+    }
     me ||= buildNpc({ ...white, height: 1.6 }, 'corredor del encierro');   // (el nombre: un mozo de blanco, no un vecino del pueblo)
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];

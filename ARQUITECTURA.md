@@ -4879,6 +4879,10 @@ git push origin master:main
   caras de los vecinos ya no se apagan lejos (`CARAS` en `AYUDA`). Fuera los soplidos de los cambios de plano. El
   protagonista del tráiler es el explorador (el autor: «el sanferminero solo está para la misión de San Fermín de correr
   el encierro, nada más»). En el encierro, tu corredor es Fermín, el mismo chico que el explorador vestido de San Fermín,
-  y ya con la talla del explorador, 1,45 m, como en octubre, no la de un mozo adulto, 1,6 (encierro.js; el autor: «me
-  gustaba cuando el sanferminero era del mismo tamaño que el explorador»). La isla echa humo en cuanto se mueve y
+  y ya como el original de Meshy (san_fermin_friendly, 2 de octubre): sin las proporciones de adulto que CABEZA de
+  glbChar.js le dio el 18 de noviembre (la cabeza al 58 %, el cuerpo estirado) y medido entero a la altura del
+  explorador, 1,45 m (encierro.js; el autor: «no tiene el mismo cuerpo que el explorador»). El modelo del juego es el
+  FBX original aligerado (la cabeza, al 68 % de la altura, como en el explorador). Las carreras, vehículos y cosechas
+  con el explorador se reaprovechan del v8; solo se grabaron de nuevo los drones de pueblo, la pelota, las islas y el
+  encierro. La isla echa humo en cuanto se mueve y
   mientras sube (mapa3dIsla.js), que tapa el canto mientras se forma.
