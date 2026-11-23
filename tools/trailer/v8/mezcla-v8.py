@@ -168,11 +168,12 @@ for tb in [b(16), b(18), b(20), b(22)]:
 magia = lee(SON + 'ui-magia.mp3')
 pon(efectos, magia, b(24) + 0.2, 0.35)
 
-# ---------- lo que se ve: el burro, el galope, los cencerros, el mercado (en el segundo en que CORTES pone su toma) ----------
+# ---------- lo que se ve: el burro, el galope, los cencerros, el mercado, el público del encierro (en el segundo en que CORTES pone su toma) ----------
 CORTES = json.loads(subprocess.run(['node', '-e', "import('./tools/trailer/v8/tomas.mjs').then(m => console.log(JSON.stringify(m.CORTES)))"], cwd=RAIZ, capture_output=True, check=True, text=True).stdout)
 fin = lambda i: CORTES[i + 1][0] if i + 1 < len(CORTES) else DUR
 MERCADO = ('ambiente-pueblo.mp3', 0.0, 0.3)
 SUENA = {'burro': ('burro.mp3', 0.3, 0.25), 'galope': ('caballo-galope.mp3', 0.0, 0.3), 'pastoreo': ('cencerro-2.mp3', 0.0, 0.25),
+         'encierro': ('publico-grada.mp3', 0.0, 0.32),
          'mercQueso': MERCADO, 'mercTxistorra': MERCADO, 'mercMiel': MERCADO, 'mercHuerta': MERCADO}
 # (los cortes seguidos con el mismo sonido, como los cuatro puestos del mercado, van con uno solo de punta a punta, sin
 # volver a empezar en cada corte)

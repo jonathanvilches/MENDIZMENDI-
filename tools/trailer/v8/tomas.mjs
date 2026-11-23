@@ -237,12 +237,49 @@ export const TOMAS = {
   rQuesera: retrato('isaba-izaba', "m.m.id === 'roncal'", 'Del queso Roncal me sé todos los secretos.', { extra: '&market=1' }),
 };
 
+// ---------- tercera pasada (el autor, del v8: «me gusta, pero que se vean las comarcas; el vuelo de dron por las
+// comarcas y pueblos; las misiones») ----------
+// el mapa del inicio: una comarca que sube como isla y el dron que planea sobre ella (hub/mapa3d.js, select), y el vuelo
+// de dron hasta un pueblo, que cruza una nube y planea sobre sus casas (irPueblo)
+const MAPA = (p) => p.waitForFunction(() => window.__mapa3d?.ren && window.__mapa3d.calentado?.(), null, { timeout: 300000 }).catch(() => { });
+const islaDe = (id, o = {}) => ({ url: '?skipintro=1&q=high', seg: o.seg ?? 3.2, fps: 24, antes: 8, espera: 12000, limpio: true, listo: MAPA,
+  guion: [[0, (p) => p.evaluate((id) => window.__mapa3d.comarca(id), id)]] });
+const vueloA = (town, o = {}) => ({ url: '?skipintro=1&q=high', seg: o.seg ?? 5.5, fps: 24, antes: 8, espera: 12000, limpio: true, listo: MAPA,
+  guion: [[0, (p) => p.evaluate((t) => window.__mapa3d.ir(t), town)]] });
+// el encierro de San Fermín (game/encierro.js), la misión de Pamplona: la Estafeta, el público en los balcones y los toros
+// que llegan por detrás. Se adelanta, sin dibujar, hasta que la manada alcanza al explorador; ningún toro lo tira (safe)
+const encierro = (o = {}) => ({
+  url: URL('pamplona', 8), seg: o.seg ?? 2.4, fps: 24, antes: 4, limpio: true,
+  prep: eval(`async () => {
+    const J = window.__j; J.limpia(); const { Encierro } = await import('/src/game/encierro.js');
+    new Encierro(J.G).run();
+    window.__cada = () => { const e = window.__game.encierro; if (e?.me) { e.me.safe = 99; e.camMode = ${JSON.stringify(o.cam ?? 'toros')}; } };
+  }`),
+  guion: [[0, async (p) => {
+    for (let i = 0; i < 2000; i++) {
+      const ok = await p.evaluate((t) => { window.__sinDibujo = true; try { window.__cada?.(); } catch (e) { } window.__paso(1 / 24); const e = window.__game.encierro; return !!(e?.started && e.t > t); }, o.t ?? 12);
+      if (ok) break; if (i % 24 === 23) await p.waitForTimeout(200);
+    }
+  }]],
+});
+// (la cámara «toros» del encierro: delante del corredor, mirando atrás, con la manada que llega por la calle; a los 12 s
+// del cohete los primeros toros ya lo alcanzan)
+Object.assign(TOMAS, {
+  // (más largas que lo que entra en el montaje: la isla espera a que el mapa tenga cargado su relieve fino, y eso no tarda
+  // siempre lo mismo; de cada una se elige en CORTES el trozo bueno)
+  vOts: vueloA('otsagabia-ochagavia', { seg: 8 }),
+  islaRibera: islaDe('ribera', { seg: 5.5 }), islaEstella: islaDe('tierra-estella'), islaMedia: islaDe('zona-media'), islaPamplona: islaDe('pamplona'),
+  vPamplona: vueloA('pamplona'), vOlite: vueloA('olite'), vEstella: vueloA('estella'), vTudela: vueloA('tudela'),
+  encierro: encierro({ seg: 4 }),
+});
+
 // el montaje: [segundo del tráiler, toma, desde qué segundo de la toma, velocidad (1 si no se dice)]; cada corte dura hasta
 // el siguiente. Las frases de Salva y las voces caen donde en el v6 (v6/mezcla-v6.py), y debajo de cada frase lo que dice
 export const CORTES = [
-  // ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: la isla sube, el explorador llega a Otsagabia y echa a
-  // correr, visto por detrás
-  [0, 'isla', 0.27], [b(-2), 'llegada', 0.15], [b(-1), 'dOts', 0.1],
+  // ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: el Pirineo sube como una isla, el dron del mapa baja
+  // entre las nubes hasta Otsagabia (tercera pasada: «que se vean las comarcas; el vuelo de dron por las comarcas y
+  // pueblos») y el explorador echa a correr, visto por detrás
+  [0, 'isla', 0.27], [b(-2), 'vOts', 2.8, 1.4], [b(-1), 'dOts', 0.1],
   // el golpe: sigue corriendo y el pueblo cambia a su alrededor (la cámara, clavada a su espalda en todas las carreras)
   [b(0), 'dPamplona', 0.1], [b(0.5), 'dBardenas', 0.1], [b(1), 'dLesaka', 0.1], [b(1.5), 'dElizondo', 0.1],
   // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite,
@@ -263,10 +300,12 @@ export const CORTES = [
   [b(16), 'cosechadora', 0], [b(17), 'piquillo', 0],
   // SABOREA SU TIERRA: los puestos del mercado (queso, txistorra, miel, huerta)
   [b(18), 'mercQueso', 0], [b(18.5), 'mercTxistorra', 0], [b(19), 'mercMiel', 0], [b(19.5), 'mercHuerta', 0],
-  // EXPLORA 38 PUEBLOS: la carrera otra vez, por cuatro pueblos más
-  [b(20), 'dEstella', 0.1], [b(20.5), 'dTudela', 0.1], [b(21), 'dViana', 0.1], [b(21.5), 'dArtajona', 0.1],
-  // VIVE SUS TRADICIONES: la almadía río abajo y el galope, hasta el logo
-  [b(22), 'almadia', 0], [b(23), 'galope', 0],
+  // EXPLORA SUS COMARCAS: la Ribera sube como una isla, con su laguna en el hueco, y el dron vuela hasta Pamplona y
+  // planea sobre la Plaza del Castillo
+  [b(20), 'islaRibera', 0.6], [b(21), 'vPamplona', 3.6],
+  // VIVE SUS TRADICIONES: el encierro de San Fermín (la manada que alcanza al explorador por la Estafeta), la almadía río
+  // abajo y el galope, hasta el logo
+  [b(22), 'encierro', 1.3], [b(23), 'almadia', 0.4], [b(23.5), 'galope', 0],
   // el logo
   // el logo: el mapa del juego 1,9 s y luego se va a negro, con el logo encima (v8/montaje.mjs, NEGRO)
   [b(24), 'final', 0],

@@ -1,4 +1,4 @@
-// Los rótulos del tráiler v8, con la letra del juego (Barlow Condensed): cuatro frases cortas («Explora 38 pueblos»,
+// Los rótulos del tráiler v8, con la letra del juego (Barlow Condensed): cuatro frases cortas («Explora sus comarcas»,
 // «Cosecha sus campos», «Saborea su tierra», «Vive sus tradiciones»: el autor, 23 nov, «lo importante son la gastronomía,
 // la agricultura, los personajes y los productos locales») y el logo con «Navarra, pueblo a pueblo». Sin cajas: la palabra
 // pequeña en oro encima y la grande en blanco, con una sombra y un velo oscuro muy suave detrás para leerse sobre
@@ -23,7 +23,7 @@ const foto = async (nombre, velo, html) => {
   await p.evaluate(() => document.fonts.ready);
   await p.screenshot({ path: `${out}/${nombre}.png`, omitBackground: true });
 };
-await foto('explora', 0.55, `<div class="k">EXPLORA</div><div class="g">38 PUEBLOS</div>`);
+await foto('explora', 0.55, `<div class="k">EXPLORA</div><div class="g">SUS COMARCAS</div>`);
 await foto('cosecha', 0.55, `<div class="k">COSECHA</div><div class="g">SUS CAMPOS</div>`);
 await foto('saborea', 0.55, `<div class="k">SABOREA</div><div class="g">SU TIERRA</div>`);
 await foto('vive', 0.55, `<div class="k">VIVE</div><div class="g">SUS TRADICIONES</div>`);
