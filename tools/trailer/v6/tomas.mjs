@@ -33,7 +33,9 @@ const EXTRA = () => {
   J.orbita = (C, o) => J.dron((t) => {
     const k = Math.min(1, t / o.seg), a = o.a0 + (o.a1 - o.a0) * k, r = o.r0 + (o.r1 - o.r0) * k;
     const x = C.x + Math.cos(a) * r, z = C.z + Math.sin(a) * r, y0 = C.y ?? J.suelo(C.x, C.z);
-    const y = Math.max(J.suelo(x, z) + 2.5, y0 + o.y0 + (o.y1 - o.y0) * k);
+    // (y siempre a buena altura sobre el suelo que tiene debajo: en un pueblo en cuesta, como Isaba, las casas de arriba
+    // le quedaban a la altura y el dron se metía en una)
+    const alto = o.y0 + (o.y1 - o.y0) * k, y = Math.max(J.suelo(x, z) + alto * 0.85, y0 + alto);
     return { pos: [x, y, z], look: [C.x, y0 + (o.mira ?? 2), C.z] };
   });
   // una cámara que acompaña al jugador (corriendo o a caballo): o(t) => { f, s, y, lf, ly }: delante (f), al lado (s) y
@@ -232,7 +234,7 @@ export const TOMAS = {
   },
   // ---------- «Explora 38 pueblos»: pueblos desde el aire ----------
   olite: pueblo('olite', { a0: 0.05, a1: 0.11 }),
-  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61 }),
+  isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.61, r0: 55, r1: 48, y0: 32, y1: 28 }),
   puente: pueblo('puente-la-reina', { a0: 0.2, a1: 0.27, r0: 34, r1: 28, y0: 14, y1: 11 }),
   // ---------- debajo del logo: la isla del Pirineo ya arriba, con la cámara girando despacio ----------
   final: { url: '?skipintro=1&q=high', seg: 7.0, antes: 72, espera: 12000, limpio: true, listo: MAPA,
