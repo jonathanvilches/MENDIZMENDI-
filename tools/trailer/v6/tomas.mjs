@@ -176,7 +176,23 @@ export const TOMAS = {
   },
   // ---------- «La naturaleza y la cultura, contadas jugando» ----------
   bosque: de5('bosque', { seg: 2.65 }),
-  danza: de5('danza', { seg: 3.05 }),
+  // (los dantzaris de Muskilda de cerca y a su altura, girando alrededor del corro; la cámara del juego, de lejos y alta,
+  // los dejaba diminutos con medio plano de campo arado. Del lado que el juego escoge sin copas de árboles delante)
+  danza: de5('danza', { seg: 3.05,
+    prep: () => {
+      const J = window.__j, G = J.G; J.limpia();
+      import('/src/game/content.js').then(m => { G.state.ribbons = m.RIBBONS.map(r => r.id); G.refreshHUD?.(); });
+      G.startDance();
+      const pulsa = () => {
+        const d = G.dn; if (!d) return; const teclas = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight'];
+        for (const s of d.seq) if (!s.__p && s.t <= d.t + 1 / 24 && s.t > d.t - 0.2) { s.__p = 1; window.dispatchEvent(new KeyboardEvent('keydown', { key: teclas[s.lane], bubbles: true })); }
+      };
+      window.__antes = pulsa; window.__cada = pulsa;
+      const D = G.dancers.filter(d => d.visible !== false), n = D.length || 1;
+      const C = { x: D.reduce((s, d) => s + d.pos.x, 0) / n, z: D.reduce((s, d) => s + d.pos.z, 0) / n }, cp = G.follow.cinematic?.pos;
+      const a0 = cp ? Math.atan2(cp.z - C.z, cp.x - C.x) : 0;
+      J.orbita(C, { seg: 3.05, a0: a0 - 0.45, a1: a0 + 0.45, r0: 7.5, r1: 6, y0: 1.9, y1: 2.4, mira: 1.1 });
+    } }),
   // ---------- la pelota: un partido en el Labrit y la txapela ----------
   partido: de5('partido', { seg: 6.0 }),
   // (la entrega: la txapela que baja a la cabeza del campeón y, en el segundo trozo, la copa arriba con el confeti dorado;

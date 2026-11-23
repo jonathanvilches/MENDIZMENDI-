@@ -4790,3 +4790,12 @@ git push origin master:main
   de la txapela se rueda a 24 por segundo (la ceremonia no avanza más de 0,05 s por imagen) y salta de la txapela a la copa
   con el confeti cambiando `cere.t`. Encima, tres frases (`v6/rotulos.mjs`: «Explora / 38 pueblos», «Descubre / sus
   leyendas», «Vive / sus tradiciones», la palabra pequeña en oro y la grande en blanco, sin cajas) y el logo.
+  Segunda vuelta (el autor: «muchos fallos de iluminación, de contraste, de legibilidad, falta de ritmo, imágenes del
+  juego corriendo, andando en caballo, pero mucho más ágil»): todas las tomas a horas de buena luz y con cielo despejado,
+  cinco tomas de carreras y galopes con la cámara pegada al explorador (`J.pegada`: delante, al lado o detrás según hacia
+  dónde va; `J.galope` pone el caballo debajo aunque la calle sea estrecha) y esos trozos acelerados a ×1,2 (el cuarto
+  número de cada corte). Los vecinos hablan de cara (`J.cara`, sin el explorador delante), la flecha y el haz del objetivo
+  se esconden en todas las tomas, el dron de los pueblos va siempre por encima de los tejados del suelo que tiene debajo
+  (en Isaba, en cuesta, se metía en una casa) y los dantzaris de Muskilda se ven de cerca, girando alrededor del corro. El
+  montaje sube un poco el contraste, el color y la nitidez (el juego grabado sale lavado y blando) y las frases van más
+  grandes, con un velo oscuro suave detrás para leerse sobre cualquier plano.
