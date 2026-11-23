@@ -4798,4 +4798,9 @@ git push origin master:main
   se esconden en todas las tomas, el dron de los pueblos va siempre por encima de los tejados del suelo que tiene debajo
   (en Isaba, en cuesta, se metía en una casa) y los dantzaris de Muskilda se ven de cerca, girando alrededor del corro. El
   montaje sube un poco el contraste, el color y la nitidez (el juego grabado sale lavado y blando) y las frases van más
-  grandes, con un velo oscuro suave detrás para leerse sobre cualquier plano.
+  grandes, con un velo oscuro suave detrás para leerse sobre cualquier plano. Arreglos de la prueba de cada toma: Maite
+  habla a 9 m del cartel de Otsagabia, con la cámara entre ella y el cartel (los postes del cartel van en un lote común de
+  madera y no se pueden esconder; la tabla sí); la fiesta de los momotxorros, con el rojo al 40 % (`G.tinte` y el velo se
+  recalculan en cada vuelta, así que se rebajan dentro del propio dron); el dron de Isaba, fuera del pueblo (r 135, y 72);
+  el caballo de los pueblos que no son Otsagabia es el de la aventura (`G.av.montura`, o `G.cambiaMontura('burguete')`), y
+  la grabadora acepta `FOTO_MS` para dar más margen a la primera imagen del mapa 3D a 1280 × 720.
