@@ -17,6 +17,19 @@ export const b = (k) => +(T0 + k * BAR).toFixed(3);
 // subiendo o bajando), a velocidad fija para que en un corte corto se note el movimiento desde el primer fotograma
 const EXTRA = () => {
   const J = window.__j; if (!J) return;
+  // (la flecha amarilla y el haz del objetivo también son interfaz, aunque estén en el 3D: fuera en todas las tomas)
+  const B = window.__rt?.beacon;
+  if (B && !B.__limpio) { B.__limpio = true; const u = B.update.bind(B); B.update = (e, p, h, dt) => { u(e, p, true, dt); B.beam.visible = false; B.arrow.visible = false; }; }
+  // un vecino que habla de cara: la cámara donde tendría la cabeza el explorador (que no se ve), un poco a un lado, y el
+  // vecino mirándole; o.ly, la altura de la cara (los niños, más bajos). Desde detrás del explorador, él le tapaba la cara
+  J.cara = (a, o = {}) => {
+    const P = J.G.player;
+    J.dron((t) => {
+      P.obj.visible = false;
+      const dx = P.pos.x - a.pos.x, dz = P.pos.z - a.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L, d = (o.d ?? 2.3) - t * 0.15, sd = o.s ?? 0.55, y = J.suelo(a.pos.x, a.pos.z);
+      return { pos: [a.pos.x + ux * d - uz * sd, y + (o.y ?? 1.55), a.pos.z + uz * d + ux * sd], look: [a.pos.x, y + (o.ly ?? 1.45), a.pos.z] };
+    });
+  };
   J.orbita = (C, o) => J.dron((t) => {
     const k = Math.min(1, t / o.seg), a = o.a0 + (o.a1 - o.a0) * k, r = o.r0 + (o.r1 - o.r0) * k;
     const x = C.x + Math.cos(a) * r, z = C.z + Math.sin(a) * r, y0 = C.y ?? J.suelo(C.x, C.z);
@@ -99,8 +112,9 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); } }),
-  kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4` }),
+    prep: () => { const J = window.__j, a = J.G.npcs.maite; J.limpia(); J.hacia(a, 2.6); J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a); } }),
+  kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
+    prep: () => { const J = window.__j, a = J.G.npcs.kike; if (!a) throw new Error('sin kike'); J.limpia(); a.frozen = true; a.state = 'idle'; J.hacia(a, 2.4); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¡Aupa! Soy Kike. ¿Juegas a pelota?'] }); J.cara(a, { d: 1.9, y: 1.15, ly: 1.0 }); } }),
   // («el pastoreo, el carnaval, las leyendas»)
   pastoreo: de5('pastoreo', { seg: 1.05, url: `?${OT}&weather=clear&t=10.8` }),
   // (los joaldunak de Ituren, de frente y desde abajo, con la cámara que va hacia atrás delante de la comparsa)
