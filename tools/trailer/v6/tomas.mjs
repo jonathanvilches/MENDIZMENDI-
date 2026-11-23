@@ -92,8 +92,8 @@ export const TOMAS = {
       J.dron((t) => {
         const h = P.heading, fx = Math.sin(h), fz = Math.cos(h), sx = fz, sz = -fx, y = P.pos.y;
         if (t < 2) return { pos: [P.pos.x + sx * 6.5 + fx * (0.5 - t * 0.6), y + 1.9, P.pos.z + sz * 6.5 + fz * (0.5 - t * 0.6)], look: [P.pos.x + fx * 1.5, y + 1.5, P.pos.z + fz * 1.5] };
-        const d = 7.5 - (t - 2) * 0.8;
-        return { pos: [P.pos.x + fx * d + sx * 1.6, y + 0.8, P.pos.z + fz * d + sz * 1.6], look: [P.pos.x, y + 1.9, P.pos.z] };
+        const d = 5.8 - (t - 2) * 0.6;
+        return { pos: [P.pos.x + fx * d + sx * 1.4, y + 0.7, P.pos.z + fz * d + sz * 1.4], look: [P.pos.x, y + 1.9, P.pos.z] };
       });
     },
   },
