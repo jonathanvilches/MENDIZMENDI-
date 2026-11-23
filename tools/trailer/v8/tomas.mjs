@@ -193,7 +193,7 @@ export const TOMAS = {
   felisa: F24(T6.felisa),
   // ---------- el explorador corriendo, por detrás, en sitios distintos ----------
   dOts: detras('otsagabia-ochagavia', { hora: 11, seg: 2.0 }), dEstella: detras('estella'), dElizondo: detras('elizondo'),
-  dRoncal: detras('erronkari-roncal'), dTudela: detras('tudela'), dViana: detras('viana'), dArtajona: detras('artajona'),
+  dRoncal: detras('erronkari-roncal'), dLekunberri: detras('lekunberri'), dTudela: detras('tudela'), dViana: detras('viana'), dArtajona: detras('artajona'),
   dOlite: detras('olite'),
   dPuente: detras('puente-la-reina', { hora: 11 }),
   dPamplona: detras('pamplona', { hora: 12 }),
@@ -251,8 +251,9 @@ export const CORTES = [
   [b(2), 'rMaite', 0.1], [b(2.5), 'rBodeguera', 0.1], [b(3), 'felisa', 0.1], [b(3.5), 'nerea', 0.1], [b(4), 'panadera', 0.3],
   // «el pastoreo, el carnaval, las leyendas»; «¡Oooh! Una personita en mi bosque…»
   [b(4.5), 'pastoreo', 0], [b(5), 'momo', 0], [b(5.5), 'lamia', 0], [b(6), 'basajaun', 0], [b(7.5), 'rio', 0],
-  // «La naturaleza y la cultura, contadas jugando»: la grúa sobre el bosque y otra vez a correr, por Irati y por el Roncal
-  [b(8), 'bosque', 0.6], [b(9), 'dIrati', 0.1], [b(9.5), 'dRoncal', 0.1],
+  // «La naturaleza y la cultura, contadas jugando»: la grúa sobre el bosque y otra vez a correr, por Irati y por
+  // Lekunberri (la del Roncal no: el juego lo pone a correr metido en el río)
+  [b(8), 'bosque', 0.6], [b(9), 'dIrati', 0.1], [b(9.5), 'dLekunberri', 0.1],
   // llega corriendo a cada sitio y se ve el sitio: Isaba, el puente de Puente la Reina, el castillo de Olite
   [b(10), 'dIsaba', 0.1], [b(10.5), 'isaba', 0], [b(11), 'dPuente', 0.1], [b(11.5), 'puente', 0], [b(12), 'dOlite', 0.1],
   [b(12.5), 'olite', 0],
