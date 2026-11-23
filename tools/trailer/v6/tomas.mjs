@@ -122,9 +122,9 @@ export const TOMAS = {
   lamia: de5('lamia', { seg: 2.2, antes: 30, url: `?${OT}&weather=clear&t=12.6`,
     prep: () => {
       const J = window.__j, a = J.G.npcs.lamia; if (!a) throw new Error('sin lamia'); J.limpia(); J.hacia(a, 7); J.teclas([]);
-      const P = J.G.player, dx = P.pos.x - a.pos.x, dz = P.pos.z - a.pos.z, L = Math.hypot(dx, dz) || 1, ux = dx / L, uz = dz / L;
-      P.obj.visible = false;
-      J.dron((t) => { const y = J.suelo(a.pos.x, a.pos.z), d = 5.2 - t * 0.7, s = 0.25 + t * 0.12; return { pos: [a.pos.x + (ux * Math.cos(s) - uz * Math.sin(s)) * d, y + 1.7, a.pos.z + (uz * Math.cos(s) + ux * Math.sin(s)) * d], look: [a.pos.x, y + 1.25, a.pos.z] }; });
+      // (delante de ella, hacia donde mira, para que se le vea la cara: desde donde estaba el jugador salía de lado o de espaldas)
+      J.G.player.obj.visible = false;
+      J.dron((t) => { J.G.player.obj.visible = false; const y = J.suelo(a.pos.x, a.pos.z), h = (a.heading ?? 0) + 0.35 + t * 0.1, d = 4.6 - t * 0.6; return { pos: [a.pos.x + Math.sin(h) * d, y + 1.55, a.pos.z + Math.cos(h) * d], look: [a.pos.x, y + 1.3, a.pos.z] }; });
     } }),
   // (el Basajaun en el bosque, enorme, desde abajo, girando a su alrededor)
   basajaun: de5('basajaun', { seg: 3.0, antes: 30, url: `?${OT}&weather=clear&t=13.2`,
