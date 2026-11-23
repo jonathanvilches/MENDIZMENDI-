@@ -276,18 +276,29 @@ export class PelotaMatch {
         <div class="pel-mchips" data-mat-tuyas></div><p class="pel-mat-what" data-mat-what></p><p class="pel-mrv" data-mat-rv></p>
         <div class="pel-row pel-mgo"><button class="pel-go" data-mat-go>${t.go}</button></div>`);
       p.querySelector('.pel-card')?.classList.add('pel-matcard');
+      // (detrás de la tarjeta, la escena de verdad: los dos pelotaris delante del frontis con la caja de las pelotas entre
+      // los dos, como en la foto del autor; cestano3d.js. Las que se eligen suben y se encienden con el color de cada uno.
+      // Hecha el 17 de noviembre y sin conectar hasta el 22: la tarjeta, abajo y compacta, con la escena a la vista)
+      const azul = this.cols.you === 'azul' ? 'you' : 'rival', rojo = azul === 'you' ? 'rival' : 'you';
+      const marca = () => this.cestano?.marca(azul === 'you' ? mias : rv, azul === 'you' ? rv : mias);
+      import('./cestano3d.js').then(({ Cestano3D }) => {
+        if (!this.active || this.hud.panelEl !== p || this.cestano) return;
+        try { this.cestano = new Cestano3D({ T: this.T, grp: this.court.group, cam: this.cam, azul: this.o[azul], rojo: this.o[rojo], lote: lot }); p.classList.add('con-cestano'); marca(); }
+        catch (err) { console.warn('cestaño', err); this.cestano = null; }
+      }).catch((err) => console.warn('cestaño', err));
       const pinta = () => {
         mias = elige(lot, n, mio, new Set(rv.map(b => b.n)));
         p.querySelector('[data-mat-tuyas]').innerHTML = mias.map(chip).join('');
         p.querySelector('[data-mat-what]').textContent = t.que[mio];
         p.querySelector('[data-mat-rv]').textContent = rv.length ? `${t.rival}: ${rv.map(b => `Nº ${b.n} (${t.kinds[clase(b)].toLowerCase()})`).join(' · ')}` : '';
+        marca();
       };
       let hecho = false;
       const vale = () => {
         if (hecho) return; hecho = true;
         if (!rv.length) rv = elige(lot, n, estilo, new Set(mias.map(x => x.n)));
         pinta(); this.ponCesta(mias, rv);
-        setTimeout(() => { if (this.active) { this.hud.closePanel(); res(); } }, tuPrimero ? 900 : 250);   // (lo que elige el rival, un momento a la vista)
+        setTimeout(() => { this.quitaCestano(); if (this.active) { this.hud.closePanel(); res(); } }, tuPrimero ? 1300 : 700);   // (lo que elige el rival, un momento a la vista; y las tuyas, encendidas en la caja)
       };
       tap(p, (b) => {
         if (b.dataset.matK) { mio = b.dataset.matK; for (const x of p.querySelectorAll('[data-mat-k]')) x.setAttribute('aria-checked', String(x === b)); pinta(); this.audio.ui?.('tick'); return; }
@@ -299,6 +310,8 @@ export class PelotaMatch {
       pinta();
     });
   }
+  // (fuera la caja: la cámara vuelve a la del partido)
+  quitaCestano() { if (!this.cestano) return; try { this.cestano.dispose(); } catch (e) { /* ya no está */ } this.cestano = null; this.camInit = false; }
   // la pelota de cada saque: la elige quien saca. Tú, la tuya (la que dejaste o la que cambies antes de sacar); el rival,
   // por cómo va el partido
   bolaDelSaque() {
@@ -1292,6 +1305,7 @@ export class PelotaMatch {
     dt = Math.min(dt, 0.05); this.t += dt;
     this.vigia(dt);
     if (this.cere) { this.cere.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la entrega de la txapela: ni juego ni cámara del partido)
+    if (this.cestano) { this.cestano.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la elección de material, con la caja: igual)
     if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
@@ -2109,7 +2123,7 @@ export class PelotaMatch {
     this.hud.vista(this.conCamara, this.vistaFP);
   }
   destroy() {
-    this.finalFin?.(); this.dianaQuita(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
+    this.finalFin?.(); this.dianaQuita(); this.quitaCestano(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);

@@ -431,6 +431,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   bug que hay que eliminar». Era la pantalla VS (las dos cabezas grandes sobre azul y rosa, «Toca para empezar»), que se
   abría con un momento a oscuras y repetía lo que ya enseñan el panel del partido y el sorteo de la chapa: las cartas de los
   dos. Ahora, de la elección de material, directo al sorteo (en el peloteo, al saque); la final sigue con su «Gran final».
+- **La elección de material, con la caja de pelotas en 3D** (`src/pelota/cestano3d.js`, desde `match.js eleccion`; hecha
+  el 17 de noviembre y conectada el 22, como en la foto del autor): detrás de la tarjeta, los dos pelotaris delante del
+  frontis sostienen entre los dos la caja de madera con el lote de diez pelotas, la mitad de cada uno forrada de su color;
+  las que se eligen suben y se encienden con el color de quien las coge (`marca`). La caja, a la altura de la cintura del
+  más bajo de los dos (su caja de figura × 0,5). Con la pantalla apaisada la tarjeta va a la izquierda, a toda la altura,
+  y la cámara se aparta 1,3 m para dejarlos en la mitad de la derecha (abajo, la tarjeta tapaba la escena); de pie,
+  abajo y compacta. Mientras está, `match.update` no mueve ni el juego ni la cámara del partido (`this.cestano`), como
+  con la entrega de la txapela; al pasar «Al cestaño» se quita (`quitaCestano`) y sigue el sorteo. Prueba:
+  `tools/pelota-cestano.mjs` (con `window.__material`, que las pruebas automáticas se saltan la elección).
   `window.__vsVieja` la vuelve a poner. El fútbol sigue usando `vs.js`.
 - **Placas de la pantalla VS** (`pelota/vs.js`, también la usa el fútbol; noviembre de 2026). Cada jugador tiene una sola
   placa con las esquinas de los paneles (10 px) y, dentro, separada 5 px del borde, su media en una caja clara de 6 px y

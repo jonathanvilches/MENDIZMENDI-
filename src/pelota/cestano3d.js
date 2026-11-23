@@ -14,7 +14,10 @@ const CSS = `.pel-panel.con-cestano{background:transparent!important;align-items
 .pel-panel.con-cestano .pel-card{width:min(600px,calc(100% - 2 * var(--edge,16px)));margin-bottom:calc(env(safe-area-inset-bottom,0px) + 10px);padding-block:10px 12px;background:rgba(12,5,30,.88);max-height:52dvh;overflow:auto}
 .pel-panel.con-cestano .pel-card h2{font-size:var(--fs-lg)}
 .pel-panel.con-cestano .pel-mat-what:not([data-mat-what]){display:none}
-@media (orientation:landscape) and (max-height:520px){.pel-panel.con-cestano .pel-card{max-height:58dvh;padding-block:8px 10px}.pel-panel.con-cestano .pel-sub{display:none}}`;
+@media (orientation:landscape){.pel-panel.con-cestano{align-items:center!important;justify-items:start}.pel-panel.con-cestano .pel-card{width:min(440px,46vw);margin:0 0 0 calc(env(safe-area-inset-left,0px) + var(--edge,16px));max-height:calc(100dvh - 24px)}}
+@media (orientation:landscape) and (max-height:520px){.pel-panel.con-cestano .pel-card{width:min(400px,50vw);padding-block:8px 10px}.pel-panel.con-cestano .pel-sub{display:none}}`;
+// (con la pantalla apaisada, la tarjeta va a la izquierda, a toda la altura: abajo tapaba la escena entera en el móvil y
+// las piernas en el ordenador; la cámara se aparta para que los dos y la caja queden en la mitad de la derecha, update)
 
 // el cuero de la pelota: crema, con la costura en ocho
 function cuero(T) {
@@ -43,7 +46,7 @@ export class Cestano3D {
     // (y un filo dorado por fuera, como el de la caja de la foto)
     const oro = new T.MeshStandardMaterial({ color: '#c99a3a', metalness: 0.8, roughness: 0.35 });
     box(W + 0.006, 0.008, 0.006, 0, H, D / 2 + 0.001, oro);
-    this.grupo.add(caja); caja.position.set(this.P.x, this.P.y, this.P.z + 0.3);
+    this.grupo.add(caja);
     // las pelotas del lote, una en cada hueco
     this.tex = cuero(T);
     const geo = new T.SphereGeometry(0.031, 20, 14), mat = new T.MeshStandardMaterial({ map: this.tex, roughness: 0.62 });
@@ -68,6 +71,11 @@ export class Cestano3D {
       }
       return p;
     }).filter(Boolean);
+    // (la caja, a la altura de la cintura del más bajo de los dos: a 1 m quedaba delante de la cara de los pelotaris de
+    // siempre, que son más bajos y de cabeza grande)
+    let alto = 0; for (const p of this.gente) { try { const bb = new T.Box3().setFromObject(p.l.obj); alto = alto ? Math.min(alto, bb.max.y - bb.min.y) : bb.max.y - bb.min.y; } catch (e) { /* sin caja */ } }
+    if (alto > 0.8 && alto < 2.6) this.P.y = alto * 0.5;
+    caja.position.set(this.P.x, this.P.y, this.P.z + 0.3);
     o.grp.updateMatrixWorld(true);
     const a = o.grp.localToWorld(new T.Vector3(0, 0, 0)), b = o.grp.localToWorld(new T.Vector3(0, 0, 1));
     this.yaw = Math.atan2(b.x - a.x, b.z - a.z);
@@ -108,9 +116,11 @@ export class Cestano3D {
       q.k = Math.min(1, q.k + dt * 3); const on = q.de ? smooth(q.k) : 0;
       q.m.position.y = q.y0 + on * 0.035; q.aro.material.opacity = on * (0.75 + 0.25 * Math.sin(this.t * 5));
     }
-    // la cámara, de frente y a la altura del pecho, con los dos y la caja; se acerca muy despacio
-    const k = innerWidth < innerHeight ? 1.7 : 1, u = smooth(this.t / 6);
-    const wp = g.localToWorld(new T.Vector3(this.P.x + 0.15, 1.4, this.P.z + (3.1 - u * 0.4) * k)), wl = g.localToWorld(new T.Vector3(this.P.x, 1.05 + (innerWidth < innerHeight ? 0 : 0.12), this.P.z));
+    // la cámara, de frente y algo por encima del pecho, con los dos y la caja; se acerca muy despacio. Mira por debajo de
+    // la caja para que ellos y la caja queden en la mitad de arriba, por encima de la tarjeta (mirando a la caja, la
+    // tarjeta la tapaba entera)
+    const k = innerWidth < innerHeight ? 1.7 : 1, u = smooth(this.t / 6), dx = innerWidth > innerHeight ? -1.3 : 0;
+    const wp = g.localToWorld(new T.Vector3(this.P.x + 0.15 + dx, 1.5, this.P.z + (3.8 - u * 0.4) * k)), wl = g.localToWorld(new T.Vector3(this.P.x + dx, 0.6, this.P.z));
     if (!this.camOk) { this.camPos.copy(wp); this.camLook.copy(wl); this.camOk = true; }
     const kk = 1 - Math.exp(-5 * dt); this.camPos.lerp(wp, kk); this.camLook.lerp(wl, kk);
     const cam = this.o.cam; cam.position.copy(this.camPos); cam.lookAt(this.camLook);
