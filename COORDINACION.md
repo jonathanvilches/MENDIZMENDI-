@@ -17,6 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Otsagabia: caserío, casa de piedra y borda hechos en 3D con Higgsfield, y tres ovejas latxas, junto al camino del río a la salida del crucero (`src/world/modelosHF.js`, `src/assets/hf3d/`, enganche en `src/game/game.js`). Vistos a 1280×720 y 844×390.
 - Mapa: la comarca echa humo (polvo) en cuanto se despega y mientras sube, que tapa el canto (`src/hub/mapa3dIsla.js`). Encierro: tu corredor, Fermín, como el original de Meshy: cabeza a su tamaño y talla del explorador (`src/game/encierro.js`). Vistos a 1280×720 y 844×390.
 
 

@@ -22,6 +22,7 @@ import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { Pajarillos } from '../world/pajarillos.js';
 import { Colada } from '../world/colada.js';
+import { ModelosHF } from '../world/modelosHF.js';
 import { QUALITY } from '../util/quality.js';
 import { hablaVecino, callaVecino, narra } from './vozVecinos.js';
 import { Perro } from './perro.js';
@@ -138,6 +139,8 @@ export class Game {
     // gorriones, palomas y vencejos en la plaza de Otsagabia (pajarillos.js), como en los demás pueblos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
     try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
+    // el caserío, la casa de piedra, la borda y las ovejas latxas hechos en 3D con Higgsfield, a las afueras (modelosHF.js)
+    try { this.modelosHF = new ModelosHF(this.scene, { id: 'otsagabia-ochagavia' }, { sombras: QUALITY !== 'low' }); } catch (e) { console.warn('modelos de Higgsfield', e); }
     // el músico de la plaza, con el instrumento del valle (data/instrumentos.js): enseña a tocarlo (tocarCon)
     try { const inst = instrumentosDe('otsagabia-ochagavia')[0];
       if (inst) { const c = PLACES.plaza, cand = [[6, -4], [-6, -4], [7, 3], [-7, 3], [0, -7]].map(([dx, dz]) => ({ x: c.x + dx, z: c.z + dz })), s = cand.find(q => isFree(q.x, q.z, 0.8)) || cand[0], [nm] = inst.musico;
