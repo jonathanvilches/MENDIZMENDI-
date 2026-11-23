@@ -279,7 +279,7 @@ export const CORTES = [
   // ACTO 1 · «Hay una tierra donde cada pueblo guarda una historia»: el Pirineo sube como una isla, el dron del mapa baja
   // entre las nubes hasta Otsagabia (tercera pasada: «que se vean las comarcas; el vuelo de dron por las comarcas y
   // pueblos») y el explorador echa a correr, visto por detrás
-  [0, 'isla', 0.27], [b(-2), 'vOts', 2.8, 1.4], [b(-1), 'dOts', 0.1],
+  [0, 'isla', 0.27], [b(-2), 'vOts', 1.6, 1.4], [b(-1), 'dOts', 0.1],
   // el golpe: sigue corriendo y el pueblo cambia a su alrededor (la cámara, clavada a su espalda en todas las carreras)
   [b(0), 'dPamplona', 0.1], [b(0.5), 'dBardenas', 0.1], [b(1), 'dLesaka', 0.1], [b(1.5), 'dElizondo', 0.1],
   // ACTO 2 · «¡Kaixo!» (Maite) y «Cada vecino te pide ayuda, y cada misión te enseña algo»: cuatro vecinas distintas (Maite,
@@ -302,7 +302,7 @@ export const CORTES = [
   [b(18), 'mercQueso', 0], [b(18.5), 'mercTxistorra', 0], [b(19), 'mercMiel', 0], [b(19.5), 'mercHuerta', 0],
   // EXPLORA SUS COMARCAS: la Ribera sube como una isla, con su laguna en el hueco, y el dron vuela hasta Pamplona y
   // planea sobre la Plaza del Castillo
-  [b(20), 'islaRibera', 0.6], [b(21), 'vPamplona', 3.6],
+  [b(20), 'islaRibera', 1.5], [b(21), 'vPamplona', 3.6],
   // VIVE SUS TRADICIONES: el encierro de San Fermín (la manada que alcanza al explorador por la Estafeta), la almadía río
   // abajo y el galope, hasta el logo
   [b(22), 'encierro', 1.3], [b(23), 'almadia', 0.4], [b(23.5), 'galope', 0],

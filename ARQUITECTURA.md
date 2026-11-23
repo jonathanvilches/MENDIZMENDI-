@@ -4860,3 +4860,15 @@ git push origin master:main
   poste en el borde. El logo sale sobre negro: la isla funde a negro a los `b(24) + 1,9` s (`v8/montaje.mjs`). Con
   cuatro grabadoras a la vez, la carga de un pueblo pasa de los 10 min: `CARGA_MS` alarga la espera de
   `v5/juego.mjs`.
+
+  Tercera pasada, v9 (el autor, del v8: «me gusta, pero que se vean las comarcas; el vuelo de dron por las comarcas y
+  pueblos; las misiones»). Tomas nuevas del mapa del inicio: `islaDe` (una comarca sube como isla y el dron planea sobre
+  ella, `__mapa3d.comarca`) y `vueloA` (el vuelo de dron hasta un pueblo, que cruza una nube y planea sobre su maqueta,
+  `__mapa3d.ir`); se graban más largas de lo que entra (la isla espera a que el mapa cargue su relieve fino y no tarda
+  siempre lo mismo) y en `CORTES` se elige el trozo bueno. Y una misión: `encierro` (game/encierro.js en Pamplona, con la
+  cámara «toros», delante del corredor mirando atrás, y adelantado sin dibujar hasta que la manada lo alcanza; `safe` para
+  que ningún toro lo tire). El montaje: el Pirineo sube, el dron baja entre las nubes hasta Otsagabia (en vez de la
+  llegada por la calle) y el explorador echa a correr; «Explora sus comarcas» (antes «38 pueblos»): la Ribera sube con su
+  laguna y el dron vuela hasta Pamplona, sobre la Plaza del Castillo (en vez de las cuatro carreras de Estella, Tudela,
+  Viana y Artajona); «Vive sus tradiciones»: el encierro, la almadía y el galope. El público del encierro suena en la
+  mezcla (`publico-grada`).
