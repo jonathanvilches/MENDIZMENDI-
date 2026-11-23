@@ -205,6 +205,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 23 nov, noche (tarde), la hizo la ventana del tráiler: fuera las casas, las ovejas y los islotes de Higgsfield (al autor no le gustan: «elimínalo y déjalo como estaba»). Otsagabia y el mapa, como antes.
 - 23 nov, noche, la hizo la ventana del tráiler (el autor pidió verlo en el juego): `master` hasta `b868745c`. En Otsagabia, caserío, casa de piedra y borda hechos en 3D con Higgsfield y tres ovejas latxas, junto al camino del río a la salida del crucero; en el mapa, tres islotes flotantes de Higgsfield alrededor del Pirineo cuando sube; el humo al despegarse la comarca; en el encierro, Fermín como el original (cabeza a su tamaño y talla del explorador).
 - 23 nov, madrugada, la hizo la ventana principal: `master` hasta `0f020592`. La entrega de la txapela con la pantalla
   gigante del frontón y las autoridades aplaudiendo (la txapela ya no la atraviesa el pelo); en Progreso, el ranking de
