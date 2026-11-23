@@ -125,12 +125,14 @@ export const TOMAS = {
   },
   // ---------- «Cada vecino te pide ayuda…»: los vecinos de cerca, hablando (sin el cuadro de la charla) ----------
   maite: de5('maite', { seg: 2.0, antes: 30, url: `?${OT}&weather=clear&t=11.2`,
-    // (la cámara, del lado del cartel «OTSAGABIA / Ochagavía» que hay junto al crucero, que así queda detrás de ella:
-    // Maite se mueve por la plaza y, desde otros lados, sus postes y su tabla oscura se metían en el plano)
+    // (el cartel «OTSAGABIA / Ochagavía» que hay junto al crucero, fuera: su tabla escondida y la cámara de lado respecto a
+    // él, que así cae fuera del encuadre. Desde otros lados sus postes y su tabla oscura se metían en el plano: detrás de
+    // ella, en medio o, con la cámara de su lado, pegados a ella)
     prep: () => {
       const J = window.__j, a = J.G.npcs.maite, d = (o) => Math.hypot(o.position.x - a.pos.x, o.position.z - a.pos.z);
       const S = J.G.scene.children.filter(c => c.isGroup && c.children.length === 3 && c.children[1]?.material?.map?.isCanvasTexture).sort((p, q) => d(p) - d(q))[0];
-      J.limpia(); J.hacia(a, 2.6, S ? { h: Math.atan2(S.position.x - a.pos.x, S.position.z - a.pos.z) } : {});
+      if (S) S.visible = false;
+      J.limpia(); J.hacia(a, 2.6, S ? { h: Math.atan2(S.position.x - a.pos.x, S.position.z - a.pos.z) + Math.PI / 2 } : {});
       J.charla(a, { habla: 0.05, frases: ['¡Kaixo! Soy Maite. ¡Ongi etorri a Otsagabia!'] }); J.cara(a);
     } }),
   kike: de5('kike', { seg: 1.05, url: `?${OT}&weather=clear&t=12.4`, antes: 30,
