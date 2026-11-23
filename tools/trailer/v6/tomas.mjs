@@ -79,6 +79,69 @@ const pueblo = (town, o = {}) => ({
   prep: eval(`() => { const J = window.__j; J.limpia(); const C = J.centro(); J.orbita(C, ${JSON.stringify({ seg: o.seg ?? 1.05, a0: (o.a0 ?? 0.1) * 6.283, a1: (o.a1 ?? 0.16) * 6.283, r0: o.r0 ?? 42, r1: o.r1 ?? 36, y0: o.y0 ?? 24, y1: o.y1 ?? 21, mira: 3 })}); }`),
 });
 
+// ---------- tercera vuelta (el autor, 23 nov: «falta toda la parte de oficios y mujeres y personajes y leyendas») ----------
+// un oficio en su taller (game/talleres.js): el maestro (o la maestra) en su puesto, trabajando, con el fuego vivo, y la
+// cámara que entra del plano del taller entero hacia el puesto. o.puesto: el puesto; o.act: el gesto del maestro; o.fx: las
+// partículas que saltan en el puesto a cada golpe; o.hechos: los pasos ya hechos que se ven (la herradura al rojo…)
+const FX = {
+  chispas: { n: 26, color: ['#ffd27a', '#ff8a2a', '#fff2c0'], speed: 3.2, size: 0.12, life: 0.7, gravity: 6, spread: 0.1 },
+  harina: { n: 18, color: ['#ffffff', '#f3ead8'], speed: 0.9, size: 0.22, life: 0.9, gravity: 0.6, spread: 0.3, drag: 1.5 },
+  lascas: { n: 12, color: ['#d8ccb2', '#b9aa8b'], speed: 2.8, size: 0.07, life: 0.7, gravity: 8, spread: 0.12 },
+  brasas: { n: 6, color: ['#ffb34a', '#ffe38a'], speed: 0.7, size: 0.08, life: 1.1, gravity: -0.8, spread: 0.15 },
+};
+const oficio = (town, o) => ({
+  url: `?town=${town}&q=high&skipintro=1&weather=clear&t=${o.hora ?? 11.5}`, seg: o.seg ?? 2.2, antes: 30, limpio: true,
+  prep: eval(`() => {
+    const J = window.__j, G = J.G, P = G.player; J.limpia();
+    const M = (G.missions || []).find(m => m.type === 'trade' && m.taller${o.kind ? ` && m.m.kind === '${o.kind}'` : ''}); if (!M) throw new Error('sin taller');
+    const T = M.taller, h = M.host, p = T.puestos['${o.puesto}'] || T.puestos.taller, f = p.foco, de = p.de || T.puestos.maestro.de;
+    const ap = T.puestos.aprendiz?.de || de; P.place(ap.x, ap.z, 0); P.frozen = true; J.teclas([]); P.obj.visible = false;
+    if (h) { h.cancelPath?.(); h.goal = null; h.path = []; h.target = null; h.state = 'idle'; h.setPos(de.x, de.z, Math.atan2(f.x - de.x, f.z - de.z)); h.frozen = true; h.ignorePlayer = true; h.mira = f; }
+    for (const id of ${JSON.stringify(o.hechos || [])}) T.paso(id);
+    T.fuerza = 1; T.activo = '${o.puesto}';
+    const fx = ${JSON.stringify(FX[o.fx] || null)}; let golpe = 0;
+    window.__antes = () => { P.obj.visible = false; T.fuerza = 1; };
+    window.__cada = (t) => { P.obj.visible = false; T.fuerza = 1; if (t >= golpe) { golpe = t + ${o.ritmo ?? 0.55}; ${o.act ? `h?.rig?.doAct?.('${o.act}', 0.45);` : ''} if (fx) G.particles?.emit({ x: f.x, y: f.y + ${o.fy ?? 0.1}, z: f.z }, fx); } };
+    const A = T.puestos.taller.cam, B = p.cam || A, FA = T.puestos.taller.foco, k0 = ${o.k0 ?? 0.45}, k1 = ${o.k1 ?? 0.85};
+    J.dron((t) => {
+      const k = k0 + (k1 - k0) * Math.min(1, t / ${o.seg ?? 2.2}), m = Math.min(1, 0.6 + k * 0.5);
+      return { pos: [A.x + (B.x - A.x) * k, A.y + (B.y - A.y) * k, A.z + (B.z - A.z) * k], look: [FA.x + (f.x - FA.x) * m, FA.y + (f.y - FA.y) * m + ${o.ly ?? 0.25}, FA.z + (f.z - FA.z) * m] };
+    });
+  }`),
+});
+// una vecina (o un vecino) de un pueblo, la de una misión: de cara, hablando, sin el cuadro de la charla
+const vecina = (town, sel, frase, o = {}) => ({
+  url: `?town=${town}&q=high&skipintro=1&weather=clear&t=${o.hora ?? 11.5}`, seg: o.seg ?? 1.3, antes: 30, limpio: true,
+  prep: eval(`() => {
+    const J = window.__j, G = J.G; J.limpia();
+    const M = (G.missions || []).find(m => ${sel}), a = M?.host; if (!a) throw new Error('sin vecina');
+    a.cancelPath?.(); a.goal = null; a.path = []; a.target = null; a.state = 'idle'; a.frozen = true;
+    J.hacia(a, 2.6); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: [${JSON.stringify(frase)}] }); J.cara(a, ${JSON.stringify(o.cara || {})});
+  }`),
+});
+// una criatura de leyenda (sorgina, Roldán…), aparecida ya junto a su guarida y de día, con la cámara que gira desde abajo
+// (el juego la saca de noche, tras seguir las pistas; aquí se llama a la aparición sin el relevo de la persecución)
+const criatura = (town, who, o = {}) => ({
+  url: `?town=${town}&q=high&skipintro=1&weather=clear&t=${o.hora ?? 12}`, seg: o.seg ?? 2.2, antes: 36, limpio: true,
+  prep: eval(`() => {
+    const J = window.__j, G = J.G, P = G.player; J.limpia();
+    const M = (G.missions || []).find(m => m.type === 'legend' && m.m.who === '${who}'); if (!M) throw new Error('sin leyenda');
+    const T = window.__townB?.TOWN || {}, PL = window.__layout.PLACES, lm = (k) => (T.landmarks || []).find(l => l.kind === k), L = M.leg || {};
+    const lp = L.lair === 'cave' ? (lm('cave')?.spot || PL.forest) : L.lair === 'river' ? (lm('bridge')?.spot || PL.riverSpot || PL.forest) : (PL.forest || PL.plaza);
+    M.lair = G.spot(lp, 6);
+    const st = window.setTimeout; window.setTimeout = () => 0; try { G.showCreature(M); } finally { window.setTimeout = st; }
+    const a = M.creature; if (!a) throw new Error('sin criatura'); a.frozen = true; a.appear = 1;
+    P.place(a.pos.x + 9, a.pos.z + 9, 0); P.frozen = true; J.teclas([]); P.obj.visible = false;
+    window.__antes = () => { P.obj.visible = false; };
+    const H = a.obj.userData.H || 2.4, h0 = (a.heading ?? 0) + ${o.a ?? 0.3};
+    J.dron((t) => {
+      P.obj.visible = false;
+      const y = J.suelo(a.pos.x, a.pos.z), h = h0 + t * ${o.giro ?? 0.2}, d = H * ${o.d ?? 1.7} - t * 0.25;
+      return { pos: [a.pos.x + Math.sin(h) * d, y + H * ${o.y ?? 0.35}, a.pos.z + Math.cos(h) * d], look: [a.pos.x, y + H * ${o.ly ?? 0.6}, a.pos.z] };
+    });
+  }`),
+});
+
 export const TOMAS = {
   // ---------- el principio: Navarra en el mapa y el Pirineo que sube como una isla ----------
   isla: { url: '?skipintro=1&q=high', seg: 4.2, antes: 4, espera: 12000, limpio: true, listo: MAPA,
@@ -293,6 +356,35 @@ export const TOMAS = {
   isaba: pueblo('isaba-izaba', { a0: 0.55, a1: 0.6, r0: 150, r1: 135, y0: 80, y1: 72 }),
   puente: pueblo('puente-la-reina', { a0: 0.2, a1: 0.27, r0: 34, r1: 28, y0: 14, y1: 11 }),
   // ---------- debajo del logo: la isla del Pirineo ya arriba, con la cámara girando despacio ----------
+  // ---------- tercera vuelta: oficios, mujeres, personajes y leyendas ----------
+  // los talleres: el herrero de Lesaka en el yunque, con la fragua viva y chispas a cada martillazo; Pili, la panadera de
+  // Artajona, en la boca del horno; el tonelero de Viana junto al fuego de las barricas
+  herrero: oficio('lesaka', { kind: 'herrero', puesto: 'yunque', act: 'hammer', fx: 'chispas', hechos: ['tenazas', 'fragua'], fy: 0.05 }),
+  panadera: oficio('artajona', { kind: 'panadero', puesto: 'horno', act: 'pick', fx: 'brasas', ritmo: 0.7 }),
+  tonelero: oficio('viana', { kind: 'tonelero', puesto: 'fuego', act: 'hammer', fx: 'brasas', ritmo: 0.6 }),
+  // las vecinas que dan las misiones: Itziar en Otsagabia, Maialen la aizkolari de Leitza, la amona Felisa, hilandera de
+  // Roncal, la amona Graxi, que cuenta la noche de las sorginak de Zugarramurdi, y Nerea, la guarda del río de Lesaka
+  itziar: de5('itziar', { seg: 1.3, antes: 30, url: `?${OT}&weather=clear&t=11.6`,
+    prep: () => { const J = window.__j, a = J.G.npcs.itziar; if (!a) throw new Error('sin itziar'); a.frozen = true; J.limpia(); J.hacia(a, 2.6); J.teclas([]); J.charla(a, { habla: 0.05, para: 9, frases: ['¿Sabes que en Otsagabia hay palacios con escudos de piedra?'] }); J.cara(a); } }),
+  maialen: vecina('leitza', "m.type === 'trade' && m.m.kind === 'aizkolari'", '¡Kaixo! Soy Maialen, aizkolari.'),
+  felisa: vecina('erronkari-roncal', "m.type === 'trade' && m.m.kind === 'hilandera'", 'De la oveja al ovillo, como hacía mi amona.'),
+  graxi: vecina('zugarramurdi', "m.type === 'legend' && m.m.who === 'sorgina'", 'En la noche de San Juan, las sorginak bailan en la cueva…'),
+  nerea: vecina('lesaka', "m.m.id === 'salmon'", 'El salmón vuelve río arriba. ¡Cuidemos el agua!'),
+  // las leyendas que faltaban: la sorgina junto a la cueva de Zugarramurdi y la sombra de Roldán en Orreaga
+  sorgina: criatura('zugarramurdi', 'sorgina'),
+  roldan: criatura('orreaga-roncesvalles', 'roldan', { hora: 17.5 }),
+  // la exploradora: corriendo por Roncal, de frente y desde abajo, y a galope por el valle de Larraun
+  correA: {
+    url: '?town=erronkari-roncal&q=high&skipintro=1&weather=clear&t=11.5', seg: 2.5, antes: 24, limpio: true, avatar: 'exploradora',
+    prep: () => { const J = window.__j; J.limpia(); J.corre(null, 40, { solo: true, snap: true }); J.pegada((t) => ({ f: 4.4 - t * 0.3, s: 0.8, y: 0.75, lf: 0, ly: 1.15 })); },
+  },
+  galopeA: {
+    url: '?town=lekunberri&q=high&skipintro=1&weather=clear&t=11', seg: 2.5, antes: 20, limpio: true, avatar: 'exploradora',
+    prep: () => {
+      const J = window.__j; J.limpia(); J.corre(null, 55); J.teclas([]); J.galope();
+      J.pegada((t) => ({ f: 1.5 - t * 0.9, s: 5.2, y: 1.6, lf: 1.5, ly: 1.5 }));
+    },
+  },
   final: { url: '?skipintro=1&q=high', seg: 7.0, antes: 72, espera: 12000, limpio: true, listo: MAPA,
     prep: () => { window.__mapa3d.comarca('pirineo'); } },
 };
