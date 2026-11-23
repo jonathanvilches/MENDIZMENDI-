@@ -777,7 +777,7 @@ void main() { vec3 n = normalize(vNw);
   scene.add(agua); sima.add(aguaA); agua.visible = false;
 
   // ---------- rocío, bruma y polvo: puntos blandos (dos pasadas, como el agua: en el aire y dentro del hueco) ----------
-  const NR = 26, NB2 = 6, NP = 120, NT = caidas.length * (NR + NB2) + NP;
+  const NR = 26, NB2 = 6, NP = 480, NT = caidas.length * (NR + NB2) + NP;
   const pPos = new Float32Array(NT * 3), pS = new Float32Array(NT), pC = new Float32Array(NT * 4);
   const ptoG = new THREE.BufferGeometry(); ptoG.setAttribute('position', new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage)); ptoG.setAttribute('aS', new THREE.BufferAttribute(pS, 1).setUsage(THREE.DynamicDrawUsage)); ptoG.setAttribute('aC', new THREE.BufferAttribute(pC, 4).setUsage(THREE.DynamicDrawUsage)); geos.push(ptoG);
   const PTO = { uEsc: { value: 600 }, uCorte: CORTE };
@@ -787,7 +787,7 @@ void main() { vec3 n = normalize(vNw);
   const pto = new THREE.Points(ptoG, ptoM), ptoA = new THREE.Points(ptoG, ptoAM); pto.renderOrder = 4; ptoA.renderOrder = -0.6; pto.frustumCulled = ptoA.frustumCulled = false; scene.add(pto); sima.add(ptoA); pto.visible = false;
   const fasesR = Float32Array.from({ length: caidas.length * NR }, () => R()), ladoR = Float32Array.from({ length: caidas.length * NR * 2 }, () => R() - 0.5);
   const polvo = Array.from({ length: NP }, () => ({ t: 9, x: 0, y: 0, z: 0, s: 0.3, vy: 0 }));
-  let polvoN = 0;
+  let polvoN = 0, humo = 0; const VIDA_POLVO = 4.2;
   const echaPolvo = (x, y, z, s) => { const p = polvo[polvoN++ % NP]; Object.assign(p, { t: 0, x, y, z, s, vy: 0.15 + R() * 0.25 }); };
 
   // ---------- piedras: las que flotan alrededor y las que se desprenden, de la isla y del borde del hueco ----------
@@ -835,6 +835,16 @@ void main() { vec3 n = normalize(vNw);
       // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo. Desde el 16 de noviembre de 2026,
       // se rompe de verdad: el doble de piedras, algunas grandes, y una nube de polvo, como humo, que sale de toda la grieta y
       // sube despacio. El autor: «cuando se despega de la tierra, debería romperse y salir un poco más de humo, como polvo»)
+      // (y desde el 23 de noviembre de 2026, el polvo sale en cuanto la isla se mueve y sigue saliendo de la grieta mientras
+      // sube, más espeso y más grande: tapa el canto mientras se forma. El autor: «lo que no me gusta es cómo suben las
+      // comarcas… todo el labio se genera. Podrías añadir como humo para tapar esos errores»)
+      if (k > 0.004 && antes <= 0.004) for (let n = 0; n < 150; n++) { const i = Math.floor((n + R() * 0.8) / 150 * N) % N;
+        if (n % 2) { const [x, z] = Q[i], [nx, nz] = NOR[i]; echaPolvo(x + nx * (0.1 + R() * 0.35), py - 0.15 + R() * 0.25, z + nz * (0.1 + R() * 0.35), 2.4 + R() * 2.6); }
+        else { const [x, z] = Qh[i], [nx, nz] = NORh[i], y0 = fuera(x + nx * 0.3, z + nz * 0.3); echaPolvo(x - nx * 0.1, y0 - 0.1, z - nz * 0.1, 2.2 + R() * 2.4); } }
+      if (k > 0.004 && k < 0.5) { humo -= dt; while (humo <= 0) { humo += 0.04;
+        for (let n = 0; n < 4; n++) { const i = (R() * N) | 0;
+          if (n % 2) { const [x, z] = Qh[i], [nx, nz] = NORh[i], y0 = fuera(x + nx * 0.3, z + nz * 0.3); echaPolvo(x - nx * 0.1, y0 - 0.1, z - nz * 0.1, 1.8 + R() * 2.0); }
+          else { const [x, z] = Q[i], [nx, nz] = NOR[i]; echaPolvo(x + nx * (0.1 + R() * 0.3), py - 0.25 - R() * 0.4, z + nz * (0.1 + R() * 0.3), 1.9 + R() * 2.2); } } } }
       if (k > 0.03 && antes <= 0.03) {
         for (let n = 0; n < 90; n++) {
           const i = (R() * N) | 0, [x, z] = (n % 2 ? Q : Qh)[i], [nx, nz] = (n % 2 ? NOR : NORh)[i], s = 0.05 + R() * (n < 16 ? 0.32 : 0.14);
@@ -892,11 +902,11 @@ void main() { vec3 n = normalize(vNw);
           pPos[pi * 3] = c3.x - c3.nx * 0.4 + Math.cos(a) * rr; pPos[pi * 3 + 1] = corte + LAGO + 0.25 + Math.sin(t * 0.4 + r) * 0.08; pPos[pi * 3 + 2] = c3.z - c3.nz * 0.4 + Math.sin(a) * rr;
           pS[pi] = c3.w * 6; pC[pi * 4] = 0.95; pC[pi * 4 + 1] = 0.97; pC[pi * 4 + 2] = 1; pC[pi * 4 + 3] = kk * 0.35; pi++; }
       });
-      // (cada bocanada de polvo se abre, sube despacio y se deshace en algo más de 3 s)
+      // (cada bocanada de polvo se abre, sube despacio y se deshace en algo más de 4 s)
       for (const p of polvo) {
-        if (p.t < 3.2) { p.t += dt; p.y += p.vy * dt * (1 - p.t / 4); }
-        const f = Math.min(1, p.t / 3.2); pPos[pi * 3] = p.x; pPos[pi * 3 + 1] = p.y; pPos[pi * 3 + 2] = p.z;
-        pS[pi] = p.s * (0.6 + f * 2.4); pC[pi * 4] = 0.84; pC[pi * 4 + 1] = 0.79; pC[pi * 4 + 2] = 0.7; pC[pi * 4 + 3] = p.t < 3.2 ? 0.5 * (1 - f) ** 1.3 * Math.min(1, p.t * 5) : 0; pi++;
+        if (p.t < VIDA_POLVO) { p.t += dt; p.y += p.vy * dt * (1 - p.t / (VIDA_POLVO + 0.8)); }
+        const f = Math.min(1, p.t / VIDA_POLVO); pPos[pi * 3] = p.x; pPos[pi * 3 + 1] = p.y; pPos[pi * 3 + 2] = p.z;
+        pS[pi] = p.s * (0.6 + f * 2.4); pC[pi * 4] = 0.86; pC[pi * 4 + 1] = 0.82; pC[pi * 4 + 2] = 0.75; pC[pi * 4 + 3] = p.t < VIDA_POLVO ? 0.7 * (1 - f) ** 1.3 * Math.min(1, p.t * 5) : 0; pi++;
       }
       ptoG.attributes.position.needsUpdate = ptoG.attributes.aS.needsUpdate = ptoG.attributes.aC.needsUpdate = true;
       // las piedras

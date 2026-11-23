@@ -4877,4 +4877,8 @@ git push origin master:main
   pelota; que el mundo esté ya cargado»). Tomas nuevas: `dronPueblo` (órbita de dron sobre el centro de Olite, Puente
   la Reina e Isaba, sin jugador), `pelota` (un tanto en el frontón de Lumbier, el juego solo) y la isla del Bidasoa; las
   caras de los vecinos ya no se apagan lejos (`CARAS` en `AYUDA`). Fuera los soplidos de los cambios de plano. El
-  sanferminero adulto no sale (el autor no lo quiere); queda por decidir con él quién protagoniza las carreras.
+  protagonista del tráiler es el explorador (el autor: «el sanferminero solo está para la misión de San Fermín de correr
+  el encierro, nada más»). En el encierro, tu corredor es Fermín, el mismo chico que el explorador vestido de San Fermín,
+  y ya con la talla del explorador, 1,45 m, como en octubre, no la de un mozo adulto, 1,6 (encierro.js; el autor: «me
+  gustaba cuando el sanferminero era del mismo tamaño que el explorador»). La isla echa humo en cuanto se mueve y
+  mientras sube (mapa3dIsla.js), que tapa el canto mientras se forma.

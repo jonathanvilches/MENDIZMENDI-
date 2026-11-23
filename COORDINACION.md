@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Mapa: la comarca echa humo (polvo) en cuanto se despega y mientras sube, que tapa el canto (`src/hub/mapa3dIsla.js`). Encierro: tu corredor, Fermín, con la talla del explorador (`src/game/encierro.js`). Vistos a 1280×720 y 844×390.
+
 
 ## Peticiones entre ventanas
 

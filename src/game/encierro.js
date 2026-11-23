@@ -11,7 +11,7 @@ import { infoCard } from '../ui/minigames.js';
 import { buildPlaza, RO, RA } from './encierroPlaza.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { QUALITY } from '../util/quality.js';
-import { GlbChar, loadMeshy, MESHY_GAIT, avatarIsGirl } from '../actors/glbChar.js';
+import { GlbChar, loadMeshy, MESHY_GAIT, avatarIsGirl, meshyHeight } from '../actors/glbChar.js';
 import { profile } from './profile.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { hairTint } from '../actors/hairColor.js';
@@ -320,7 +320,9 @@ export class Encierro {
       const obj = new THREE.Group(); obj.add(char.root); obj.userData.H = 1.6 * k;
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
-    let me = sf ? sanfermin(1, false, false, null, sfMe) : null;
+    // (tú, el sanferminero del principio del juego: el mismo chico que el explorador, de su misma talla, no un mozo adulto;
+    // el autor, 23 de noviembre de 2026: «me gustaba cuando el sanferminero era del mismo tamaño que el explorador»)
+    let me = sf ? sanfermin(meshyHeight('explorador') / meshyHeight('sanfermin'), false, false, null, sfMe) : null;
     me ||= buildNpc({ ...white, height: 1.6 }, 'corredor del encierro');   // (el nombre: un mozo de blanco, no un vecino del pueblo)
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
