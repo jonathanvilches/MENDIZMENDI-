@@ -214,11 +214,19 @@ export const TOMAS = {
         for (const s of d.seq) if (!s.__p && s.t <= d.t + 1 / 24 && s.t > d.t - 0.2) { s.__p = 1; window.dispatchEvent(new KeyboardEvent('keydown', { key: teclas[s.lane], bubbles: true })); }
       };
       window.__antes = pulsa; window.__cada = pulsa;
+      // (el juego pone uno de los bancos de la explanada entre las dos filas y, del lado de su cámara, el suelo es campo arado:
+      // aquí el corro se aparta del banco hacia el norte y, en la variante E, mira a la puerta de la ermita, con la cámara
+      // delante de la portada y el valle detrás; N: el lado de siempre, más cerca y más alta)
+      const v = new URLSearchParams(location.search).get('tv') || 'E', B = G.npcs.bobo;
       const D = G.dancers.filter(d => d.visible !== false), n = D.length || 1;
-      const C = { x: D.reduce((s, d) => s + d.pos.x, 0) / n, z: D.reduce((s, d) => s + d.pos.z, 0) / n }, cp = G.follow.cinematic?.pos;
-      const a0 = cp ? Math.atan2(cp.z - C.z, cp.x - C.x) : 0;
-      J.orbita(C, { seg: 3.05, a0: a0 - 0.45, a1: a0 + 0.45, r0: 7.5, r1: 6, y0: 1.9, y1: 2.4, mira: 1.1 });
+      const C0 = { x: D.reduce((s, d) => s + d.pos.x, 0) / n, z: D.reduce((s, d) => s + d.pos.z, 0) / n }, cp = G.follow.cinematic?.pos;
+      const C = { x: C0.x, z: C0.z + (v === 'E' ? -6 : -5) }, h = v === 'E' ? Math.PI / 2 : -Math.PI / 2, da = h + Math.PI / 2, c = Math.cos(da), s = Math.sin(da);
+      for (const a of D) { const x = a.pos.x - C0.x, z = a.pos.z - C0.z; a.setPos(C.x + x * c + z * s, C.z + z * c - x * s, h); }
+      if (v === 'E') B.setPos(C.x + 1.5, C.z + 2.4, h); else B.setPos(B.pos.x, B.pos.z - 5, B.heading);
+      if (v === 'E') J.orbita(C, { seg: 3.05, a0: 0.3, a1: -0.3, r0: 6, r1: 5.2, y0: 2.0, y1: 2.5, mira: 1.1 });
+      else { const a0 = cp ? Math.atan2(cp.z - C.z, cp.x - C.x) : 0; J.orbita(C, { seg: 3.05, a0: a0 - 0.35, a1: a0 + 0.35, r0: 6, r1: 5, y0: 2.4, y1: 2.9, mira: 1.1 }); }
     } }),
+  // PRUEBA-DANZA
   // ---------- la pelota: un partido en el Labrit y la txapela ----------
   partido: de5('partido', { seg: 6.0 }),
   // (la entrega: la txapela que baja a la cabeza del campeón y, en el segundo trozo, la copa arriba con el confeti dorado;
@@ -313,3 +321,5 @@ export const CORTES = [
 ];
 // los rótulos: [desde, hasta, imagen] (v6/rotulos.mjs)
 export const ROTULOS = [[b(16) + 0.1, b(18) - 0.12, 'explora'], [b(18) + 0.1, b(20) - 0.12, 'descubre'], [b(20) + 0.1, b(22) - 0.12, 'vive'], [b(24) + 0.35, DURA, 'logo']];
+// PRUEBA-DANZA (temporal)
+TOMAS.danzaE = { ...TOMAS.danza, url: TOMAS.danza.url + '&tv=E' }; TOMAS.danzaN = { ...TOMAS.danza, url: TOMAS.danza.url + '&tv=N' };
