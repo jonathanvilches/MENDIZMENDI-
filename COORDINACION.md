@@ -17,11 +17,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Principal, 22 nov, noche) La entrega de la txapela con la pantalla gigante del frontón (el nombre del campeón) y las
-  autoridades aplaudiendo; la txapela ya no la atraviesa el pelo (`d8853ff6`). En Progreso, el ranking de pelotaris por
-  puntos tipo ATP y una pestaña por competición (`208cb2b0`). Probado a 1280×720, 844×390 y 852×393.
-- (Principal, 23 nov, madrugada) La elección de material con la caja de pelotas en 3D: los dos pelotaris la sostienen
-  delante del frontis y las elegidas se encienden con su color. Probado a 1280×720, 844×390 y 852×393.
 
 ## Peticiones entre ventanas
 
@@ -210,6 +205,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 23 nov, madrugada, la hizo la ventana principal: `master` hasta `0f020592`. La entrega de la txapela con la pantalla
+  gigante del frontón y las autoridades aplaudiendo (la txapela ya no la atraviesa el pelo); en Progreso, el ranking de
+  pelotaris por puntos tipo ATP con una pestaña por competición; y la elección de material con la caja de pelotas en 3D.
 - 22 nov, noche (tarde), la hizo la ventana principal: `master` hasta `7bdd9d29`. Fuera «Por dentro»: los oficios de antes y las láminas de cómo se hacen las cosas, juntos en una sola sección «Oficios» del menú, con pestañas; «Verlo paso a paso» en vez de «Verlo por dentro» en las misiones y las fichas.
 - 22 nov, noche, la hizo la ventana principal: `master` hasta `c13dcfa9`. El 4½ mucho más ganable (rival más blando solo en esa modalidad, `CUATRO.AYUDA`); fuera el bote que zumbaba (`pelota-bote-3`) y los pájaros, grillos, búhos y animales del pueblo que sonaban durante los partidos; números y rayas de la pared izquierda más finos y equilibrados; en Altsasu, al acabar la misión, los momotxorros salen alrededor del jugador y corren con él hasta la plaza.
 - 22 nov, tarde, la hizo la ventana principal: `master` hasta `b27e8024`. Narrador (Salva) en las láminas del queso, el rosado, el espárrago y el piquillo; las otras nueve con pasos, con su guion y subtítulos que pasan solos hasta grabar sus voces; el visor de láminas con fondo opaco también en ordenadores con gráfica floja.
