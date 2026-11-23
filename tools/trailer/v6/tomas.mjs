@@ -188,6 +188,7 @@ export const TOMAS = {
       import('/src/game/content.js').then(m => { G.state.ribbons = m.RIBBONS.map(r => r.id); G.refreshHUD?.(); });
       G.startDance();
       const pulsa = () => {
+        G.player.obj.visible = false;   // (el explorador, que baila delante, tapaba con la cabeza el principio del giro)
         const d = G.dn; if (!d) return; const teclas = ['ArrowLeft', 'ArrowUp', 'ArrowDown', 'ArrowRight'];
         for (const s of d.seq) if (!s.__p && s.t <= d.t + 1 / 24 && s.t > d.t - 0.2) { s.__p = 1; window.dispatchEvent(new KeyboardEvent('keydown', { key: teclas[s.lane], bubbles: true })); }
       };
