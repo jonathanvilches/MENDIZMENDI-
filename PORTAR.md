@@ -102,6 +102,18 @@ su canto y su sima (`isla-<comarca>.glb`). Notas:
 - El cielo, las nubes, la lluvia y las partículas no se exportan (cada motor tiene los suyos).
 - El código que los construye está en `src/world` (abajo); exportarlos ya hechos evita tener que reescribir la
   generación para empezar.
+- Lo que three.js escribe y glTF no admite se arregla al guardar (`tools/exportar/ajusta-glb.js`): factores y colores
+  por encima de 1 (el juego los sube para que brillen), los datos de cada ejemplar (las raíces de las islas), que pasan a
+  la extensión de ejemplares (`EXT_mesh_gpu_instancing`), y la ortofoto del relieve del mapa, que su sombreador pinta por
+  la posición: en el .glb ese material va sin textura y lo dice en sus *extras*.
+- Mientras exporta, no se toca `src/` ni `tools/exportar/` (Vite recarga la página y corta el pueblo a medias) ni se
+  lanza nada pesado a la vez: con 4 núcleos, un pueblo tarda de 2 a 5 minutos y, si se comparte la máquina, pasa del
+  tiempo de espera. `VALIDA=1` pasa cada pueblo por el validador; `BORRA=1` lo borra después (para probarlos todos sin
+  llenar el disco); `SALTA=1` se salta los que ya están.
+
+**Comprobado el 24 nov 2026**: los 39 pueblos y las 13 piezas del mapa (Navarra y las 12 islas) salen y pasan el
+validador de Khronos **sin ningún error**. Cada pueblo pesa de 112 a 211 MB (de 3,3 a 10,6 millones de triángulos; los
+39, 6,1 GB); Navarra, 22 MB, y cada isla, unos 12 MB.
 
 ## 3. Personajes, animales y objetos → .glb sin comprimir
 

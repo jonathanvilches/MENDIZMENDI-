@@ -7,9 +7,11 @@
 // - Las piezas de detalle de las casas (ventanas, marcos, macetas…), todas, y no las fachadas sencillas de lejos.
 // - El cielo, las nubes, la lluvia y las partículas no se exportan: en otro motor se hacen con lo suyo.
 // - Mientras se exporta, el juego se para (requestAnimationFrame retenido): así nada cambia a medias.
+// - Lo que three.js escribe y glTF no admite (el validador de Khronos lo da por error) se arregla al final: ajusta-glb.js.
 import * as THREE from 'three';
 import { GLTFExporter } from 'three/examples/jsm/exporters/GLTFExporter.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { ajustaGlb } from './ajusta-glb.js';
 
 const color = (m) => { const u = m.uniforms || {}; for (const k of ['diffuse', 'uColor', 'uColorA', 'color', 'uTint', 'uBase', 'uCol', 'colA', 'uShallow', 'uAgua', 'uWater', 'uDeep']) { const v = u[k]?.value; if (v?.isColor) return v; } return new THREE.Color(0x9a9a8a); };
 const mapa = (m) => { const u = m.uniforms || {}; for (const k of ['map', 'uMap', 'tMap', 'uTex', 'uOrto', 'tex', 'uTextura']) { const v = u[k]?.value; if (v?.isTexture && v.image) return v; } return null; };
@@ -81,7 +83,7 @@ export async function escenaAGlb(scene, { maxTex = 4096, renderer = null } = {})
   });
   try {
     const glb = await new GLTFExporter().parseAsync(raices.length === 1 ? raices[0] : raices, { binary: true, onlyVisible: true, maxTextureSize: maxTex });
-    return { glb: ajustaRangos(new Uint8Array(glb)), sombreadores: [...SH.values()] };
+    return { glb: ajustaGlb(new Uint8Array(glb)).glb, sombreadores: [...SH.values()] };
   } finally {
     for (const [o, m] of cambios) o.material = m;
     for (const o of ocultos) o.visible = true;
@@ -91,25 +93,6 @@ export async function escenaAGlb(scene, { maxTex = 4096, renderer = null } = {})
     for (const [m, u] of datos) m.userData = u;
     W.requestAnimationFrame = raf; for (const f of retenidos) raf.call(W, f);
   }
-}
-
-// (glTF pide los factores de los materiales entre 0 y 1, y el juego sube alguno por encima para que brille, como un color a
-// 1,3 en Pamplona: el validador de Khronos lo da por error y otro motor podría rechazarlo. Se recortan al guardar, en el
-// JSON del .glb, sin tocar el juego)
-function ajustaRangos(u8) {
-  const dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength), lj = dv.getUint32(12, true);
-  if (dv.getUint32(16, true) !== 0x4E4F534A) return u8;
-  const json = JSON.parse(new TextDecoder().decode(u8.subarray(20, 20 + lj))), c = (x) => Math.min(1, Math.max(0, x));
-  let n = 0;
-  const fija = (o, k) => { if (!o || o[k] == null) return; const v = o[k], w = Array.isArray(v) ? v.map(c) : c(v);
-    if (Array.isArray(v) ? w.some((x, i) => x !== v[i]) : w !== v) { o[k] = w; n++; } };
-  for (const m of json.materials || []) { const p = m.pbrMetallicRoughness; fija(p, 'baseColorFactor'); fija(p, 'metallicFactor'); fija(p, 'roughnessFactor'); fija(m, 'emissiveFactor'); fija(m.occlusionTexture, 'strength'); }
-  if (!n) return u8;
-  const t = new TextEncoder().encode(JSON.stringify(json)), pad = (4 - t.length % 4) % 4, resto = u8.subarray(20 + lj);
-  const out = new Uint8Array(20 + t.length + pad + resto.length), o = new DataView(out.buffer);
-  out.set(u8.subarray(0, 12)); o.setUint32(8, out.length, true); o.setUint32(12, t.length + pad, true); o.setUint32(16, 0x4E4F534A, true);
-  out.set(t, 20); out.fill(0x20, 20 + t.length, 20 + t.length + pad); out.set(resto, 20 + t.length + pad);
-  return out;
 }
 
 // (y se comprueba que se puede volver a abrir: cuántas mallas y triángulos trae y lo que mide)
