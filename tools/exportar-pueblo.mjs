@@ -19,9 +19,10 @@ const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/
 const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
 let ids = (process.argv[2] || 'lesaka').split(',');
 if (ids[0] === 'todos') { const p = await ctx.newPage(); await p.goto(URL + 'lab/icons.html').catch(() => {}); ids = await p.evaluate(async () => (await import('/src/data/levels.js')).LEVELS.map(l => l.id)); await p.close(); }
-const res = [];
+const res = [], HECHOS = new Set((() => { try { return JSON.parse(fs.readFileSync(path.join(out, 'indice.json'), 'utf8')); } catch (e) { return []; } })().filter(x => !x.error).map(x => x.id));
 for (const id of ids) {
-  if (process.env.SALTA === '1' && fs.existsSync(`${out}/${id}.glb`)) continue;
+  // (SALTA=1: los que ya están, en la carpeta o en su índice sin error)
+  if (process.env.SALTA === '1' && (fs.existsSync(`${out}/${id}.glb`) || HECHOS.has(id))) continue;
   const p = await ctx.newPage(), errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
   try {
     await p.addInitScript(() => { window.__exportar = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.removeItem('herrizherri-vista-corta');
@@ -49,7 +50,7 @@ for (const id of ids) {
     console.log(`${id}.glb ${r.mb} MB · ${info.mallas} mallas · ${(info.triangulos / 1e6).toFixed(2)} M triángulos · ${ns} sombreadores${val ? ` · validador: ${val.errores} errores` : ''}${errs.length ? ' · errores: ' + errs.slice(0, 2).join(' | ') : ''}`);
   } catch (e) { res.push({ id, error: String(e.message || e).slice(0, 200) }); console.log(`${id}: MAL ${String(e.message || e).slice(0, 160)}`); }
   await p.close();
+  const fi = path.join(out, 'indice.json'), prev = fs.existsSync(fi) ? JSON.parse(fs.readFileSync(fi, 'utf8')) : [];   // (después de cada pueblo, por si se corta)
+  fs.writeFileSync(fi, JSON.stringify([...prev.filter(x => !res.some(y => y.id === x.id)), ...res], null, 1));
 }
-const fi = path.join(out, 'indice.json'), prev = fs.existsSync(fi) ? JSON.parse(fs.readFileSync(fi, 'utf8')) : [];
-fs.writeFileSync(fi, JSON.stringify([...prev.filter(x => !res.some(y => y.id === x.id)), ...res], null, 1));
 await b.close();
