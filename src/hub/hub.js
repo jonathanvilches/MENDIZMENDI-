@@ -194,6 +194,14 @@ function spark(profile, w = 160, h = 44) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M0 ${h} ${P.map(p => 'L' + p.join(' ')).join(' ')} L${w} ${h}Z" fill="rgba(201,178,255,.22)"/><path d="M${P.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#c9b2ff" stroke-width="2.5"/></svg>`;
 }
 
+// las filas que se desplazan de lado (las pestañas en el móvil): marca por qué lado siguen, para el velo del borde
+// (hub.css, .filters.sigue-dcha / .sigue-izq), al desplazarlas, al cambiar de tamaño y al cargar su letra
+function bordesDesliza(f) {
+  const marca = () => { const max = f.scrollWidth - f.clientWidth; f.classList.toggle('sigue-dcha', max > 2 && f.scrollLeft < max - 2); f.classList.toggle('sigue-izq', max > 2 && f.scrollLeft > 2); };
+  f.addEventListener('scroll', marca, { passive: true }); marca(); document.fonts?.ready.then(marca);
+  if (window.ResizeObserver) new ResizeObserver(marca).observe(f);
+}
+
 export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
@@ -399,6 +407,7 @@ export class Hub {
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m); ajustaRejillas(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
+    m.querySelectorAll('.filters').forEach(bordesDesliza);   // (las pestañas que no caben: el velo del borde por donde siguen)
     m.querySelectorAll('.lam-rail, .figuras.rail, .rail, .cstrip').forEach(inercia);   // (las filas de cartas, que se arrastran con el ratón con inercia)
     contadores(m);   // (las cifras que suben desde 0 al abrir la sección: lo descubierto, las cualidades, tu nivel; ui/motion.js)
     titulosCineticos(m);   // (y los títulos y antetítulos, letra a letra, como los rótulos de la tele; ui/cinetica.js)

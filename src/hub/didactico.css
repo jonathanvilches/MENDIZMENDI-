@@ -181,8 +181,9 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
   .ddc-txt { padding: 8px 12px 12px; } .ddc-txt b { font-size: var(--fs-md); } .ddw-txt { padding: 8px 8px 12px; } .ddw-txt i { font-size: var(--fs-sm); }
 }
 @media (max-height: 520px) and (min-width: 561px) { .dd-chip { min-height: 40px; padding-block: 2px; } }
-/* (tumbado, como en las demás ventanas, el rótulo y el título grande de la portada fuera: ya van en la cabecera de la ventana) */
-@media (max-height: 520px) { #hub.juego .dd-portada > :is(.kicker, h1) { display: none; } #hub.juego .dd-portada { padding-top: 0; } }
+/* (el rótulo y el título grande de la portada, fuera: «Aprende Navarra» ya va en la cabecera de la ventana, y dos veces lo
+   mismo sobra; menos es más) */
+#hub.juego .dd-portada > :is(.kicker, h1) { display: none; } #hub.juego .dd-portada { padding-top: 0; }
 /* el mapa de los yacimientos (Historia, los primeros pobladores): el mapa y su lista numerada al lado, o debajo en el móvil.
    Cada número va dentro de su círculo, que crece con --k para no bajar de 12 px en la pantalla (fitMaps de hub.js) */
 .yac { display: grid; gap: 12px; margin-top: 24px; padding: 16px; border-radius: var(--rL); background: var(--glass); border: 1px solid var(--line); }
