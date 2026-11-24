@@ -12,6 +12,7 @@ import { groundHeight, waterLevelAt, surfAt, bridgeAt } from '../world/heightfie
 import { resolve, removeMover } from '../world/colliders.js';
 import { BOUNDARY } from '../world/layout.js';
 import { damp, dampAngle } from '../util/math.js';
+import { Arreos } from './arreos.js';
 
 // paso y vmax, en m/s; r, el radio con el que choca; dist, la distancia de la cámara; silla, a qué altura va sentado
 // (el lomo: 0,72 de la altura total en el caballo y 0,70 en el burro); escala, sobre la medida de la especie
@@ -67,7 +68,8 @@ export class Montura {
   baja() {
     const P = this.P; if (!P) return null;
     const F = this.g.follow;
-    if (this.sentado) { this.sentado.post = this.postAntes || null; this.sentado = null; }
+    if (this.sentado) { this.sentado.post = this.postAntes || null; this.sentado.mano?.('L', null); this.sentado.mano?.('R', null); this.sentado = null; }
+    this.arreos?.soltar?.();
     P.vehiculo = null; this.P = null; this.speed = 0; this.A.speed = 0; F.targetDist = this.distAntes ?? F.targetDist; document.body.classList.remove('conduce'); F.suaviza?.();
     const s = Math.sin(this.heading), c = Math.cos(this.heading);
     for (const k of [1, -1]) {
@@ -88,7 +90,11 @@ export class Montura {
     P.obj.position.set(0, 0, 0); P.obj.rotation.set(0, 0, 0); P.obj.updateMatrixWorld(true);
     this.alturaCadera = B.mixamorigHips.getWorldPosition(new THREE.Vector3()).y / Math.max(1e-3, P.obj.scale.y || 1);
     this.sentado = c;
+    // (los puños cerrados: agarran las riendas, arreos.js)
+    c.mano?.('L', 'puno'); c.mano?.('R', 'puno'); this.arreos?.soltar?.();
   }
+  // los arreos (silla, cabezada y riendas: arreos.js), en cuanto ha cargado el modelo del animal; P, el jinete o null
+  arreo(P) { if (this.arreos == null) this.arreos = Arreos.crea(this); if (this.arreos) this.arreos.update(P); }
   update(dt, input, P, camYaw = this.g.follow?.yaw ?? 0) {
     const T = this.T, A = this.A;
     input.consume?.(' ');
@@ -140,6 +146,7 @@ export class Montura {
     const bote = Math.abs(Math.sin(A.t * (2 + this.speed * 0.9))) * Math.min(0.07, this.speed * 0.012);
     if (this.sentado) { P.obj.position.set(nx, A.pos.y + T.silla - this.alturaCadera * (P.obj.scale.y || 1) + 0.06 + bote, nz); P.obj.rotation.set(0, this.heading, 0, 'YXZ'); P.rig.update(dt, 0, true, 0); }
     else { P.obj.position.set(nx, A.pos.y + T.silla - 0.7 + bote, nz); P.obj.rotation.set(0, this.heading, 0, 'YXZ'); P.rig.update(dt, 0, true, 0); }
+    this.arreo(P);
     if (this.speed > 4 && (this.polvo = (this.polvo || 0) - dt) <= 0) { this.polvo = 0.2; this.g.particles?.emit({ x: nx, y: A.pos.y + 0.15, z: nz }, { n: 2, color: ['#c9b58c', '#b39d73'], speed: 0.6, size: 0.4, life: 0.7, gravity: -0.3, spread: 0.9 }); }
   }
   /** Suelta: quieta en su sitio, pastando; o, si la has llamado (viene), trotando hacia ti hasta quedarse a tu lado */
@@ -158,10 +165,12 @@ export class Montura {
         if (waterLevelAt(nx, nz) - groundHeight(nx, nz) > 0.75) { nx = this.x; nz = this.z; V.t = Math.min(V.t, 0.5); }
         this.x = nx; this.z = nz; A.pos.set(nx, groundHeight(nx, nz), nz); A.heading = this.heading; A.speed = v; A.state = 'walk'; A.t += dt; A.dist = d; A.animate(dt); A.sync();
         this.g.sound?.cascos?.(v / this.T.vmax, 'dirt', this.tipo);
+        this.arreo(null);
         return;
       }
     }
     A.speed = 0; A.state = 'graze'; A.t += dt; A.dist = Math.hypot(this.x - player.pos.x, this.z - player.pos.z); A.animate(dt);
+    this.arreo(null);
   }
   /** La pone en (x, z) mirando a heading, sin montar (al llamarla desde lejos, aparece cerca y llega trotando) */
   ponEn(x, z, heading = this.heading) {
@@ -186,5 +195,5 @@ export class Montura {
     }
     this.viene = { t: 14 }; return true;
   }
-  dispose() { if (this.P) this.baja(); this.viene = null; this.A.obj.parent?.remove(this.A.obj); const i = this.A.collider; if (i) { i.ghost = true; removeMover(i); } }
+  dispose() { if (this.P) this.baja(); this.viene = null; this.arreos?.dispose?.(); this.arreos = false; this.A.obj.parent?.remove(this.A.obj); const i = this.A.collider; if (i) { i.ghost = true; removeMover(i); } }
 }
