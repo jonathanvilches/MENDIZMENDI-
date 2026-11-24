@@ -1,0 +1,18 @@
+{
+    "name": "Herrizherri.Juego.Editor",
+    "rootNamespace": "Herrizherri.Editor",
+    "references": [
+        "Herrizherri.Juego"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

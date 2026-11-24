@@ -1,0 +1,13 @@
+{
+  "name": "com.herrizherri.juego",
+  "displayName": "HERRIZHERRI",
+  "version": "0.1.0",
+  "unity": "6000.0",
+  "description": "El juego HERRIZHERRI en Unity: el explorador anda por los pueblos exportados del juego web (exportar/pueblos), y lo que se cambia en el juego llega solo (exportar/). Ver unity/LEEME.md y PORTAR.md.",
+  "dependencies": {
+    "com.unity.cloud.gltfast": "6.19.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0"
+  }
+}

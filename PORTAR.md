@@ -41,10 +41,15 @@ en un Chromium sin ventana (Playwright, ya en `node_modules`); si no está en `/
 2. Si toca los datos (`src/data` y los demás módulos de datos), GitHub vuelve a sacar `exportar/datos` solo
    (`.github/workflows/exportar-datos.yml`) y lo sube si ha cambiado algo. La fecha de cada JSON solo cambia si cambian
    sus datos.
-3. El proyecto de Unity va en `unity/`, en este mismo repositorio. Al abrirlo (o con el menú **HERRIZHERRI → Traer los
-   cambios del juego**), `unity/Assets/Editor/HERRIZHERRI/SincronizarDesdeElJuego.cs` copia lo nuevo de `exportar/` a
-   `Assets/HERRIZHERRI/` y Unity lo reimporta. En el ordenador de Unity basta con `git pull` antes de abrirlo.
-4. Lo pesado (modelos, pueblos, mapa, texturas) se saca cuando haga falta con `npm run exportar:todo` y el mismo menú lo trae.
+3. El proyecto de Unity es `unity/HERRIZHERRI`, en este mismo repositorio, y el juego en C# va en el paquete
+   `unity/com.herrizherri.juego` (el proyecto lo trae solo). Al abrirlo (o con el menú **HERRIZHERRI → Traer los cambios
+   del juego**), `SincronizarDesdeElJuego.cs` copia lo nuevo de `exportar/` a `Assets/HERRIZHERRI/` y Unity lo reimporta.
+   En el ordenador de Unity basta con «Pull» (o `git pull`) antes de abrirlo.
+4. Lo pesado (modelos, pueblos, mapa, texturas) se saca cuando haga falta con `npm run exportar:todo`. Los pueblos no se
+   copian a Unity: se leen de `exportar/pueblos` al jugar.
+5. **Ya se juega**: menú **HERRIZHERRI → Jugar en un pueblo…**, se elige un pueblo exportado y el explorador (o la
+   exploradora) anda y corre por él, con su cámara, chocando con el suelo y las casas (`JuegoPueblo.cs`). Es la base de la
+   fase 1 del plan; los vecinos, las misiones, el sonido y la pelota vienen después.
 Ver `unity/LEEME.md`.
 
 ## 1. Los datos → JSON

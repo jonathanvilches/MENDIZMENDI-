@@ -1,0 +1,7 @@
+HERRIZHERRI · el proyecto de Unity del juego.
+
+1. Unity Hub → Projects → Add → «Add project from disk» → elige ESTA carpeta (unity/HERRIZHERRI).
+2. Ábrelo con Unity 6 (si te pide otra versión, elige la que tengas de Unity 6).
+3. Arriba, menú HERRIZHERRI → «Jugar en un pueblo…» → elige un pueblo (.glb) de exportar/pueblos.
+
+Más en unity/LEEME.md.
