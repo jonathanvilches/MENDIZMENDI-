@@ -11,7 +11,7 @@ import { traeBytes, guardaSombreadores } from './exportar/guardar.mjs';
 const URL = process.env.URL || 'http://127.0.0.1:5173/', out = process.argv[2] || 'exportar/mapa', SOMB = process.env.SOMBREADORES || path.join(path.dirname(out), 'sombreadores');
 const SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
 fs.mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--max-old-space-size=8192'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined), args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--max-old-space-size=8192'] });
 const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
 await p.addInitScript(() => { window.__exportar = true; localStorage.setItem('herrizherri-lang', 'es');
   localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'explorador', seen: { heroBenat: true, dog: true, comoJugar: true, intro: true } })); });

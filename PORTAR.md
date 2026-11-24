@@ -35,6 +35,18 @@ pueblos, mapa) usa el servidor de desarrollo (`npx vite --host 127.0.0.1 --port 
 en un Chromium sin ventana (Playwright, ya en `node_modules`); si no está en `/opt/pw-browsers/chromium`, se dice dónde con
 `CHROMIUM=<ruta>`. Las letras se pasan a TTF con fontTools de Python (`pip install fonttools brotli`).
 
+## Los cambios de aquí, en GitHub y en Unity
+
+1. Cada cambio que se hace en el juego se sube a GitHub (rama `master`), siempre.
+2. Si toca los datos (`src/data` y los demás módulos de datos), GitHub vuelve a sacar `exportar/datos` solo
+   (`.github/workflows/exportar-datos.yml`) y lo sube si ha cambiado algo. La fecha de cada JSON solo cambia si cambian
+   sus datos.
+3. El proyecto de Unity va en `unity/`, en este mismo repositorio. Al abrirlo (o con el menú **HERRIZHERRI → Traer los
+   cambios del juego**), `unity/Assets/Editor/HERRIZHERRI/SincronizarDesdeElJuego.cs` copia lo nuevo de `exportar/` a
+   `Assets/HERRIZHERRI/` y Unity lo reimporta. En el ordenador de Unity basta con `git pull` antes de abrirlo.
+4. Lo pesado (modelos, pueblos, mapa, texturas) se saca cuando haga falta con `npm run exportar:todo` y el mismo menú lo trae.
+Ver `unity/LEEME.md`.
+
 ## 1. Los datos → JSON
 
 ```

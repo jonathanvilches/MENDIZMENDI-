@@ -1,0 +1,61 @@
+# Los datos del juego para Unity (exportar/datos, ver PORTAR.md), al día solos: cada vez que se sube un cambio en los
+# datos (src/data y los demás módulos de datos), GitHub abre el juego en un Chromium sin ventana, saca el JSON y, si ha
+# cambiado algo, lo sube. También se puede lanzar a mano (pestaña Actions → «Exportar datos para Unity» → Run workflow).
+name: Exportar datos para Unity
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'src/data/**'
+      - 'src/audio/**'
+      - 'src/i18n.js'
+      - 'src/pelota/guionVoz.js'
+      - 'src/pelota/comenta.js'
+      - 'src/pelota/rules.js'
+      - 'src/futbol/rules.js'
+      - 'src/game/talleres.js'
+      - 'src/game/townActividades.js'
+      - 'src/game/townAventura.js'
+      - 'src/game/torneo.js'
+      - 'src/game/content.js'
+      - 'src/game/senales.js'
+      - 'src/actors/trajes.js'
+      - 'src/actors/outfits.js'
+      - 'src/hub/didactico.js'
+      - 'src/hub/emblemas.js'
+      - 'src/levels/salazar.js'
+      - 'tools/exportar-datos.mjs'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: exportar-datos
+  cancel-in-progress: true
+jobs:
+  datos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: node node_modules/playwright-core/cli.js install --with-deps chromium
+      - name: Servidor del juego
+        run: |
+          nohup npx vite --host 127.0.0.1 --port 5173 > vite.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://127.0.0.1:5173/ > /dev/null && break; sleep 2; done
+      - run: node tools/exportar-datos.mjs exportar/datos
+      - name: Subir si ha cambiado
+        run: |
+          git config user.name "exportar-datos"
+          git config user.email "exportar-datos@users.noreply.github.com"
+          git add exportar/datos
+          if git diff --cached --quiet; then echo "Sin cambios"; exit 0; fi
+          git commit -m "exportar/datos: al día con los datos del juego (automático)"
+          for i in 1 2 3 4; do git pull --rebase origin master && git push origin HEAD:master && exit 0; sleep $((i*5)); done
+          exit 1

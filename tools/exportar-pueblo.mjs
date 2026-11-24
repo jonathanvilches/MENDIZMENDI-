@@ -15,7 +15,7 @@ import { traeBytes, guardaSombreadores } from './exportar/guardar.mjs';
 const URL = process.env.URL || 'http://127.0.0.1:5173/', out = process.argv[3] || 'exportar/pueblos';
 const SOMB = process.env.SOMBREADORES || path.join(path.dirname(out), 'sombreadores');
 fs.mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--max-old-space-size=8192'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined), args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--max-old-space-size=8192'] });
 const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } });
 let ids = (process.argv[2] || 'lesaka').split(',');
 if (ids[0] === 'todos') { const p = await ctx.newPage(); await p.goto(URL + 'lab/icons.html').catch(() => {}); ids = await p.evaluate(async () => (await import('/src/data/levels.js')).LEVELS.map(l => l.id)); await p.close(); }

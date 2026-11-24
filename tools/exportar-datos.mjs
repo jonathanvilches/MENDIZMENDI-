@@ -19,7 +19,7 @@ const EXTRA = ['audio/frases.js', 'audio/instrumentos.js', 'audio/interfaz.js', 
   'pelota/rules.js', 'futbol/rules.js', 'game/talleres.js', 'game/townActividades.js', 'game/townAventura.js', 'game/torneo.js', 'game/content.js',
   'game/senales.js', 'actors/trajes.js', 'actors/outfits.js', 'hub/didactico.js', 'hub/emblemas.js', 'levels/salazar.js'].filter(f => fs.existsSync('src/' + f));
 mods.push(...EXTRA.map(f => '../' + f));
-const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined) });
 const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
 await p.goto(URL + 'lab/icons.html', { timeout: 300000 }).catch(() => {});
 const indice = [];
@@ -52,8 +52,12 @@ for (const rel of mods) {
   const fuente = rel.startsWith('../') ? 'src/' + rel.slice(3) : 'src/data/' + rel, dest = path.join(out, (rel.startsWith('../') ? 'juego/' + rel.slice(3) : rel).replace(/\.(js|json)$/, '.json'));
   if (r.error) { console.log('MAL', rel, r.error); indice.push({ fuente, error: r.error }); continue; }
   fs.mkdirSync(path.dirname(dest), { recursive: true });
-  const texto = JSON.stringify({ fuente, exportado: new Date().toISOString().slice(0, 10), datos: r.datos, funciones: r.funciones.length ? r.funciones : undefined });
-  fs.writeFileSync(dest, texto);
+  // (la fecha solo cambia si cambian los datos: así, sin cambios, no hay nada nuevo que subir a GitHub)
+  const cuerpo = (x) => JSON.stringify({ ...x, exportado: undefined }), nuevo = { fuente, exportado: new Date().toISOString().slice(0, 10), datos: r.datos, funciones: r.funciones.length ? r.funciones : undefined };
+  let previo = null; try { previo = JSON.parse(fs.readFileSync(dest, 'utf8')); } catch (e) { }
+  if (previo && cuerpo(previo) === cuerpo(JSON.parse(JSON.stringify(nuevo)))) nuevo.exportado = previo.exportado;
+  const texto = JSON.stringify(nuevo);
+  if (!previo || JSON.stringify(previo) !== texto) fs.writeFileSync(dest, texto);
   indice.push({ fuente, json: path.relative(out, dest), kb: Math.round(texto.length / 1024), exporta: Object.keys(r.datos), funciones: r.funciones.length });
 }
 fs.writeFileSync(path.join(out, 'indice.json'), JSON.stringify(indice, null, 1));

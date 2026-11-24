@@ -24,3 +24,17 @@ exportar/*
 !exportar/originales/
 exportar/originales/*
 !exportar/originales/catalogo.json
+# el proyecto de Unity (unity/LEEME.md): lo que Unity genera solo y la copia de exportar/ que trae al abrirse
+unity/Library/
+unity/Temp/
+unity/Obj/
+unity/obj/
+unity/Logs/
+unity/Build/
+unity/Builds/
+unity/UserSettings/
+unity/MemoryCaptures/
+unity/Assets/HERRIZHERRI/
+unity/Assets/HERRIZHERRI.meta
+unity/*.csproj
+unity/*.sln
