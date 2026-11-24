@@ -558,6 +558,14 @@ function cardMaterial(id) {
   CMAT.set(id, mat); return mat;
 }
 const GEO = new Map();
+// normales y colores en un byte por componente en vez de cuatro (como las casas, world/builder.js): un ejemplar con hojas
+// una a una llega a 21.000 vértices, y los nueve de un pueblo eran 3 MB en la gráfica del iPhone; así, casi la mitad.
+// (Si algún color pasa de 1, se queda como estaba: un byte no lo guardaría)
+function compacta(g) {
+  const n = g.attributes.normal, c = g.attributes.color;
+  if (n?.array instanceof Float32Array) { const a = new Int8Array(n.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(Math.max(-1, Math.min(1, n.array[i])) * 127); g.setAttribute('normal', new THREE.BufferAttribute(a, n.itemSize, true)); }
+  if (c?.array instanceof Float32Array && c.array.every(v => v >= 0 && v <= 1)) { const a = new Uint8Array(c.array.length); for (let i = 0; i < a.length; i++) a[i] = Math.round(c.array[i] * 255); g.setAttribute('color', new THREE.BufferAttribute(a, c.itemSize, true)); }
+}
 // el ejemplar entero (cacheado por especie y semilla): la madera y las flores con su color en cada vértice, en una
 // malla, y las ramitas con hojas, en otra
 function build(id, seed) {
@@ -573,6 +581,7 @@ function build(id, seed) {
   const wood = mergeGeometries(parts.map(p => { for (const a of Object.keys(p.attributes)) if (!['position', 'normal', 'color'].includes(a)) p.deleteAttribute(a); return p.index ? p.toNonIndexed() : p; }));
   parts.forEach(p => p.dispose()); wood.computeBoundingBox(); wood.computeBoundingSphere();
   const cards = K?.geometry() || null;
+  compacta(wood); if (cards) compacta(cards);
   const B = { wood, cards, top: Math.max(wood.boundingBox.max.y, cards?.boundingBox.max.y || 0) };
   GEO.set(k, B); return B;
 }
