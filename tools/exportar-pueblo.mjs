@@ -43,7 +43,7 @@ for (const id of ids) {
     // (VALIDA=1: con el validador de Khronos; BORRA=1: se borra después, para probar todos sin llenar el disco)
     let val = null;
     if (process.env.VALIDA === '1') { const v = (await import('gltf-validator')).default; const r = await v.validateBytes(new Uint8Array(bytes), { maxIssues: 20, ignoredIssues: ['UNUSED_OBJECT'] });
-      val = { errores: r.issues.numErrors, avisos: r.issues.numWarnings, primero: r.issues.messages.find(m => m.severity === 0)?.message?.slice(0, 120) }; }
+      val = { errores: r.issues.numErrors, avisos: r.issues.numWarnings, primero: (({ pointer = '', message = '' } = r.issues.messages.find(m => m.severity === 0) || {}) => (pointer + ' ' + message).trim().slice(0, 160))() }; }
     if (process.env.BORRA === '1') fs.unlinkSync(`${out}/${id}.glb`);
     guardaSombreadores(SOMB, await p.evaluate(() => window.__somb), 'pueblo:' + id);
     const r = { id, mb: +(bytes.length / 1048576).toFixed(1), ...info, sombreadores: ns, validador: val || undefined, erroresPagina: errs.slice(0, 3) }; res.push(r);
