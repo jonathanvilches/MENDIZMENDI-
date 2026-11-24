@@ -58,6 +58,5 @@ const ORDEN = ['sanfermin', 'leire', 'pastor', 'osasuna', 'nahia', 'pelotari', '
 // (ahora solo el explorador y la exploradora: el resto del reparto sigue aquí para sus fichas y para cuando el juego viste al jugador de
 // pelotari, futbolista o sanferminero, pero ya no se elige)
 export const CAST = CAST_ALL.filter(c => c.solo);
-export const CAST_ANTES = CAST_ALL.filter(c => c.meshy || c.chica).sort((a, b) => ORDEN.indexOf(a.id) - ORDEN.indexOf(b.id));
 export const castById = (id) => CAST.find(c => c.id === id) || CAST[0];
 export const STAT_LABELS = ['Resistencia', 'Fuerza', 'Agilidad', 'Orientación', 'Naturaleza'];

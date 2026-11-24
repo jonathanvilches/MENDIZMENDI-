@@ -19,8 +19,6 @@ hdTable('figuras', IMG); hdTable('figuras-ilus', ILUS);
 const KIND = { leyenda: 'Leyenda', carnaval: 'Carnaval' };
 /** La ilustración de una figura si la hay; si no, el render de su traje (o '' si no está en esta versión). */
 export const figuraImg = (id) => ILUS[id] || webUrl('figuras-ilus', id) || IMG[id] || '';   // (en el archivo único, la ilustración de la web si se llega a ella)
-/** La figura recortada, sin fondo (para un círculo con su cara). */
-export const figuraRecorte = (id) => IMG[id] || '';
 /** Si la figura tiene ilustración (apaisada) en vez del render. */
 export const figuraIlus = (id) => !!(ILUS[id] || webUrl('figuras-ilus', id));
 /** La tarjeta de una figura: su imagen, de qué es y de dónde, y su nombre (abre la ficha al tocarla: data-figura). */

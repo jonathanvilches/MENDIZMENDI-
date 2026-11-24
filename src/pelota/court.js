@@ -146,7 +146,6 @@ const ARQ = {
   urroz: { techo: 'cerchas', alto: '#f4f1eb', sobre: '#f4f1eb', claro: '#efe9dc', derecha: 'policarbonato', ventanas: 'none', fondo: '#e0b84a' },
   peralta: { techo: 'sierra', alto: '#ece6d8', sobre: '#e4ddcc', claro: '#ebe5d6', derecha: 'claro', ventanas: 'none', fondo: '#d4c8b0' },
 };
-export const ARQUITECTURAS = Object.keys(ARQ);
 export function labritExtent() {
   const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
   return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };

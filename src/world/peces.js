@@ -39,7 +39,6 @@ const POR_COMARCA = {
   ribera: [['barbo', 3], ['madrilla', 3]],
   'ribera-alta': [['barbo', 3], ['madrilla', 3]],
 };
-export const PECES_NOMBRE = { trucha: 'Trucha común', salmon: 'Salmón atlántico', barbo: 'Barbo de Graells', madrilla: 'Madrilla', chipa: 'Chipa' };
 
 // ---------- la librea: lomo oscuro, flanco, vientre claro, motas y la línea lateral ----------
 function librea(p, rnd) {

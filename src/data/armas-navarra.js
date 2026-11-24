@@ -695,4 +695,3 @@ export const GUIA = [
 
 /** Escudo oficial de un pueblo del juego (o null si no lo tenemos comprobado). */
 export function armsOfTown(id) { return ARMAS.find(a => a.towns.includes(id)) || null; }
-export function pendingOfTown(id) { return PENDIENTES.find(a => a.towns.includes(id)) || null; }

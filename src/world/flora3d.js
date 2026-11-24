@@ -576,8 +576,6 @@ function build(id, seed) {
   const B = { wood, cards, top: Math.max(wood.boundingBox.max.y, cards?.boundingBox.max.y || 0) };
   GEO.set(k, B); return B;
 }
-/** Geometría (cacheada por especie y semilla) de la madera y las flores del ejemplar. */
-export function floraGeometry(id, seed = 1) { return build(id, seed)?.wood || null; }
 /** Ejemplar listo para el mundo: los pies en y = 0, proyecta y recibe sombra (userData.top: lo más alto). */
 export function floraModel(id, seed = 1) {
   const B = build(id, seed); if (!B) return null;

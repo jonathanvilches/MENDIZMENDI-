@@ -255,7 +255,6 @@ export function leafImage(id) {
   else { g.rotate(-0.35); ({ needles, flat2, whorl, scales, spines, opposite, strap })[D.k](g, D.o, D.c); }
   const url = cv.toDataURL('image/png'); cache.set(id, url); return url;
 }
-export const hasLeaf = (id) => !!LEAF[id];
 
 // ---------- la ramita de cada especie, para vestir las copas en 3D ----------
 // Unas cuantas hojas de la especie (o su mechón de agujas) en una ramita, sobre fondo transparente y sin sombra: la base

@@ -18,8 +18,6 @@ export const CAT_BY_TYPE = { process: 'producto', harvest: 'agricultura', herd: 
 const PREFIX = { instrumento: 'tradiciones', pasaka: 'tradiciones', armas: 'escudos', campo: 'agricultura', fauna: 'fauna', flora: 'flora', monte: 'montes', granja: 'ganaderia', escudo: 'escudos', pueblo: 'tradiciones', castillo: 'historia', dolmen: 'historia', cave: 'historia' };
 /** Saber de una carta: por su prefijo o por lo que se anotó al ganarla. */
 function catOf(id, p) { const pre = id.split(':')[0]; return PREFIX[pre] || p?.cardCat?.[id] || 'historia'; }
-/** Cuántas cartas hay de cada saber. */
-export function saberCounts(p) { const n = Object.fromEntries(SABERES.map(s => [s.id, 0])); for (const c of p.cards || []) { const k = catOf(c, p); if (k in n) n[k]++; } return n; }
 
 // Datos de Navarra comprobados, para los deportes y las esperas (de las fuentes oficiales de calidad y de patrimonio)
 export const DATOS = [
