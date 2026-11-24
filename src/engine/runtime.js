@@ -260,6 +260,11 @@ export class Runtime {
    *  Así ese rato cae en la pantalla de carga. Se llama desde main.js justo antes de rt.start, con la cámara ya en su sitio. */
   dibujoTapado() {
     const S = this.scene; if (!S) return;
+    // (antes, lo de cerca y lo de lejos puesto ya para esta cámara, como en cada imagen del juego: sin esto, en este primer
+    // dibujo estaban a la vista las piezas de detalle de todas las casas, los trozos de suelo de cerca y los árboles de
+    // cerca de todo el pueblo, y todo se subía a la tarjeta gráfica y allí se quedaba. En Leitza, 45 MB de geometría en el
+    // iPhone, de los 35 que aguanta: tools/presupuesto-pueblo.mjs)
+    try { const c = this.camera.position, P = this.player?.pos || c; this.terrain?.update(c); updateDetail(c, this.detailQ); this.nature?.update(c, P, this.elapsed, P, false); } catch (e) { }
     try {
       this.applySize();   // (el lienzo, a su tamaño: en el menú se queda en un píxel, unload)
       let hecho = false;
