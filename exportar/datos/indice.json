@@ -2265,5 +2265,231 @@
    "MAS_YACIMIENTOS"
   ],
   "funciones": 1
+ },
+ {
+  "fuente": "src/audio/frases.js",
+  "json": "juego/audio/frases.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/audio/instrumentos.js",
+  "json": "juego/audio/instrumentos.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/audio/interfaz.js",
+  "json": "juego/audio/interfaz.json",
+  "kb": 1,
+  "exporta": [
+   "VOZ_INTERFAZ"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/audio/pistas.js",
+  "json": "juego/audio/pistas.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 6
+ },
+ {
+  "fuente": "src/i18n.js",
+  "json": "juego/i18n.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 9
+ },
+ {
+  "fuente": "src/pelota/guionVoz.js",
+  "json": "juego/pelota/guionVoz.json",
+  "kb": 56,
+  "exporta": [
+   "GUION"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/pelota/comenta.js",
+  "json": "juego/pelota/comenta.json",
+  "kb": 45,
+  "exporta": [
+   "F"
+  ],
+  "funciones": 5
+ },
+ {
+  "fuente": "src/pelota/rules.js",
+  "json": "juego/pelota/rules.json",
+  "kb": 36,
+  "exporta": [
+   "ARQ_ICON",
+   "ARQ_TXT",
+   "COURT",
+   "CUATRO",
+   "DURACIONES",
+   "LEVELS",
+   "LEVEL_ORDER",
+   "PHYS",
+   "RETOS",
+   "SHOTS",
+   "TEXT"
+  ],
+  "funciones": 120
+ },
+ {
+  "fuente": "src/futbol/rules.js",
+  "json": "juego/futbol/rules.json",
+  "kb": 10,
+  "exporta": [
+   "CAREER_KEY",
+   "FIELD",
+   "FORM",
+   "FORMAT",
+   "KICKERS",
+   "LEVELS",
+   "LINE",
+   "NUMBERS",
+   "PHYS",
+   "PLAYER",
+   "REFEREE",
+   "RETOS",
+   "ROLES",
+   "ROLE_NAME",
+   "RULES",
+   "SISTEMAS",
+   "TEAMS",
+   "TEXT",
+   "VENUES"
+  ],
+  "funciones": 4
+ },
+ {
+  "fuente": "src/game/talleres.js",
+  "json": "juego/game/talleres.json",
+  "kb": 1,
+  "exporta": [
+   "TALLERES"
+  ],
+  "funciones": 7
+ },
+ {
+  "fuente": "src/game/townActividades.js",
+  "json": "juego/game/townActividades.json",
+  "kb": 0,
+  "exporta": [
+   "ANIMAL"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/game/townAventura.js",
+  "json": "juego/game/townAventura.json",
+  "kb": 0,
+  "exporta": [
+   "AV"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/game/torneo.js",
+  "json": "juego/game/torneo.json",
+  "kb": 6,
+  "exporta": [
+   "EXTRA",
+   "KINDS",
+   "PIE_PORTADA",
+   "TRINQ_BELTZA",
+   "TRINQ_FINAL",
+   "TRINQ_JUEGO"
+  ],
+  "funciones": 35
+ },
+ {
+  "fuente": "src/game/content.js",
+  "json": "juego/game/content.json",
+  "kb": 10,
+  "exporta": [
+   "CARDS",
+   "EGUZKILORES",
+   "QUESTS",
+   "QUIZ",
+   "RIBBONS",
+   "SPECIES_OBS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/game/senales.js",
+  "json": "juego/game/senales.json",
+  "kb": 3,
+  "exporta": [
+   "MONTE_TIPS",
+   "ORIENTA",
+   "ORIENTA_TIPS"
+  ],
+  "funciones": 5
+ },
+ {
+  "fuente": "src/actors/trajes.js",
+  "json": "juego/actors/trajes.json",
+  "kb": 2,
+  "exporta": [
+   "TRAJES"
+  ],
+  "funciones": 16
+ },
+ {
+  "fuente": "src/actors/outfits.js",
+  "json": "juego/actors/outfits.json",
+  "kb": 1,
+  "exporta": [
+   "MYTHS"
+  ],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/hub/didactico.js",
+  "json": "juego/hub/didactico.json",
+  "kb": 1,
+  "exporta": [
+   "DIDACTICO",
+   "LM_ICON"
+  ],
+  "funciones": 19
+ },
+ {
+  "fuente": "src/hub/emblemas.js",
+  "json": "juego/hub/emblemas.json",
+  "kb": 11,
+  "exporta": [
+   "DE_PUEBLO",
+   "EMB",
+   "SUELTOS"
+  ],
+  "funciones": 5
+ },
+ {
+  "fuente": "src/levels/salazar.js",
+  "json": "juego/levels/salazar.json",
+  "kb": 9,
+  "exporta": [
+   "BRIDGES",
+   "CELL",
+   "CHURCH_PAD",
+   "CONF",
+   "HALF",
+   "MEADOW",
+   "N",
+   "PATHS",
+   "PLACES",
+   "PONDS",
+   "RIVER_HALF_Z",
+   "SPECIAL_TREES"
+  ],
+  "funciones": 15
  }
 ]

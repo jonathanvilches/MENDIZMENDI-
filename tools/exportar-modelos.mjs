@@ -13,7 +13,10 @@ import path from 'node:path';
 const origen = process.argv[2] || 'src/assets', destino = process.argv[3] || 'exportar/modelos';
 await MeshoptDecoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder });
-const L = []; const anda = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) anda(p); else if (/\.glb$/i.test(e.name)) L.push(p); } };
+// (sin las copias rebajadas que el juego usa en el móvil o de lejos: meshy-1024, texturas a 1024, y meshy/lod, mallas
+// simplificadas; son el mismo personaje con menos calidad. Con TODOS=1 salen también)
+const REBAJADAS = /(^|\/)(meshy-1024|meshy\/lod)(\/|$)/;
+const L = []; const anda = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) { if (process.env.TODOS === '1' || !REBAJADAS.test(path.relative(origen, p))) anda(p); } else if (/\.glb$/i.test(e.name)) L.push(p); } };
 anda(origen);
 let ok = 0; const mal = [];
 for (const f of L) {
@@ -24,6 +27,8 @@ for (const f of L) {
       if (t.getURI()) t.setURI(t.getURI().replace(/\.webp$/i, '.png'));
     }
     await doc.transform(dequantize());
+    // (las bibliotecas de animaciones, sin malla: un nodo con esqueleto pero sin malla no es glTF válido y glTFast lo rechaza)
+    for (const n of root.listNodes()) if (n.getSkin() && !n.getMesh()) n.setSkin(null);
     for (const x of root.listExtensionsUsed()) if (['EXT_meshopt_compression', 'EXT_texture_webp', 'KHR_mesh_quantization'].includes(x.extensionName)) x.dispose();
     const dst = path.join(destino, path.relative(origen, f)); fs.mkdirSync(path.dirname(dst), { recursive: true });
     await io.write(dst, doc); ok++;

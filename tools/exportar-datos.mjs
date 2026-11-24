@@ -12,6 +12,13 @@ const out = process.argv[2] || 'exportar/datos', URL = process.env.URL || 'http:
 const mods = []; const anda = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name);
   if (e.isDirectory()) anda(p); else if (/\.(js|json)$/.test(e.name)) mods.push(path.relative('src/data', p)); } };
 anda('src/data'); mods.sort();
+// y los datos que viven fuera de src/data, junto a su código: las frases y la música (src/audio), el guion y los
+// comentarios de la pelota, los talleres, las actividades y aventuras de los pueblos, los torneos, los trajes, el
+// material didáctico, los emblemas, las señales y Salazar. Salen en exportar/datos/juego/<ruta dentro de src>.json
+const EXTRA = ['audio/frases.js', 'audio/instrumentos.js', 'audio/interfaz.js', 'audio/pistas.js', 'i18n.js', 'pelota/guionVoz.js', 'pelota/comenta.js',
+  'pelota/rules.js', 'futbol/rules.js', 'game/talleres.js', 'game/townActividades.js', 'game/townAventura.js', 'game/torneo.js', 'game/content.js',
+  'game/senales.js', 'actors/trajes.js', 'actors/outfits.js', 'hub/didactico.js', 'hub/emblemas.js', 'levels/salazar.js'].filter(f => fs.existsSync('src/' + f));
+mods.push(...EXTRA.map(f => '../' + f));
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
 await p.goto(URL + 'lab/icons.html', { timeout: 300000 }).catch(() => {});
@@ -37,17 +44,17 @@ for (const rel of mods) {
       const o = {}; for (const k of Object.keys(v)) { const y = limpia(v[k], `${ruta}.${k}`); if (y !== undefined) o[k] = y; } return o;
     };
     try {
-      const m = await import('/src/data/' + rel + (rel.endsWith('.json') ? '?import' : ''));
+      const m = await import((rel.startsWith('../') ? '/src/' + rel.slice(3) : '/src/data/' + rel) + (rel.endsWith('.json') ? '?import' : ''));
       const datos = {}; for (const k of Object.keys(m)) { const y = limpia(m[k], k); if (y !== undefined) datos[k] = y; }
       return { datos, funciones };
     } catch (e) { return { error: String(e.message || e).slice(0, 300) }; }
   }, rel);
-  const dest = path.join(out, rel.replace(/\.(js|json)$/, '.json'));
-  if (r.error) { console.log('MAL', rel, r.error); indice.push({ fuente: 'src/data/' + rel, error: r.error }); continue; }
+  const fuente = rel.startsWith('../') ? 'src/' + rel.slice(3) : 'src/data/' + rel, dest = path.join(out, (rel.startsWith('../') ? 'juego/' + rel.slice(3) : rel).replace(/\.(js|json)$/, '.json'));
+  if (r.error) { console.log('MAL', rel, r.error); indice.push({ fuente, error: r.error }); continue; }
   fs.mkdirSync(path.dirname(dest), { recursive: true });
-  const texto = JSON.stringify({ fuente: 'src/data/' + rel, exportado: new Date().toISOString().slice(0, 10), datos: r.datos, funciones: r.funciones.length ? r.funciones : undefined });
+  const texto = JSON.stringify({ fuente, exportado: new Date().toISOString().slice(0, 10), datos: r.datos, funciones: r.funciones.length ? r.funciones : undefined });
   fs.writeFileSync(dest, texto);
-  indice.push({ fuente: 'src/data/' + rel, json: path.relative(out, dest), kb: Math.round(texto.length / 1024), exporta: Object.keys(r.datos), funciones: r.funciones.length });
+  indice.push({ fuente, json: path.relative(out, dest), kb: Math.round(texto.length / 1024), exporta: Object.keys(r.datos), funciones: r.funciones.length });
 }
 fs.writeFileSync(path.join(out, 'indice.json'), JSON.stringify(indice, null, 1));
 const mal = indice.filter(x => x.error).length;

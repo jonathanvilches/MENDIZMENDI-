@@ -1,26 +1,49 @@
 # Pasar HERRIZHERRI a otro motor (Unity, Godot, Unreal)
 
-El juego está hecho para el navegador con three.js, pero todo lo que lo compone se puede llevar a un motor grande: los
-datos salen en JSON, los pueblos construidos salen como modelos 3D (.glb), los personajes y animales salen en .glb sin comprimir, los
-sonidos son .mp3 y las imágenes se pasan a PNG con una orden. Esta guía dice qué hay, dónde está y cómo sacarlo.
-(Auditoría del 24 de noviembre de 2026; el autor: «comprobar que está todo perfecto en GitHub para pasarlo a motores de
-videojuegos ya más grandes como Unity, todas las estructuras».)
+El juego está hecho para el navegador con three.js, pero todo lo que lo compone se puede llevar a un motor grande, completo
+y en su máxima calidad: los datos salen en JSON; los pueblos, el mapa y las islas, como modelos 3D (.glb) con los
+sombreadores del juego aparte; los personajes y animales, sin comprimir; las alturas de Navarra, listas para el terreno
+de Unity; las imágenes en PNG, las letras en TTF, y los originales de partida (Meshy, Envato, la música), reunidos y
+catalogados. Esta guía dice qué hay, dónde está y cómo sacarlo. (Auditoría del 24 de noviembre de 2026; el autor:
+«comprobar que está todo perfecto en GitHub para pasarlo a motores de videojuegos ya más grandes como Unity» y «que todo lo
+que se pase a Unity esté completo, en la mayor calidad posible».)
 
-## Lo que hay que preparar una vez
+## De una vez: todo, en `exportar/`
 
 ```
-npm install
-npx vite --host 127.0.0.1 --port 5173      # el servidor de desarrollo: las herramientas de exportar lo usan
+npm run exportar:todo [carpetas con los originales…]     # node tools/exportar-todo.mjs (SIN=pueblos,mapa para saltarse esas)
 ```
-Las herramientas abren el juego en un Chromium sin ventana (Playwright, ya en `node_modules`); si no está en
-`/opt/pw-browsers/chromium`, se dice dónde con `CHROMIUM=<ruta>`.
+
+| Carpeta | Qué hay | Herramienta |
+| --- | --- | --- |
+| `datos/` | Todos los datos del juego en JSON (165 módulos, 7 MB). **Va en el repositorio.** | `exportar-datos.mjs` |
+| `relieve/` | Las alturas de verdad de Navarra y alrededores (173 × 185 km, cada 145 m, hasta 2.629 m): PNG de 16 bits y RAW de 2049 × 2049 para el Terrain de Unity, con su .json (medidas y cómo importarlo) | `exportar-relieve.mjs` |
+| `modelos/` | Los 88 modelos del juego (personajes, vecinos, seres, animales, objetos) sin comprimir, con esqueleto, animaciones y texturas PNG | `exportar-modelos.mjs` |
+| `originales/` | Los archivos de partida, mejores que los del juego (ver abajo), con `catalogo.json`: de qué archivo del juego es cada uno | `exportar-originales.mjs` |
+| `pueblos/` | Los 39 pueblos construidos, en .glb, a la calidad más alta del juego | `exportar-pueblo.mjs` |
+| `mapa/` | El mapa de Navarra en 3D y la isla flotante de cada comarca, en .glb | `exportar-mapa.mjs` |
+| `sombreadores/` | El código GLSL de cada material propio del juego (suelo, agua, tejados, relieve, islas…), con `indice.json`: tipo, valores y en qué escenas sale | (lo sacan pueblos y mapa) |
+| `texturas/` | Las 4.400 imágenes en PNG, con la misma ruta | `exportar-texturas.mjs` |
+| `sonido/`, `video/` | Los 1.211 sonidos (MP3: voces, música, efectos) y los 44 vídeos (MP4) | `exportar-medios.mjs` |
+| `fuentes/` | Las letras del juego en TTF (Barlow, Barlow Condensed, Nunito, Lilita One; licencia OFL), para TextMeshPro | `exportar-medios.mjs` |
+| `web/` | Las láminas interactivas (`public/anatomia`) tal cual | `exportar-medios.mjs` |
+| `comprobacion.json` | Cada .glb pasado por el validador oficial de Khronos (los de glTF) | `exportar-comprobar.mjs` |
+| `indice.json`, `medios.json` | Qué hay y cuánto ocupa | |
+
+Todo menos `datos/` se saca cuando haga falta (varios GB; no va en GitHub). Lo que necesita el juego en marcha (datos,
+pueblos, mapa) usa el servidor de desarrollo (`npx vite --host 127.0.0.1 --port 5173`). Las herramientas abren el juego
+en un Chromium sin ventana (Playwright, ya en `node_modules`); si no está en `/opt/pw-browsers/chromium`, se dice dónde con
+`CHROMIUM=<ruta>`. Las letras se pasan a TTF con fontTools de Python (`pip install fonttools brotli`).
 
 ## 1. Los datos → JSON
 
 ```
-node tools/exportar-datos.mjs            # deja exportar/datos/<módulo>.json y exportar/datos/indice.json
+npm run exportar            # node tools/exportar-datos.mjs: exportar/datos/<módulo>.json e indice.json
 ```
-Cada módulo de `src/data` (145) sale con todo lo que exporta como datos. En el repositorio va ya una copia hecha
+Cada módulo de `src/data` (145) sale con todo lo que exporta como datos, y también los que tienen datos junto a su código
+(20 más, en `exportar/datos/juego/`): el guion y los comentarios de la pelota (`pelota/guionVoz`, `pelota/comenta`), las
+reglas de la pelota y del fútbol, los torneos, los talleres, las aventuras de los pueblos, los trajes, el material
+didáctico, los emblemas y Salazar. En el repositorio va ya una copia hecha
 (`exportar/datos/`, fecha en cada archivo); si los datos cambian, se vuelve a lanzar. Lo principal:
 
 | Archivo | Qué es |
@@ -39,48 +62,62 @@ Cada módulo de `src/data` (145) sale con todo lo que exporta como datos. En el 
 En cada archivo, `funciones` lista las funciones que tenía el módulo (por ejemplo `levelById` en `levels.js`): son la
 lógica que hay que reescribir en el otro motor; el código está en el `fuente` que dice el mismo archivo.
 
-## 2. Los pueblos construidos → .glb
+## 2. Los pueblos, el mapa y las islas → .glb
 
 ```
-node tools/exportar-pueblo.mjs lesaka            # o varios: lesaka,etxalar   o todos: todos
+npm run exportar:pueblos                         # o: node tools/exportar-pueblo.mjs lesaka,etxalar
+node tools/exportar-mapa.mjs                     # Navarra y las 12 islas (SOLO=baztan,… para algunas)
 ```
-Entra en el pueblo como un jugador, espera a que esté hecho y guarda la escena entera en `exportar/pueblos/<id>.glb`:
-terreno, calles empedradas, casas con sus tejados y ventanas, iglesia, frontón, río y puentes, árboles, mobiliario,
-vecinos y animales. Lesaka: 42 MB, 609 piezas, 668.000 triángulos. Se comprueba al acabar abriéndolo otra vez. Notas:
-- Los materiales propios del juego (sombreadores: el suelo, el agua, algunos tejados) no existen en glTF y salen como
-  material estándar con su color y su textura principal; el aspecto final se rehace con los materiales del otro motor.
+Entra en cada pueblo como un jugador, en la **calidad más alta** del juego (`?q=high`, sin el aligerado automático, con
+los árboles, el suelo y los animales de todo el pueblo a la distancia de detalle máxima, las piezas de detalle de todas
+las casas y texturas de hasta 4096) y guarda la escena en `exportar/pueblos/<id>.glb`: terreno, calles empedradas, casas
+con tejados, ventanas, marcos y macetas, iglesia, frontón, río y puentes, árboles, mobiliario, vecinos y animales. El mapa
+del inicio sale igual (`exportar/mapa/navarra.glb`, con el relieve fino ya metido en la malla) y cada isla flotante con
+su canto y su sima (`isla-<comarca>.glb`). Notas:
+- Los materiales propios del juego (sombreadores: el suelo, el agua, los tejados pintados, el relieve) no existen en
+  glTF: salen como material estándar con su color y su textura principal, y llevan en sus *extras* `sombreador: <id>`; el
+  código de cada uno está en `exportar/sombreadores/<id>-<nombre>.vert/.frag`, para rehacerlo en Shader Graph o HLSL.
+  Los estándar que el juego retoca llevan `sombreadorExtra: <id>`.
+- Los vecinos van en su versión ligera, para saber dónde está cada uno; los modelos enteros están en `modelos/` y en
+  `originales/`.
 - El cielo, las nubes, la lluvia y las partículas no se exportan (cada motor tiene los suyos).
-- Los pueblos no se guardan en el repositorio (unos 40 MB cada uno): se sacan cuando hagan falta.
 - El código que los construye está en `src/world` (abajo); exportarlos ya hechos evita tener que reescribir la
   generación para empezar.
 
 ## 3. Personajes, animales y objetos → .glb sin comprimir
 
 ```
-node tools/exportar-modelos.mjs            # src/assets → exportar/modelos (unos 176 modelos)
+npm run exportar:modelos            # src/assets → exportar/modelos (88 modelos)
 ```
-Ya son glTF binario (.glb), con esqueleto y animaciones: `src/assets/meshy*/` (el explorador, la exploradora, los vecinos
-y los seres de leyenda), `src/assets/chicas/`, `src/assets/pelotaris*/`, los animales y los objetos en sus carpetas. Pero
-el juego los guarda comprimidos para la web (`EXT_meshopt_compression`, `KHR_mesh_quantization` y las texturas en WebP
-dentro, `EXT_texture_webp`), y Unity con [glTFast](https://github.com/Unity-Technologies/com.unity.cloud.gltfast), Godot
-o Blender no siempre lo leen todo. Esta orden los saca descomprimidos y con las texturas en PNG, con el mismo esqueleto y
-las mismas animaciones (comprobado con el explorador: su textura y sus 8 animaciones, sin complementos). Ocupan unas
-cuatro veces más; no se guardan en el repositorio.
+El juego los guarda comprimidos para la web (`EXT_meshopt_compression`, `KHR_mesh_quantization` y texturas WebP,
+`EXT_texture_webp`), que Unity con [glTFast](https://github.com/Unity-Technologies/com.unity.cloud.gltfast), Godot o Blender
+no siempre leen. Aquí salen descomprimidos, con las texturas en PNG y el mismo esqueleto y animaciones. No salen las copias
+rebajadas que el juego usa en el móvil o de lejos (`meshy-1024`, `meshy/lod`; con `TODOS=1`, sí).
 
-## 4. Imágenes → PNG
+## 4. Los originales, en su máxima calidad
 
 ```
-node tools/exportar-texturas.mjs                         # todo src/assets → exportar/texturas (varios GB)
-node tools/exportar-texturas.mjs src/assets/isla exportar/texturas/isla   # solo una carpeta
+node tools/exportar-originales.mjs <carpeta con las descargas de Meshy, Envato…>     # + lab/ref, siempre
 ```
-Unity no importa WebP sin complemento; esto los pasa a PNG con la misma ruta (los PNG y JPG se copian). Son unas 4.400
-imágenes.
+Lo del juego está rebajado para la web; los archivos de partida son mejores. Se reúnen, se quitan los repetidos y se
+apunta en `exportar/originales/catalogo.json` de qué archivo del juego es cada uno (emparejados por su malla):
+- `personajes/`: los vecinos de Meshy con su esqueleto y todas sus animaciones (texturas PNG de 2048, sin pérdida).
+- `animaciones/`: cada animación de Meshy suelta y, juntas en un archivo por cuerpo, `explorador-animaciones.glb` (sus 8
+  movimientos y sus **3 texturas PBR**: color, relieve y rugosidad, que el juego no usa) y `exploradora-animaciones.glb`
+  (9 movimientos).
+- `sonido/`: los paquetes de Envato descomprimidos (WAV de partida); `musica/`: la música y las locuciones del autor;
+  `imagenes/`: las panorámicas y portadas de bosque; `modelos/`: el caballo, los árboles y un paquete de Unity.
+Los originales de Meshy de `lab/ref` (31 .glb, 282 MB) no están en GitHub; conviene guardar copia de todo esto.
 
-## 5. Sonido y vídeo
+## 5. Imágenes, sonido, vídeo y letras
 
-Los 1.200 sonidos son MP3 (`src/assets/sonidos`, `src/assets/voz`, `public/…`) y los vídeos MP4 (`public/videos`): Unity
-los lee tal cual. Las voces de los vecinos van por pueblo (`src/assets/voz/vecinos/<pueblo>/`) y su guion en
-`src/game/vozVecinos.js`.
+```
+npm run exportar:texturas            # todo src/assets → exportar/texturas (PNG)
+node tools/exportar-medios.mjs       # sonido/, video/, fuentes/ (TTF), web/ y medios.json
+```
+Unity no importa WebP sin complemento: las 4.400 imágenes pasan a PNG con la misma ruta. Los sonidos son MP3 y los
+vídeos MP4 (Unity los lee tal cual); las voces de los vecinos van por pueblo (`voz/vecinos/<pueblo>/`) y su guion en
+`src/game/vozVecinos.js`. Las letras, de los `@font-face` del juego, en TTF.
 
 ## Medidas y ejes
 

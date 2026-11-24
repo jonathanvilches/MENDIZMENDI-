@@ -1,0 +1,1348 @@
+{
+ "exportado": "2026-11-24",
+ "fuentes": [
+  "(carpeta de archivos subidos)",
+  "lab/ref"
+ ],
+ "resumen": {
+  "sonido": {
+   "n": 22,
+   "mb": 128.1
+  },
+  "personajes": {
+   "n": 26,
+   "mb": 162.1
+  },
+  "animaciones": {
+   "n": 19,
+   "mb": 191.2
+  },
+  "musica": {
+   "n": 15,
+   "mb": 20.2
+  },
+  "modelos": {
+   "n": 4,
+   "mb": 31.1
+  },
+  "imagenes": {
+   "n": 8,
+   "mb": 155.1
+  }
+ },
+ "archivos": [
+  {
+   "tipo": "sonido",
+   "de": "retro-game-sound-pack-2026-05-18-23-38-09-utc.zip",
+   "sha256": "34d988e07eb1fd56",
+   "mb": 3.9,
+   "carpeta": "sonido/retro-game-sound-pack",
+   "archivos": 24
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_carpenter_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "6bbc8940dd2cac37",
+   "mb": 5.6,
+   "archivo": "personajes/medieval_carpenter_woman_All_animation.glb",
+   "vertices": 12168,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/carpintera.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Cautious_Crouch_Walk_Forward_withSkin.glb",
+   "sha256": "ceae6e11ebbd76bc",
+   "mb": 18.3,
+   "archivo": "animaciones/Cautious_Crouch_Walk_Forward.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Cautious_Crouch_Walk_Forward"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_txapela_grey_beard_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "5d27bb14e796e460",
+   "mb": 6,
+   "archivo": "personajes/medieval_elder_txapela_grey_beard_All_animation.glb",
+   "vertices": 11888,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuelo_barba.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_baker_man_rigged_20261111_animated_mixamo_All_animation_1.glb",
+   "sha256": "b5699a7a79482ba7",
+   "mb": 6,
+   "archivo": "personajes/medieval_baker_man_All_animation_1.glb",
+   "vertices": 12548,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Casual_Walk",
+    "Chair_Sit_Idle_F",
+    "Skill_02"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Mel-2208769f-60e1-4520-b5ca-9fe2c1e2f004.mp3",
+   "sha256": "331ddc33f5060631",
+   "mb": 0.9,
+   "archivo": "musica/Mel-2208769f-60e1-4520-b5ca-9fe2c1e2f004.mp3"
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Running_withSkin.glb",
+   "sha256": "68d834053927f2e0",
+   "mb": 18.3,
+   "archivo": "animaciones/Running.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "modelos",
+   "de": "stylized_npc_peasant_nolantfree_version.glb",
+   "sha256": "88418f0a022a4212",
+   "mb": 1.1,
+   "archivo": "modelos/stylized_npc_peasant_nolantfree_version.glb",
+   "vertices": 1458,
+   "huesos": 33,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "metarigIdle",
+    "metarigWalk"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_carpenter_man_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "ddd0b47972c0bbc5",
+   "mb": 5.5,
+   "archivo": "personajes/medieval_carpenter_man_All_animation.glb",
+   "vertices": 12239,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/carpintero.glb"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "fish-splash-2026-07-05-17-41-07-utc.zip",
+   "sha256": "c50b8867bba228b0",
+   "mb": 0.4,
+   "carpeta": "sonido/fish-splash",
+   "archivos": 2
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_man_rigged_20261111_animated_mixamo_All_animation_1.glb",
+   "sha256": "55e9ba67cfd3f397",
+   "mb": 6.3,
+   "archivo": "personajes/medieval_elder_man_All_animation_1.glb",
+   "vertices": 12337,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuelo.glb"
+   ]
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-02-de-06.zip",
+   "sha256": "e5dd2a2ca86d6c80",
+   "mb": 23.8,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-02-de-06",
+   "archivos": 8
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-3225ebd6-9945-43e9-80f5-06b04795ad45.mp3",
+   "sha256": "ca0be4eda08ae0f1",
+   "mb": 0.9,
+   "archivo": "musica/Martin-3225ebd6-9945-43e9-80f5-06b04795ad45.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "645b96b0a6816fbe",
+   "mb": 6.2,
+   "archivo": "personajes/medieval_elder_woman_All_animation.glb",
+   "vertices": 12023,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuela_panuelo.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Jump_Over_Obstacle_2_withSkin.glb",
+   "sha256": "a9fe32a6fffb2dd8",
+   "mb": 18.3,
+   "archivo": "animaciones/Jump_Over_Obstacle_2.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Jump_Over_Obstacle_2"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Casual_Walk_withSkin.glb",
+   "sha256": "520de27b3b89a5f3",
+   "mb": 4.9,
+   "archivo": "animaciones/Casual_Walk.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Casual_Walk"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-06-de-06.zip",
+   "sha256": "e28f4e952621b022",
+   "mb": 7.1,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-06-de-06",
+   "archivos": 2
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Talk_Passionately_withSkin.glb",
+   "sha256": "53ec09c5c6e7f938",
+   "mb": 18.5,
+   "archivo": "animaciones/Talk_Passionately.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Talk_Passionately"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_txapela_white_stache_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "3108b4d6b58a64a4",
+   "mb": 5.9,
+   "archivo": "personajes/medieval_elder_txapela_white_stache_20261111_animated_mixamo_All_animation.glb",
+   "vertices": 11963,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuelo_bigote.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_cheesemaker_man_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "35a6947e204fb1ad",
+   "mb": 6.4,
+   "archivo": "personajes/medieval_cheesemaker_man_All_animation.glb",
+   "vertices": 12689,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_baker_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "0cdc6d1e913f2951",
+   "mb": 6,
+   "archivo": "personajes/medieval_baker_woman_All_animation.glb",
+   "vertices": 11884,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Casual_Walk",
+    "Chair_Sit_Idle_F",
+    "Skill_02",
+    "Wave_One_Hand"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_mature_man_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "73a61856e2b1b84b",
+   "mb": 6.3,
+   "archivo": "personajes/medieval_mature_man_All_animation.glb",
+   "vertices": 11797,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/hombre.glb"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "pigs-2026-05-18-17-45-32-utc.zip",
+   "sha256": "18520afd48b4465d",
+   "mb": 2.1,
+   "carpeta": "sonido/pigs",
+   "archivos": 2
+  },
+  {
+   "tipo": "musica",
+   "de": "Con_una_pelota_tan_v.mp3",
+   "sha256": "36bec0a708ad5980",
+   "mb": 1.4,
+   "archivo": "musica/Con_una_pelota_tan_v.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_mature_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "15b9b3fbe007542a",
+   "mb": 6,
+   "archivo": "personajes/medieval_mature_woman_All_animation.glb",
+   "vertices": 11163,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/mujer.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Short_Breathe_and_Look_Around_withSkin.glb",
+   "sha256": "b15ab796b9e1bdc3",
+   "mb": 18.5,
+   "archivo": "animaciones/Short_Breathe_and_Look_Around.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Short_Breathe_and_Look_Around"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_child_redhead_girl_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "e14917c08c816b96",
+   "mb": 5.7,
+   "archivo": "personajes/medieval_child_redhead_girl_All_animation.glb",
+   "vertices": 12536,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/nina_pelirroja.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-8bc70e1c-6f7b-442f-934c-dc0923949603.mp3",
+   "sha256": "6ecd6022343ed42f",
+   "mb": 0.8,
+   "archivo": "musica/Martin-8bc70e1c-6f7b-442f-934c-dc0923949603.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_child_blonde_boy_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "2e6457702617c703",
+   "mb": 5.9,
+   "archivo": "personajes/medieval_child_blonde_boy_All_animation.glb",
+   "vertices": 12776,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/nino_rubio.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_txapela_woman_braids_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "61de296de2b3d529",
+   "mb": 6,
+   "archivo": "personajes/medieval_elder_txapela_woman_braids_20261111_animated_mixamo_All_animation.glb",
+   "vertices": 12444,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuela_trenzas.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Ojo_con_el_rival_es_.mp3",
+   "sha256": "312ae13cfd8dd031",
+   "mb": 1.4,
+   "archivo": "musica/Ojo_con_el_rival_es_.mp3"
+  },
+  {
+   "tipo": "sonido",
+   "de": "village-ambience-2026-05-18-17-45-39-utc.zip",
+   "sha256": "2f52e9673d33e415",
+   "mb": 8.2,
+   "carpeta": "sonido/village-ambience",
+   "archivos": 1
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_san_fermin_friendly_rigged_20261002_animated_mixamo_Running.fbx",
+   "sha256": "59e310e94e8c072c",
+   "mb": 18.7,
+   "archivo": "personajes/san_fermin_friendly_Running.fbx"
+  },
+  {
+   "tipo": "sonido",
+   "de": "sport-2026-09-29-01-34-56-utc.zip",
+   "sha256": "27dd3471001621ff",
+   "mb": 23.6,
+   "carpeta": "sonido/sport",
+   "archivos": 1
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_woman__1112194135_texture.glb",
+   "sha256": "fa524e8c3c571868",
+   "mb": 4.4,
+   "archivo": "personajes/medieval_elder_woman__1112194135_texture.glb",
+   "vertices": 12023,
+   "huesos": 0,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [],
+   "juego": [
+    "src/assets/meshy/vecinos/abuela_panuelo.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Angry_Stomp_withSkin.glb",
+   "sha256": "3f6c857023aef038",
+   "mb": 5,
+   "archivo": "animaciones/Angry_Stomp.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Angry_Stomp"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "donkey-bray-2026-05-18-18-51-51-utc.zip",
+   "sha256": "2eaf49bc21e2f2ee",
+   "mb": 0.4,
+   "carpeta": "sonido/donkey-bray",
+   "archivos": 3
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-04-de-06.zip",
+   "sha256": "a1e56e652a9046d3",
+   "mb": 24.2,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-04-de-06",
+   "archivos": 8
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Skill_02_withSkin.glb",
+   "sha256": "8f2ac2c0d64d0183",
+   "mb": 4.9,
+   "archivo": "animaciones/Skill_02.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Skill_02"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_blonde_girl_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "f1dc244154d0acb3",
+   "mb": 6.3,
+   "archivo": "personajes/medieval_blonde_girl_All_animation.glb",
+   "vertices": 11065,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/joven_rubia.glb"
+   ]
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-01-de-06.zip",
+   "sha256": "09131f7f46a1b17f",
+   "mb": 24.5,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-01-de-06",
+   "archivos": 8
+  },
+  {
+   "tipo": "sonido",
+   "de": "crowd-booing-2026-05-18-18-46-12-utc.ZIP",
+   "sha256": "ff8ce6f47849dcc1",
+   "mb": 3.1,
+   "carpeta": "sonido/crowd-booing",
+   "archivos": 2
+  },
+  {
+   "tipo": "musica",
+   "de": "Ma_s_vale_colocar_que_1.mp3",
+   "sha256": "427c1969fc7e74d0",
+   "mb": 1.5,
+   "archivo": "musica/Ma_s_vale_colocar_que_1.mp3"
+  },
+  {
+   "tipo": "sonido",
+   "de": "footsteps-on-stone-walking-2026-06-24-23-23-31-utc.zip",
+   "sha256": "f5628f81e47b892d",
+   "mb": 1,
+   "carpeta": "sonido/footsteps-on-stone-walking",
+   "archivos": 16
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Squat_Stance_withSkin.glb",
+   "sha256": "38e4d1fae31cfec7",
+   "mb": 4.9,
+   "archivo": "animaciones/Squat_Stance.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Squat_Stance"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_elder_txapela_woman_bun_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "ad0ae8bc4fde6c9a",
+   "mb": 6,
+   "archivo": "personajes/medieval_elder_txapela_woman_bun_All_animation.glb",
+   "vertices": 12402,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/abuela_mono.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Locucio_n_juego.m4a",
+   "sha256": "ff6cf4ac5227f8c5",
+   "mb": 1.9,
+   "archivo": "musica/Locucio_n_juego.m4a"
+  },
+  {
+   "tipo": "musica",
+   "de": "Florews_Medieval_Main.mp3",
+   "sha256": "4ec3fd2c272ae14e",
+   "mb": 4.9,
+   "archivo": "musica/Florews_Medieval_Main.mp3"
+  },
+  {
+   "tipo": "sonido",
+   "de": "horse-2026-06-25-02-04-25-utc.zip",
+   "sha256": "bf7ac70c029d50d0",
+   "mb": 2.7,
+   "carpeta": "sonido/horse",
+   "archivos": 9
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-05-de-06.zip",
+   "sha256": "32aa66f8672fdc1a",
+   "mb": 23.3,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-05-de-06",
+   "archivos": 8
+  },
+  {
+   "tipo": "sonido",
+   "de": "birds-2026-06-29-15-22-24-utc.zip",
+   "sha256": "9f9d1b39bb7d4f1a",
+   "mb": 7.1,
+   "carpeta": "sonido/birds",
+   "archivos": 1
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Walking_withSkin.glb",
+   "sha256": "92a8a13d1e6bb581",
+   "mb": 18.3,
+   "archivo": "animaciones/Walking.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Walking"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "wet-footsteps-2026-05-18-07-54-06-utc.zip",
+   "sha256": "2a2e300ec5600fa7",
+   "mb": 4.9,
+   "carpeta": "sonido/wet-footsteps",
+   "archivos": 1
+  },
+  {
+   "tipo": "sonido",
+   "de": "freesound_community-sheep-in-a-field-on-the-top-of-a-mountain-in-bask-country-24014.mp3",
+   "sha256": "2764fe0814a8ffe1",
+   "mb": 2.3,
+   "archivo": "sonido/freesound_community-sheep-in-a-field-on-the-top-of-a-mountain-in-bask-country-24014.mp3"
+  },
+  {
+   "tipo": "sonido",
+   "de": "dragons-islands-epic-fantasy-cinematic-adventure-2026-09-24-07-05-17-utc.zip",
+   "sha256": "a0e65497b598e91e",
+   "mb": 25.8,
+   "carpeta": "sonido/dragons-islands-epic-fantasy-cinematic-adventure",
+   "archivos": 3
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_model.glb",
+   "sha256": "83f0e888fa1bee2e",
+   "mb": 4.4,
+   "archivo": "personajes/model.glb",
+   "vertices": 12099,
+   "huesos": 0,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Walk_Fight_Forward_withSkin.glb",
+   "sha256": "c58627cea5998597",
+   "mb": 4.9,
+   "archivo": "animaciones/Walk_Fight_Forward.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Walk_Fight_Forward"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "essential-game-sound-pack-2026-05-18-17-42-48-utc.zip",
+   "sha256": "05f05c7a2afd2cdf",
+   "mb": 6.1,
+   "carpeta": "sonido/essential-game-sound-pack",
+   "archivos": 32
+  },
+  {
+   "tipo": "sonido",
+   "de": "sheep-2026-05-18-16-18-49-utc.zip",
+   "sha256": "ea21983eeef1d510",
+   "mb": 9.2,
+   "carpeta": "sonido/sheep",
+   "archivos": 1
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_peasant_man_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "d535c5fcf2ef276b",
+   "mb": 5.8,
+   "archivo": "personajes/medieval_peasant_man_All_animation.glb",
+   "vertices": 11968,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Casual_Walk",
+    "Chair_Sit_Idle_F",
+    "Skill_02"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Female_Bend_Over_Pick_Up_Inspect_withSkin.glb",
+   "sha256": "df9c8b71410f87ab",
+   "mb": 18.4,
+   "archivo": "animaciones/Female_Bend_Over_Pick_Up_Inspect.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Female_Bend_Over_Pick_Up_Inspect"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_child_brunette_boy_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "a36380af57d76494",
+   "mb": 5.4,
+   "archivo": "personajes/medieval_child_brunette_boy_All_animation.glb",
+   "vertices": 11881,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/nino_moreno.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-646ebbdb-31c3-4ea6-baed-9e42f06b1eb8.mp3",
+   "sha256": "d361d2b9b16f9e70",
+   "mb": 0.8,
+   "archivo": "musica/Martin-646ebbdb-31c3-4ea6-baed-9e42f06b1eb8.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_mature_woman_1112193934_texture.glb",
+   "sha256": "0230cff0c7a0d05c",
+   "mb": 4.1,
+   "archivo": "personajes/medieval_mature_woman_1112193934_texture.glb",
+   "vertices": 11163,
+   "huesos": 0,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [],
+   "juego": [
+    "src/assets/meshy/vecinos/mujer.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Running_withSkin.glb",
+   "sha256": "a3ae42a5c01c228b",
+   "mb": 4.8,
+   "archivo": "animaciones/Running-a3ae42.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-bosques-02-de-02.zip",
+   "sha256": "8842088c50085b67",
+   "mb": 3.3,
+   "carpeta": "imagenes/HERRIZHERRI-bosques-02-de-02",
+   "archivos": 1
+  },
+  {
+   "tipo": "sonido",
+   "de": "music-loop-last-man-standing-high-energy-action-fu-2026-05-18-22-33-56-utc.zip",
+   "sha256": "3ffac4f3e9f637fc",
+   "mb": 5,
+   "carpeta": "sonido/music-loop-last-man-standing-high-energy-action-fu",
+   "archivos": 1
+  },
+  {
+   "tipo": "musica",
+   "de": "La_chapa_suena_a_met.mp3",
+   "sha256": "24b85035d301d355",
+   "mb": 1.5,
+   "archivo": "musica/La_chapa_suena_a_met.mp3"
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-bosques-01-de-02.zip",
+   "sha256": "0c366595fa2987d7",
+   "mb": 24.1,
+   "carpeta": "imagenes/HERRIZHERRI-bosques-01-de-02",
+   "archivos": 7
+  },
+  {
+   "tipo": "sonido",
+   "de": "water-splashes-water-tiny-splashes-small-fish-mo-2026-05-18-17-32-13-utc.zip",
+   "sha256": "ae99e8d93a3d29f4",
+   "mb": 1.9,
+   "carpeta": "sonido/water-splashes-water-tiny-splashes-small-fish-mo",
+   "archivos": 1
+  },
+  {
+   "tipo": "sonido",
+   "de": "dog-bark-2026-05-18-18-32-56-utc.zip",
+   "sha256": "0b5a00db50e9ed37",
+   "mb": 1.2,
+   "carpeta": "sonido/dog-bark",
+   "archivos": 12
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Run_02_withSkin.glb",
+   "sha256": "e7cc9a4581a6ef60",
+   "mb": 18.3,
+   "archivo": "animaciones/Run_02.glb",
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Run_02"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-4bc7342d-bc9f-4c35-959c-ccc49dd79520.mp3",
+   "sha256": "63139505fd60627b",
+   "mb": 0.5,
+   "archivo": "musica/Martin-4bc7342d-bc9f-4c35-959c-ccc49dd79520.mp3"
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Walking_withSkin.glb",
+   "sha256": "f5c588d1f3a026f3",
+   "mb": 4.9,
+   "archivo": "animaciones/Walking-f5c588.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Walking"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Chair_Sit_Idle_F_withSkin.glb",
+   "sha256": "1f85a3fc45828f7a",
+   "mb": 5.1,
+   "archivo": "animaciones/Chair_Sit_Idle_F.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Chair_Sit_Idle_F"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "modelos",
+   "de": "horse.glb",
+   "sha256": "4bfd206c2541d005",
+   "mb": 17.1,
+   "archivo": "modelos/horse.glb",
+   "vertices": 8521,
+   "huesos": 56,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Take 001"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Ojo_con_el_rival_es__2.mp3",
+   "sha256": "b2b0b8eb7622092b",
+   "mb": 1.4,
+   "archivo": "musica/Ojo_con_el_rival_es__2.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_cheesemaker_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "f8b9b629620553b3",
+   "mb": 6.3,
+   "archivo": "personajes/medieval_cheesemaker_woman_All_animation.glb",
+   "vertices": 11741,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Attack",
+    "Dozing_Elderly"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_child_braids_girl_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "6372b4e4d73e1fb4",
+   "mb": 5.8,
+   "archivo": "personajes/medieval_child_braids_girl_All_animation.glb",
+   "vertices": 11723,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Alert",
+    "Stand_and_Chat",
+    "Walking_Woman"
+   ],
+   "juego": [
+    "src/assets/meshy/vecinos/nina_trenzas.glb"
+   ]
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_baker_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "3ffd3cf3ebdad4bb",
+   "mb": 5.9,
+   "archivo": "personajes/medieval_baker_woman_All_animation-3ffd3c.glb",
+   "vertices": 11884,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Casual_Walk",
+    "Chair_Sit_Idle_F",
+    "Skill_02"
+   ]
+  },
+  {
+   "tipo": "sonido",
+   "de": "cows-mooing-2026-06-07-07-19-08-utc.zip",
+   "sha256": "a8856e4814d644a3",
+   "mb": 0.8,
+   "carpeta": "sonido/cows-mooing",
+   "archivos": 2
+  },
+  {
+   "tipo": "imagenes",
+   "de": "HERRIZHERRI-panoramicas-03-de-06.zip",
+   "sha256": "55e3c92354e679c0",
+   "mb": 24.8,
+   "carpeta": "imagenes/HERRIZHERRI-panoramicas-03-de-06",
+   "archivos": 8
+  },
+  {
+   "tipo": "modelos",
+   "de": "arboles.glb",
+   "sha256": "cfd3ec8fa8ce127c",
+   "mb": 8.6,
+   "archivo": "modelos/arboles.glb",
+   "vertices": 23352,
+   "huesos": 0,
+   "texturas": [
+    "1024×1024",
+    "2048×2048",
+    "2048×2048",
+    "2048×2048",
+    "1024×1024",
+    "1024×1024",
+    "1024×1024",
+    "1024×1024"
+   ],
+   "animaciones": []
+  },
+  {
+   "tipo": "sonido",
+   "de": "sparrows-flock-chirping-2026-05-18-15-09-37-utc.zip",
+   "sha256": "a1c41303fb7da1ff",
+   "mb": 3.8,
+   "carpeta": "sonido/sparrows-flock-chirping",
+   "archivos": 2
+  },
+  {
+   "tipo": "animaciones",
+   "de": "Meshy_AI_Animation_Cheer_with_One_Hand_Up_withSkin.glb",
+   "sha256": "a0e70c5ab599d0df",
+   "mb": 4.9,
+   "archivo": "animaciones/Cheer_with_One_Hand_Up.glb",
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Cheer_with_One_Hand_Up"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-ed5f677e-57a5-4716-800c-f7e4328eaa2b.mp3",
+   "sha256": "bd6a8f23910e1a66",
+   "mb": 0.6,
+   "archivo": "musica/Martin-ed5f677e-57a5-4716-800c-f7e4328eaa2b.mp3"
+  },
+  {
+   "tipo": "personajes",
+   "de": "Meshy_AI_medieval_peasant_woman_rigged_20261111_animated_mixamo_All_animation.glb",
+   "sha256": "8a29ae0f09787bb3",
+   "mb": 5.2,
+   "archivo": "personajes/medieval_peasant_woman_All_animation.glb",
+   "vertices": 12616,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Running",
+    "Walking",
+    "Casual_Walk",
+    "Chair_Sit_Idle_F",
+    "Skill_02"
+   ]
+  },
+  {
+   "tipo": "musica",
+   "de": "Martin-88920134-2f70-4eb7-b4a8-eff167869609.mp3",
+   "sha256": "e6cfe0c576d62233",
+   "mb": 0.8,
+   "archivo": "musica/Martin-88920134-2f70-4eb7-b4a8-eff167869609.mp3"
+  },
+  {
+   "tipo": "sonido",
+   "de": "medieval-2026-05-07-18-00-12-utc.zip",
+   "sha256": "a2a50b0b15725d34",
+   "mb": 12.9,
+   "carpeta": "sonido/medieval",
+   "archivos": 3
+  },
+  {
+   "tipo": "sonido",
+   "de": "chicken-hen-clucking-2026-05-18-17-44-56-utc.zip",
+   "sha256": "56fe9e1f1e63f488",
+   "mb": 1.7,
+   "carpeta": "sonido/chicken-hen-clucking",
+   "archivos": 1
+  },
+  {
+   "tipo": "modelos",
+   "de": "stylized_npc_peasant_nolantfree_version.unitypackage",
+   "sha256": "0eb6e6055c8745c3",
+   "mb": 4.3,
+   "archivo": "modelos/stylized_npc_peasant_nolantfree_version.unitypackage"
+  },
+  {
+   "tipo": "musica",
+   "de": "Mel-9b36468f-4bdd-467b-9e0f-9f239d6232ce.mp3",
+   "sha256": "55724e3615069a4a",
+   "mb": 0.9,
+   "archivo": "musica/Mel-9b36468f-4bdd-467b-9e0f-9f239d6232ce.mp3"
+  },
+  {
+   "tipo": "animaciones",
+   "archivo": "animaciones/explorador-animaciones.glb",
+   "de": [
+    "Meshy_AI_Animation_Cautious_Crouch_Walk_Forward_withSkin.glb",
+    "Meshy_AI_Animation_Running_withSkin.glb",
+    "Meshy_AI_Animation_Jump_Over_Obstacle_2_withSkin.glb",
+    "Meshy_AI_Animation_Talk_Passionately_withSkin.glb",
+    "Meshy_AI_Animation_Short_Breathe_and_Look_Around_withSkin.glb",
+    "Meshy_AI_Animation_Walking_withSkin.glb",
+    "Meshy_AI_Animation_Female_Bend_Over_Pick_Up_Inspect_withSkin.glb",
+    "Meshy_AI_Animation_Run_02_withSkin.glb"
+   ],
+   "juntas": 8,
+   "vertices": 59750,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048",
+    "2048×2048",
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Cautious_Crouch_Walk_Forward",
+    "Running",
+    "Jump_Over_Obstacle_2",
+    "Talk_Passionately",
+    "Short_Breathe_and_Look_Around",
+    "Walking",
+    "Female_Bend_Over_Pick_Up_Inspect",
+    "Run_02"
+   ],
+   "juego": [
+    "src/assets/meshy/explorador.glb"
+   ]
+  },
+  {
+   "tipo": "animaciones",
+   "archivo": "animaciones/exploradora-animaciones.glb",
+   "de": [
+    "Meshy_AI_Animation_Casual_Walk_withSkin.glb",
+    "Meshy_AI_Animation_Angry_Stomp_withSkin.glb",
+    "Meshy_AI_Animation_Skill_02_withSkin.glb",
+    "Meshy_AI_Animation_Squat_Stance_withSkin.glb",
+    "Meshy_AI_Animation_Walk_Fight_Forward_withSkin.glb",
+    "Meshy_AI_Animation_Running_withSkin.glb",
+    "Meshy_AI_Animation_Walking_withSkin.glb",
+    "Meshy_AI_Animation_Chair_Sit_Idle_F_withSkin.glb",
+    "Meshy_AI_Animation_Cheer_with_One_Hand_Up_withSkin.glb"
+   ],
+   "juntas": 9,
+   "vertices": 12099,
+   "huesos": 24,
+   "texturas": [
+    "2048×2048"
+   ],
+   "animaciones": [
+    "Casual_Walk",
+    "Angry_Stomp",
+    "Skill_02",
+    "Squat_Stance",
+    "Walk_Fight_Forward",
+    "Running",
+    "Walking",
+    "Chair_Sit_Idle_F",
+    "Cheer_with_One_Hand_Up"
+   ],
+   "juego": [
+    "src/assets/meshy/exploradora.glb"
+   ]
+  }
+ ]
+}

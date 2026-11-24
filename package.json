@@ -8,7 +8,13 @@
     "exportar": "node tools/exportar-datos.mjs exportar/datos",
     "exportar:pueblos": "node tools/exportar-pueblo.mjs todos",
     "exportar:modelos": "node tools/exportar-modelos.mjs",
-    "exportar:texturas": "node tools/exportar-texturas.mjs"
+    "exportar:texturas": "node tools/exportar-texturas.mjs",
+    "exportar:mapa": "node tools/exportar-mapa.mjs",
+    "exportar:medios": "node tools/exportar-medios.mjs",
+    "exportar:relieve": "node tools/exportar-relieve.mjs",
+    "exportar:originales": "node tools/exportar-originales.mjs",
+    "exportar:comprobar": "node tools/exportar-comprobar.mjs",
+    "exportar:todo": "node tools/exportar-todo.mjs"
   },
   "keywords": [],
   "author": "",
