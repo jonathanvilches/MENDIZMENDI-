@@ -1,0 +1,2 @@
+# Los originales de Meshy de lab/ref van con Git LFS (el sistema de GitHub para archivos grandes): ver PORTAR.md
+lab/ref/**/*.glb filter=lfs diff=lfs merge=lfs -text

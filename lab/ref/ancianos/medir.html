@@ -1,0 +1,21 @@
+<!doctype html><meta charset="utf-8"><body><script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+const f = new URLSearchParams(location.search).get('f');
+const L = new GLTFLoader(); L.setMeshoptDecoder(MeshoptDecoder); const g = await L.loadAsync(f);
+const sc = g.scene, mix = new THREE.AnimationMixer(sc), bone = (n) => { let b = null; sc.traverse(o => { if (o.name === 'mixamorig' + n || o.name === 'mixamorig:' + n) b = o; }); return b; };
+const B = { hips: bone('Hips'), head: bone('Head'), lh: bone('LeftHand'), rh: bone('RightHand') };
+const out = {};
+for (const clip of g.animations) {
+  mix.stopAllAction(); const a = mix.clipAction(clip); a.play();
+  const rows = [], v = new THREE.Vector3();
+  for (let t = 0; t <= clip.duration + 1e-6; t += 1 / 15) {
+    a.time = t; mix.update(0); sc.updateMatrixWorld(true);
+    const r = {}; for (const [k, b] of Object.entries(B)) { b.getWorldPosition(v); r[k] = [+v.x.toFixed(3), +v.y.toFixed(3), +v.z.toFixed(3)]; }
+    rows.push([+t.toFixed(2), r]);
+  }
+  out[clip.name] = rows;
+}
+window.__out = out; window.__ready = true;
+</script>

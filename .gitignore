@@ -4,7 +4,7 @@ dist
 /HERRIZHERRI-jugar-ligero.html
 herrizherri-codigo.zip
 captura-*.png
-lab/ref/
+# (lab/ref ya va en GitHub con Git LFS: .gitattributes)
 capturas-v/
 tools/chars/__pycache__/
 dist-pelota/
