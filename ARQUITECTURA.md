@@ -4919,3 +4919,22 @@ vecinos, misiones y láminas (queso, pimiento), deporte rural, leyendas y momotx
 nuevas a 24 por segundo (las de 12 daban saltitos): `tomas.mjs` (limpias) y `tomas-ui.mjs` (con la interfaz). En Puente
 la Reina con lluvia se apagan el reflejo blanco del charco grande de la plaza y los charcos de luz de las farolas.
 `montaje.py` mezcla las imágenes repetidas sueltas con sus vecinas.
+
+
+### Tráiler v16 (24 nov 2026): ninguna escena repetida, la pelota entera, joaldunak y momotxorros
+
+`tools/trailer/v16/`. El autor, del v15: escenas duplicadas, el relieve que se iba formando en el vuelo del mapa, la lámina
+de la cuajada (recuadro dentro de recuadro y la cuajada que se salía del dibujo), el explorador que se choca, poca vida en
+las calles y nada de la pelota. Ahora `montaje.py` para si una imagen de una toma sale dos veces; fuera el vuelo del mapa,
+la lámina del queso, las vecinas quietas mirando a cámara y el repaso final. Entran el paseo hasta la plaza de Viana y los
+puestos del mercado (la Plaza del Castillo de Pamplona se quedó fuera por tiempo); los joaldunak de Ituren (la comparsa del carnaval, con el explorador invisible
+en la plaza: solo anda y se ve a menos de 100 m de él) y los momotxorros de cerca; el castillo de Olite; y la pelota con su
+interfaz, grabada con el reloj propio: el anillo de los campeonatos girando, «Elige tu pelotari» y el cuadro con el VS, el
+partido del campeonato y el del frontón de Lumbier (sin la txapela: el autor, «sin txapela»). Las láminas, recortadas sin
+su marco (`recorte` en el plan; si son más anchas que la pantalla, se completan con su mismo fondo). El final recorre las
+comarcas con el explorador corriendo (Bardenas, Elizondo, Lesaka, Estella, Artajona, Lekunberri). Con tres pueblos grandes
+cargando a la vez (Altsasu, Pamplona) el navegador se quedaba colgado: esas tomas se graban de una en una. Ojo
+también al disco del contenedor: con él lleno el navegador se cuelga cargando sin dar error (se borraron los fotogramas de
+los tráileres viejos). `montaje.py` puede componer por partes: `PEND=toma,toma` compone todo menos esas tomas (que aún se
+graban) sin hacer el vídeo, y `SOLO=toma,toma` compone solo esas sobre lo ya hecho y saca el vídeo. El rótulo «Completa sus
+misiones» va sobre la cosechadora: encima del panel de los pasos del queso lo tapaba.
