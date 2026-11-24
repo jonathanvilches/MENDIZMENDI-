@@ -1,5 +1,9 @@
 # HERRIZHERRI en Unity
 
+> **En pausa** (el autor, 24 nov: «déjalo todo preparado para trabajar en Unity, pero de momento seguiremos trabajando
+> aquí»). Se sigue con la web; esto queda listo para cuando se quiera. Mientras tanto, lo único que sigue solo es que GitHub
+> vuelve a sacar `exportar/datos` con cada cambio de datos. Nada pesado se guarda en GitHub.
+
 El proyecto de Unity del juego está en este mismo repositorio, para que lo que se cambie en el juego llegue a Unity sin
 copiar nada a mano:
 

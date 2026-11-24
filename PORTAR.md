@@ -37,6 +37,8 @@ en un Chromium sin ventana (Playwright, ya en `node_modules`); si no está en `/
 
 ## Los cambios de aquí, en GitHub y en Unity
 
+> **En pausa desde el 24 nov**: el autor sigue con la web; Unity queda preparado (`unity/LEEME.md`) para retomarlo.
+
 1. Cada cambio que se hace en el juego se sube a GitHub (rama `master`), siempre.
 2. Si toca los datos (`src/data` y los demás módulos de datos), GitHub vuelve a sacar `exportar/datos` solo
    (`.github/workflows/exportar-datos.yml`) y lo sube si ha cambiado algo. La fecha de cada JSON solo cambia si cambian
