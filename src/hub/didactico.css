@@ -218,3 +218,49 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-pd-pasos button { aspect-ratio: 1.5; }
 .dd-pd-pasos b { display: inline-grid; place-items: center; flex: none; min-width: 15px; height: 15px; border-radius: 50%; background: var(--rosa, #ff7ac8); color: #1a0830; font-size: 9px; }
 @media (hover: hover) { .dd-pd button { transition: transform .18s; } .dd-pd button:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1.5px #ff7ac8; } }
+
+/* ===== Lectura cómoda (el autor, 24 nov 2026: «que los bloques no queden apretados, que el texto se lea perfectamente»)
+   Lo que se lee, a 16 px con interlineado 1,6; los rótulos pequeños, a 14; más relleno dentro de los bloques y más hueco
+   entre ellos; y dos bloques por fila como mucho (ajustaRejillas, hub.js), para que cada línea tenga 45-75 letras. Lo de
+   las galerías que se comparten con el modo juego (personajes, naturaleza, montes, instrumentos), solo en el didáctico. */
+.dd-grid { gap: 16px; }
+.dd-b { gap: 12px 32px; padding: 16px 20px 20px; }
+.dd-b > .dd-img { flex-basis: calc(100% + 40px); margin: -16px -20px 4px; }
+@container (min-width: 760px) {
+  .dd-b > .dd-img { margin: -16px 0 -20px -20px; } .dd-b > .dd-tx:only-child > * { margin-bottom: 12px; }
+  /* (un bloque solo en su fila con un párrafo: el párrafo se reparte entre las dos columnas, para no dejar media vacía) */
+  .dd-b > .dd-tx:only-child > p { break-inside: auto; orphans: 2; widows: 2; }
+}
+.dd-tx { gap: 12px; }
+.dd-b h3 { font-size: var(--fs-lg); }
+.dd-b h4 { margin-top: 8px; font-size: var(--fs-sm); }
+:is(.dd-b p, .dd-ol, .dd-ul, .dd-datos li, .dd-b .antes-ahora span, .dd-q li, .dd-sp span, .dd-arms p, .dd-portada p, .dd-tools, .ddf .es-pane p, .yac-lista em) { font-size: var(--fs-md); line-height: 1.6; }
+.dd-q summary { font-size: var(--fs-md); line-height: 1.4; }
+.dd-ol, .dd-ul { gap: 8px; }
+.dd-datos { gap: 12px; } .dd-datos li { padding: 16px 20px; }
+.dd-q { padding: 12px 16px; } .dd-q ul { gap: 8px; }
+.dd-arms { gap: 20px; padding: 16px 20px; }
+/* los temas de la portada: tres por fila en el ordenador y dos en el móvil tumbado, con el título y su frase más grandes */
+.dd-temas { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.dd-tema { gap: 16px; padding: 16px 20px; } .dd-tema > span { gap: 6px; }
+.dd-tema > span b { font-size: var(--fs-lg); line-height: 1.15; } .dd-tema > span small { font-size: var(--fs-md); line-height: 1.45; }
+/* las tarjetas de las galerías (tradiciones, oficios, historia, frontones…) */
+.ddc-grid { gap: 20px; }
+.ddc-txt { gap: 6px; padding: 16px 20px 20px; }
+:is(.ddc-txt i, .ddc-txt .ddc-pista) { font-size: var(--fs-md); line-height: 1.45; }
+.ddw-txt { padding: 16px 16px 20px; }
+.ddw-txt small { font-size: var(--fs-md); }
+/* (las galerías de siempre, en el modo didáctico) */
+html.didactico #hub :is(.lead, .ar-head > p, .pcard p, .scard p, .ins-tx i) { font-size: var(--fs-md); line-height: 1.55; }
+html.didactico #hub :is(.pcard small, .scard .seu, .fcard .ftx small, .fcard .ftx i, .ins-tx em) { font-size: var(--fs-sm); line-height: 1.4; }
+html.didactico #hub :is(.pcard, .scard) { gap: 12px; }
+html.didactico #hub .figuras:not(.rail) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }   /* (personajes: con su nombre y su fecha a 14 px, tarjetas algo más anchas) */
+@media (max-width: 560px) {
+  .ddc-grid, .ddw-grid { gap: 12px; }
+  .ddc-txt { padding: 12px 16px 16px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .dd-tema { min-height: 80px; padding: 12px 16px; }
+  .ddc-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .ddc-txt { padding: 12px 16px 16px; }
+}

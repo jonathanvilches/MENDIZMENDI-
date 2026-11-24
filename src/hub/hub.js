@@ -122,18 +122,20 @@ export function ajustaRejillas(root) {
     const H = [...R.children].filter(h => !h.matches('.con-img')), D = [...R.children].filter(h => h.matches('.con-img')), k = H.length;
     // (en el material didáctico, si los bloques miden muy distinto, uno de un párrafo y otro de veinte, igualar la fila dejaba
     // huecos enormes dentro de los cortos: entonces va uno por fila, a todo lo ancho, con la ilustración al lado o el texto en
-    // dos columnas, didactico.css; si miden parecido, en rejilla, hasta tres por fila y todos del mismo alto)
+    // dos columnas, didactico.css; si miden parecido, en rejilla, hasta dos por fila y todos del mismo alto)
     const alto = (h) => [...h.children].reduce((t, x) => t + x.offsetHeight, 0), hs = R.matches('.dd-grid') && k > 1 ? H.map(alto).filter(Boolean) : [];
     const filas = hs.length > 1 && Math.max(...hs) > 1.8 * Math.min(...hs); R.classList.toggle('dd-filas', filas);
-    const max = (R.dataset.max || (R.matches('.dd-grid') ? '3,2,1' : '4,3,2')).split(',').map(Number);
+    // (en el material didáctico, dos bloques por fila como mucho: con tres, en el ordenador y en el móvil tumbado las líneas
+    // se quedaban en 35-45 letras y el texto se veía apretado; el autor, 24 nov 2026: «que los bloques no queden apretados»)
+    const dd = R.matches('.dd-grid'), max = (R.dataset.max || (dd ? '2,2,1' : '4,3,2')).split(',').map(Number);
     // (con data-igual, las piezas con imagen, como las cartas de los pueblos, van todas del mismo tamaño si se puede: si las
     // piezas se reparten justas en una columna más de las que tocan, se usa esa; tres pueblos en dos columnas dejaban la
     // tercera carta al doble de ancho)
     // (con imagen, de las columnas posibles, 2, 3, 4 o 6 y como mucho una más de las que tocan, la que deja la última fila
     // menos estirada: siete pueblos, 4 y 3, no 3, 3 y una carta sola a todo lo ancho)
-    const igual = 'igual' in R.dataset || R.matches('.dd-grid');
+    const igual = 'igual' in R.dataset || dd;
     const cols = (x) => { if (k <= x) return k; if (!igual) return Math.ceil(k / Math.ceil(k / x));
-      let mejor = null; for (const c of [2, 3, 4, 6]) { if (c > x + 1) continue; const resto = k % c, pena = (resto ? (c - resto) / c : 0) + (c > x ? 0.15 : 0) + (x - Math.min(c, x)) / x * 0.3;
+      let mejor = null; for (const c of [2, 3, 4, 6]) { if (c > x + (dd ? 0 : 1)) continue; const resto = k % c, pena = (resto ? (c - resto) / c : 0) + (c > x ? 0.15 : 0) + (x - Math.min(c, x)) / x * 0.3;
         if (!mejor || pena < mejor.pena - 1e-9) mejor = { c, pena }; } return mejor?.c || x; };
     const anchos = max.map(x => { const c = filas ? 1 : cols(x), resto = k % c; return H.map((_, i) => 12 / (resto && i >= k - resto ? resto : c)); });
     H.forEach((h, i) => ['--sg', '--sm', '--sp'].forEach((v, j) => h.style.setProperty(v, anchos[j][i])));
