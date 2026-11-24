@@ -323,7 +323,7 @@
    "de": "Meshy_AI_medieval_elder_txapela_white_stache_20261111_animated_mixamo_All_animation.glb",
    "sha256": "3108b4d6b58a64a4",
    "mb": 5.9,
-   "archivo": "personajes/medieval_elder_txapela_white_stache_20261111_animated_mixamo_All_animation.glb",
+   "archivo": "personajes/medieval_elder_txapela_white_stache_All_animation.glb",
    "vertices": 11963,
    "huesos": 24,
    "texturas": [
@@ -514,7 +514,7 @@
    "de": "Meshy_AI_medieval_elder_txapela_woman_braids_20261111_animated_mixamo_All_animation.glb",
    "sha256": "61de296de2b3d529",
    "mb": 6,
-   "archivo": "personajes/medieval_elder_txapela_woman_braids_20261111_animated_mixamo_All_animation.glb",
+   "archivo": "personajes/medieval_elder_txapela_woman_braids_All_animation.glb",
    "vertices": 12444,
    "huesos": 24,
    "texturas": [
