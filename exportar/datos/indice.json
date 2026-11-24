@@ -167,7 +167,7 @@
  {
   "fuente": "src/data/eu-aventura.js",
   "json": "eu-aventura.json",
-  "kb": 9,
+  "kb": 11,
   "exporta": [
    "EU_AVENTURA",
    "EU_RX_AVENTURA"
