@@ -120,6 +120,9 @@ export function makeMaterials() {
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
     sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.3, 1.08, 0.76), emissive: new THREE.Color('#3d2f17') }), 1.0, 0.5),
+    // arenisca rojiza (el castillo de Javier y su basílica, de las fotos del autor) y su peña, rosada
+    sandstoneRed: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.22, 0.87, 0.75), emissive: new THREE.Color('#2b1814') }), 1.0, 0.4),
+    rockRose: snowable(weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), color: '#b49c8e', roughness: 0.95 }), 1.3, 0.6)),
     plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
     plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
     slate: snowable(withTex(TEX.roofSlate, { roughness: 0.75 })),

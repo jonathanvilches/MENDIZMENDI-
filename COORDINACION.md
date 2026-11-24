@@ -15,6 +15,7 @@ ya no vale, se borra.
 | Pelotaris nuevos de Meshy | **Parado** por el autor el 18 nov. Estado y cómo retomarlo: `investigacion/pelotaris-nuevos/LEEME.md` | `investigacion/pelotaris-nuevos/` |
 
 ## Listo para publicar
+- (Auditoría, 24 nov) Castillo y basílica de Javier sobre su planta real de OpenStreetMap y como en las fotos del autor: arenisca rojiza, torre de San Miguel, torre grande con garitas, barbacana, explanada con pilares y cadenas, basílica con rosetón y peña. Nuevo `src/world/monumentosReales.js` y `src/data/reales/plantas.json` (de `tools/plantas-monumentos.py`). iPhone: Javier 60 + 19 MB, 345 llamadas.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
