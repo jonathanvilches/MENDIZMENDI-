@@ -16,7 +16,7 @@ npm run exportar:todo [carpetas con los originales…]     # node tools/exportar
 
 | Carpeta | Qué hay | Herramienta |
 | --- | --- | --- |
-| `datos/` | Todos los datos del juego en JSON (165 módulos, 7 MB). **Va en el repositorio.** | `exportar-datos.mjs` |
+| `datos/` | Todos los datos del juego en JSON (159 módulos, 7 MB). **Va en el repositorio.** | `exportar-datos.mjs` |
 | `relieve/` | Las alturas de verdad de Navarra y alrededores (173 × 185 km, cada 145 m, hasta 2.629 m): PNG de 16 bits y RAW de 2049 × 2049 para el Terrain de Unity, con su .json (medidas y cómo importarlo) | `exportar-relieve.mjs` |
 | `modelos/` | Los 88 modelos del juego (personajes, vecinos, seres, animales, objetos) sin comprimir, con esqueleto, animaciones y texturas PNG | `exportar-modelos.mjs` |
 | `originales/` | Los archivos de partida, mejores que los del juego (ver abajo), con `catalogo.json`: de qué archivo del juego es cada uno | `exportar-originales.mjs` |
@@ -72,7 +72,7 @@ didáctico, los emblemas y Salazar. En el repositorio va ya una copia hecha
 | `reales/*.json` | Cada pueblo según OpenStreetMap: calles, casas (planta y alturas), plazas, río, iglesia en su sitio |
 | `relieve.json`, `polar/*.json`, `sierras/*.json`, `mapa-relieve.json` | El relieve: el de cada pueblo, el horizonte y el mapa de Navarra |
 | `personajes.json`, `cast.json`, `nombres.json`, `sabios.json` | Vecinos, sabios y el reparto del jugador |
-| `legends.json`, `folklore.json`, `cuentos.json`, `heritage.json` | Leyendas, tradiciones, patrimonio y cuentos |
+| `legends.json`, `folklore.json`, `cuentos.json` | Leyendas, tradiciones y cuentos |
 | `oficios.json`, `procesos.json`, `laminas.json`, `narraLaminas.json` | Oficios y láminas, con sus pasos y su narración |
 | `fauna.json`, `flora.json`, `setas.json`, `bosques.json`, `mountains.json` | Naturaleza: especies, setas, bosques, las 120 cimas |
 | `frontones.json`, `pelotaris.json`, `frontonArq.json`, `equipo.json` | Pelota: frontones reales, pelotaris, arquitectura de las canchas, equipos |

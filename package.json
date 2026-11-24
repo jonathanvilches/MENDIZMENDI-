@@ -1,10 +1,11 @@
 {
   "name": "herrizherri",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "description": "HERRIZHERRI: videojuego educativo 3D de Navarra, pueblo a pueblo (prototipo web con Three.js)",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite --host",
+    "build:web": "WEB=1 vite build",
     "exportar": "node tools/exportar-datos.mjs exportar/datos",
     "exportar:pueblos": "node tools/exportar-pueblo.mjs todos",
     "exportar:modelos": "node tools/exportar-modelos.mjs",
@@ -16,9 +17,8 @@
     "exportar:comprobar": "node tools/exportar-comprobar.mjs",
     "exportar:todo": "node tools/exportar-todo.mjs"
   },
-  "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "UNLICENSED",
   "dependencies": {
     "@fontsource/barlow": "^5.3.0",
     "@fontsource/barlow-condensed": "^5.2.6",

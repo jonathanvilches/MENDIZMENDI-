@@ -2,7 +2,8 @@
 
 BORRADOR para la App Store y la web, sin revisar por un abogado. Antes de publicarlo hay que rellenar lo que va
 entre corchetes y comprobar que sigue siendo cierto con la versión que se publique. Sale de `legal/estado-legal.md`
-y de la revisión de noviembre de 2026 (`entrega/app-store/README.md`).
+y de la revisión de noviembre de 2026 (`entrega/app-store/README.md`). Lo técnico (qué se guarda, dónde y qué sale
+del aparato, archivo por archivo) está en `PRIVACIDAD.md`, revisado el 24 de noviembre de 2026.
 
 ## Quién es el responsable
 
@@ -11,7 +12,8 @@ y de la revisión de noviembre de 2026 (`entrega/app-store/README.md`).
 ## Qué datos recogemos
 
 Ninguno. HERRIZHERRI no pide registrarse, no tiene cuentas, no muestra anuncios, no vende nada dentro del juego y
-no envía a nadie lo que haces en él. Tampoco usa herramientas de analítica ni de publicidad en la app.
+no envía a nadie lo que haces en él. Tampoco usa herramientas de analítica ni de publicidad. El único envío posible es
+el informe técnico, que está apagado y solo sale si lo enciendes tú (ver «En la web»).
 
 ## Qué se guarda en tu dispositivo
 
@@ -26,8 +28,9 @@ Puedes borrarlo todo desde Perfil, con «Borrar todo el progreso», o desinstala
 
 ## La cámara
 
-Solo se usa si eliges tocar la txalaparta con las manos, y solo después de que des permiso. La imagen se procesa
-en tu dispositivo para ver dónde están tus manos: no se graba, no se guarda y no sale del dispositivo. Si no das
+Solo se usa si eliges jugar a la pelota en casa con tu cuerpo, la realidad aumentada o tocar la txalaparta con las
+manos, y solo después de que des permiso. La imagen se procesa
+en tu dispositivo para ver dónde están tu cuerpo o tus manos: no se graba, no se guarda y no sale del dispositivo. Si no das
 permiso, puedes tocar la txalaparta tocando la pantalla.
 
 ## Niños y niñas
@@ -42,7 +45,11 @@ En la versión web, además:
 - Copia del juego en el navegador para jugar sin conexión, con el «service worker».
 - Si usas el móvil como mando del juego en el ordenador, los dos se presentan a través de servidores públicos
   [PeerJS y los de reserva, o el servidor propio en la Unión Europea]. Solo pasa la información técnica necesaria
-  para conectarlos, nunca lo que haces en el juego. En la app no se ofrece.
+  para conectarlos, cifrada de punta a punta con una clave que va en el código QR: esos servidores no pueden leerla.
+  En la app no se ofrece.
+- Informe técnico (apagado salvo que lo enciendas en Ajustes › Diagnóstico): cómo va el juego en tu dispositivo
+  (fluidez, errores, tamaño de pantalla, navegador y tarjeta gráfica), para arreglar fallos. Nunca lleva tu apodo ni tu
+  partida. Se recibe en [Vercel] y solo se usa para eso. Puedes apagarlo cuando quieras.
 
 ## Tus derechos
 

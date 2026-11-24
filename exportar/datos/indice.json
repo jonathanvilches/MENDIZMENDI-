@@ -105,15 +105,6 @@
   "funciones": 0
  },
  {
-  "fuente": "src/data/crops.json",
-  "json": "crops.json",
-  "kb": 21,
-  "exporta": [
-   "default"
-  ],
-  "funciones": 0
- },
- {
   "fuente": "src/data/cuentos.js",
   "json": "cuentos.json",
   "kb": 126,
@@ -428,15 +419,6 @@
   "funciones": 31
  },
  {
-  "fuente": "src/data/experiences.json",
-  "json": "experiences.json",
-  "kb": 39,
-  "exporta": [
-   "default"
-  ],
-  "funciones": 0
- },
- {
   "fuente": "src/data/fauna.js",
   "json": "fauna.json",
   "kb": 17,
@@ -521,22 +503,6 @@
   "funciones": 1
  },
  {
-  "fuente": "src/data/heritage.json",
-  "json": "heritage.json",
-  "kb": 6,
-  "exporta": [
-   "almandoz",
-   "default",
-   "elizondo",
-   "erratzu",
-   "irurita",
-   "ituren",
-   "lekaroz",
-   "zubieta"
-  ],
-  "funciones": 0
- },
- {
   "fuente": "src/data/hitzak.js",
   "json": "hitzak.json",
   "kb": 5,
@@ -559,21 +525,6 @@
   "funciones": 2
  },
  {
-  "fuente": "src/data/identity.json",
-  "json": "identity.json",
-  "kb": 15,
-  "exporta": [
-   "aribe",
-   "default",
-   "elizondo",
-   "etxalar",
-   "ituren",
-   "leitza",
-   "lesaka"
-  ],
-  "funciones": 0
- },
- {
   "fuente": "src/data/instrumentos.js",
   "json": "instrumentos.json",
   "kb": 11,
@@ -581,22 +532,6 @@
    "INSTRUMENTOS"
   ],
   "funciones": 3
- },
- {
-  "fuente": "src/data/knowledge.json",
-  "json": "knowledge.json",
-  "kb": 44,
-  "exporta": [
-   "default",
-   "entries",
-   "excludedPlaces",
-   "exclusionReason",
-   "note",
-   "reviewed",
-   "shared",
-   "version"
-  ],
-  "funciones": 0
  },
  {
   "fuente": "src/data/laminas.js",
@@ -2226,15 +2161,6 @@
    "BELL",
    "BENCH_LINES",
    "PET"
-  ],
-  "funciones": 0
- },
- {
-  "fuente": "src/data/towns.json",
-  "json": "towns.json",
-  "kb": 26,
-  "exporta": [
-   "default"
   ],
   "funciones": 0
  },
