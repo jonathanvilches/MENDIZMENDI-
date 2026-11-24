@@ -38,9 +38,11 @@ for (const town of lista.split(',')) {
         if (i % 3 === 0) {
           pecho.copy(P.pos); pecho.y += 1.2; dir.subVectors(pecho, F.cam.position); const L = dir.length(); dir.normalize();
           rc.set(F.cam.position, dir); rc.camera = F.cam; rc.far = Math.max(0.1, L - 0.4);
-          const hit = rc.intersectObjects(G.scene.children, true).find(h => h.object.visible && h.object.isMesh && !h.object.isSkinnedMesh && !h.object.material?.transparent && !P.obj.getObjectById(h.object.id));
+          // (un árbol con detalle lleva dos materiales, tronco y copa: cuenta el de la cara que se toca)
+          const matDe = (h) => Array.isArray(h.object.material) ? h.object.material[h.face?.materialIndex ?? 0] : h.object.material;
+          const hit = rc.intersectObjects(G.scene.children, true).find(h => h.object.visible && h.object.isMesh && !h.object.isSkinnedMesh && !matDe(h)?.transparent && !P.obj.getObjectById(h.object.id));
           // (los árboles y matas se abren en una trama entre la cámara y el personaje: se cuentan aparte)
-          const abre = !!hit?.object.material?.userData?.abreVista; if (abre) { R.abiertos++; R.foto ||= { x: P.pos.x, z: P.pos.z, h: P.heading, yaw: F.yaw, pitch: F.pitch }; }
+          const abre = !!(hit && matDe(hit)?.userData?.abreVista); if (abre) { R.abiertos++; R.foto ||= { x: P.pos.x, z: P.pos.z, h: P.heading, yaw: F.yaw, pitch: F.pitch }; }
           const tap = !!hit && !abre; if (tap) R.tapado++; if (tap !== prevTap) R.cambios++; prevTap = tap;
           if (tap && R.ej.length < 6) R.ej.push(hit.object.name || hit.object.parent?.name || hit.object.type);
         }
