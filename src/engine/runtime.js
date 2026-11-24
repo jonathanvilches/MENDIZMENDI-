@@ -39,6 +39,9 @@ import { H } from '../world/heightfield.js';
 import { VIENTO, sopla } from '../world/viento.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
+// (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
+// le añada después se sigue colocando solo)
+function fijaQuieto(o, hijos = false) { if (!o) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
 
 // Registro de texturas por pueblo: cada textura que se sube a la tarjeta gráfica queda apuntada con el «turno» de
 // carga en que se creó; al salir del pueblo se liberan las de ese turno (terreno, carteles, sombras, vecinos…).
@@ -178,6 +181,9 @@ export class Runtime {
     this.nature = solo ? vacio.nature() : new Nature(scene, q);
     if (this.weather) this.weather.arboles = solo ? null : TREES;   // (los rayos de sol de los días despejados rozan las copas cercanas)
     if (this.weather.kind === 'snow' && this.nature.flowers?.mesh) this.nature.flowers.mesh.visible = false;   // sin flores sobre la nieve
+    // (lo que no se mueve, colocado una vez: el pueblo y las mallas de árboles, matas y cultivos se volvían a colocar en
+    // cada imagen, y era la cuarta parte de lo que cuesta recolocar la escena; medido con tools/auditoria-fluidez.mjs)
+    fijaQuieto(scene.getObjectByName('town')); fijaQuieto(this.nature?.group, true);
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = solo ? vacio.fauna() : new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
     if (this.weather.kind !== 'clear' && this.fauna.bfMesh) this.fauna.bfMesh.visible = false;   // con lluvia o nieve no hay mariposas
