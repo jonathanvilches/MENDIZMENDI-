@@ -17,6 +17,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- Montura con arreos (a28eb6f7): el caballo, la pottoka y el burro llevan silla, cabezada y riendas que llegan a las manos del jinete (`src/game/arreos.js`, `src/game/montura.js`). Visto a 1280×720 y 844×390.
+
 
 ## Peticiones entre ventanas
 
