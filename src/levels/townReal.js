@@ -11,6 +11,7 @@ import { sierrasDe } from '../world/sierras.js';
 import { ordenarCasas, ordenarPuentes, partirBloques, anexosManzana } from './ordenar.js';
 import { iglesiaReal } from '../data/reales/iglesia.js';
 import { trinqueteTraza, trinqueteToca, trinqueteFrente, trinqueteDelante } from '../world/trinquetePueblo.js';
+import { plantaDe, dentroPlanta } from '../world/monumentosReales.js';
 
 const FAMILY = {
   atlantic: { forest: 0.55, grass: 'lush', crops: [0, 0, 4, 4, 1, 8] },
@@ -477,6 +478,9 @@ export function createRealTownLevel(def, D) {
     if (!b && (!['bridge', 'plaza', 'kiosk', 'fountain', 'townhall', 'escultura'].includes(k) || (lm.real && k === 'fountain')) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
     if (b && k === 'castle') pads.push({ x: o.x, z: o.z, r: 30, blend: 16 });
   }
+  // (las casas que caen dentro de la planta de un monumento levantado sobre su contorno de verdad no se levantan: en Olite
+  // salía una casa dentro del Palacio Viejo; src/world/monumentosReales.js)
+  for (const P of Object.values(plantaDe(def.id) || {})) for (const c of CASAS) if (c !== ch && !TAKEN.has(c) && dentroPlanta(P, c.x, c.z)) TAKEN.add(c);
   // ---------- El núcleo: donde se juega ----------
   // El pueblo se levanta solo donde están las misiones: el círculo alrededor de la plaza y la envolvente de los lugares de
   // las misiones del casco (iglesia, ayuntamiento, frontón, mercado, orilla del río y los monumentos que tienen

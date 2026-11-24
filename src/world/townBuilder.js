@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, dig, wallsRing, bridge, landmark } from './monuments.js';
-import { plantaDe, castilloJavier, basilicaJavier } from './monumentosReales.js';
+import { plantaDe, castilloJavier, basilicaJavier, palacioOlite, palacioViejoOlite, evitaPlanta, iglesiaOpciones } from './monumentosReales.js';
 import { bench, lamp, fountain, fuenteBeber, papelera } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
@@ -78,10 +78,12 @@ export function buildTown(scene, mats, def) {
   const ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
   // (los castillos se levantan después, con su sitio ya sabido: la iglesia no se mete en ellos; castle, en monuments.js:
   // 44 × 34 m en Olite y 30 × 26 en los demás, más media torre de las esquinas)
-  const evita = (PLACES.landmarks || []).filter(l => l.kind === 'castle' && l.style !== 'javier').map(l => { const big = def.id === 'olite'; return { x: l.x, z: l.z, ry: Math.atan2(PLACES.plaza.x - l.x, PLACES.plaza.z - l.z), hw: big ? 25.5 : 18, hd: big ? 20.5 : 16 }; });
+  // (en Olite, los muros del Palacio Real sobre su planta de verdad: monumentosReales.js)
+  const olite = def.id === 'olite' && plantaDe('olite');
+  const evita = olite ? evitaPlanta(olite.palacio) : (PLACES.landmarks || []).filter(l => l.kind === 'castle' && l.style !== 'javier').map(l => ({ x: l.x, z: l.z, ry: Math.atan2(PLACES.plaza.x - l.x, PLACES.plaza.z - l.z), hw: 18, hd: 16 }));
   // (la basílica de Javier, en su planta de verdad y como en las fotos: monumentosReales.js)
   const c = pamp ? pamp.church : def.id === 'javier' && plantaDe('javier') ? basilicaJavier(B, plantaDe('javier'))
-    : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, { ...(def.church || {}), planta: real && ch.real ? ch.real : null, evita });
+    : church(B, ch.x, ch.z, ry, def.church?.style || 'gothic', fam, { ...(def.church || {}), ...(iglesiaOpciones(def.id) || {}), planta: real && ch.real ? ch.real : null, evita });
   TOWN.church = { ...c, name: def.church?.name, text: def.church?.text };
   // puentes
   for (const b of BRIDGES) {
@@ -114,7 +116,7 @@ export function buildTown(scene, mats, def) {
   for (const lm of PLACES.landmarks || []) {
     let spot = null;
     if (pamp?.spots[lm.kind]) spot = pamp.spots[lm.kind];
-    else if (lm.kind === 'castle') { const ry = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), cs = lm.style === 'javier' ? castilloJavier(B, plantaDe('javier')) : castle(B, lm.x, lm.z, ry, def.id === 'olite'); spot = cs.gate; }
+    else if (lm.kind === 'castle') { const ry = Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z), cs = lm.style === 'javier' ? castilloJavier(B, plantaDe('javier')) : olite ? palacioOlite(B, olite) : castle(B, lm.x, lm.z, ry); if (olite) palacioViejoOlite(B, olite); spot = cs.gate; }
     else if (lm.kind === 'dig') spot = dig(B, lm.x, lm.z, Math.atan2(PLACES.plaza.x - lm.x, PLACES.plaza.z - lm.z));
     else if (lm.kind === 'walls') {
       if (lm.ring) { wallsRing(B, lm.x, lm.z, 44, 9, Math.atan2(PLACES.plaza.z - lm.z, PLACES.plaza.x - lm.x)); spot = { x: lm.x + (PLACES.plaza.x - lm.x) * 0.55, z: lm.z + (PLACES.plaza.z - lm.z) * 0.55 }; }

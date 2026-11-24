@@ -63,7 +63,7 @@ function ermita(B, T, x, z, y, ry, bell) {
   addBox(x, z, W + 0.4, L + 0.4, ry, { solidView: true });
   return { door: toW(x, z, ry, 0, L / 2 + 3), x, z, y, W, L };
 }
-function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
+function spireTower(B, T, tw, th, roof, mat, style, clock = true, remate = null) {
   B.add(mat, box(tw, th + 2, tw, 2.2), MM(T, M(0, (th + 2) / 2 - 2, 0)));
   for (const y of [th * 0.35, th * 0.68]) B.add('ashlar', box(tw + 0.3, 0.3, tw + 0.3), MM(T, M(0, y, 0)));
   for (let s = 0; s < 4; s++) {
@@ -75,6 +75,8 @@ function spireTower(B, T, tw, th, roof, mat, style, clock = true) {
   if (clock && style !== 'fortress') towerClock(B, MM(T, M(0, th * 0.52, tw / 2)), tw * 0.2);
   B.add('ashlar', box(tw + 0.5, 0.5, tw + 0.5), MM(T, M(0, th + 0.25, 0)));
   if (style === 'fortress') { merlons(B, T, tw + 0.4, tw + 0.4, th + 0.5); return th + 1.2; }
+  // (acabada en terraza con antepecho y pináculos en las esquinas, sin chapitel: la de Santa María de Olite)
+  if (remate === 'terraza') { B.add(mat, box(tw + 0.5, 1.0, tw + 0.5), MM(T, M(0, th + 1.0, 0))); for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) B.add(mat, new THREE.ConeGeometry(0.35, 1.6, 4), MM(T, M(a * tw / 2, th + 2.3, b * tw / 2, Math.PI / 4))); return th + 2; }
   if (style === 'baroque') {
     B.add(mat, box(tw * 0.75, tw * 0.9, tw * 0.75, 2), MM(T, M(0, th + 0.5 + tw * 0.45, 0)));
     const dome = new THREE.SphereGeometry(tw * 0.42, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -103,7 +105,7 @@ function solapan(a, b, m = 0) {
 export function church(B, x, z, ry, style, fam, opts = {}) {
   if (style === 'ermita' || style === 'borda') { const y = terrainHeight(x, z) - 0.2; return ermita(B, M(x, y, z, ry), x, z, y, ry, style === 'ermita'); }
   const brick = fam === 'ribera' && style === 'baroque';
-  const mat = brick ? 'brick' : 'ashlar';
+  const mat = opts.piedra || (brick ? 'brick' : 'ashlar');
   const roof = fam === 'pyrenean' || fam === 'atlantic' && style !== 'baroque' ? 'slate' : 'tile';
   const dims = { romanesque: [9, 18, 8], gothic: [12, 26, 13], baroque: [12, 24, 12], fortress: [13, 24, 14], cathedral: [18, 40, 18] }[style] || [12, 24, 12];
   let [W, L, Hh] = dims;
@@ -195,7 +197,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     const th = style === 'fortress' ? Hh + 14 : style === 'romanesque' ? Hh + 6 : Hh + 13;
     const tx = style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, tz = style === 'baroque' || opts.twin ? L / 2 - tw / 2 : -L / 2 + tw;
     for (const s of opts.twin ? [1, -1] : [1]) {
-      spireTower(B, MM(T, M(s * tx, 0, tz)), tw, th, roof, mat, style, s > 0);
+      spireTower(B, MM(T, M(s * tx, 0, tz)), tw, th, roof, mat, style, s > 0 && !opts.remate, opts.remate);
       const tp = toW(x, z, ry, s * tx, tz);
       addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
     }
@@ -224,11 +226,11 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   return { door, x, z, y, W, L };
 }
 
-// ---------- Castillo (Olite, Cortes) ----------
-export function castle(B, x, z, ry, big) {
+// ---------- Castillo (Marcilla, Cortes; el Palacio Real de Olite va sobre su planta en monumentosReales.js) ----------
+export function castle(B, x, z, ry) {
   const y = terrainHeight(x, z) - 0.3;
   const T = M(x, y, z, ry);
-  const W = big ? 44 : 30, D = big ? 34 : 26, Hh = big ? 12 : 10;
+  const W = 30, D = 26, Hh = 10;
   for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [0, D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
     const gate = lz === D / 2;
     if (gate) {
@@ -272,9 +274,8 @@ export function castle(B, x, z, ry, big) {
   B.add('iron', box(5.6, 0.25, 0.25), MM(T, M(0, Hh - 3.3, gz + 0.9)));                                                           // rastrillo subido
   B.add('woodDark', box(5.2, 0.35, 6), MM(T, M(0, 0.15, gz + 4.2)));                                                              // puente
   for (const s of [-1, 1]) B.add('iron', new THREE.CylinderGeometry(0.06, 0.06, 7.4, 6), MM(T, new THREE.Matrix4().makeRotationX(0.62).setPosition(s * 2.4, Hh - 3.6, gz + 3.6)));   // cadenas
-  // torres (Olite: muchas, de alturas distintas, con chapiteles)
-  const towers = big ? [[-W / 2, -D / 2, 7, 26, 'sq'], [W / 2, -D / 2, 6, 22, 'oct'], [-W / 2, D / 2, 6, 20, 'sq'], [W / 2, D / 2, 7, 24, 'sq'], [0, -D / 2, 8, 30, 'sq'], [W / 4, 0, 5, 18, 'rd'], [-W / 4, -4, 6, 21, 'oct'], [-W / 2, 0, 5, 17, 'rd']]
-    : [[-W / 2, -D / 2, 6, 16, 'sq'], [W / 2, -D / 2, 6, 16, 'sq'], [-W / 2, D / 2, 6, 15, 'rd'], [W / 2, D / 2, 6, 15, 'rd'], [0, -D / 2, 7, 20, 'sq']];
+  // torres
+  const towers = [[-W / 2, -D / 2, 6, 16, 'sq'], [W / 2, -D / 2, 6, 16, 'sq'], [-W / 2, D / 2, 6, 15, 'rd'], [W / 2, D / 2, 6, 15, 'rd'], [0, -D / 2, 7, 20, 'sq']];
   for (const [lx, lz, tw, th, sh] of towers) {
     const TT = MM(T, M(lx, 0, lz));
     const geo = sh === 'sq' ? box(tw, th + 2, tw, 2.4) : new THREE.CylinderGeometry(tw / 2, tw / 2 + 0.3, th + 2, sh === 'oct' ? 8 : 14);
