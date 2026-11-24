@@ -686,6 +686,15 @@ function townTrees(fits) {
   return out;
 }
 
+// geometría nueva que usa los mismos datos de vértices que g (la gráfica los sube una sola vez) y a la que se le pueden
+// añadir atributos propios, como el musgo de cada roca de un trozo
+function comparteForma(g) {
+  const n = new THREE.BufferGeometry();
+  for (const [k, a] of Object.entries(g.attributes)) n.setAttribute(k, a);
+  n.setIndex(g.index); n.boundingSphere = g.boundingSphere; n.boundingBox = g.boundingBox;
+  return n;
+}
+
 export class Nature {
   constructor(scene, quality) {
     this.quality = quality;
@@ -895,14 +904,16 @@ export class Nature {
         if (s.s > 1.1) addCircle(s.x, s.z, s.s * 0.75);
       }
       // rocas por trozos: detalladas y con sombra de cerca (cinco formas)…
+      // (cada trozo, con su musgo por roca, pero la forma compartida: antes cada trozo copiaba entera la forma detallada
+      // para añadirle el musgo, y en Etxalar eran 3,6 MB de copias en la gráfica del iPhone)
       for (const { im, items } of this.addChunked(list, parts[v][0], null, m, (s) => s.m, { shadow: true, name: 'rocas' })) {
-        im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
+        im.geometry = comparteForma(im.geometry); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
       }
     }
     // …y de lejos todas con una sola forma sencilla: una malla por trozo en vez de cinco
     const all = spots.filter(s => s.m);
     for (const { im, items } of this.addChunked(all, null, parts[0][1], m, (s) => s.m, { name: 'rocas' })) {
-      im.userData.rock = true; im.geometry = im.geometry.clone(); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
+      im.userData.rock = true; im.geometry = comparteForma(im.geometry); im.geometry.setAttribute('aMoss', new THREE.InstancedBufferAttribute(Float32Array.from(items, s => s.moss), 1));
     }
   }
   buildBushes(rnd) {
