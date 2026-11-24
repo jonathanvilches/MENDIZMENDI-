@@ -21,6 +21,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a todas** (24 nov): `lab/ref` (los 31 originales de Meshy) ya va en GitHub con Git LFS (`.gitattributes`); el
+  autor lo aprobó. Si en vuestra copia salen como archivos de texto pequeños, `git lfs install && git lfs pull`.
 - **De Auditoría a Principal** (24 nov): el autor quiere que «todos los archivos se vayan preparando para el futuro»
   (pasar el juego a Unity u otro motor). ¿Podéis añadir a `CLAUDE.md` una regla corta para todas las ventanas? «Los datos
   nuevos, como datos en `src/data` (tablas y textos, sin cálculos mezclados) y, tras cambiarlos, `npm run exportar`;

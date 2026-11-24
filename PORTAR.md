@@ -107,7 +107,9 @@ apunta en `exportar/originales/catalogo.json` de qué archivo del juego es cada 
   (9 movimientos).
 - `sonido/`: los paquetes de Envato descomprimidos (WAV de partida); `musica/`: la música y las locuciones del autor;
   `imagenes/`: las panorámicas y portadas de bosque; `modelos/`: el caballo, los árboles y un paquete de Unity.
-Los originales de Meshy de `lab/ref` (31 .glb, 282 MB) no están en GitHub; conviene guardar copia de todo esto.
+Los originales de Meshy de `lab/ref` (31 .glb, 282 MB) están en GitHub con Git LFS (el sistema de GitHub para archivos
+grandes; al clonar, `git lfs install` y `git lfs pull`). Las descargas de Envato, la música y las panorámicas, no: conviene
+guardarlas en el ordenador (el autor tiene la copia en 5 .zip del 24 de noviembre).
 
 ## 5. Imágenes, sonido, vídeo y letras
 
@@ -203,7 +205,7 @@ jugable en Unity (unos 6 meses de una persona).
 2. **Los originales, guardados.** Para la web se comprimen modelos, texturas y sonidos; para un motor grande hacen falta
    los originales en su máxima calidad: los modelos de Meshy (FBX o GLB con texturas de 2K o 4K), las imágenes de
    Higgsfield y los audios de ElevenLabs tal como se descargan. Siguen en sus cuentas; conviene no borrarlos y guardar
-   copia. Los modelos originales de `lab/ref` (31 .glb, 282 MB) no están en GitHub: solo en la copia de trabajo.
+   copia. Los modelos originales de `lab/ref` (31 .glb, 282 MB) van en GitHub con Git LFS (`.gitattributes`).
 3. **Medidas reales.** 1 unidad = 1 metro en todo lo que se juega; los personajes a su altura real (el explorador, 1,4 m).
 4. **Nombres claros** en las piezas 3D (`casa`, `iglesia`, `rio`…): el .glb del pueblo lleva esos nombres a Unity.
 5. **Herramientas al día.** Si un sistema nuevo crea cosas que no son three.js estándar (otro tipo de geometría, otro
