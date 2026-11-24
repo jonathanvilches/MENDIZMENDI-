@@ -1,0 +1,2269 @@
+[
+ {
+  "fuente": "src/data/armas-navarra.js",
+  "json": "armas-navarra.json",
+  "kb": 54,
+  "exporta": [
+   "ARMAS",
+   "FIG",
+   "GUIA",
+   "PENDIENTES"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/blasones.js",
+  "json": "blasones.json",
+  "kb": 4,
+  "exporta": [
+   "CASAS",
+   "ESMALTES",
+   "FIGURAS",
+   "PARTICIONES",
+   "REGLAS",
+   "TIMBRE"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/bosques.js",
+  "json": "bosques.json",
+  "kb": 22,
+  "exporta": [
+   "BOSQUES"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/campo.js",
+  "json": "campo.json",
+  "kb": 1,
+  "exporta": [
+   "CROP",
+   "VAQUERA_INFO"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/cast.js",
+  "json": "cast.json",
+  "kb": 6,
+  "exporta": [
+   "CAST",
+   "CAST_ALL",
+   "STAT_LABELS"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/castillos.js",
+  "json": "castillos.json",
+  "kb": 7,
+  "exporta": [
+   "CASTILLOS",
+   "CASTLE_QUIZ",
+   "CASTLE_TOWNS",
+   "PARTS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/comarcas-encaje.json",
+  "json": "comarcas-encaje.json",
+  "kb": 49,
+  "exporta": [
+   "bidasoa",
+   "default",
+   "pamplona",
+   "pirineo",
+   "prepirineo",
+   "ribera",
+   "sakana",
+   "sanguesa"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/comarcas.json",
+  "json": "comarcas.json",
+  "kb": 58,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/comercios.js",
+  "json": "comercios.json",
+  "kb": 2,
+  "exporta": [
+   "CATEGORIAS",
+   "COMERCIOS",
+   "EJEMPLOS",
+   "PIN_EJEMPLO"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/crops.json",
+  "json": "crops.json",
+  "kb": 21,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/cuentos.js",
+  "json": "cuentos.json",
+  "kb": 126,
+  "exporta": [
+   "CUENTOS",
+   "EU_CUENTOS",
+   "KIND_LABEL"
+  ],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/dolmen.js",
+  "json": "dolmen.json",
+  "kb": 36,
+  "exporta": [
+   "DOLMEN_TOWNS",
+   "SITES"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/edad.js",
+  "json": "edad.json",
+  "kb": 0,
+  "exporta": [
+   "EDADES"
+  ],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/equipo.js",
+  "json": "equipo.json",
+  "kb": 4,
+  "exporta": [
+   "FOOD",
+   "GEAR",
+   "GEAR_ORDER"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/eu-armas.js",
+  "json": "eu-armas.json",
+  "kb": 77,
+  "exporta": [
+   "EU_ARMAS",
+   "EU_RX_ARMAS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/eu-aventura.js",
+  "json": "eu-aventura.json",
+  "kb": 9,
+  "exporta": [
+   "EU_AVENTURA",
+   "EU_RX_AVENTURA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/eu-mas.js",
+  "json": "eu-mas.json",
+  "kb": 285,
+  "exporta": [
+   "EU_MAS",
+   "EU_ROLES",
+   "EU_RX_LISTA",
+   "EU_RX_MAS",
+   "EU_TOWNS"
+  ],
+  "funciones": 142
+ },
+ {
+  "fuente": "src/data/eu-mas.json",
+  "json": "eu-mas.json",
+  "kb": 273,
+  "exporta": [
+   "Abeto",
+   "Acebo",
+   "Aceitunas",
+   "Adiós",
+   "Alcachofas",
+   "Alimoche",
+   "Aliso",
+   "Almadiero",
+   "Almadía",
+   "Amapola",
+   "Amistosos",
+   "Anteriores",
+   "Aragón",
+   "Arce",
+   "Arqueología",
+   "Artesanía",
+   "Arándano",
+   "Avellano",
+   "Ayuntamiento",
+   "Ayuntamientos",
+   "Barroca",
+   "Boj",
+   "Bosque",
+   "Bosques",
+   "Brezo",
+   "Cabra",
+   "Camello",
+   "Camino",
+   "Campanilla",
+   "Campeonatos",
+   "Canguro",
+   "Canjeado",
+   "Capilla",
+   "Carboncillos",
+   "Cascabobo",
+   "Cascabobos",
+   "Castaño",
+   "Castellano",
+   "Castillos",
+   "Cebra",
+   "Chopo",
+   "Ciclista",
+   "Ciervo",
+   "Ciudadela",
+   "Conejo",
+   "Consejo",
+   "Conversaciones",
+   "Corzo",
+   "Cruceros",
+   "Cuajada",
+   "Cuentos",
+   "Cuevas",
+   "Cuándo",
+   "Danzas",
+   "Desde",
+   "Didáctico",
+   "Digital",
+   "Dólmenes",
+   "Dónde",
+   "Edelweiss",
+   "Ejemplo",
+   "Empezar",
+   "Endrino",
+   "Enebro",
+   "Energía",
+   "Ermita",
+   "Ermitas",
+   "Escuchado",
+   "Estilo",
+   "Euskara",
+   "Euskera",
+   "Excavaciones",
+   "Excavado",
+   "Excavar",
+   "Explorar",
+   "Fresno",
+   "Fuentes",
+   "Fuerza",
+   "Fútbol",
+   "Genciana",
+   "Gracias",
+   "Gótica",
+   "Hasta",
+   "Haya",
+   "Herramientas",
+   "Hierro",
+   "Historia",
+   "Hola",
+   "Hórreos",
+   "Individual",
+   "Instálalo",
+   "Ir",
+   "Iruñerria",
+   "Jabalí",
+   "Juego",
+   "Juez",
+   "Juglar",
+   "Leyendas",
+   "Librería",
+   "Liga",
+   "Lucerna",
+   "Lugar",
+   "Malva",
+   "Manomanista",
+   "Manzanas",
+   "Margarita",
+   "Marmota",
+   "Mendigorría",
+   "Miel",
+   "Miradores",
+   "Mitología",
+   "Mochila",
+   "Modo",
+   "Molinos",
+   "Momotxorros",
+   "Monolitos",
+   "Montaña",
+   "Monumento",
+   "Monumentos",
+   "Murallas",
+   "Narciso",
+   "Navarra",
+   "Observatorio",
+   "Olivo",
+   "Ontina",
+   "Orbaizeta",
+   "Palacios",
+   "Palomeras",
+   "Papel",
+   "Parejas",
+   "Peregrina",
+   "Petirrojo",
+   "Pingüino",
+   "Pottoka",
+   "Pregunta",
+   "Productos",
+   "Prímula",
+   "Puntos",
+   "Quebrantahuesos",
+   "Quejigo",
+   "Rododendro",
+   "Romero",
+   "Románica",
+   "Ruinas",
+   "Salto",
+   "Saludos",
+   "Santacara",
+   "Santuario",
+   "Siempreviva",
+   "Siguientes",
+   "Sisón",
+   "Tamariz",
+   "Tejo",
+   "Terminado",
+   "Teselas",
+   "Tomates",
+   "Tomillo",
+   "Torneos",
+   "Trashumancia",
+   "Txistorra",
+   "Txistu",
+   "Túneles",
+   "Ujué",
+   "Ventajas",
+   "Vino",
+   "Violeta",
+   "Visitante",
+   "Yacimiento",
+   "Yacimientos",
+   "Zorro",
+   "aceitunas",
+   "alcachofas",
+   "almendras",
+   "anfibio",
+   "arbusto",
+   "ave",
+   "bosques",
+   "capítulos",
+   "cardos",
+   "cimas",
+   "comarcas",
+   "cuajada",
+   "default",
+   "descubierto",
+   "doméstico",
+   "escudos",
+   "fichas",
+   "flor",
+   "helecho",
+   "huevos",
+   "instrumentos",
+   "lana",
+   "leche",
+   "láminas",
+   "mamífero",
+   "manzana",
+   "mazorcas",
+   "maíz",
+   "miel",
+   "oficios",
+   "pan",
+   "pez",
+   "pueblo",
+   "pueblos",
+   "queso",
+   "relatos",
+   "sello",
+   "sellos",
+   "tomates",
+   "trigo",
+   "uvas",
+   "árbol"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/eu-oficios.js",
+  "json": "eu-oficios.json",
+  "kb": 260,
+  "exporta": [
+   "EU_OFICIOS",
+   "EU_RX_OFICIOS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/eu.js",
+  "json": "eu.json",
+  "kb": 60,
+  "exporta": [
+   "EU_EXACT",
+   "EU_RX"
+  ],
+  "funciones": 31
+ },
+ {
+  "fuente": "src/data/experiences.json",
+  "json": "experiences.json",
+  "kb": 39,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/fauna.js",
+  "json": "fauna.json",
+  "kb": 17,
+  "exporta": [
+   "FAUNA",
+   "FAUNA_KIND"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/ferias.js",
+  "json": "ferias.json",
+  "kb": 4,
+  "exporta": [
+   "CORRALES",
+   "FERIA",
+   "FERIA_TOWNS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/figuras.js",
+  "json": "figuras.json",
+  "kb": 8,
+  "exporta": [
+   "FIGURAS",
+   "FIGURAS_CARNAVAL",
+   "FIGURAS_LEYENDA"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/flora.js",
+  "json": "flora.json",
+  "kb": 27,
+  "exporta": [
+   "FLORA",
+   "FLORA_KIND"
+  ],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/folklore.json",
+  "json": "folklore.json",
+  "kb": 8,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/frontonArq.js",
+  "json": "frontonArq.json",
+  "kb": 1,
+  "exporta": [
+   "ARQ_LOOK",
+   "ARQ_REF",
+   "ARQ_TOWN"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/frontones-pueblos.json",
+  "json": "frontones-pueblos.json",
+  "kb": 17,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/frontones.js",
+  "json": "frontones.json",
+  "kb": 34,
+  "exporta": [
+   "CUENTA",
+   "DESTACADOS",
+   "MEDIDAS",
+   "TIPOS",
+   "TODOS"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/heritage.json",
+  "json": "heritage.json",
+  "kb": 6,
+  "exporta": [
+   "almandoz",
+   "default",
+   "elizondo",
+   "erratzu",
+   "irurita",
+   "ituren",
+   "lekaroz",
+   "zubieta"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/hitzak.js",
+  "json": "hitzak.json",
+  "kb": 5,
+  "exporta": [
+   "EU_RX_HITZAK",
+   "HITZAK",
+   "HITZAK_N",
+   "HITZAK_TEMA",
+   "HITZ_TXT",
+   "HIZKETAK",
+   "HIZKETAK_N"
+  ],
+  "funciones": 21
+ },
+ {
+  "fuente": "src/data/horizonte.js",
+  "json": "horizonte.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/identity.json",
+  "json": "identity.json",
+  "kb": 15,
+  "exporta": [
+   "aribe",
+   "default",
+   "elizondo",
+   "etxalar",
+   "ituren",
+   "leitza",
+   "lesaka"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/instrumentos.js",
+  "json": "instrumentos.json",
+  "kb": 11,
+  "exporta": [
+   "INSTRUMENTOS"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/knowledge.json",
+  "json": "knowledge.json",
+  "kb": 44,
+  "exporta": [
+   "default",
+   "entries",
+   "excludedPlaces",
+   "exclusionReason",
+   "note",
+   "reviewed",
+   "shared",
+   "version"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/laminas.js",
+  "json": "laminas.json",
+  "kb": 25,
+  "exporta": [
+   "ALTO",
+   "BOSQUE_LAMINA",
+   "COMARCA_LAMINA",
+   "CUENTO_LAMINA",
+   "EU_LAMINAS",
+   "FOCO",
+   "FOCO_TRAD",
+   "LAMINAS",
+   "OFICIO_LAMINA",
+   "PANO",
+   "PANO_BOSQUE",
+   "PERSONAJE_LAMINA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/legends.js",
+  "json": "legends.json",
+  "kb": 8,
+  "exporta": [
+   "LEGENDS",
+   "NIGHT_CARNIVAL"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/levels.js",
+  "json": "levels.json",
+  "kb": 98,
+  "exporta": [
+   "LEVELS",
+   "SEDES_EXTERIOR",
+   "SEDES_PELOTA"
+  ],
+  "funciones": 4
+ },
+ {
+  "fuente": "src/data/mapa-orto-pueblos.js",
+  "json": "mapa-orto-pueblos.json",
+  "kb": 1,
+  "exporta": [
+   "ORTO_PUEBLOS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/mapa-orto.js",
+  "json": "mapa-orto.json",
+  "kb": 0,
+  "exporta": [
+   "MAPA_ORTO"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/mapa-relieve.js",
+  "json": "mapa-relieve.json",
+  "kb": 144,
+  "exporta": [
+   "MAPA_ALTURAS",
+   "MAPA_RELIEVE"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/miradores.js",
+  "json": "miradores.json",
+  "kb": 0,
+  "exporta": [
+   "MIRADOR_TOWNS"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/misionCat.js",
+  "json": "misionCat.json",
+  "kb": 1,
+  "exporta": [
+   "CAT",
+   "CAT_COLOR",
+   "Q_CAT"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/montes-mapa.js",
+  "json": "montes-mapa.json",
+  "kb": 3,
+  "exporta": [
+   "MONTES_MAPA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/mountains.json",
+  "json": "mountains.json",
+  "kb": 114,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/narraLaminas.js",
+  "json": "narraLaminas.json",
+  "kb": 12,
+  "exporta": [
+   "NARRA",
+   "NARRA_VOZ",
+   "SIN_VOZ"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/nombres.js",
+  "json": "nombres.json",
+  "kb": 2,
+  "exporta": [
+   "NOMBRES_F",
+   "NOMBRES_M"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/oficios.js",
+  "json": "oficios.json",
+  "kb": 14,
+  "exporta": [
+   "OFICIOS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/panorama.js",
+  "json": "panorama.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/pasaka.js",
+  "json": "pasaka.json",
+  "kb": 3,
+  "exporta": [
+   "PASAKA",
+   "PISTA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/pelotaris.js",
+  "json": "pelotaris.json",
+  "kb": 1,
+  "exporta": [
+   "FICHAS"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/personajes.js",
+  "json": "personajes.json",
+  "kb": 30,
+  "exporta": [
+   "FIGURE_TOWNS",
+   "PERSONAJES"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/artajona.js",
+  "json": "polar/artajona.json",
+  "kb": 159,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/estella.js",
+  "json": "polar/estella.json",
+  "kb": 171,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/etxalar.js",
+  "json": "polar/etxalar.json",
+  "kb": 198,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/irulegi.js",
+  "json": "polar/irulegi.json",
+  "kb": 183,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/irurtzun.js",
+  "json": "polar/irurtzun.json",
+  "kb": 191,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/isaba-izaba.js",
+  "json": "polar/isaba-izaba.json",
+  "kb": 222,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/javier.js",
+  "json": "polar/javier.json",
+  "kb": 180,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/lekunberri.js",
+  "json": "polar/lekunberri.json",
+  "kb": 192,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/orreaga-roncesvalles.js",
+  "json": "polar/orreaga-roncesvalles.json",
+  "kb": 206,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/pamplona.js",
+  "json": "polar/pamplona.json",
+  "kb": 174,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/tafalla.js",
+  "json": "polar/tafalla.json",
+  "kb": 156,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/polar/ujue.js",
+  "json": "polar/ujue.json",
+  "kb": 174,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/procesos.js",
+  "json": "procesos.json",
+  "kb": 8,
+  "exporta": [
+   "PROCESOS",
+   "TRADICIONES"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/altsasu-alsasua.json",
+  "json": "reales/altsasu-alsasua.json",
+  "kb": 75,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/amaiur-maya-del-baztan.json",
+  "json": "reales/amaiur-maya-del-baztan.json",
+  "kb": 28,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/aoiz.json",
+  "json": "reales/aoiz.json",
+  "kb": 52,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/aribe.json",
+  "json": "reales/aribe.json",
+  "kb": 25,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/artajona.json",
+  "json": "reales/artajona.json",
+  "kb": 68,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/burgui-burgi.json",
+  "json": "reales/burgui-burgi.json",
+  "kb": 40,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/centros.js",
+  "json": "reales/centros.json",
+  "kb": 1,
+  "exporta": [
+   "CENTROS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/compacto.js",
+  "json": "reales/compacto.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/reales/cortes.json",
+  "json": "reales/cortes.json",
+  "kb": 97,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/elizondo.json",
+  "json": "reales/elizondo.json",
+  "kb": 66,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/emblemas.json",
+  "json": "reales/emblemas.json",
+  "kb": 11,
+  "exporta": [
+   "default",
+   "emblemas",
+   "fuente",
+   "licencia",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/erronkari-roncal.json",
+  "json": "reales/erronkari-roncal.json",
+  "kb": 34,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/estella.json",
+  "json": "reales/estella.json",
+  "kb": 92,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/etxalar.json",
+  "json": "reales/etxalar.json",
+  "kb": 52,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/iglesia.js",
+  "json": "reales/iglesia.json",
+  "kb": 0,
+  "exporta": [],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/reales/index.js",
+  "json": "reales/index.json",
+  "kb": 1,
+  "exporta": [
+   "ATRIBUCION",
+   "MAPA_IDS",
+   "REAL_IDS"
+  ],
+  "funciones": 3
+ },
+ {
+  "fuente": "src/data/reales/irulegi.json",
+  "json": "reales/irulegi.json",
+  "kb": 23,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/irurtzun.json",
+  "json": "reales/irurtzun.json",
+  "kb": 51,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/isaba-izaba.json",
+  "json": "reales/isaba-izaba.json",
+  "kb": 43,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/ituren.json",
+  "json": "reales/ituren.json",
+  "kb": 37,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/javier.json",
+  "json": "reales/javier.json",
+  "kb": 27,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/leitza.json",
+  "json": "reales/leitza.json",
+  "kb": 51,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/lekunberri.json",
+  "json": "reales/lekunberri.json",
+  "kb": 52,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/lesaka.json",
+  "json": "reales/lesaka.json",
+  "kb": 55,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/lumbier.json",
+  "json": "reales/lumbier.json",
+  "kb": 54,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/mapa/otsagabia-ochagavia.json",
+  "json": "reales/mapa/otsagabia-ochagavia.json",
+  "kb": 46,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/mapa/pamplona.json",
+  "json": "reales/mapa/pamplona.json",
+  "kb": 128,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/marcilla.json",
+  "json": "reales/marcilla.json",
+  "kb": 65,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/olite.json",
+  "json": "reales/olite.json",
+  "kb": 106,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/orreaga-roncesvalles.json",
+  "json": "reales/orreaga-roncesvalles.json",
+  "kb": 26,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/puente-la-reina.json",
+  "json": "reales/puente-la-reina.json",
+  "kb": 79,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/sanguesa.json",
+  "json": "reales/sanguesa.json",
+  "kb": 69,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/tafalla.json",
+  "json": "reales/tafalla.json",
+  "kb": 68,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/tudela.json",
+  "json": "reales/tudela.json",
+  "kb": 131,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/ujue.json",
+  "json": "reales/ujue.json",
+  "kb": 40,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/viana.json",
+  "json": "reales/viana.json",
+  "kb": 63,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/reales/zugarramurdi.json",
+  "json": "reales/zugarramurdi.json",
+  "kb": 39,
+  "exporta": [
+   "alt0",
+   "atribucion",
+   "balsas",
+   "calles",
+   "casas",
+   "casasK",
+   "default",
+   "dem",
+   "dem2",
+   "fuente",
+   "id",
+   "lat",
+   "lon",
+   "lugares",
+   "monumentos",
+   "piscinas",
+   "puentes",
+   "relieve",
+   "rios",
+   "usos",
+   "v"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/relieve.js",
+  "json": "relieve.json",
+  "kb": 21,
+  "exporta": [
+   "RELIEVE",
+   "RELIEVE_DATA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/saberes.js",
+  "json": "saberes.json",
+  "kb": 4,
+  "exporta": [
+   "CAT_BY_TYPE",
+   "DATOS",
+   "SABERES"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sabios.js",
+  "json": "sabios.json",
+  "kb": 4,
+  "exporta": [
+   "KIND_TIP",
+   "LABEL_TIP",
+   "NO_SABIO",
+   "SABIOS",
+   "STYLE_TIP"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/setas.js",
+  "json": "setas.json",
+  "kb": 1,
+  "exporta": [
+   "SETAS",
+   "SETAS_BUENAS",
+   "SETAS_MALAS"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/settlements.json",
+  "json": "settlements.json",
+  "kb": 41,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/altsasu-alsasua.js",
+  "json": "sierras/altsasu-alsasua.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/amaiur-maya-del-baztan.js",
+  "json": "sierras/amaiur-maya-del-baztan.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/aoiz.js",
+  "json": "sierras/aoiz.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/aribe.js",
+  "json": "sierras/aribe.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/artajona.js",
+  "json": "sierras/artajona.json",
+  "kb": 10,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/burgui-burgi.js",
+  "json": "sierras/burgui-burgi.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/cortes.js",
+  "json": "sierras/cortes.json",
+  "kb": 8,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/elizondo.js",
+  "json": "sierras/elizondo.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/erronkari-roncal.js",
+  "json": "sierras/erronkari-roncal.json",
+  "kb": 14,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/estella.js",
+  "json": "sierras/estella.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/etxalar.js",
+  "json": "sierras/etxalar.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/irulegi.js",
+  "json": "sierras/irulegi.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/irurtzun.js",
+  "json": "sierras/irurtzun.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/isaba-izaba.js",
+  "json": "sierras/isaba-izaba.json",
+  "kb": 14,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/ituren.js",
+  "json": "sierras/ituren.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/javier.js",
+  "json": "sierras/javier.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/leitza.js",
+  "json": "sierras/leitza.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/lekunberri.js",
+  "json": "sierras/lekunberri.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/lesaka.js",
+  "json": "sierras/lesaka.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/lumbier.js",
+  "json": "sierras/lumbier.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/marcilla.js",
+  "json": "sierras/marcilla.json",
+  "kb": 8,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/olite.js",
+  "json": "sierras/olite.json",
+  "kb": 9,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/orreaga-roncesvalles.js",
+  "json": "sierras/orreaga-roncesvalles.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/otsagabia-ochagavia.js",
+  "json": "sierras/otsagabia-ochagavia.json",
+  "kb": 13,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/pamplona.js",
+  "json": "sierras/pamplona.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/puente-la-reina.js",
+  "json": "sierras/puente-la-reina.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/sanguesa.js",
+  "json": "sierras/sanguesa.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/tafalla.js",
+  "json": "sierras/tafalla.json",
+  "kb": 10,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/tudela.js",
+  "json": "sierras/tudela.json",
+  "kb": 8,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/ujue.js",
+  "json": "sierras/ujue.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/viana.js",
+  "json": "sierras/viana.json",
+  "kb": 11,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/sierras/zugarramurdi.js",
+  "json": "sierras/zugarramurdi.json",
+  "kb": 12,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/tiendas.js",
+  "json": "tiendas.json",
+  "kb": 4,
+  "exporta": [
+   "GOODS",
+   "SHOPKEEPERS",
+   "STAR",
+   "STOCK"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/tocar.js",
+  "json": "tocar.json",
+  "kb": 2,
+  "exporta": [
+   "BELL",
+   "BENCH_LINES",
+   "PET"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/towns.json",
+  "json": "towns.json",
+  "kb": 26,
+  "exporta": [
+   "default"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/videos-isla.js",
+  "json": "videos-isla.json",
+  "kb": 0,
+  "exporta": [
+   "VIDEOS_ISLA",
+   "VIDEOS_ISLA_EN_PAUSA"
+  ],
+  "funciones": 0
+ },
+ {
+  "fuente": "src/data/vozTalleres.js",
+  "json": "vozTalleres.json",
+  "kb": 0,
+  "exporta": [
+   "CON_VOZ"
+  ],
+  "funciones": 2
+ },
+ {
+  "fuente": "src/data/yacimientos.js",
+  "json": "yacimientos.json",
+  "kb": 1,
+  "exporta": [
+   "MAS_YACIMIENTOS"
+  ],
+  "funciones": 1
+ }
+]

@@ -17,3 +17,8 @@ src/assets/personajes/artefacto/
 src/assets/tradiciones/artefacto/
 src/assets/leyendas/artefacto/
 servidor/mando-relevo/.wrangler/
+
+# lo que sacan las herramientas de exportar (PORTAR.md); los datos (exportar/datos) sí van
+exportar/pueblos/
+exportar/modelos/
+exportar/texturas/

@@ -460,8 +460,9 @@ export class Builder {
       g.setIndex(new THREE.BufferAttribute(n <= 65535 ? Uint16Array.from(run.idx.subarray(0, ni)) : run.idx.slice(0, ni), 1));
       run.pos = run.nrm = run.uv = run.col = run.idx = null;
       g.computeBoundingSphere(); g.computeBoundingBox();
-      for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
-      if (tier !== 0) g.index.onUpload(free);
+      // (salvo al exportar el pueblo a otro motor, tools/exportar-pueblo.mjs, que necesita las copias)
+      if (!globalThis.__exportar) { for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
+        if (tier !== 0) g.index.onUpload(free); }
       const m = new THREE.Mesh(g, this.mats[mat]);
       m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing', 'trepa', 'flor'].includes(mat);
       if (tier) addDetail(m, tier, g.boundingSphere, key.split('|')[1]);

@@ -47,5 +47,8 @@ Pruebas: `tools/play.mjs` (pasos automatizados), `tools/views.mjs` (fotos con c�
 (recorre todas las misiones de un pueblo: `node tools/play.mjs "http://127.0.0.1:5173/?town=lesaka" out '[{"wait":20000},{"file":"lab/flow-town.js"}]'`).
 Laboratorios: `lab/minifigs.html` (figuras y animación), `lab/icons.html` (iconos), `lab/portraits.html` (retratos).
 
+Pasar el juego a otro motor (Unity, Godot, Unreal): `PORTAR.md` (datos en JSON en `exportar/datos`, pueblos y modelos en
+.glb y texturas en PNG con `tools/exportar-*.mjs`).
+
 Los datos culturales proceden de las fichas del proyecto (Turismo de Navarra, Dantzatlas, Reyno Gourmet,
 ayuntamientos…). Los personajes y diálogos son ficción del juego; los pueblos son interpretaciones, no planos exactos.
