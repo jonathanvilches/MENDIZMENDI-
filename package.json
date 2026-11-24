@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "exportar": "node tools/exportar-datos.mjs exportar/datos",
+    "exportar:pueblos": "node tools/exportar-pueblo.mjs todos",
+    "exportar:modelos": "node tools/exportar-modelos.mjs",
+    "exportar:texturas": "node tools/exportar-texturas.mjs"
   },
   "keywords": [],
   "author": "",

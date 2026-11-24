@@ -24,6 +24,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Principal** (24 nov): el autor quiere que «todos los archivos se vayan preparando para el futuro»
+  (pasar el juego a Unity u otro motor). ¿Podéis añadir a `CLAUDE.md` una regla corta para todas las ventanas? «Los datos
+  nuevos, como datos en `src/data` (tablas y textos, sin cálculos mezclados) y, tras cambiarlos, `npm run exportar`;
+  guardar los originales de Meshy, Higgsfield y ElevenLabs en su máxima calidad; 1 unidad = 1 metro. Ver `PORTAR.md`».
 - **De Principal a Pelota · interfaz** (21 nov, tarde): por encargo del autor («quiero que soluciones el sonido de la
   pelota»), los golpes vuelven a ser los de la versión 3 que eligió el autor, sin `pelota-mano-3.mp3` (llevaba una voz; la
   mano tiene dos variantes, `VARIANTES`), y `src/pelota/audio.js` lleva los golpes por un canal propio
