@@ -4921,6 +4921,18 @@ la Reina con lluvia se apagan el reflejo blanco del charco grande de la plaza y 
 `montaje.py` mezcla las imágenes repetidas sueltas con sus vecinas.
 
 
+### Tráiler v17 (24 nov 2026): una historia contada por los vecinos, sin zoom y sin repetir
+
+`tools/trailer/v17/`. El autor, del v16: «repites muchas escenas», «escenas que les haces zoom, que no están bien
+encuadradas», «no dejas hablar bien a los vecinos» y «la locución tiene que seguir una historia». Ahora la cuenta la
+historia de las ocho cintas de Muskilda con las voces ya grabadas del juego (sin gastar créditos): Salva abre, la narradora
+enseña Otsagabia, Maite saluda y cuenta el problema, Joxemari, Salva («cada vecino te pide ayuda…»), el Basajaun, Kike que
+lleva a la pelota, el carnaval, el Bobo con las ocho cintas y la danza, y Salva cierra. Cada vecino dice su frase entera
+dentro de su plano (Maite y Kike, grabados de nuevo de frente en `v17/tomas.mjs`; Joxemari, el Basajaun y el Bobo, un poco
+más lentos, con las imágenes mezcladas para que no den saltitos). `montaje.py` ya no hace zoom ni deriva: cada plano entero.
+Cada toma una sola vez; de dieciséis carreras de espaldas quedan seis; fuera las láminas y los rótulos de capítulo (solo el
+nombre de Otsagabia e Isaba y el logo). Del partido del campeonato solo el tanto: luego viene el podio con la txapela.
+
 ### Tráiler v16 (24 nov 2026): ninguna escena repetida, la pelota entera, joaldunak y momotxorros
 
 `tools/trailer/v16/`. El autor, del v15: escenas duplicadas, el relieve que se iba formando en el vuelo del mapa, la lámina
