@@ -18,9 +18,6 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Isla flotante sin parones al elegir comarca (Auditoría, 24 nov): al tocar una comarca la pantalla se quedaba parada de 0,3 a 2,5 s mientras se hacía su isla; ahora la búsqueda del borde va por una rejilla precalculada (`src/hub/mapa3dAmplia.js`, mismo relieve) y lo que falta se hace por pasos con el mapa quieto antes del vuelo (`src/hub/mapa3d.js`, `sigueObra`). Peor parón medido: Pirineo 2,5 → 0,4 s; Sangüesa 1,7 → 0,16 s. Y las texturas de cerca que llegaban a mitad del vuelo de llegada se suben con la isla ya arriba, en la pausa quieta antes del dron. Prueba: `tools/auditoria-islas.mjs`. Visto a 1280×720 y 844×390.
-- Montura con arreos (a28eb6f7): el caballo, la pottoka y el burro llevan silla, cabezada y riendas que llegan a las manos del jinete (`src/game/arreos.js`, `src/game/montura.js`). Visto a 1280×720 y 844×390.
-
 
 ## Peticiones entre ventanas
 
@@ -213,6 +210,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 24 nov, tarde, la hizo la ventana de Auditoría (el autor: «publica los arreglos de la isla flotante»): `master` hasta `9bfa354d`. La isla flotante sin parones al elegir comarca ni al pasar de una a otra (se hace por pasos y la búsqueda del borde va por una rejilla), sin tirones en el vuelo de dron (las texturas de cerca se suben cuando la cámara está quieta); la montura con arreos (silla, cabezada y riendas); y el código sin funciones que nada usaba.
 - 23 nov, noche (tarde), la hizo la ventana del tráiler: fuera las casas, las ovejas y los islotes de Higgsfield (al autor no le gustan: «elimínalo y déjalo como estaba»). Otsagabia y el mapa, como antes.
 - 23 nov, noche, la hizo la ventana del tráiler (el autor pidió verlo en el juego): `master` hasta `b868745c`. En Otsagabia, caserío, casa de piedra y borda hechos en 3D con Higgsfield y tres ovejas latxas, junto al camino del río a la salida del crucero; en el mapa, tres islotes flotantes de Higgsfield alrededor del Pirineo cuando sube; el humo al despegarse la comarca; en el encierro, Fermín como el original (cabeza a su tamaño y talla del explorador).
 - 23 nov, madrugada, la hizo la ventana principal: `master` hasta `0f020592`. La entrega de la txapela con la pantalla
