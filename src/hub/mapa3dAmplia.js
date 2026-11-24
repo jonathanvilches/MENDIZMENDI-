@@ -56,9 +56,26 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   // (hasta dónde puede crecer: dos quintos de lo que mide, entre 1,6 y 5 unidades, de 3 a 10 km; el margen del relieve
   // alrededor de Navarra es de 6)
   const M = Math.min(5, Math.max(1.6, rMed * 0.4));
+  // (desde el 24 de noviembre de 2026, la rejilla se hace antes de crecer, con lo que más puede llegar a crecer (M) y medio
+  // de margen, y sirve también para saber hasta dónde se puede crecer sin volver a la comarca: allí se preguntaba a todo el
+  // contorno, punto a punto, unas 30.000 veces en el Pirineo)
+  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  x0 -= M + 0.6; z0 -= M + 0.6; x1 += M + 0.6; z1 += M + 0.6;
+  const h = 0.1, gw = Math.ceil((x1 - x0) / h) + 1, gh = Math.ceil((z1 - z0) / h) + 1, IN = new Uint8Array(gw * gh), cortes = [];
+  for (let j = 0; j < gh; j++) { const z = z0 + (j + 0.5) * h; cortes.length = 0;
+    for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const pa = P[a], pb = P[b]; if ((pa[1] > z) !== (pb[1] > z)) cortes.push(pa[0] + (pb[0] - pa[0]) * (z - pa[1]) / (pb[1] - pa[1])); }
+    cortes.sort((u, w) => u - w);
+    for (let k = 0; k + 1 < cortes.length; k += 2) for (let i = Math.max(0, Math.ceil((cortes[k] - x0) / h - 0.5)), i1 = Math.min(gw - 1, Math.floor((cortes[k + 1] - x0) / h - 0.5)); i <= i1; i++) IN[j * gw + i] = 1; }
+  const dentro = (x, z) => {
+    const i = Math.floor((x - x0) / h), j = Math.floor((z - z0) / h);
+    if (i < 1 || j < 1 || i >= gw - 1 || j >= gh - 1) return enPoligono(P, x, z);
+    const k = j * gw + i, v = IN[k];
+    if (IN[k - 1] === v && IN[k + 1] === v && IN[k - gw] === v && IN[k + gw] === v && IN[k - gw - 1] === v && IN[k - gw + 1] === v && IN[k + gw - 1] === v && IN[k + gw + 1] === v) return v === 1;
+    return enPoligono(P, x, z);
+  };
   // (la normal hacia fuera de cada punto, de sus vecinos a dos pasos)
   const NO = B.map((q, i) => { const a = B[(i + n - 2) % n], b = B[(i + 2) % n]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; let nx = tz / l, nz = -tx / l;
-    if (enPoligono(P, q[0] + nx * 0.06, q[1] + nz * 0.06)) { nx = -nx; nz = -nz; } return [nx, nz]; });
+    if (dentro(q[0] + nx * 0.06, q[1] + nz * 0.06)) { nx = -nx; nz = -nz; } return [nx, nz]; });
   // (el pie de los montes junto a cada punto: lo bajo de lo que hay alrededor, a tres unidades, el 12 % más bajo, el fondo
   // de los valles; de punto a punto, suave. Con menos, en los macizos del Pirineo el pie quedaba a media ladera y la muga
   // con Francia no crecía)
@@ -77,7 +94,7 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   const ext0 = new Float32Array(n), tope = new Float32Array(n).fill(M), tapa = new Float32Array(n);
   for (let i = 0; i < n; i++) {
     const [qx, qz] = B[i], [nx, nz] = NO[i], rel = HQ[i] - base[i];
-    for (let d = 0.2; d <= M + 0.01; d += 0.1) if (enPoligono(P, qx + nx * d, qz + nz * d)) { tope[i] = d * 0.45; break; }
+    for (let d = 0.2; d <= M + 0.01; d += 0.1) if (dentro(qx + nx * d, qz + nz * d)) { tope[i] = d * 0.45; break; }
     if (rel < RELMIN) continue;
     let e = 0, baja = false;
     for (let d = 0.1; d <= tope[i] + 0.001; d += 0.1) { if (alto(qx + nx * d, qz + nz * d) - base[i] < (0.15 + 0.2 * d / M) * rel) { baja = true; break; } e = d; }
@@ -102,31 +119,27 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   // ---------- el relieve de la isla en cualquier punto ----------
   // (dentro de la comarca, el de siempre; fuera, el del punto del borde más cercano, que baja hacia el pie con la distancia.
   // Para ir deprisa: qué cuadros caen dentro, en una rejilla de 0,1, y los puntos del borde, por cubos de media unidad)
-  let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of Pi) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-  x0 -= 0.5; z0 -= 0.5; x1 += 0.5; z1 += 0.5;
-  const h = 0.1, gw = Math.ceil((x1 - x0) / h) + 1, gh = Math.ceil((z1 - z0) / h) + 1, IN = new Uint8Array(gw * gh), cortes = [];
-  for (let j = 0; j < gh; j++) { const z = z0 + (j + 0.5) * h; cortes.length = 0;
-    for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const pa = P[a], pb = P[b]; if ((pa[1] > z) !== (pb[1] > z)) cortes.push(pa[0] + (pb[0] - pa[0]) * (z - pa[1]) / (pb[1] - pa[1])); }
-    cortes.sort((u, w) => u - w);
-    for (let k = 0; k + 1 < cortes.length; k += 2) for (let i = Math.max(0, Math.ceil((cortes[k] - x0) / h - 0.5)), i1 = Math.min(gw - 1, Math.floor((cortes[k + 1] - x0) / h - 0.5)); i <= i1; i++) IN[j * gw + i] = 1; }
-  const dentro = (x, z) => {
-    const i = Math.floor((x - x0) / h), j = Math.floor((z - z0) / h);
-    if (i < 1 || j < 1 || i >= gw - 1 || j >= gh - 1) return enPoligono(P, x, z);
-    const k = j * gw + i, v = IN[k];
-    if (IN[k - 1] === v && IN[k + 1] === v && IN[k - gw] === v && IN[k + gw] === v && IN[k - gw - 1] === v && IN[k - gw + 1] === v && IN[k + gw - 1] === v && IN[k + gw + 1] === v) return v === 1;
-    return enPoligono(P, x, z);
-  };
-  const CU = 0.5, cw = Math.ceil((x1 - x0) / CU) + 1, ch = Math.ceil((z1 - z0) / CU) + 1, cubo = Array.from({ length: cw * ch }, () => []);
-  B.forEach(([x, z], i) => { const a = Math.floor((x - x0) / CU), b = Math.floor((z - z0) / CU); if (a >= 0 && b >= 0 && a < cw && b < ch) cubo[b * cw + a].push(i); });
-  // (el punto del lado más cercano del borde: su índice, la distancia y dónde cae a lo largo del lado, para mezclar el pie)
+  // (el punto del borde más cercano a cada cuadro de la rejilla de 0,1, de una vez: cada punto del borde se apunta en su
+  // cuadro y de ahí pasa a los de al lado en dos barridos, ida y vuelta, quedándose cada cuadro con el que tiene más cerca.
+  // Hasta el 24 de noviembre de 2026 se buscaba en cada consulta por anillos de cubos cada vez más anchos, y como lo añadido
+  // llega hasta 5 unidades del borde, al elegir una comarca grande se iban de 0,6 a 1,5 s solo en eso, con la imagen parada.
+  // El autor: «al elegir cada comarca… va muy lento a veces y se entrecorta»)
+  const SEM = new Int32Array(gw * gh).fill(-1), DD = new Float32Array(gw * gh).fill(1e18);
+  const prueba = (k, a, b, s) => { if (s < 0) return; const ex = x0 + (a + 0.5) * h - B[s][0], ez = z0 + (b + 0.5) * h - B[s][1], d = ex * ex + ez * ez; if (d < DD[k]) { DD[k] = d; SEM[k] = s; } };
+  B.forEach(([x, z], i) => { const a = Math.floor((x - x0) / h), b = Math.floor((z - z0) / h); if (a >= 0 && b >= 0 && a < gw && b < gh) prueba(b * gw + a, a, b, i); });
+  for (let vuelta = 0; vuelta < 2; vuelta++) {
+    for (let b = 0; b < gh; b++) for (let a = 0; a < gw; a++) { const k = b * gw + a;
+      if (a > 0) prueba(k, a, b, SEM[k - 1]); if (b > 0) { prueba(k, a, b, SEM[k - gw]); if (a > 0) prueba(k, a, b, SEM[k - gw - 1]); if (a + 1 < gw) prueba(k, a, b, SEM[k - gw + 1]); } }
+    for (let b = gh - 1; b >= 0; b--) for (let a = gw - 1; a >= 0; a--) { const k = b * gw + a;
+      if (a + 1 < gw) prueba(k, a, b, SEM[k + 1]); if (b + 1 < gh) { prueba(k, a, b, SEM[k + gw]); if (a + 1 < gw) prueba(k, a, b, SEM[k + gw + 1]); if (a > 0) prueba(k, a, b, SEM[k + gw - 1]); } }
+  }
+  // (el punto del lado más cercano del borde: su índice, la distancia y dónde cae a lo largo del lado, para mezclar el pie.
+  // El de su cuadro y los de los ocho de alrededor, y de cada uno, sus vecinos en el borde: el más cercano de verdad)
   const cerca = (x, z) => {
-    const a0 = Math.floor((x - x0) / CU), b0 = Math.floor((z - z0) / CU); let bi = -1, bd = 1e9;
-    for (let r = 0; r < Math.max(cw, ch); r++) {
-      if (bi >= 0 && (r - 1) * CU > Math.sqrt(bd)) break;
-      for (let b = b0 - r; b <= b0 + r; b++) for (let a = a0 - r; a <= a0 + r; a++) {
-        if (Math.max(Math.abs(a - a0), Math.abs(b - b0)) !== r || a < 0 || b < 0 || a >= cw || b >= ch) continue;
-        for (const i of cubo[b * cw + a]) { const d = (B[i][0] - x) ** 2 + (B[i][1] - z) ** 2; if (d < bd) { bd = d; bi = i; } }
-      }
+    const a0 = Math.min(gw - 1, Math.max(0, Math.floor((x - x0) / h))), b0 = Math.min(gh - 1, Math.max(0, Math.floor((z - z0) / h))); let bi = 0, bd = 1e18;
+    for (let b = Math.max(0, b0 - 1); b <= Math.min(gh - 1, b0 + 1); b++) for (let a = Math.max(0, a0 - 1); a <= Math.min(gw - 1, a0 + 1); a++) {
+      const s = SEM[b * gw + a]; if (s < 0) continue;
+      for (let d = -2; d <= 2; d++) { const i = (s + d + n) % n, dx = B[i][0] - x, dz = B[i][1] - z, q = dx * dx + dz * dz; if (q < bd) { bd = q; bi = i; } }
     }
     // (entre el punto más cercano y el de al lado que esté más cerca: el lado de verdad)
     const i = bi, j1 = (i + 1) % n, j0 = (i + n - 1) % n, j = (B[j1][0] - x) ** 2 + (B[j1][1] - z) ** 2 < (B[j0][0] - x) ** 2 + (B[j0][1] - z) ** 2 ? j1 : j0;
