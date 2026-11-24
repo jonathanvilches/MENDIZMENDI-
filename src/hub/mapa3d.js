@@ -1525,8 +1525,11 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // la imagen a media subida. Se guarda y se sube en cuanto la isla está quieta, de una en una y antes de usarla; 17 de
   // noviembre de 2026, el autor, con el vídeo del iPhone: «cada vez va más lento»)
   const pendD = [];
-  const sube = (tx, pon) => { if (C.some(islaMueve)) { pendD.push([tx, pon]); return; } try { r.initTexture(tx); } catch (e) { } pon(); };
-  const subePend = () => { if (!pendD.length || C.some(islaMueve)) return; const [tx, pon] = pendD.shift(); if (pon() === false) return; try { r.initTexture(tx); } catch (e) { } };
+  // (y tampoco en pleno vuelo de la cámara: el 24 de noviembre de 2026 la de cerca de la comarca elegida llegaba a mitad del
+  // vuelo de llegada y lo cortaba; ahora se sube con la isla ya arriba, en la pausa quieta antes del dron, PAUSA_ISLA)
+  const ocupada = () => !!vuelo || C.some(islaMueve);
+  const sube = (tx, pon) => { if (ocupada()) { pendD.push([tx, pon]); return; } try { r.initTexture(tx); } catch (e) { } pon(); };
+  const subePend = () => { if (!pendD.length || ocupada()) return; const [tx, pon] = pendD.shift(); if (pon() === false) return; try { r.initTexture(tx); } catch (e) { } };
   const lejosDe = (c) => Math.hypot(c.mid.x - v.x, c.mid.z - v.z);
   function detalles(now, quieto) {
     subePend();

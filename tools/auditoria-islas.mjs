@@ -32,7 +32,14 @@ await p.addInitScript(() => {
   W.__prog = [];
   for (const C of [W.WebGL2RenderingContext, W.WebGLRenderingContext]) { if (!C) continue; const gp = C.prototype.getProgramParameter, lk = C.prototype.linkProgram;
     C.prototype.linkProgram = function (pr) { W.__prog.push(['enlaza', performance.now(), 0]); return lk.call(this, pr); };
-    C.prototype.getProgramParameter = function (pr, q) { const a = performance.now(), r = gp.call(this, pr, q), d = performance.now() - a; if (d > 4) W.__prog.push(['espera', a, d]); return r; }; }
+    C.prototype.getProgramParameter = function (pr, q) { const a = performance.now(), r = gp.call(this, pr, q), d = performance.now() - a; if (d > 4) W.__prog.push(['espera', a, d]); return r; };
+    // (las texturas que se suben a la tarjeta gráfica y lo que tardan, y en qué momento: en el vuelo, en el dron o quieto)
+    for (const nom of ['texImage2D', 'texSubImage2D', 'compressedTexImage2D', 'generateMipmap']) { const f = C.prototype[nom]; if (!f) continue;
+      C.prototype[nom] = function (...a) { const t = performance.now(), r = f.apply(this, a), d = performance.now() - t;
+        if (d > 3) { let fase = '·'; try { const M = W.__mapa3d; fase = M.islaDron() ? 'dron' : M.estado().vuelo ? 'vuelo' : M.obra?.() ? 'obra' : '·'; } catch (e) { }
+          const im = a.find(x => x && typeof x === 'object' && 'width' in x); W.__tex.push([t, d, nom, im ? im.width + 'x' + im.height : (a[3] + 'x' + a[4]), fase]); }
+        return r; }; } }
+  W.__tex = [];
   W.__largas = []; try { new PerformanceObserver(l => { for (const e of l.getEntries()) W.__largas.push([e.startTime, e.duration]); }).observe({ type: 'longtask', buffered: true }); } catch (e) { }
 });
 await p.goto(URL + '?skipintro=1' + (MOVIL ? '&q=low' : ''), { timeout: 300000 });
@@ -47,7 +54,7 @@ for (let i = 0; i < nombres.length; i++) {
   if (SOLO && !SOLO.includes(i)) continue;
   fase = nombres[i];
   if (cdp) await cdp.send('Profiler.start');
-  const t0 = await p.evaluate((i) => { window.__img.length = 0; window.__largas.length = 0; window.__prog.length = 0; const t = performance.now();
+  const t0 = await p.evaluate((i) => { window.__img.length = 0; window.__largas.length = 0; window.__prog.length = 0; window.__tex.length = 0; const t = performance.now();
     document.querySelectorAll('.m3-chip[data-sel]')[i].click(); return t; }, i);
   const estados = [];
   for (let s = 0; s < SEG; s++) {
@@ -55,7 +62,7 @@ for (let i = 0; i < nombres.length; i++) {
     estados.push(await p.evaluate(() => { const e = window.__mapa3d.estado(), d = window.__mapa3d.islaDron(); return { vuelo: e.vuelo, dron: d ? +d.t.toFixed(2) : null, subida: +e.subida.toFixed(2) }; }));
     if ([2, 6, 12, 20].includes(s)) await p.screenshot({ path: `${out}/${String(i).padStart(2, '0')}-${fase}-${s}s.png` }).catch(() => {});
   }
-  const { img, largas, prog } = await p.evaluate(() => ({ img: window.__img.slice(), largas: window.__largas.slice(), prog: window.__prog.slice() }));
+  const { img, largas, prog, tex } = await p.evaluate(() => ({ img: window.__img.slice(), largas: window.__largas.slice(), prog: window.__prog.slice(), tex: window.__tex.slice() }));
   if (cdp) { const { profile } = await cdp.send('Profiler.stop'); fs.writeFileSync(`${out}/${String(i).padStart(2, '0')}-${fase}.cpuprofile`, JSON.stringify(profile)); }
   const dt = [], tr = img.map(x => x[1]).sort((a, b) => a - b), peores = [];
   for (let k = 1; k < img.length; k++) { const d = img[k][0] - img[k - 1][0]; dt.push(d); if (d > 120) peores.push([+((img[k - 1][0] - t0) / 1000).toFixed(1), Math.round(d), Math.round(img[k - 1][1])]); }
@@ -64,6 +71,7 @@ for (let i = 0; i < nombres.length; i++) {
     trabajoMediana: +pct(tr, 0.5).toFixed(1), trabajo95: +pct(tr, 0.95).toFixed(1), trabajoMax: Math.round(tr.at(-1) || 0),
     tirones: dt.filter(d => d > 120).length, largas: largas.length, largaMax: Math.round(Math.max(0, ...largas.map(x => x[1]))),
     peores: peores.sort((a, b) => b[1] - a[1]).slice(0, 6), programas: prog.filter(x => x[0] === 'enlaza').length, esperaProg: Math.round(prog.filter(x => x[0] === 'espera').reduce((n, x) => n + x[2], 0)), esperaProgMax: Math.round(Math.max(0, ...prog.filter(x => x[0] === 'espera').map(x => x[2]))),
+    texturas: tex.map(x => `${((x[0] - t0) / 1000).toFixed(1)}s ${x[2].replace('Image2D', '')} ${x[3]} ${Math.round(x[1])}ms ${x[4]}`).join(' | '),
     cuandoProg: prog.filter(x => x[0] === 'enlaza').map(x => +((x[1] - t0) / 1000).toFixed(1)).join(' '), errores: log.filter(l => l.fase === fase).length, estados: estados.map(e => (e.vuelo ? 'V' : '') + (e.dron != null ? 'D' + e.dron : '') || '·').join(' ') };
   res.push(r); console.log(JSON.stringify(r));
 }

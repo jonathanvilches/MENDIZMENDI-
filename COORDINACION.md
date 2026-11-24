@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Isla flotante sin parones al elegir comarca (Auditoría, 24 nov): al tocar una comarca la pantalla se quedaba parada de 0,3 a 2,5 s mientras se hacía su isla; ahora la búsqueda del borde va por una rejilla precalculada (`src/hub/mapa3dAmplia.js`, mismo relieve) y lo que falta se hace por pasos con el mapa quieto antes del vuelo (`src/hub/mapa3d.js`, `sigueObra`). Peor parón medido: Pirineo 2,5 → 0,4 s; Sangüesa 1,7 → 0,16 s. Prueba: `tools/auditoria-islas.mjs`. Visto a 1280×720 y 844×390.
+- Isla flotante sin parones al elegir comarca (Auditoría, 24 nov): al tocar una comarca la pantalla se quedaba parada de 0,3 a 2,5 s mientras se hacía su isla; ahora la búsqueda del borde va por una rejilla precalculada (`src/hub/mapa3dAmplia.js`, mismo relieve) y lo que falta se hace por pasos con el mapa quieto antes del vuelo (`src/hub/mapa3d.js`, `sigueObra`). Peor parón medido: Pirineo 2,5 → 0,4 s; Sangüesa 1,7 → 0,16 s. Y las texturas de cerca que llegaban a mitad del vuelo de llegada se suben con la isla ya arriba, en la pausa quieta antes del dron. Prueba: `tools/auditoria-islas.mjs`. Visto a 1280×720 y 844×390.
 - Montura con arreos (a28eb6f7): el caballo, la pottoka y el burro llevan silla, cabezada y riendas que llegan a las manos del jinete (`src/game/arreos.js`, `src/game/montura.js`). Visto a 1280×720 y 844×390.
 
 
