@@ -4921,6 +4921,17 @@ la Reina con lluvia se apagan el reflejo blanco del charco grande de la plaza y 
 `montaje.py` mezcla las imágenes repetidas sueltas con sus vecinas.
 
 
+### Tráiler v18 (24 nov 2026): el narrador cuenta la historia y reta a jugar
+
+`tools/trailer/v18/`. El autor, del v17: que el narrador cuente una historia durante el tráiler, sin explicar; nada de
+Anatomy; no centrarse en las ocho cintas ni en una misión; retar al jugador («¿podrás lograr todas las misiones y conseguir
+las insignias de todas las comarcas?»); fuera el burro y el caballo al galope al final; menos carreras de espaldas y más
+escenas normales del juego; todo a su velocidad; y fuera las imágenes con el pueblo cargándose (las vistas aéreas de
+Otsagabia del principio: las casas sin detalle cambiaban al bajar la cámara). Los planos van por tramos en `plan.mjs`
+(`TRAMOS`: segundo de inicio y planos seguidos, todos a velocidad 1). El narrador es Salva: las frases que ya había y tres
+nuevas grabadas con los 222 créditos que quedaban en ElevenLabs (`v18/voz`; el guion completo en `v18/guion.json`, el
+resto cuando se renueven el 14 dic). Los vecinos solo saludan (Maite, Joxemari, el Basajaun, Kike).
+
 ### Tráiler v17 (24 nov 2026): una historia contada por los vecinos, sin zoom y sin repetir
 
 `tools/trailer/v17/`. El autor, del v16: «repites muchas escenas», «escenas que les haces zoom, que no están bien

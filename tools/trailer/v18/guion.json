@@ -1,0 +1,54 @@
+{
+  "nota": "El narrador del tráiler v18: Salva (ElevenLabs, la voz del narrador del juego). Cuenta la historia del explorador por encima del tráiler, sin explicar, y acaba con el reto. El 24 nov, con los 222 créditos que quedaban (el autor: «graba lo que dé»), se grabaron tres frases (tools/trailer/v18/voz, eleven_v4, una toma cada una, 210 créditos): salva-llega (acortada), salva-camino (que junta rebaño, leyendas y frontón) y salva-reto. Las demás de esta lista, cuando se renueven los créditos (14 dic). «seg»: dónde va en el tráiler.",
+  "voz": "Salva - The Spanish Voice",
+  "frases": [
+    {
+      "id": "salva-tierra",
+      "seg": 0.3,
+      "texto": "Hay una tierra donde cada pueblo guarda una historia.",
+      "grabada": "tools/trailer/v3/voz"
+    },
+    {
+      "id": "salva-llega",
+      "seg": 7.5,
+      "texto": "Un pequeño explorador llegó a sus montañas, sin saber lo que le esperaba.",
+      "grabada": "tools/trailer/v18/voz"
+    },
+    {
+      "id": "salva-vecinos (su principio)",
+      "seg": 18.0,
+      "texto": "Cada vecino te pide ayuda…",
+      "grabada": "tools/trailer/v3/voz"
+    },
+    {
+      "id": "salva-camino",
+      "seg": 30.2,
+      "texto": "Cuidó rebaños, encontró leyendas y descubrió el frontón.",
+      "grabada": "tools/trailer/v18/voz"
+    },
+    {
+      "id": "salva-fiesta",
+      "seg": 62.5,
+      "texto": "Bailó entre momotxorros y joaldunak, hasta que el valle entero se llenó de fiesta.",
+      "grabada": false
+    },
+    {
+      "id": "salva-principio",
+      "seg": 71.7,
+      "texto": "Pero esto solo es el principio: doce comarcas, cientos de misiones y una insignia en cada una.",
+      "grabada": false
+    },
+    {
+      "id": "salva-reto",
+      "seg": 84.3,
+      "texto": "¿Podrás completar todas las misiones y ganar las insignias de todas las comarcas?",
+      "grabada": "tools/trailer/v18/voz"
+    },
+    {
+      "id": "salva-herrizherri + salva-navarra",
+      "seg": 91.3,
+      "texto": "Herrizherri. Navarra, pueblo a pueblo.",
+      "grabada": "tools/trailer/v3/voz"
+    }
+  ]
+}
