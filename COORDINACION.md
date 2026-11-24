@@ -21,7 +21,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - (Auditoría, 24 nov) Privacidad: el informe técnico solo sale si se enciende en Ajustes › Diagnóstico (o con `?informe=1`); Ajustes › Privacidad; el nombre y las partidas traídas de otro aparato, sin código colado; la caché de imágenes y las claves viejas se borran solas. Ver `PRIVACIDAD.md`.
 - (Auditoría, 24 nov) Material didáctico: la portada sin «Aprende Navarra» repetido y las pestañas del móvil con un velo en el borde por donde siguen. README nuevo (mapa del repositorio) y fuera seis archivos de datos sin uso.
 - (Auditoría, 24 nov) Material didáctico con más aire: el texto de lectura a 16 px (antes 12-14), más relleno y hueco entre bloques, dos bloques por fila como mucho (antes tres, con líneas de 35 letras en el móvil tumbado) y tarjetas de personajes más anchas. `didactico.css` y `ajustaRejillas` de `hub.js`; lo de las galerías compartidas, solo en el modo didáctico.
-- (Auditoría, 24 nov) Más fluido en los pueblos: el pueblo y los árboles ya no se recolocan en cada imagen (no se mueven); recolocar la escena cuesta un 41 % menos (Lesaka, de 1,4 a 0,8 ms por imagen en el ordenador de pruebas). `src/engine/runtime.js`; se mide con `tools/auditoria-fluidez.mjs`.
+- (Auditoría, 24 nov) Pueblos: el pueblo y los árboles ya no se recolocan en cada imagen (no se mueven). Ganancia pequeña, de 0,1 a 0,5 ms por imagen según la medida; lo demás de la lógica ya iba ligero (1,5 ms de media, ninguna imagen de más de 16 ms en Lesaka). `src/engine/runtime.js`; se mide con `tools/auditoria-fluidez.mjs`.
 
 
 ## Peticiones entre ventanas
