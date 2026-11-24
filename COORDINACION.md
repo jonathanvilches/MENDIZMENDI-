@@ -19,6 +19,7 @@ ya no vale, se borra.
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
 - (Auditoría, 24 nov) Privacidad: el informe técnico solo sale si se enciende en Ajustes › Diagnóstico (o con `?informe=1`); Ajustes › Privacidad; el nombre y las partidas traídas de otro aparato, sin código colado; la caché de imágenes y las claves viejas se borran solas. Ver `PRIVACIDAD.md`.
+- (Auditoría, 24 nov) Material didáctico: la portada sin «Aprende Navarra» repetido y las pestañas del móvil con un velo en el borde por donde siguen. README nuevo (mapa del repositorio) y fuera seis archivos de datos sin uso.
 
 
 ## Peticiones entre ventanas
