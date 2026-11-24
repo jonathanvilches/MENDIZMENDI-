@@ -82,41 +82,9 @@ export function sharpMap(m) {
   return m;
 }
 
-// ---------- Contorno: la línea fina que recorta al personaje del jugador ----------
-// Una segunda piel del mismo modelo, un poco más gorda y vuelta del revés (solo se ven sus caras de atrás), de color
-// tinta: asoma por el borde como una línea de dibujo. Sigue al esqueleto, así que se mueve con él. Cuesta dibujar el
-// personaje dos veces: solo para el jugador y solo en calidad media y alta.
-const TINTA = new THREE.Color('#2b1d1a');
-let CONT_MAT = null;
-function contMat() {
-  if (CONT_MAT) return CONT_MAT;
-  CONT_MAT = new THREE.MeshBasicMaterial({ color: TINTA, side: THREE.BackSide });
-  CONT_MAT.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aGrosor;').replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * aGrosor;'); };
-  return CONT_MAT;
-}
-/** Pone contorno a las mallas de un personaje (grosor en metros del mundo). Devuelve las mallas añadidas. */
-export function contorno(root, grosor = 0.008) {
-  const out = []; root.updateMatrixWorld(true);
-  // cuánto mide una unidad de la geometría en el mundo: con esqueleto, la escala de la malla no lo dice (los huesos
-  // llevan la suya), así que se compara lo que mide el personaje de verdad con lo que mide su malla mayor sin colocar
-  let rGeo = 0; root.traverse(o => { if (o.isMesh && o.geometry?.attributes?.position) { if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); rGeo = Math.max(rGeo, o.geometry.boundingSphere.radius); } });
-  const caja = new THREE.Box3().setFromObject(root), rMundo = caja.isEmpty() ? 0 : caja.getSize(new THREE.Vector3()).length() / 2;
-  if (!(rGeo > 0) || !(rMundo > 0)) return [];
-  const g = grosor * rGeo / rMundo;
-  root.traverse(o => {
-    // (las piezas pequeñas pegadas al cuerpo, como los ojos pintados, no llevan línea: quedaría un cerco)
-    if (!o.isMesh || o.userData.esContorno || o.userData.contorno || !o.geometry?.attributes?.normal || o.material?.transparent || o.geometry.attributes.position.count < 400) return;
-    // (el grosor va en la geometría, que cada modelo tiene su escala; una geometría propia que comparte los datos)
-    const geo = new THREE.BufferGeometry(); geo.index = o.geometry.index; for (const k of ['position', 'normal', 'skinIndex', 'skinWeight']) if (o.geometry.attributes[k]) geo.setAttribute(k, o.geometry.attributes[k]);
-    geo.setAttribute('aGrosor', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count).fill(g), 1)); geo.boundingSphere = o.geometry.boundingSphere; geo.boundingBox = o.geometry.boundingBox;
-    const c = o.isSkinnedMesh ? new THREE.SkinnedMesh(geo, contMat()) : new THREE.Mesh(geo, contMat());
-    if (o.isSkinnedMesh) c.bind(o.skeleton, o.bindMatrix);
-    c.frustumCulled = o.frustumCulled; c.userData.esContorno = true; c.name = 'contorno';   // (hija de su malla: va con ella y se esconde con ella)
-    o.userData.contorno = c; out.push([o, c]);
-  });
-  for (const [o, c] of out) o.add(c);
-  return out.map(x => x[1]);
-}
+// (el jugador llevaba una «línea de dibujo», una segunda piel vuelta del revés: en el ordenador salía rota, a puntos y
+// también por dentro, en la mochila, la oreja o la camisa, y el explorador se veía raro, «como afinado»; el autor, 24 nov
+// 2026. Quitada: sin ella el personaje se ve limpio, y se dibuja una vez en vez de dos)
 
 /** Pone el relleno antes de dibujar el pueblo (con null, el neutro de siempre). */
 export function applyCharFill(c) {

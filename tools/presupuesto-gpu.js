@@ -5,6 +5,10 @@
   const P = WebGL2RenderingContext.prototype, CX = new Map();
   const de = (gl) => { let c = CX.get(gl); if (!c) CX.set(gl, c = { T: new Map(), B: new Map(), R: new Map(), unit: 0, bound: new Map(), buf: new Map(), rb: null }); return c; };
   const bpp = (fmt, type) => (type === 0x1406 ? 16 : type === 0x140B || type === 0x8D61 ? 8 : 4);   // FLOAT, HALF_FLOAT, otro
+  // (bytes por píxel según el formato interno de texStorage: las de un canal, como la sombra de las copas, son la cuarta
+  // parte; antes se contaban todas como de cuatro bytes)
+  const IF = { 0x8229: 1, 0x822B: 2, 0x8051: 4, 0x8058: 4, 0x8C41: 4, 0x8C43: 4, 0x822D: 2, 0x822F: 4, 0x881B: 8, 0x881A: 8, 0x822E: 4, 0x8230: 8, 0x8815: 16, 0x8814: 16, 0x81A5: 2, 0x81A6: 4, 0x8CAC: 4, 0x88F0: 4, 0x8CAD: 8, 0x8232: 1, 0x8238: 2, 0x8236: 4 };
+  const ibpp = (f) => IF[f] || 4;
   const key = (t) => (t >= 0x8515 && t <= 0x851A ? 0x8513 : t);
   const w = (n, f) => { const o = P[n]; P[n] = function (...a) { try { f(de(this), a); } catch (e) { } return o.apply(this, a); }; };
   w('activeTexture', (c, a) => { c.unit = a[0]; });
@@ -12,9 +16,9 @@
   const cur = (c, t) => c.bound.get(c.unit + ':' + key(t));
   const pon = (c, tex, lvl, face, bytes) => { if (!tex) return; let m = c.T.get(tex); if (!m) c.T.set(tex, m = new Map()); m.set(lvl + ':' + face, bytes); };
   w('texImage2D', (c, a) => { let wd, ht, type; if (a.length >= 8) { wd = a[3]; ht = a[4]; type = a[7]; } else { const s = a[5]; wd = s.videoWidth || s.naturalWidth || s.width; ht = s.videoHeight || s.naturalHeight || s.height; type = a[4]; } pon(c, cur(c, a[0]), a[1], a[0], wd * ht * bpp(a[2], type)); });
-  w('texStorage2D', (c, a) => { let s = 0; for (let l = 0; l < a[1]; l++) s += Math.max(1, a[3] >> l) * Math.max(1, a[4] >> l) * 4; pon(c, cur(c, a[0]), 'S', a[0], s * (a[0] === 0x8513 ? 6 : 1)); });
+  w('texStorage2D', (c, a) => { let s = 0; for (let l = 0; l < a[1]; l++) s += Math.max(1, a[3] >> l) * Math.max(1, a[4] >> l) * ibpp(a[2]); pon(c, cur(c, a[0]), 'S', a[0], s * (a[0] === 0x8513 ? 6 : 1)); });
   w('texImage3D', (c, a) => { pon(c, cur(c, a[0]), a[1], a[0], a[3] * a[4] * a[5] * 4); });
-  w('texStorage3D', (c, a) => { let s = 0; for (let l = 0; l < a[1]; l++) s += Math.max(1, a[3] >> l) * Math.max(1, a[4] >> l) * a[5] * 4; pon(c, cur(c, a[0]), 'S', a[0], s); });
+  w('texStorage3D', (c, a) => { let s = 0; for (let l = 0; l < a[1]; l++) s += Math.max(1, a[3] >> l) * Math.max(1, a[4] >> l) * a[5] * ibpp(a[2]); pon(c, cur(c, a[0]), 'S', a[0], s); });
   w('compressedTexImage2D', (c, a) => { const d = a[a.length - 1]; pon(c, cur(c, a[0]), a[1], a[0], d?.byteLength || 0); });
   w('generateMipmap', (c, a) => { const m = c.T.get(cur(c, a[0])); if (m) { const b = m.get('0:' + a[0]); if (b) m.set('mip:' + a[0], b / 3); } });
   w('deleteTexture', (c, a) => { c.T.delete(a[0]); });

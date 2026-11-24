@@ -1,5 +1,5 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
-import { applyCharFill, skyFill, lampFill, contorno } from './charLight.js';
+import { applyCharFill, skyFill, lampFill } from './charLight.js';
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { setMeshyTexMax, GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
@@ -42,16 +42,20 @@ const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0
 // (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
 // le añada después se sigue colocando solo)
 function fijaQuieto(o, hijos = false) { if (!o) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
-// (las imágenes de las texturas de raiz más grandes que max, reducidas a max por su lado mayor. Solo las de imagen: las de
-// lienzo se redibujan y los datos los hace el juego a su medida)
-function topeTexturas(raiz, max) {
-  const vistas = new Set();
-  raiz.traverse((o) => { for (const m of [].concat(o.material || [])) { if (!m) continue;
-    for (const k in m) { const t = m[k]; if (!t?.isTexture || vistas.has(t) || t.isCanvasTexture || t.isVideoTexture || t.isDataTexture || t.isRenderTargetTexture) continue; vistas.add(t);
+// (las imágenes de las texturas de raiz más grandes que su tope, reducidas a él por su lado mayor: max, y las de los personajes
+// y animales que no son el jugador, otros. Solo las de imagen: las de lienzo se redibujan y los datos los hace el juego a su
+// medida. Lo ya mirado no se vuelve a mirar (vistas: texturas y materiales con su versión), así que se puede repetir para
+// lo que llega después de cargar. Si ya estaba en la tarjeta, se suelta y se sube otra vez, pequeña)
+function topeTexturas(raiz, max, { otros = max, jugador = null, vistas = { t: new WeakSet(), m: new WeakMap() } } = {}) {
+  const mira = (o, lim) => { for (const m of [].concat(o.material || [])) { if (!m || vistas.m.get(m) === m.version) continue; vistas.m.set(m, m.version);
+    for (const k in m) { const t = m[k]; if (!t?.isTexture || vistas.t.has(t) || t.isCanvasTexture || t.isVideoTexture || t.isDataTexture || t.isRenderTargetTexture) continue; vistas.t.add(t);
       const im = t.image, w = im?.width, h = im?.height;
-      if (!w || !h || Math.max(w, h) <= max || !((typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || im instanceof HTMLImageElement)) continue;
-      const s = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
-      try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.image = c; t.needsUpdate = true; } catch (e) { } } } });
+      if (!w || !h || Math.max(w, h) <= lim || !((typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || im instanceof HTMLImageElement)) continue;
+      const s = lim / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+      try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.dispose(); t.image = c; t.needsUpdate = true; } catch (e) { } } } };
+  jugador?.traverse((o) => mira(o, max));
+  raiz.traverse((o) => mira(o, o.isSkinnedMesh ? otros : max));
+  return vistas;
 }
 
 // Registro de texturas por pueblo: cada textura que se sube a la tarjeta gráfica queda apuntada con el «turno» de
@@ -203,7 +207,6 @@ export class Runtime {
     if (!isGlbAvatar(avatarId)) throw new Error('personaje desconocido: ' + avatarId);
     const rig = new GlbRig(await loadGlbAvatar(avatarId), avatarId);
     this.player = new Player(rig, scene);
-    if (q !== 'low') contorno(rig.obj);   // (la línea de dibujo del jugador: charLight.js)
     this.follow = new FollowCamera(this.camera);
     this.particles = new Particles(scene);
     this.waterfall = salazar ? new Waterfall(scene, LANDMARKS.waterfall, this.particles) : null;
@@ -218,7 +221,9 @@ export class Runtime {
     // (en calidad baja, la del móvil, ninguna imagen de más de 1024 px en la tarjeta gráfica: la del explorador, de 2048,
     // eran 21 MB de los 80 que aguanta el iPhone, y Elizondo pasaba de 93 y se perdía la imagen; informe del iPhone del
     // 24 nov, medido con tools/presupuesto-pueblo.mjs)
-    if (q === 'low') topeTexturas(scene, 1024);
+    // Los vecinos, los animales y los demás personajes, 512 (ya lo eran casi todos; los animales de Meshy y algún personaje
+    // traían 1024 o 768: 5 MB cada uno). Y se repite de vez en cuando para lo que llega después (topeNuevas)
+    this.topeVistas = q === 'low' ? topeTexturas(scene, 1024, { otros: 512, jugador: rig.obj }) : null;
     // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
     // para que el primer fotograma del pueblo no se quede congelado
     try { await Promise.race([compilarAsync(this.renderer, scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
@@ -416,6 +421,7 @@ export class Runtime {
     this.cpuT += performance.now() - t0; this.cpuN++;
     input.endFrame();
     this.frames++; this.frameNo++; this.fpsT += dt;
+    if (this.topeVistas && (this.frameNo & 127) === 0 && !alt) topeTexturas(this.scene, 1024, { otros: 512, jugador: this.player?.obj, vistas: this.topeVistas });
     // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
     if (this.covered || quieto) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {

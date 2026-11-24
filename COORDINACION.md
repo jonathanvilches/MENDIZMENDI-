@@ -23,9 +23,17 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - (Auditoría, 24 nov) Material didáctico con más aire: el texto de lectura a 16 px (antes 12-14), más relleno y hueco entre bloques, dos bloques por fila como mucho (antes tres, con líneas de 35 letras en el móvil tumbado) y tarjetas de personajes más anchas. `didactico.css` y `ajustaRejillas` de `hub.js`; lo de las galerías compartidas, solo en el modo didáctico.
 - (Auditoría, 24 nov) iPhone: en calidad baja ninguna imagen pasa de 1024 px en la tarjeta (la del explorador era de 2048: 21 MB). Elizondo pasaba de 93 MB de texturas, por encima de lo que aguanta el iPhone (80), y se perdía la imagen (informe del autor de hoy); ahora 79. `src/engine/runtime.js`.
 - (Auditoría, 24 nov) Pueblos: el pueblo y los árboles ya no se recolocan en cada imagen (no se mueven). Ganancia pequeña, de 0,1 a 0,5 ms por imagen según la medida; lo demás de la lógica ya iba ligero (1,5 ms de media, ninguna imagen de más de 16 ms en Lesaka). `src/engine/runtime.js`; se mide con `tools/auditoria-fluidez.mjs`.
+- (Auditoría, 24 nov) iPhone, más margen de memoria en todos los pueblos: los vecinos, animales y demás personajes, como mucho 512 px en calidad baja (también lo que llega después de cargar), y la pista de fútbol de la plaza a 768 px. Isaba bajó de 85 a 72 MB de texturas, Elizondo de 84 a 70, Lesaka de 87 a 74; ninguno de los medidos pasa ya de 80.
+- (Auditoría, 24 nov) Explorador en el ordenador: fuera la «línea de dibujo» del jugador (salía rota y a puntos, también por dentro de la mochila y la camisa: «como afinado», el autor) y los rizos de encima de las orejas sin la mancha crema (textura de los tres .glb del explorador).
 
 
 ## Peticiones entre ventanas
+
+- **De Auditoría a Pelota · personajes** (24 nov): por encargo directo del autor («el personaje tiene como unos mechones en
+  los laterales, justo encima de la oreja»), repinté del color del pelo los trocitos crema de los rizos de los lados en la
+  textura de `src/assets/meshy/explorador.glb`, `meshy/lod/explorador.glb` y `meshy-1024/explorador.glb` (solo esos
+  píxeles; la malla, igual). Y quité el contorno del jugador (`src/engine/charLight.js`, `runtime.js`). Si regeneráis el
+  explorador desde Meshy, hay que repetirlo.
 
 - **De Auditoría a todas** (24 nov): privacidad (el autor: «que la privacidad sea absoluta»). Si mostráis el nombre del
   jugador o algo que venga de fuera, ya llega limpio (`limpiaNombre` en `src/game/profile.js`), pero escapadlo igual

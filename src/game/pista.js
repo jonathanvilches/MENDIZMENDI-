@@ -3,6 +3,7 @@
 // polideportivos de los pueblos de Navarra. Se busca un sitio llano y libre cerca de la plaza; si el pueblo no tiene
 // sitio, no tiene pista. El partido se juega en el módulo de fútbol (src/futbol, campo 'pista').
 // (Adaptación: el sitio no está comprobado con la ortofoto de IDENA.)
+import { QUALITY } from '../util/quality.js';
 import * as THREE from 'three';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
@@ -92,7 +93,9 @@ export class Pista {
     // base de hormigón (por si el terreno baja) y la pista pintada encima
     const base = mesh(new THREE.BoxGeometry(2 * HL + 0.6, 3, 2 * HW + 0.6), new THREE.MeshStandardMaterial({ color: '#9b978c', roughness: 0.95 }));
     base.position.y = -1.52; base.receiveShadow = true;
-    const tex = courtTexture(); owned.push(tex);
+    // (en el móvil, calidad baja, la mitad: 1536 px eran 6,5 MB de la tarjeta, lo que más pesaba después del explorador y
+    // los árboles en la mitad de los pueblos; medido con tools/presupuesto-pueblo.mjs, 24 nov)
+    const tex = courtTexture(QUALITY === 'low' ? 768 : 1536); owned.push(tex);
     const floor = mesh(new THREE.PlaneGeometry(2 * HL, 2 * HW).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 }));
     floor.position.y = 0.005; floor.receiveShadow = true;
     // porterías: postes y larguero blancos de 8 cm y red de 1 m de fondo
