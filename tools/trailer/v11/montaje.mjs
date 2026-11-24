@@ -47,5 +47,5 @@ ROTULOS.forEach(([img, a, z], n) => {
 filt.push(`[b${ROTULOS.length}]fade=t=in:st=0:d=0.35,fade=t=out:st=${(DURA - 1.3).toFixed(3)}:d=1.3,format=yuv420p[v]`);
 execFileSync('ffmpeg', ['-v', 'error', '-y', '-framerate', String(FPS), '-i', `${seq}/%05d.jpg`, '-i', WAV, ...ins,
   '-filter_complex', filt.join(';'), '-map', '[v]', '-map', '1:a', '-t', DURA.toFixed(3),
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', '19', '-profile:v', 'high', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', OUT], { stdio: 'inherit' });
+  '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-profile:v', 'high', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', OUT], { stdio: 'inherit' });
 console.log('hecho', OUT, k, 'fotogramas');
