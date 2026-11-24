@@ -22,8 +22,13 @@
   try {
     var b = atob(m[1].replace(/-/g, '+').replace(/_/g, '/')), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
     var d = JSON.parse(new TextDecoder().decode(u)), hay = localStorage.getItem('herrizherri-perfil-v1');
-    if (d && typeof d['herrizherri-perfil-v1'] === 'string' && (!hay || hay === d['herrizherri-perfil-v1'] || confirm('Llega tu partida de la app antigua. ¿La pones en lugar de la que hay aquí?')))
-      for (var k in d) if (/^herrizherri-/.test(k) && typeof d[k] === 'string') localStorage.setItem(k, d[k]);
+    // (una dirección puede mandarla cualquiera: solo se guarda lo de la partida —no lo propio del aparato— y sin < ni >,
+    // para que ningún texto de dentro, como el nombre, pueda colarse como código; lo mismo que util/traspaso.js)
+    var FUERA = /^herrizherri-(gpu|diag-mapa|rastro|arranque|perdidas|web|version|volver|cubre|mando.*|sencillo|vista-corta|aviso-grafica|pelota-ligera|informe|cortes)$/;
+    var sin = function (x) { if (typeof x === 'string') return x.replace(/[<>]/g, ''); if (x && typeof x === 'object') { var o = Array.isArray(x) ? [] : {}; for (var j in x) o[sin(j)] = sin(x[j]); return o; } return x; };
+    var limpio = function (v) { try { return JSON.stringify(sin(JSON.parse(v))); } catch (e) { return sin(v); } };
+    if (m[1].length < 3e6 && d && typeof d['herrizherri-perfil-v1'] === 'string' && (!hay || hay === d['herrizherri-perfil-v1'] || confirm('Llega tu partida de la app antigua. ¿La pones en lugar de la que hay aquí?')))
+      for (var k in d) if (/^herrizherri-[a-z0-9-]+$/.test(k) && !FUERA.test(k) && typeof d[k] === 'string') localStorage.setItem(k, limpio(d[k]));
   } catch (e) { }
   history.replaceState(null, '', location.pathname + location.search);
 })();</script>

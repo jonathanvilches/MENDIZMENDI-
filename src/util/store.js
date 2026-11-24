@@ -1,6 +1,7 @@
 // Caché persistente de imágenes generadas (iconos 3D y fotos de comarcas) en IndexedDB.
 // Se lee entera al arrancar (una sola operación asíncrona) y se escribe en segundo plano.
-// Cambia VERSION cuando cambien los modelos, para regenerar las imágenes.
+// Cambia VERSION cuando cambien los modelos, para regenerar las imágenes. Al leerla se borran las de versiones
+// anteriores: si no, se quedaban para siempre ocupando sitio en el móvil (cada cambio de VERSION dejaba otra tanda).
 const VERSION = 'v12';
 const DB = 'herrizherri-img', ST = 'img';
 const mem = new Map();
@@ -18,8 +19,12 @@ export async function loadStore() {
   db = await open(); if (!db) return;
   await new Promise((res) => {
     try {
-      const tx = db.transaction(ST, 'readonly'), s = tx.objectStore(ST), req = s.openCursor();
-      req.onsuccess = () => { const c = req.result; if (!c) return res(); if (String(c.key).startsWith(VERSION + ':')) mem.set(String(c.key).slice(VERSION.length + 1), c.value); c.continue(); };
+      const tx = db.transaction(ST, 'readwrite'), s = tx.objectStore(ST), req = s.openCursor();
+      req.onsuccess = () => {
+        const c = req.result; if (!c) return res();
+        if (String(c.key).startsWith(VERSION + ':')) mem.set(String(c.key).slice(VERSION.length + 1), c.value); else c.delete();
+        c.continue();
+      };
       req.onerror = () => res();
     } catch (e) { res(); }
   });

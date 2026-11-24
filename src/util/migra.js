@@ -21,3 +21,5 @@ try {
   if (P && P.name === ['Me', 'ndi'].join('')) { P.name = 'Iñigo'; localStorage.setItem(k, JSON.stringify(P)); }
 } catch (e) { }
 try { if (!localStorage.getItem(NUEVO + '-migrado')) { for (const db of [VIEJO + '-img', VIEJO + '_img_textures']) indexedDB?.deleteDatabase(db); localStorage.setItem(NUEVO + '-migrado', '1'); } } catch (e) { }   // (una sola vez)
+// (lo que guardaban partes del juego que ya no existen: se borra, para no dejar restos en el navegador)
+try { for (const k of ['misiones-abiertas', 'pelota-auto', 'pelota-bola', 'pelota-grupo']) localStorage.removeItem(NUEVO + '-' + k); } catch (e) { }

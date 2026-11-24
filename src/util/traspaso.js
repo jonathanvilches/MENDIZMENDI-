@@ -6,7 +6,13 @@
 // vista corta y la calidad gráfica elegida) no viaja: la Alta puesta en un ordenador, llevada al iPhone, le hacía perder
 // la imagen en los partidos de pelota.
 // (el mismo formato que mudanza.html e index.html: «HZ0:» y el JSON en base64 para direcciones, sin comprimir)
-const FUERA = /^herrizherri-(gpu|diag-mapa|rastro|arranque|perdidas|web|version|volver|cubre|mando.*|sencillo|vista-corta|aviso-grafica|pelota-ligera)$/;
+const FUERA = /^herrizherri-(gpu|diag-mapa|rastro|arranque|perdidas|web|version|volver|cubre|mando.*|sencillo|vista-corta|aviso-grafica|pelota-ligera|informe|cortes)$/;
+// (un código puede venir de cualquiera: lo que trae se guarda sin < ni >, para que ningún texto suyo —el nombre, el de un
+// equipo…— pueda colarse como código al enseñarlo, y con un tamaño máximo)
+const MAX = 3e6;
+const sinMarcas = (x) => typeof x === 'string' ? x.replace(/[<>]/g, '') : Array.isArray(x) ? x.map(sinMarcas)
+  : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([k, v]) => [sinMarcas(k), sinMarcas(v)])) : x;
+const limpio = (v) => { try { return JSON.stringify(sinMarcas(JSON.parse(v))); } catch (e) { return sinMarcas(v); } };
 // (dentro del perfil, los ajustes de la gráfica de cada aparato)
 const DEL_APARATO = ['quality', 'qualityAuto', 'slowPc'];
 const sinAparato = (perfil, de = null) => { try { const p = JSON.parse(perfil), s = p.settings ||= {}, o = de ? JSON.parse(de).settings || {} : {};
@@ -26,12 +32,12 @@ export function codigoPartida() {
 /** Lo que trae un código: { claves, nombre } o null si no es un código del juego. */
 export function leePartida(codigo) {
   const m = /HZ0:([A-Za-z0-9_-]+)/.exec(String(codigo || '').replace(/\s+/g, ''));
-  if (!m) return null;
+  if (!m || m[1].length > MAX) return null;
   try {
     const d = JSON.parse(new TextDecoder().decode(deB64(m[1])));
     if (!d || typeof d !== 'object' || typeof d['herrizherri-perfil-v1'] !== 'string') return null;
-    const claves = Object.entries(d).filter(([k, v]) => k.startsWith('herrizherri-') && !FUERA.test(k) && typeof v === 'string');
-    let nombre = ''; try { nombre = JSON.parse(d['herrizherri-perfil-v1']).name || ''; } catch (e) { }
+    const claves = Object.entries(d).filter(([k, v]) => /^herrizherri-[a-z0-9-]+$/.test(k) && !FUERA.test(k) && typeof v === 'string').map(([k, v]) => [k, limpio(v)]);
+    let nombre = ''; try { nombre = String(JSON.parse(d['herrizherri-perfil-v1']).name || '').replace(/[<>]/g, ''); } catch (e) { }
     return { claves, nombre };
   } catch (e) { return null; }
 }

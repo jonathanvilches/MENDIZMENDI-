@@ -49,7 +49,8 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { comoJugar, vistoComoJugar } from './comojugar.js';
 import { puedeDescargar, queFalta, descargarTodo } from '../web/todo.js';
-import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
+import { informeActivo, ponInforme } from '../util/informe.js';
+import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState, limpiaNombre } from '../game/profile.js';
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
@@ -1117,7 +1118,7 @@ export class Hub {
         if (!tr.dataset.sure) { tr.dataset.sure = 1; tr.querySelector('span').textContent = `¿Cambiar la partida de aquí por la de ${d.nombre || 'ese código'}? Pulsa otra vez`; this.sound?.ui('error'); return; }
         if (traePartida(pg.value)) location.reload(); else tn.textContent = 'No se ha podido guardar aquí la partida.'; };
       if (isDidactico()) return;   // (en el modo didáctico no hay nombre, edad, calidad ni progreso que borrar)
-      $('#pName', r).onchange = e => { p.name = e.target.value.trim().slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
+      $('#pName', r).onchange = e => { p.name = limpiaNombre(e.target.value).slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
       $('#pQ', r).value = MOVIL_JUSTO && S.quality && S.quality !== 'low' ? 'auto' : S.quality || 'auto';
       $('#pCj', r).onclick = () => { this.sound?.ui('open'); comoJugar(this.root); };
@@ -1137,6 +1138,7 @@ export class Hub {
       }
       $('#pAge', r).value = edadDe(p); $('#pAge', r).onchange = e => { p.age = e.target.value; saveProfile(); this.sound?.ui('click'); this.go('profile', undefined, true); };
       { const el = $('#pPost', r); if (el) el.onchange = e => ponPost(e.target.checked); }
+      { const el = $('#pInforme', r); if (el) el.onchange = e => ponInforme(e.target.checked); }
       for (const [id, k] of [['#pGrandes', 'grandes'], ['#pContraste', 'contraste']]) { const el = $(id, r); if (el) el.onchange = e => { ponAccesible(k, e.target.checked); this.sound?.ui('click'); }; }
       { const el = $('#pCom', r); if (el) { el.value = duoElegido(); el.onchange = e => { ponDuo(e.target.value); this.sound?.ui('click'); }; } }
       { const el = $('#pP10', r); if (el) el.onclick = e => { const bt = e.target.closest('[data-p10]'); if (!bt) return; ponAspectoTuyo(bt.dataset.p10); this.sound?.ui('click');
@@ -1199,7 +1201,7 @@ export class Hub {
         ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
         ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>`, 'pjugar')}
-      ${this.partida()}${this.creditos()}${this.diagnostico()}
+      ${this.partida()}${this.privacidad()}${this.creditos()}${this.diagnostico()}
       ${tarjeta('close', 'Empezar de cero', `<p class="set-note">Borra todo lo que llevas en este aparato: misiones, sellos, cartas y campeonatos. No se puede deshacer.</p><button class="btn danger" id="pReset">Borrar todo el progreso</button>`, 'aj-peligro')}</section>`;
   }
   // llevar la partida a otro aparato o a la app nueva (util/traspaso.js): copiar el código aquí y pegarlo allí
@@ -1210,9 +1212,20 @@ export class Hub {
       <textarea id="pPega" rows="3" aria-label="Código de tu partida" placeholder="Pega aquí el código de tu partida" autocomplete="off" spellcheck="false"></textarea>
       <button class="btn" id="pTrae">${I('check', 22)} <span>Traer esta partida</span></button><p class="set-note" id="pTraeN"></p></details>`;
   }
+  // qué se guarda y qué sale del aparato (el autor, 24 nov: «revisa a fondo la privacidad, los datos personales»)
+  privacidad() {
+    return `<details class="panel creditos privacidad"><summary>${I('shield', 26)} Privacidad</summary><ul>
+      <li>Tu partida (tu nombre, lo que llevas y tus ajustes) se guarda solo en este aparato. No hay cuentas ni publicidad, y no se comparte con nadie.</li>
+      <li>La cámara de la pelota en casa y de la realidad aumentada se mira dentro del aparato: no se graba ni se manda ninguna imagen.</li>
+      <li>El móvil como mando habla con el ordenador cifrado de punta a punta: los servidores que los presentan no pueden leer nada.</li>
+      <li>El informe técnico solo sale si lo enciendes en Diagnóstico, y nunca lleva tu nombre ni tu partida.</li>
+      <li>Para borrarlo todo: «Empezar de cero», o borrar los datos de este sitio en el navegador.</li></ul></details>`;
+  }
   // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)
   diagnostico() {
-    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>${!TACTIL && calidadOrdenador() === 'low' ? `
+    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>
+      <label class="set">Mandar el informe técnico <input type="checkbox" id="pInforme" ${informeActivo() ? 'checked' : ''}></label>
+      <p class="set-note">Para arreglar fallos: cómo va el juego en este aparato (fluidez, errores, pantalla y navegador). Nunca lleva tu nombre ni tu partida.</p>${!TACTIL && calidadOrdenador() === 'low' ? `
       <p class="set-note"><b>Para que vaya fluido en un portátil:</b> muchos llevan dos gráficas y Windows le da a Chrome la floja. En Configuración de Windows, Sistema, Pantalla, Gráficos, elige Google Chrome y ponlo en «Alto rendimiento». Enchufa el cargador. Cierra Chrome del todo, también el icono junto al reloj, y vuelve a abrir el juego. Si «Mapa 3D» ya no dice Intel, lo has conseguido.</p>` : ''}
       <dl data-notr>${diagnostico().map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>`;
   }
@@ -1267,7 +1280,7 @@ export class Hub {
     o.querySelectorAll('[data-lang]').forEach(b => b.onclick = (e) => { e.stopPropagation(); if (b.dataset.lang !== getLang()) setLang(b.dataset.lang); });
     const inp = $('#oName', o); inp.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') go(); });
     o.querySelectorAll('[data-age]').forEach(b => b.onclick = (e) => { e.stopPropagation(); age = b.dataset.age; o.querySelectorAll('[data-age]').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-checked', x === b); }); this.sound?.ui?.('click'); });
-    const go = () => { p.name = inp.value.trim() || 'Iñigo'; p.avatar = pick; p.age = age; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
+    const go = () => { p.name = limpiaNombre(inp.value).slice(0, 14) || 'Iñigo'; p.avatar = pick; p.age = age; saveProfile(); this.sound?.init?.(); this.sound?.ui('open'); o.remove(); this.go('home', null, true); };
     $('#oGo', o).onclick = go;
     $('#oDd', o).onclick = (e) => { e.stopPropagation(); p.age = age; saveProfile(); o.remove(); this.setDidactico(true); };   // (sin nombre ni personaje: no se juega)
   }

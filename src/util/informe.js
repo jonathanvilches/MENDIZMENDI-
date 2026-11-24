@@ -5,12 +5,21 @@
 //    editar el artefacto y Claude (la regla va al publicarlo).
 //  · Servido desde Vercel, a la función del proyecto (public/api/informe.js), que lo escribe en sus registros, de donde
 //    lo lee Claude: cada vez, solo lo nuevo, para que cada línea sea corta.
-// En los demás sitios (GitHub Pages, el archivo único) no hace nada.
+// En los demás sitios (el archivo único, el servidor de pruebas) no hace nada.
+// En la web (GitHub Pages) solo si el que juega lo enciende (Ajustes › Diagnóstico, «Mandar el informe técnico», o abriendo
+// el juego con ?informe=1; ?informe=0 lo apaga): el juego es para chavales y no manda nada de su aparato sin permiso. Nunca
+// lleva el nombre ni la partida: solo el aparato (pantalla, navegador, gráfica), la fluidez, los errores y por dónde se pasa.
 import { datos } from './diag.js';
+
+const CLAVE = 'herrizherri-informe';
+try { const q = new URLSearchParams(location.search).get('informe'); if (q === '1' || q === '0') localStorage.setItem(CLAVE, q); } catch (e) { /* sin almacenamiento */ }
+/** Si en este aparato se ha dado permiso para mandar el informe técnico. */
+export const informeActivo = () => { try { return localStorage.getItem(CLAVE) === '1'; } catch (e) { return false; } };
+const enLaWeb = () => /\.vercel\.app$|\.github\.io$/i.test(location.hostname);
 
 const CADA = 15, MAX_MUESTRAS = 120, MAX_ERRORES = 40, MAX_EVENTOS = 80;
 const t0 = performance.now(), seg = () => Math.round((performance.now() - t0) / 100) / 10;
-let ref = null, doc = null, escribiendo = false, otra = false, pronto = 0;
+let ref = null, doc = null, escribiendo = false, otra = false, pronto = 0, idPartida = '';
 const vistos = new Map();
 
 /** Dónde se está: el menú y su pantalla, el pueblo y lo que se hace en él, un partido. */
@@ -113,8 +122,9 @@ function apuntaCorte() {
 }
 function empieza(db) {
   apuntaCorte();
-  const id = `${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 6)}`;
-  try { ref = db ? db.collection('informes').doc(id) : { set: aVercel(id) }; } catch (e) { return; }
+  const id = idPartida = `${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 6)}`;
+  // (en la web, lo que se apunta en el aparato —la vez anterior, los cortes— sigue igual; a Vercel, solo con permiso)
+  try { ref = db ? db.collection('informes').doc(id) : informeActivo() ? { set: aVercel(id) } : null; } catch (e) { return; }
   // (el aparato, como filas {k, v}: la base de datos no guarda listas dentro de listas)
   doc = { empieza: new Date().toISOString(), aparato: datos().map(([k, v]) => ({ k, v })), calidad: '', muestras: [], errores: [], eventos: [] };
   // (y lo que no carga: una imagen, un trozo del juego)
@@ -140,4 +150,11 @@ async function arranca() {
 // (en Vercel, a su propia función; en GitHub Pages, que no tiene funciones, a la de Vercel)
 const DESTINO = /\.vercel\.app$/i.test(location.hostname) ? '/api/informe' : 'https://herrizherri.vercel.app/api/informe';
 if (typeof __AF__ !== 'undefined' && __AF__ && typeof window.claude?.use === 'function') arranca().catch(() => { /* sin informe */ });
-else if (/\.vercel\.app$|\.github\.io$/i.test(location.hostname)) empieza(null);
+else if (enLaWeb()) empieza(null);
+/** Encender o apagar el informe técnico en este aparato (Ajustes › Diagnóstico). Apagado, no sale nada más. */
+export function ponInforme(si) {
+  try { localStorage.setItem(CLAVE, si ? '1' : '0'); } catch (e) { /* sin almacenamiento */ }
+  if (!si) { ref = null; return; }
+  if (!enLaWeb()) return;
+  if (!doc) empieza(null); else { ref = { set: aVercel(idPartida) }; guarda(); }
+}

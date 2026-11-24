@@ -16,6 +16,11 @@ const fresh = () => ({
   mig: { pamplona1: true },   // arreglos ya hechos en el guardado (ver profile)
 });
 
+/** El nombre del jugador, sin nada que pueda colarse como código al enseñarlo (< > & comillas y barras) ni caracteres
+ *  invisibles o que dan la vuelta al texto, y de 20 letras como mucho. Vale para lo que se escribe y para lo que llega
+ *  de otro aparato (util/traspaso.js). */
+export const limpiaNombre = (s) => String(s ?? '').replace(/[<>&"'`\\]/g, '').replace(/[\u0000-\u001f\u007f-\u009f\u200b-\u200f\u2028-\u202e\u2066-\u2069\ufeff]/g, '').trim().slice(0, 20);
+
 export const LEVEL_XP = (lv) => 120 * lv * (lv + 1) / 2;   // XP total necesaria para alcanzar el nivel lv+1
 export function levelOf(xp) { let lv = 0; while (xp >= LEVEL_XP(lv + 1)) lv++; return { lv: lv + 1, cur: xp - LEVEL_XP(lv), need: LEVEL_XP(lv + 1) - LEVEL_XP(lv) }; }
 export const RANKS = ['Txiki explorador', 'Caminante', 'Montañero', 'Guía del valle', 'Pastor de cumbres', 'Sabio de Navarra', 'Leyenda de Navarra'];
@@ -53,6 +58,7 @@ export function profile() {
     const s = JSON.parse(localStorage.getItem(KEY));
     if (s && s.v === 1) {
       P = Object.assign(fresh(), s, { settings: Object.assign(fresh().settings, s.settings), mig: { ...s.mig, pamplona1: true } });
+      P.name = limpiaNombre(P.name);
       // Pamplona tenía una misión de carnaval en el segundo puesto que ya no está: lo hecho después de ella baja un puesto
       // (las misiones hechas se guardan por su puesto en la lista del pueblo)
       const t = !s.mig?.pamplona1 && P.towns?.pamplona;

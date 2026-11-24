@@ -1,6 +1,15 @@
 // Euskera de lo nuevo de la aventura (la luz y sus ajustes, la exploración y el movimiento): frases exactas, como en
 // data/eu.js. Se cargan con los demás diccionarios (i18n.js, loadEU) y no pisan una traducción que ya hubiera.
 export const EU_AVENTURA = {
+  // (Ajustes › Privacidad y el informe técnico de Diagnóstico)
+  'Privacidad': 'Pribatutasuna',
+  'Tu partida (tu nombre, lo que llevas y tus ajustes) se guarda solo en este aparato. No hay cuentas ni publicidad, y no se comparte con nadie.': 'Zure partida (zure izena, egin duzuna eta zure ezarpenak) gailu honetan bakarrik gordetzen da. Ez dago konturik ez publizitaterik, eta ez da inorekin partekatzen.',
+  'La cámara de la pelota en casa y de la realidad aumentada se mira dentro del aparato: no se graba ni se manda ninguna imagen.': 'Etxeko pilotaren eta errealitate areagotuaren kamera gailuaren barruan aztertzen da: ez da irudirik grabatzen ez bidaltzen.',
+  'El móvil como mando habla con el ordenador cifrado de punta a punta: los servidores que los presentan no pueden leer nada.': 'Mugikorra aginte gisa erabiltzean, ordenagailuarekin muturretik muturrera zifratuta hitz egiten du: bi gailuak aurkezten dituzten zerbitzariek ezin dute ezer irakurri.',
+  'El informe técnico solo sale si lo enciendes en Diagnóstico, y nunca lleva tu nombre ni tu partida.': 'Txosten teknikoa Diagnostikoan pizten baduzu bakarrik bidaltzen da, eta ez du inoiz zure izena ez zure partida eramaten.',
+  'Para borrarlo todo: «Empezar de cero», o borrar los datos de este sitio en el navegador.': 'Dena ezabatzeko: «Hutsetik hasi», edo ezabatu gune honen datuak nabigatzailean.',
+  'Mandar el informe técnico': 'Txosten teknikoa bidali',
+  'Para arreglar fallos: cómo va el juego en este aparato (fluidez, errores, pantalla y navegador). Nunca lleva tu nombre ni tu partida.': 'Akatsak konpontzeko: jokoa nola dabilen gailu honetan (arintasuna, akatsak, pantaila eta nabigatzailea). Ez du inoiz zure izena ez zure partida eramaten.',
   'Efectos de imagen': 'Irudi-efektuak',
   // (accesibilidad: util/accesible.js)
   'Textos grandes': 'Testu handiak', 'Alto contraste': 'Kontraste handia',

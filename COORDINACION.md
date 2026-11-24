@@ -11,15 +11,23 @@ ya no vale, se borra.
 | **Pelota · interfaz** (rótulos, animaciones de texto, carruseles, pantallas de frontón) | Todo lo que se ve encima del partido y los menús de pelota | `src/pelota/hud.js`, `src/pelota/vs.js`, `src/pelota/ficha.js`, `src/game/torneo.js`, `src/game/carrusel3d.js`, `entrega/interfaz-pelota/` |
 | **Pelota · personajes** (los 10 pelotaris de siempre, público, jueces, vecinos del mismo estilo) | Modelos 3D y cómo se mueven | `src/actors/`, `src/assets/meshy*/`, `src/assets/chicas/`, `tools/blender/`, `tools/meshy-*`, `tools/chicas/` |
 | **Otsagabia · locución** | Cerrada. Solo retoques de voces de Otsagabia si el autor los pide | `src/assets/voz/vecinos/ochagavia/`, `entrega/voces-ochagavia-pendientes.md` |
-| **Auditoría · optimización** (24 nov, el autor: «auditoría completa para borrar archivos antiguos, mejorar texturas, lógica, identidad visual… que vaya más deprisa, que no se pare», y el código ordenado y el repositorio listo para pasarlo a un motor como Unity) | Medir y quitar parones, errores y peso; limpiar archivos viejos; ordenar el código y documentar cómo portarlo. En archivos de otras ventanas solo pide cambios aquí | `tools/auditoria-*`, `PORTAR.md`, `tools/exportar-*`, `tools/exportar/`, `exportar/`, `tools/trailer/`, `unity/` (el proyecto de Unity y su paquete), `.github/workflows/exportar-datos.yml` |
+| **Auditoría · optimización** (24 nov, el autor: «auditoría completa para borrar archivos antiguos, mejorar texturas, lógica, identidad visual… que vaya más deprisa, que no se pare», y el código ordenado y el repositorio listo para pasarlo a un motor como Unity) | Medir y quitar parones, errores y peso; limpiar archivos viejos; ordenar el código y documentar cómo portarlo. En archivos de otras ventanas solo pide cambios aquí | `tools/auditoria-*`, `PORTAR.md`, `tools/exportar-*`, `tools/exportar/`, `exportar/`, `tools/trailer/`, `unity/` (el proyecto de Unity y su paquete), `.github/workflows/exportar-datos.yml`, `PRIVACIDAD.md`, `public/api/informe.js` |
 | Pelotaris nuevos de Meshy | **Parado** por el autor el 18 nov. Estado y cómo retomarlo: `investigacion/pelotaris-nuevos/LEEME.md` | `investigacion/pelotaris-nuevos/` |
 
 ## Listo para publicar
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Auditoría, 24 nov) Privacidad: el informe técnico solo sale si se enciende en Ajustes › Diagnóstico (o con `?informe=1`); Ajustes › Privacidad; el nombre y las partidas traídas de otro aparato, sin código colado; la caché de imágenes y las claves viejas se borran solas. Ver `PRIVACIDAD.md`.
+
 
 ## Peticiones entre ventanas
+
+- **De Auditoría a todas** (24 nov): privacidad (el autor: «que la privacidad sea absoluta»). Si mostráis el nombre del
+  jugador o algo que venga de fuera, ya llega limpio (`limpiaNombre` en `src/game/profile.js`), pero escapadlo igual
+  (`esc`). No mandéis nada fuera del aparato sin pasar por `src/util/informe.js` (que solo sale con permiso). Ver
+  `PRIVACIDAD.md`. Toqué, por la privacidad, `src/hub/hub.js` (Ajustes › Privacidad y el interruptor del informe),
+  `index.html` (el enlace `#traspaso=`), `src/util/traspaso.js`, `store.js`, `migra.js` e `informe.js`.
 
 - **De Auditoría a todas** (24 nov): `lab/ref` (los 31 originales de Meshy) ya va en GitHub con Git LFS (`.gitattributes`); el
   autor lo aprobó. Si en vuestra copia salen como archivos de texto pequeños, `git lfs install && git lfs pull`.
