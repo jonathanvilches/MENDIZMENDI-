@@ -42,6 +42,17 @@ const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0
 // (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
 // le añada después se sigue colocando solo)
 function fijaQuieto(o, hijos = false) { if (!o) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
+// (las imágenes de las texturas de raiz más grandes que max, reducidas a max por su lado mayor. Solo las de imagen: las de
+// lienzo se redibujan y los datos los hace el juego a su medida)
+function topeTexturas(raiz, max) {
+  const vistas = new Set();
+  raiz.traverse((o) => { for (const m of [].concat(o.material || [])) { if (!m) continue;
+    for (const k in m) { const t = m[k]; if (!t?.isTexture || vistas.has(t) || t.isCanvasTexture || t.isVideoTexture || t.isDataTexture || t.isRenderTargetTexture) continue; vistas.add(t);
+      const im = t.image, w = im?.width, h = im?.height;
+      if (!w || !h || Math.max(w, h) <= max || !((typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || im instanceof HTMLImageElement)) continue;
+      const s = max / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+      try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.image = c; t.needsUpdate = true; } catch (e) { } } } });
+}
 
 // Registro de texturas por pueblo: cada textura que se sube a la tarjeta gráfica queda apuntada con el «turno» de
 // carga en que se creó; al salir del pueblo se liberan las de ese turno (terreno, carteles, sombras, vecinos…).
@@ -204,6 +215,10 @@ export class Runtime {
     this.salazar = salazar;
     this.def = def;
     onProgress(0.95, 'Saludando a los vecinos…'); await frame();
+    // (en calidad baja, la del móvil, ninguna imagen de más de 1024 px en la tarjeta gráfica: la del explorador, de 2048,
+    // eran 21 MB de los 80 que aguanta el iPhone, y Elizondo pasaba de 93 y se perdía la imagen; informe del iPhone del
+    // 24 nov, medido con tools/presupuesto-pueblo.mjs)
+    if (q === 'low') topeTexturas(scene, 1024);
     // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
     // para que el primer fotograma del pueblo no se quede congelado
     try { await Promise.race([compilarAsync(this.renderer, scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
