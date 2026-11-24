@@ -144,7 +144,7 @@ jugable en Unity (unos 6 meses de una persona).
 
 ### Coste orientativo
 
-- **Personas.** Un desarrollador de Unity en España cobra de media unos 57.000 € brutos al año (Jooble, julio de 2026);
+- **Personas.** Un desarrollador de Unity en España cobra de media unos 57.000 € brutos al año (Jooble);
   con lo que paga la empresa, unos 6.000 € al mes. 19–26 meses-persona: **de 115.000 a 160.000 €**. Un estudio o
   autónomos pueden salir más caros por hora y más baratos si se ajusta el alcance.
 - **Con Claude haciendo la mayor parte del C#** (la conversión de los sistemas, uno a uno, a partir de este código) y
