@@ -1181,12 +1181,12 @@ export class PelotaCourt {
     const gc = document.createElement('canvas'); gc.width = gc.height = 64; const gx = gc.getContext('2d'), gr = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
     gr.addColorStop(0, 'rgba(255,250,230,1)'); gr.addColorStop(0.25, 'rgba(255,240,200,.55)'); gr.addColorStop(1, 'rgba(255,230,180,0)'); gx.fillStyle = gr; gx.fillRect(0, 0, 64, 64);
     const glowMat = this.floodGlow = new T.SpriteMaterial({ map: srgb(T, new T.CanvasTexture(gc)), transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending, fog: false });
-    const g = new T.Group(); g.name = 'focos'; this.group.add(g); this.floods = g;
+    const g = new T.Group(); g.name = 'focos'; this.group.add(g); this.floods = g; this.floodSprites = [];
     const head = (x, y, z, rx, rz) => {
       const h = new T.Group(); h.position.set(x, y, z); h.rotation.set(rx, 0, rz);
       const box = new T.Mesh(new T.BoxGeometry(1.3, 0.28, 0.6), housing); h.add(box);
       const f = new T.Mesh(new T.PlaneGeometry(1.15, 0.48), face); f.rotation.x = Math.PI / 2; f.position.y = -0.145; h.add(f);
-      const s = new T.Sprite(glowMat); s.scale.set(3.4, 3.4, 1); s.position.y = -0.4; h.add(s);
+      const s = new T.Sprite(glowMat); s.scale.set(3.4, 3.4, 1); s.position.y = -0.4; s.visible = false; h.add(s); this.floodSprites.push(s);   // (apagado, escondido: con opacidad 0 se dibujaba igual, una llamada por foco)
       g.add(h);
     };
     const zs = [4, 12, 20, 28].filter(z => z < EXT);
@@ -1213,6 +1213,7 @@ export class PelotaCourt {
   setLights(k) {
     if (!this.floodFace || this._lk === k) return; this._lk = k;
     this.floodFace.color.set('#8a8d90').lerp(new this.THREE.Color('#fffaf0'), k); this.floodGlow.opacity = 0.9 * k;
+    for (const sp of this.floodSprites || []) sp.visible = k > 0;
   }
   // cubierta: 'wood', pórticos de madera laminada atirantados con acero (como los frontones nuevos de la Cuenca y de la
   // montaña); 'metal', cerchas de acero con chapa y una franja translúcida junto a la cumbrera (como Labrit). A dos

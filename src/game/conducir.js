@@ -9,6 +9,7 @@ import { groundHeight, waterLevelAt } from '../world/heightfield.js';
 import { resolve, addMover, removeMover } from '../world/colliders.js';
 import { BOUNDARY } from '../world/layout.js';
 import { clamp, damp } from '../util/math.js';
+import { fundeQuietas } from '../world/fundir.js';
 
 // vmax y atras en m/s; giro, lo que gira a la velocidad de giro plena (rad/s); r, el radio con el que choca; dist, la
 // distancia de la cámara; asiento, dónde va el conductor (en el modelo, que mira a +z); alto, a qué altura mira la cámara
@@ -170,6 +171,7 @@ export class Vehiculo {
     if (this.P) this.baja();
     this.motor(false); removeMover(this.collider);
     this.obj.parent?.remove(this.obj);   // (sus mallas no se tiran: las comparten las máquinas de los campos, agro.js)
+    for (const geo of this.obj.userData.propias || []) geo.dispose();   // (las de la bici, juntadas para ella sola, sí)
   }
 }
 
@@ -253,7 +255,12 @@ export function biciModel(color = '#2f7d6b') {
     void brazo;
   }
   const plato = new THREE.Mesh(K.plato, K.cromo); plato.rotation.y = Math.PI / 2; plato.position.x = 0.06; bi.add(plato);
-  g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
   g.userData.wheels = wheels; g.userData.biela = bi; g.userData.pedales = pedales; g.userData.frente = F;
+  // (cada parte que se mueve entera, el cuadro, cada rueda, lo del manillar, la biela y cada pedal, en una malla por
+  // material: eran 60 mallas sueltas, 60 llamadas de dibujo por bici en el iPhone; ahora 17, y se ve igual)
+  const propias = [];
+  for (const parte of [g, ...wheels.map(w => w[0]), F, bi, ...pedales]) propias.push(...fundeQuietas(parte, { cruzaGrupos: false }));
+  g.userData.propias = propias;
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
   return g;
 }

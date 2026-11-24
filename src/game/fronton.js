@@ -7,6 +7,7 @@ import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
+import { fundeQuietas, referenciadas } from '../world/fundir.js';
 import { entornoExtent } from '../pelota/entorno.js';
 import { pelotariStats, levelTier, COURT, tantosDe } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, removePlatform, onPlatform } from '../world/heightfield.js';
@@ -297,6 +298,9 @@ export class Fronton {
     if (spot.y == null || !extra.noClear) spot = { ...spot, y: Math.max(spot.y ?? -1e9, courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : frontonExtent(extra.estilo))) };
     this.spot = spot;
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
+    // (el del pueblo, que solo se mira: sus piezas quietas, en una malla por material; en Artajona eran 86 llamadas de
+    // dibujo de las ~520 que aguanta el iPhone. Lo que el partido mueve o esconde, suelto: referenciadas)
+    if (!extra.noClear) { if (court.floods) fundeQuietas(court.floods); fundeQuietas(court.group, { saltar: referenciadas(court, court.group) }); }   // (los focos: un grupo que nadie toca luego)
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     // (y los árboles de detrás del rebote, donde se pone la cámara en las pelotas largas: su copa tapaba la cancha)
