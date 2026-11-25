@@ -6,6 +6,7 @@
 // la calle por delante del jugador, a 18-34 m, y salen volando todos a la vez cuando llega cerca, con su aleteo, como una
 // nube que se abre y se va por encima de los tejados. La que se ha ido vuelve a posarse más adelante al cabo de medio
 // minuto o más (tres bandadas, no ocho: el autor las veía demasiadas). Antes solo había las de la plaza y casi nunca se veían salir.
+// Y en lo alto (25 nov 2026), bandadas de estorninos que cruzan el cielo y milanos reales que dan vueltas (updateAltas).
 //   new Pajarillos(scene, { quality, sound }) · update(dt, t, player, night, oculto) · onVisto(especie): una bandada que sale
 //   volando o una gallina que se aparta al acercarse el jugador (se apunta en la fauna, game/townGame.js)
 import * as THREE from 'three';
@@ -99,6 +100,10 @@ const ESPECIES = {
   jilguero: { L: 0.13, lomo: '#a3825a', pecho: '#e9dfcf', cabeza: '#c2302a', pico: '#e0cdb0', ala: '#d2ad2c', envergadura: 1.15, cuerda: 0.42, cola: 0.34, freq: 36 },
   // vencejo: casi negro, alas largas como una hoz y la cola en horquilla
   vencejo: { L: 0.17, lomo: '#2a2a2e', pecho: '#3a3a3e', cabeza: '#2a2a2e', pico: '#1a1a1a', ala: '#232327', envergadura: 2.3, cuerda: 0.32, cola: 0.5, horquilla: 0.22, freq: 26 },
+  // estornino: negro con brillo morado, alas de punta y cola corta; vuela en bandadas que se estiran y se encogen, 21 cm
+  estornino: { L: 0.21, lomo: '#2e2b36', pecho: '#3b3742', cabeza: '#2a2731', pico: '#d6ae3c', ala: '#27242e', envergadura: 1.75, cuerda: 0.38, cola: 0.28, freq: 30 },
+  // milano real: rojizo, la cabeza gris clara, alas largas y la cola roja en horquilla; da vueltas alto, casi sin aletear
+  milano: { L: 0.6, lomo: '#8c4b2a', pecho: '#a65a31', cabeza: '#cfc6ba', pico: '#d9b23a', ala: '#5b3826', envergadura: 1.9, cuerda: 0.5, cola: 0.62, horquilla: 0.24, freq: 9 },
   // gallinas de las casas (las vascas: la «gorria», rojiza, y alguna blanca), con su cresta, sus patas y la cola alta;
   // alto: del suelo al centro del cuerpo, con las patas
   gallina: { L: 0.38, lomo: '#8e4a22', pecho: '#a85c2c', cabeza: '#9a5226', cuello: '#b4692e', pico: '#e2b04a', ala: '#7a3e1c', envergadura: 0.62, cuerda: 0.5, cola: 0.34, colaY: 0.32,
@@ -171,6 +176,40 @@ export class Pajarillos {
     this.viajeras = Array.from({ length: nV }, (_, i) => ({ E: i % 2 ? this.vJil : this.vGor, base: Math.floor(i / 2) * porV, n: porV, est: 'ido', t: 2 + i * 14, aves: [] }));
     for (const E of [this.vGor, this.vJil]) for (let i = 0; i < E.n; i++) E.pon(i, 0, -50, 0, 0, 0, 0, 0, 0);
     this.rumbo = { x: 0, z: 1 }; this.ultimo = null;
+    // los que vuelan alto (25 nov 2026; el autor: «mejor diseño de los pájaros que vuelan»): en vez de las uves de dos
+    // triángulos (actors/animals.js), dos bandadas de estorninos que cruzan el cielo del pueblo, sueltas, estirándose y
+    // encogiéndose, aleteando a rachas y planeando; y uno o dos milanos reales que dan vueltas muy alto, casi sin aletear
+    const nE = low ? 7 : 10;
+    this.est = new Especie(scene, 'estornino', nE * 2); this.mil = new Especie(scene, 'milano', low ? 1 : 2);
+    this.altas = [0, 1].map(k => ({ base: k * nE, n: nE, x: P.x + (rnd() - 0.5) * 300, z: P.z + (rnd() - 0.5) * 300, h: 34 + rnd() * 26, yaw: rnd() * 6.28, f: rnd() * 6,
+      aves: Array.from({ length: nE }, () => ({ ox: (rnd() - 0.5) * 9, oy: (rnd() - 0.5) * 3, oz: (rnd() - 0.5) * 12, f: rnd() * 6.28 })) }));
+    this.milanos = Array.from({ length: this.mil.n }, (_, i) => ({ c: { x: P.x + (rnd() - 0.5) * 120, z: P.z + (rnd() - 0.5) * 120 }, r: 38 + rnd() * 26, w: (0.1 + rnd() * 0.05) * (i % 2 ? -1 : 1), a: rnd() * 6.28, h: 62 + rnd() * 30, f: rnd() * 6 }));
+  }
+  // (las bandadas altas y los milanos: siempre por el cielo que se ve desde donde está el jugador)
+  updateAltas(dt, t, px, pz) {
+    for (const B of this.altas) {
+      // (el rumbo cambia despacio, a curvas largas; si se alejan mucho, vuelven a entrar por el lado contrario)
+      const giro = Math.sin(t * 0.11 + B.f) * 0.22 + Math.sin(t * 0.047 + B.f * 2) * 0.12; B.yaw += giro * dt;
+      const v = 10.5; B.x += Math.sin(B.yaw) * v * dt; B.z += Math.cos(B.yaw) * v * dt;
+      if (Math.hypot(B.x - px, B.z - pz) > 280) { B.yaw = Math.atan2(px - B.x, pz - B.z) + (this.rnd() - 0.5) * 0.8; B.x = px - Math.sin(B.yaw) * 260; B.z = pz - Math.cos(B.yaw) * 260; B.h = 34 + this.rnd() * 26; }
+      // (la bandada respira: se estira a lo largo y se encoge, y cada uno se mueve un poco dentro de ella)
+      const est = 1 + 0.35 * Math.sin(t * 0.37 + B.f), anch = 1 + 0.3 * Math.sin(t * 0.29 + B.f * 1.7), c = Math.cos(B.yaw), s = Math.sin(B.yaw), y0 = this.yP + B.h;
+      B.aves.forEach((a, i) => {
+        const ox = a.ox * anch + Math.sin(t * 0.8 + a.f) * 0.9, oz = a.oz * est + Math.sin(t * 0.6 + a.f * 1.3) * 1.2, oy = a.oy + Math.sin(t * 0.9 + a.f) * 0.7;
+        const x = B.x + ox * c + oz * s, z = B.z - ox * s + oz * c;
+        // (aletean un rato y planean otro, cada uno a su compás; al planear, las alas quietas y algo más abiertas)
+        const ciclo = (t * 0.55 + a.f) % 2, ale = ciclo < 1.25 ? 1 : 0;
+        this.est.pon(B.base + i, x, y0 + oy, z, B.yaw + Math.sin(t * 1.1 + a.f) * 0.08, Math.sin(t * 0.9 + a.f) * 0.06, -giro * 1.6, 1, ale);
+      });
+    }
+    this.milanos.forEach((m, i) => {
+      // (vueltas amplias en las térmicas, que se van desplazando con el viento; un par de aletazos de vez en cuando)
+      m.a += m.w * dt; m.c.x += 0.6 * dt; m.c.z += 0.2 * dt;
+      if (Math.hypot(m.c.x - px, m.c.z - pz) > 220) { m.c.x = px - 120 + this.rnd() * 60; m.c.z = pz + (this.rnd() - 0.5) * 120; }
+      const r = m.r * (1 + 0.15 * Math.sin(t * 0.07 + m.f)), x = m.c.x + Math.cos(m.a) * r, z = m.c.z + Math.sin(m.a) * r, y = this.yP + m.h + Math.sin(t * 0.05 + m.f) * 6;
+      const yaw = Math.atan2(-Math.sin(m.a) * m.w, Math.cos(m.a) * m.w), ale = Math.max(0, Math.sin(t * 0.21 + m.f * 3) - 0.85) * 6;
+      this.mil.pon(i, x, y, z, yaw + Math.sin(t * 0.5 + m.f) * 0.05, 0.04, -0.35 * Math.sign(m.w) + Math.sin(t * 0.4 + m.f) * 0.06, 1, Math.min(1, ale) * 0.6);
+    });
   }
   // (un sitio para una bandada viajera: en la calle o junto a ella, por delante del jugador, en seco y lejos de las otras)
   sitioDelante(px, pz) {
@@ -270,6 +309,7 @@ export class Pajarillos {
     if (ml > 2) { this.rumbo = { x: mx / ml, z: mz / ml }; this.ultimo = { x: px, z: pz }; }
     else if (ml < 0.01 && player.heading != null) this.rumbo = { x: Math.sin(player.heading), z: Math.cos(player.heading) };
     this.updateViajeras(dt, t, px, pz, (player.speed || 0) > 4.5);
+    this.updateAltas(dt, t, px, pz);
     for (const B of this.bandadas) {
       const E = B.esp, base = this.bandadas.filter(b => b.esp === E).indexOf(B) * B.aves.length;
       // (si pasas cerca de alguna, sale volando toda la bandada; vuelve cuando te has ido)
@@ -335,6 +375,6 @@ export class Pajarillos {
     }
     for (const E of this.todas()) E.fin(t);
   }
-  todas() { return [this.gor, this.pal, this.ven, this.gal, this.galB, this.vGor, this.vJil].filter(Boolean); }
+  todas() { return [this.gor, this.pal, this.ven, this.gal, this.galB, this.vGor, this.vJil, this.est, this.mil].filter(Boolean); }
   dispose() { for (const E of this.todas()) E.dispose(this.scene); }
 }

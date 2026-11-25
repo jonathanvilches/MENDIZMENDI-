@@ -419,6 +419,8 @@ export class TownGame {
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY, sound: this.sound }); } catch (e) { console.warn('pajarillos', e); }
     // (los gorriones, los jilgueros y las gallinas, al verlos salir volando o apartarse: a la fauna, una vez cada uno)
     if (this.pajarillos) this.pajarillos.onVisto = (k) => this.faunaVista(k);
+    // (las uves de dos triángulos que volaban alto, actors/animals.js: ahora vuelan los estorninos y los milanos de pajarillos.js)
+    if (this.pajarillos?.est && this.fauna?.birdMesh) this.fauna.birdMesh.visible = false;
     // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
     if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca, sound: this.sound }); } catch (e) { console.warn('peces', e); }
     // (al ver huir un banco desde la orilla, su pez se apunta en la fauna del cuaderno, una vez por especie)
