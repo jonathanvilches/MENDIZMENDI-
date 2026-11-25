@@ -39,6 +39,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   es el atlas de retratos del público (`retratos()` de `src/actors/crowd3d.js`): 1127×2880 px con mipmaps, 17 MB de los
   65 del partido. En calidad baja, con `ch` 128 en vez de 160 bajaría a unos 11 MB sin que se note a la distancia de la
   grada. Ahora todas las sedes caben (59–63 MB), pero van justas. No lo he tocado: es vuestro.
+  Y en el fútbol de El Sadar se dibujan 1,39 millones de triángulos (el partido de pelota, 0,35–0,45): los 25 jugadores
+  con el modelo completo de Meshy son 777 000, y las coletas de las chicas (`chicas.js`), 236 000 (unos 20 000 cada una).
+  Una coleta más ligera, o el modelo ligero de lejos con la textura buena, lo dejaría en la mitad.
 
 - **De Auditoría a Pelota · interfaz** (25 nov): en `src/pelota/hud.js`, `ready()`, `energy()` y `descansos()` buscan sus
   elementos con `querySelector` en cada imagen del partido (y `energy()` recorre también todas las `.ps-barras`). Guardarlos
