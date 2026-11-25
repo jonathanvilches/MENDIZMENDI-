@@ -7,6 +7,7 @@ import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle, rectFree } from './colliders.js';
 import { PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
+import { archedWall } from './civic.js';
 
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
 // (el suelo más bajo y el más alto bajo una planta rectangular, de w × d centrada en x, z: los muros bajan hasta el más bajo y
@@ -171,6 +172,43 @@ function solapan(a, b, m = 0) {
   for (const u of [...ejes(a), ...ejes(b)]) if (Math.abs((b.x - a.x) * u[0] + (b.z - a.z) * u[1]) >= radio(a, u) + radio(b, u) - m) return false;
   return true;
 }
+// Panda de claustro contra un muro: el muro en x = x0 (local de T), la arquería a gd metros de él, n tramos de s metros
+// centrados en z = zc. suelo: el más bajo y el más alto bajo la panda (lo, hi: antepecho y andén bajan hasta el más bajo);
+// y: la altura de T
+function claustro(B, T, x0, zc, n, s, gd, mat, roof, suelo, y) {
+  // (el andén, por encima del suelo más alto de la panda: en la cuesta de Tudela quedaba enterrado bajo la hierba)
+  const yb = clamp(suelo.hi - y + 0.04, 0, 1.4), G = MM(T, M(x0 + gd, yb, zc, Math.PI / 2)), Lg = n * s, dz = Math.max(0.3, y + yb - suelo.lo + 0.3);
+  const yA = 0.85, yC = yA + 0.14 + 1.75, yI = yC + 0.44, yT = yI + 1.35;
+  // antepecho con su albardilla y el andén enlosado, macizos hasta el suelo
+  B.add(mat, box(Lg + 0.7, yA + dz, 0.75, 2), MM(G, M(0, (yA - dz) / 2, 0)));
+  B.add(mat, box(Lg + 0.8, 0.14, 0.95, 1), MM(G, M(0, yA + 0.07, 0)));
+  B.add('stone', box(Lg + 0.7, 0.08 + dz, gd - 0.3, 2), MM(G, M(0, (0.08 - dz) / 2, -gd / 2 - 0.15)));
+  for (let i = 0; i <= n; i++) {
+    const u = -Lg / 2 + i * s, P = MM(G, M(u, 0, 0));
+    if (i === 0 || i === n) { B.add(mat, box(0.75, yI - yA, 0.8, 1), MM(P, M(0, (yA + yI) / 2, 0))); continue; }
+    // dos columnas pareadas (una tras otra, en el grueso del muro), con basa, capitel troncopiramidal y cimacio
+    for (const k of [-1, 1]) {
+      B.add(mat, new THREE.CylinderGeometry(0.1, 0.12, 1.75, 8), MM(P, M(0, yA + 0.14 + 0.875, k * 0.19)));
+      B.add(mat, new THREE.CylinderGeometry(0.17, 0.17, 0.12, 8), MM(P, M(0, yA + 0.2, k * 0.19)));
+    }
+    { const g = new THREE.CylinderGeometry(0.42, 0.3, 0.34, 4); g.rotateY(Math.PI / 4); B.add(mat, g, MM(P, M(0, yC + 0.17, 0, 0, 0, 0, 1, 1, 1.45))); }
+    B.add('sandstone', box(0.72, 0.1, 0.9, 1), MM(P, M(0, yC + 0.39, 0)));
+  }
+  // los arcos: un muro con su hueco de medio punto por tramo (las enjutas llenas), con su arquivolta, y la cornisa
+  const ow = s - 0.62;
+  for (let i = 0; i < n; i++) {
+    const u = -Lg / 2 + (i + 0.5) * s;
+    B.add(mat, archedWall(s, yT - yI, ow, ow / 2 + 0.001, 0.8), MM(G, M(u, yI, 0)));
+    B.add('sandstone', archRing(ow / 2 - 0.02, ow / 2 + 0.14, 0.88, 10), MM(G, M(u, yI, 0)));
+  }
+  B.add('sandstone', box(Lg + 0.8, 0.22, 1.0, 1), MM(G, M(0, yT + 0.11, 0)));
+  // tejado a un agua contra el muro, con su entablado de madera por debajo
+  const len = gd + 0.95, a = Math.atan(0.42), zr = (0.75 - gd) / 2, yr = yT + 0.24 + Math.tan(a) * (gd + 0.75) / 2;
+  B.add(roof, box(Lg + 0.9, 0.14, len / Math.cos(a)), MM(G, M(0, yr, zr, 0, a)));
+  // (de color, con algo de luz propia: a la sombra del tejado, la madera oscura se veía negra desde el andén)
+  B.add('lit', colored(box(Lg + 0.7, 0.05, (len - 0.3) / Math.cos(a)), '#9a7550'), MM(G, M(0, yr - 0.12, zr - 0.1, 0, a)));
+}
+
 export function church(B, x, z, ry, style, fam, opts = {}) {
   // (a la altura del suelo de delante de la puerta si está más alto que el del centro: si no, la puerta quedaba medio enterrada
   // cuando la ladera sube hacia ella)
@@ -302,8 +340,11 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     // cimborrio
     B.add(mat, new THREE.CylinderGeometry(5, 5, 6, 8), MM(T, M(0, Hh + 3, -L * 0.2)));
     B.add('slate', new THREE.ConeGeometry(5.6, 6, 8), MM(T, M(0, Hh + 9, -L * 0.2)));
-    // claustro
-    for (let i = 0; i < 8; i++) B.add('ashlar', new THREE.CylinderGeometry(0.22, 0.22, 3, 8), MM(T, M(W / 2 + 3 + (i % 4) * 3.5, 1.5, -L / 2 + 4 + Math.floor(i / 4) * 12)));
+    // claustro: una panda de arquería románica pegada al costado (columnas pareadas con su capitel, arcos de medio punto
+    // sobre un antepecho, cornisa y tejado a un agua contra el muro), con su andén enlosado. Antes, ocho columnas sueltas
+    // clavadas en la hierba, cada una a una altura según la cuesta (el autor, 25 nov: «más detalles a las catedrales»)
+    { const c = toW(x, z, ry, W / 2 + 2, -L / 2 + 10.5); claustro(B, T, W / 2, -L / 2 + 10.5, 6, 2.5, 3.6, mat, roof, sueloPlanta(c.x, c.z, ry, 4.6, 15.6, 4), y); }
+    boxCol(x, z, ry, W / 2 + 3.6, -L / 2 + 10.5, 0.9, 15.6, { solidView: true });
   } else {
     // (la portada, con el umbral a la altura del peldaño de arriba de la escalinata, 30 cm sobre el suelo de la iglesia)
     portal(B, MM(F, M(0, 0.3, 0)), style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
