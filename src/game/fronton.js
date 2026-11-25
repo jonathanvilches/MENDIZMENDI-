@@ -3,8 +3,9 @@
 import { arqDe, ARQ_LOOK } from '../data/frontonArq.js';
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl, meshyBust } from '../actors/glbChar.js';
-import { sillasDe, posturaSentado, posturaDePie, termo, vistePaisano, MIRA_SENTADO, DESC } from '../pelota/botillero.js';
+import { sillasDe, posturaSentado, posturaDePie, vistePaisano, MIRA_SENTADO, BOTILLEROS, botilleroDe } from '../pelota/botillero.js';
 import { sinTacos } from '../actors/sinTacos.js';
+import { retratoBotillero } from '../pelota/botilleroRetrato.js';
 import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
@@ -94,52 +95,65 @@ function makeJueces(G, C) {
     a.frozen = true; a.zl = z; return a;
   });
 }
-// Los botilleros (el autor, 25 de noviembre de 2026: «quiero que sean dos personajes, dos pelotaris, pero con ropa, uno
-// camiseta blanca y el otro camiseta negra… que tengan ropa normal»; y dos fotos de partidos de verdad): el pelotari de
-// siempre de Meshy, en su versión ligera, con camiseta blanca (el tuyo) o negra (el del rival) y vaqueros, sentados todo
-// el partido en su silla, la de detrás de la de su pelotari, a un lado de la nevera (pelota/botillero.js, sillasDe). En el
-// descanso, con su pelotari ya sentado, se levantan, dan un par de pasos hasta ponerse delante de él, un poco a un lado,
-// y le hablan echados hacia él, con el termo en la mano; lo que le dicen sale en la ventana de conversación de los
-// vecinos (onEvent 'botillero'). Acabado el descanso, vuelven a su silla.
+// Los botilleros (el autor, 25 de noviembre de 2026: «quiero que sean dos personajes, dos pelotaris, pero con ropa…
+// normal»; «los dos botilleros son iguales… tienen mucha falta de dibujo, de pintura, de color»; «que cuando elijas
+// pelotari también puedas elegir entrenador… camisetas de colores, mientras no sea ninguna roja ni azul»; «los botilleros
+// no llevan tacos en las manos»; «que no se vea cómo se sienta o cómo se levanta»): el tuyo, el que eliges junto al
+// pelotari (perfil, botillero; pelota/botillero.js, BOTILLEROS); el del rival, otro. Cada uno, la figura de un pelotari de
+// los de siempre que no juega este partido, con la textura entera, su camiseta y vaqueros, y las manos de piel. Todo el
+// partido, sentado en su silla, la de detrás de la de su pelotari, a un lado de la nevera; en el descanso, tras el fundido
+// a negro (match.js), de pie delante de su pelotari, un poco echado hacia él. Sin verlo levantarse ni sentarse: el cambio
+// es de golpe, en negro. Lo que te dice sale en la ventana de charla de los vecinos (onEvent 'botillero') y, si pierdes
+// varios tantos seguidos, en su burbuja (onEvent 'botilleroDice')
+export const botilleroTuyo = () => botilleroDe(profile().botillero);
 async function makeBotilleros(G, C, pairs) {
   const g = C.group; g.updateMatrixWorld(true);
   const S = sillasDe(C.contra ?? 2.6, pairs), yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
+  const tuyo = botilleroTuyo(), rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), dist = (a, b) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
+  // (el del rival, uno de los otros con la camiseta bien distinta de la tuya: de los que más se distinguen, uno distinto cada día)
+  const otros = BOTILLEROS.filter(b => b.id !== tuyo.id && dist(b.camiseta, tuyo.camiseta) > 150), suyo = otros.length ? otros[(Date.now() / 86400000 | 0) % otros.length] : BOTILLEROS.find(b => b.id !== tuyo.id);
+  const libres = ['aitor', 'xabier', 'mikel', 'jokin', 'ander', 'julen', 'asier', 'unai', 'ekaitz', 'inaki', 'inigo'].map(n => 'pelotari_' + n).filter(m => !enCancha.has(m.slice(9)) && hasMeshy(m));
   const out = [];
-  // (dos de los pelotaris de siempre que no estén jugando este partido, distintos entre sí: cada uno con su cara y su pelo,
-  // con la textura entera, nítida, y la ropa de calle encima: el tuyo, camiseta blanca con los hombros azules; el del
-  // rival, negra con los hombros rojos; los dos con vaqueros. Las manos, sin tacos)
-  const ids = ['aitor', 'xabier', 'mikel', 'jokin', 'ander', 'julen'].filter(id => !enCancha.has(id) && hasMeshy('pelotari_' + id));
-  const ROPA = [{ camiseta: '#f2f0ea', hombros: '#1f4fa8', vaqueros: '#3b5878' }, { camiseta: '#1c1c21', hombros: '#c8202a', vaqueros: '#45607e' }];
-  for (const [i, lado] of ['you', 'rival'].entries()) {
-    const model = 'pelotari_' + (ids[i] || ['aitor', 'xabier'][i]); enCancha.add(ids[i]);
+  for (const [lado, B] of [['you', tuyo], ['rival', suyo]]) {
+    // (su figura; si ese pelotari juega hoy, otro que no juegue)
+    const model = !enCancha.has(B.modelo.slice(9)) && hasMeshy(B.modelo) ? B.modelo : libres.find(m => !out.some(r => r.modelo === m)) || B.modelo;
+    enCancha.add(model.slice(9));
     nitido(model); const r = new GlbRig(await loadMeshy(model), model);
-    vistePaisano(THREE, r.char.root, ROPA[i]); sinTacos(r.char, true); r.obj.name = 'botillero-' + lado; r.obj.userData.modelo = model;
+    vistePaisano(THREE, r.char.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: lado === 'you' ? '#3b5878' : '#45607e' }); sinTacos(r.char, true);   // (manos de piel: el botillero no lleva tacos)
     const b = S.bot[lado], p = S.pie[lado], pel = S[lado];
     r.silla = g.localToWorld(new THREE.Vector3(b.x + 0.06, 0, b.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
-    r.yawSit = yaw + MIRA_SENTADO; r.yawAnda = yaw + Math.atan2(p.x - b.x - 0.06, p.z - b.z); r.yawMira = yaw + Math.atan2(pel.x - p.x, pel.z - p.z);
-    r.obj.position.copy(r.silla); r.obj.rotation.y = r.yawSit; r.yc = r.yawSit; r.s = 0;   // (sentado, de cara a la cancha)
-    r.termo = termo(THREE); G.scene.add(r.obj, r.termo); r.lado = lado; r.equipo = pairs ? [lado, lado + 'Mate'] : [lado];
+    r.yawSit = yaw + MIRA_SENTADO; r.yawMira = yaw + Math.atan2(pel.x - p.x, pel.z - p.z);
+    r.obj.position.copy(r.silla); r.obj.rotation.y = r.yawSit;   // (sentado, de cara a la cancha)
+    r.obj.name = 'botillero-' + lado; r.obj.userData.modelo = model; r.modelo = model; r.datos = B;
+    G.scene.add(r.obj); r.lado = lado;
     out.push(r);
   }
   return out;
 }
-// (un botillero, en cada fotograma: s va de 0, sentado en su silla, a 1, de pie delante de su pelotari. Hasta 0,3 se
-// levanta; hasta 0,42 se gira hacia donde va; hasta 0,85 anda; y al final se vuelve hacia su pelotari y se echa hacia él)
-const _ang = (a, b, t) => a + Math.atan2(Math.sin(b - a), Math.cos(b - a)) * t, _ss = (x) => { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 * x); };
-function mueveBotillero(a, D, t, dt) {
-  const quiere = D && !D.fin && a.equipo.every(id => D.sit[id] != null) ? 1 : 0, s0 = a.s;
-  a.s = quiere > a.s ? Math.min(1, a.s + dt / DESC.botSube) : Math.max(0, a.s - dt / DESC.botSube);
-  const s = a.s, va = quiere > 0, m = _ss((s - 0.42) / 0.43);
-  a.obj.position.lerpVectors(a.silla, a.pie, m);
-  const anda = va ? a.yawAnda : a.yawAnda + Math.PI;
-  const yt = s <= 0.3 ? a.yawSit : s <= 0.42 ? _ang(a.yawSit, anda, (s - 0.3) / 0.12) : s <= 0.85 ? anda : _ang(anda, a.yawMira, _ss((s - 0.85) / 0.15));
-  a.yc = s <= 0.001 ? a.yawSit : _ang(a.yc, yt, Math.min(1, dt * 10)); a.obj.rotation.y = a.yc;
-  const v = s > 0.42 && s < 0.85 && s !== s0 ? a.silla.distanceTo(a.pie) / (0.43 * DESC.botSube) : 0;
-  a.update(dt, v, true, 0);
-  const wS = 1 - _ss(s / 0.3), wP = _ss((s - 0.85) / 0.15), ys = a.yawSit;
-  posturaSentado(THREE, a.obj, wS, Math.sin(ys), Math.cos(ys));
-  const habla = wP > 0.5 ? 0.5 + 0.4 * Math.sin(t * 3.1 + (a.lado === 'rival' ? 1.7 : 0)) : 0;
-  posturaDePie(THREE, a.obj, wP, Math.sin(a.yawMira), Math.cos(a.yawMira), habla, a.termo);
+// (un botillero, en cada fotograma: sentado en su silla o, en el descanso, después del fundido, de pie delante de su pelotari)
+function mueveBotillero(a, D, dt) {
+  const dePie = !!(D && D.dentro && !D.fuera);
+  a.obj.position.copy(dePie ? a.pie : a.silla); a.obj.rotation.y = dePie ? a.yawMira : a.yawSit;
+  a.update(dt, 0, true, 0);
+  posturaSentado(THREE, a.obj, dePie ? 0 : 1, Math.sin(a.yawSit), Math.cos(a.yawSit));
+  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira));
+}
+const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// (la burbuja de tu botillero, arriba a la izquierda bajo los botones: su cara, su nombre y lo que te dice; no para el juego)
+function burbujaBotillero(B, texto) {
+  if (!document.getElementById('bot-dice-css')) document.head.appendChild(Object.assign(document.createElement('style'), { id: 'bot-dice-css', textContent: `
+.bot-dice{position:fixed;left:max(14px,env(safe-area-inset-left));top:calc(env(safe-area-inset-top) + 78px);z-index:30;display:flex;gap:10px;align-items:center;max-width:min(420px,58vw);
+  padding:8px 14px 8px 8px;border-radius:14px;background:linear-gradient(180deg,#2a1262,#170838);border:1px solid rgba(205,184,255,.28);box-shadow:0 8px 24px rgba(0,0,0,.35);
+  color:#fff;font:600 14px/1.3 inherit;pointer-events:none;opacity:0;transform:translateX(-12px);transition:opacity .25s,transform .25s}
+.bot-dice.on{opacity:1;transform:none}
+.bot-dice img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:50% 18%;flex:none;border:2px solid var(--bc,#fff);background:#24104f}
+.bot-dice b{display:block;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#ff7ad9;margin-bottom:2px}
+@media (max-height:420px){.bot-dice{top:calc(env(safe-area-inset-top) + 62px);font-size:13px}.bot-dice img{width:38px;height:38px}}` }));
+  document.querySelector('.bot-dice')?.remove();
+  const el = document.createElement('div'); el.className = 'bot-dice'; el.style.setProperty('--bc', B.camiseta);
+  el.innerHTML = `<img alt="" src="${retratoBotillero(B)}"><div><b>${esc(B.nombre)} · ${isEU() ? 'botilleroa' : 'botillero'}</b>${esc(texto)}</div>`;
+  document.body.appendChild(el); void el.offsetWidth; el.classList.add('on');   // (sin esperar al fotograma: con el juego cargado, el siguiente puede tardar)
+  setTimeout(() => { el.classList.remove('on'); setTimeout(() => el.remove(), 400); }, 4600);
 }
 function senalaJuez(J, call, b) {
   if (!J?.length || !call || call === 'bote' || call === 'tanto') return;
@@ -770,9 +784,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p);
         // (el consejo del botillero en el descanso, en la ventana de conversación de los vecinos, con su retrato; mientras
         // se lee, el descanso espera, y al cerrarla vuelven al saque: match.js)
-        if (e.type === 'botillero' && G.ui?.dialog) { e.abre(); const img = meshyBust('pelotari'); G.ui.dialog(e.lineas.map(text => ({ who: e.quien, img, icon: 'talk', text }))).then(e.fin, e.fin); } },
+        if (e.type === 'botillero' && G.ui?.dialog) { e.abre(); const B = botilleroTuyo(), img = retratoBotillero(B); G.ui.dialog(e.lineas.map(text => ({ who: `${B.nombre} · ${e.quien}`, img, icon: 'talk', text }))).then(e.fin, e.fin); }
+        if (e.type === 'botilleroDice') try { burbujaBotillero(botilleroTuyo(), e.texto); } catch (er) { console.warn('botillero', er); } },
     }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
-    if (mode === 'match') makeBotilleros(G, fronton.court, !!match.game?.pairs).then(b => { if (ended) { for (const r of b) { r.obj.parent?.remove(r.obj); r.termo?.parent?.remove(r.termo); r.dispose?.(); } return; } botis = b; for (const r of b) G.rt?.warm?.(r.obj); }, e => { console.warn('botilleros', e); apunta('botilleros', e); });
+    if (mode === 'match') makeBotilleros(G, fronton.court, !!match.game?.pairs).then(b => { if (ended) { for (const r of b) { r.obj.parent?.remove(r.obj); r.dispose?.(); } return; } botis = b; for (const r of b) G.rt?.warm?.(r.obj); }, e => { console.warn('botilleros', e); apunta('botilleros', e); });
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
     G.pelotaAbort = () => done({ win: false, quit: true, error: true }); G.pelotaLoading = false;
@@ -784,7 +799,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
       // (los botilleros, sentados en su silla; en el descanso, con su pelotari ya sentado, de pie delante de él, hablándole)
-      try { if (botis.length) { const D = match.desc; for (const a of botis) mueveBotillero(a, D, match.t || 0, dt); } } catch (e) { console.warn('botilleros', e); botis = []; }
+      try { if (botis.length) { const D = match.desc; for (const a of botis) mueveBotillero(a, D, dt); } } catch (e) { console.warn('botilleros', e); botis = []; }
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); brazoJuez(j, dt); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);
@@ -811,7 +826,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => quitaDorsal(rig));   // (si tu pelotari es tu figura de siempre, sin el nombre en la espalda al volver)
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
         safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
-        safe(() => { for (const r of botis) { r.obj.parent?.remove(r.obj); r.termo?.parent?.remove(r.termo); r.dispose?.(); } botis = []; });
+        safe(() => { for (const r of botis) { r.obj.parent?.remove(r.obj); r.dispose?.(); } botis = []; });
         safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
         safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
         safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });

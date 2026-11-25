@@ -1,29 +1,29 @@
 // El descanso como en los frontones de verdad (el autor, 25 de noviembre de 2026: «cuando se pide un descanso, los
-// jugadores suelen ir junto con sus entrenadores a sentarse a unas sillas y a beber agua… el botillero suele dar
-// consejos… ve los puntos débiles del rival y le dice: está lento, puedes hacerle un dos paredes, o al de una dejada, o
-// al de un gancho, o cánsale atrás»; y dos fotos de partidos: el pelotari sentado en una silla plegable negra, secándose
-// la cara con la toalla, y el botillero de pie, echado hacia él, con un termo en la mano, junto a una columna verde con
-// las botellas encima; «es una nevera y a cada lado son las sillas del botillero y del pelotari, y nada más»).
+// jugadores suelen ir junto con sus entrenadores a sentarse a unas sillas… el botillero suele dar consejos… ve los puntos
+// débiles del rival y le dice: está lento, puedes hacerle un dos paredes, o al de una dejada, o al de un gancho, o cánsale
+// atrás»; dos fotos de partidos: el pelotari sentado en una silla plegable negra y el botillero de pie, echado hacia él,
+// junto a una columna verde con las botellas encima; «es una nevera y a cada lado son las sillas del botillero y del
+// pelotari, y nada más»; y luego: «que no se vea cómo se sienta o cómo se levanta… elimina acciones como las de beber»).
 // Aquí, lo que no depende de quién lo dibuja:
 //  - dónde van la nevera, las sillas y el botillero de cada lado, en las medidas de la cancha (sillasDe);
 //  - la nevera, las sillas y las botellas de encima, en dos piezas (montaSillas);
-//  - la postura sentada del pelotari, encima de su animación: muslos al frente, espinillas abajo, la cadera bajada hasta
-//    que los pies vuelven a tocar el suelo, el cuerpo algo echado hacia delante y los antebrazos en los muslos; al
-//    beber, el brazo derecho lleva la botella a la boca, y al secarse, las dos manos la toalla a la cara (posturaSentado);
-//  - la del botillero de pie delante de él, echado hacia él con el termo en la mano (posturaDePie);
-//  - el consejo del botillero, en la ventana de conversación de los vecinos, sacado de cómo va el partido de verdad: si vas
-//    bien, que sigas así; si no, el cansancio del rival, su estilo (rematador,
-//    defensor, estratega o zurdo), su golpe estrella, tus fallos, tu cansancio y el marcador (consejo).
-// match.js lleva a los pelotaris a su silla y los vuelve a su sitio; game/fronton.js sienta a los botilleros en la suya
-// y, con su pelotari ya sentado, los levanta y los pone delante de él.
+//  - los botilleros que se pueden elegir, con su palmarés y su camiseta, que nunca es roja ni azul (BOTILLEROS), y su ropa
+//    de calle sobre la figura de un pelotari (vistePaisano);
+//  - la postura sentada, encima de la animación (posturaSentado), y la del botillero de pie, un poco echado hacia su
+//    pelotari (posturaDePie);
+//  - el consejo del descanso (consejo) y las palabras cuando pierdes varios tantos seguidos (animoRacha).
+// match.js hace el fundido del descanso y sienta a los pelotaris; game/fronton.js pone a los botilleros.
 import { COURT } from './rules.js';
 import { fillMaterial, sharpMap } from '../engine/charLight.js';
 
 /** Hacia dónde mira el que está sentado: hacia la cancha (la pared izquierda), en el giro de las figuras de match.js. */
 export const MIRA_SENTADO = -Math.PI / 2;
-/** Tiempos del descanso (s): lo que tarda en sentarse y en levantarse, cuándo bebe y cuándo se seca la cara con la
- *  toalla tras sentarse, cuándo habla el botillero, y lo que tarda este en levantarse y llegar delante de su pelotari. */
-export const DESC = { sienta: 0.7, levanta: 0.55, anda: 1.7, beber: [[1.0, 2.6], [5.6, 6.8]], toalla: [3.0, 4.7], consejo: 1.2, botSube: 1.3 };
+/** Tiempos del descanso (s): cuándo habla el botillero tras el corte, y el fundido a negro de la entrada y de la salida
+ *  (baja, se queda en negro y sube). Nadie se ve andando a la silla, sentándose ni levantándose: en negro, cada uno aparece
+ *  ya en su sitio (el autor, 25 de noviembre de 2026: «que no se vea cómo se sienta o cómo se levanta»). */
+export const DESC = { consejo: 1.2, fundido: { baja: 0.3, negro: 0.2, sube: 0.4 } };
+
+export { BOTILLEROS, botilleroDe } from './botilleroRetrato.js';   // (los datos, con sus retratos: el menú los lee sin cargar nada del partido)
 
 /** El rincón del descanso, en las medidas de la cancha (x de la pared izquierda, -W/2, hacia el ancho; z desde el
  *  frontis), como en los frontones (el autor, 25 de noviembre de 2026, con dos fotos de partidos de verdad: «es una
@@ -92,27 +92,6 @@ function juntar(T, arr) {
   geo.computeBoundingSphere(); return geo;
 }
 
-/** La botella del pelotari sentado: en su mano derecha mientras está en la silla (se dibuja en el mundo, siguiendo a
- *  la mano; no cuelga del hueso, que en estos modelos viene a escala 0,01). */
-export function botella(T) {
-  const g = new T.Group(); g.name = 'descanso-botella';
-  const cuerpo = new T.Mesh(new T.CylinderGeometry(0.034, 0.034, 0.2, 10), new T.MeshStandardMaterial({ color: '#cfe9f6', roughness: 0.18, transparent: true, opacity: 0.8 }));
-  const tapon = new T.Mesh(new T.CylinderGeometry(0.015, 0.015, 0.03, 8), new T.MeshStandardMaterial({ color: '#2a7fd4', roughness: 0.5 }));
-  tapon.position.y = 0.115; g.add(cuerpo, tapon); g.visible = false; return g;
-}
-/** La toalla con la que el pelotari se seca la cara (la primera foto del autor): un paño claro entre sus dos manos. */
-export function toalla(T) {
-  const m = new T.Mesh(new T.BoxGeometry(0.34, 0.46, 0.014), new T.MeshStandardMaterial({ color: '#c9d3df', roughness: 0.95 }));
-  m.name = 'descanso-toalla'; m.visible = false; return m;
-}
-/** El termo de metal del botillero (la primera foto: lo lleva en la mano, delante de su pelotari). */
-export function termo(T) {
-  const g = new T.Group(); g.name = 'descanso-termo';
-  const mt = new T.MeshStandardMaterial({ color: '#b9bdc2', roughness: 0.28, metalness: 0.85 });
-  const cuerpo = new T.Mesh(new T.CylinderGeometry(0.036, 0.036, 0.25, 12), mt), tapa = new T.Mesh(new T.CylinderGeometry(0.03, 0.036, 0.05, 12), mt);
-  tapa.position.y = 0.15; g.add(cuerpo, tapa); g.visible = false; return g;
-}
-
 // ---- la ropa de calle del botillero ----
 // (el autor, 25 de noviembre de 2026: «los dos botilleros son iguales… no tienen que ser iguales, tienen mucha falta de
 // dibujo, de pintura, de color… y sobre todo los botilleros no llevan tacos en las manos». Cada uno es un pelotari
@@ -151,8 +130,9 @@ uniform vec3 uBoCam, uBoHom, uBoVaq, uBoPiel; varying float vBoY, vBoMano;
 ${GL_HSV}
 vec3 boRopa(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = boHsv(cs); float h = q.x, s = q.y, v = q.z, y = vBoY;
-  bool blue = h > 0.5 && h < 0.75 && s > 0.3, white = s < 0.2 && v > 0.42, red = (h < 0.05 || h > 0.93) && s > 0.45 && v > 0.2;
+  bool blue = h > 0.48 && h < 0.78 && s > 0.22, white = s < 0.2 && v > 0.42, red = (h < 0.05 || h > 0.93) && s > 0.45 && v > 0.2;
   vec3 o = cs;
+  if (vBoMano > 0.3 && vBoMano < 0.6 && blue && y > 0.2) return pow(boTono(y > 0.63 ? uBoHom : uBoCam, v, 0.62), vec3(2.2));   // (el borde de la manga, donde ya pesa algo el antebrazo)
   if (vBoMano > 0.3) { if (white || (h > 0.085 && h < 0.2 && v > 0.38) || vBoMano > 0.6) o = mix(cs, uBoPiel * clamp(pow(v / 0.8, 0.8), 0.55, 1.2), smoothstep(0.3, 0.55, vBoMano)); return pow(o, vec3(2.2)); }
   if (y > 0.2 && y < 0.72 && blue) o = boTono(y > 0.63 ? uBoHom : uBoCam, v, 0.62);
   else if (y > 0.3 && y < 0.5 && red) o = boTono(uBoCam, v, 0.62);
@@ -187,24 +167,16 @@ function apunta(T, b, c, dir, w) {
   const wq = b.getWorldQuaternion(q(T, 'q3')); wq.premultiply(qw);
   const pq = b.parent.getWorldQuaternion(q(T, 'q')); b.quaternion.copy(pq.invert().multiply(wq)); b.updateMatrixWorld(true);
 }
-// (un objeto suelto en el mundo, colocado en p con su eje y hacia eje)
-function coloca(T, o, p, eje) {
-  const par = o.parent; if (!par) return;
-  par.updateMatrixWorld(true); o.position.copy(par.worldToLocal(p.clone()));
-  const qw = new T.Quaternion().setFromUnitVectors(new T.Vector3(0, 1, 0), eje.clone().normalize());
-  qw.premultiply(par.getWorldQuaternion(new T.Quaternion()).invert()); o.quaternion.copy(qw);
-}
-/** Sienta a la figura obj con peso w (0 de pie, 1 sentado), mirando hacia fx, fz (en el mundo). bebe: 0 a 1, lo que
- *  sube la botella a la boca. bot: la botella (botella()), que se coloca en su mano. habla: 0 a 1, la mano derecha
- *  adelante y arriba, como quien explica algo. seca: 0 a 1, las dos manos a la cara con la toalla toa (toalla()).
- *  Sin esqueleto, no hace nada. */
-export function posturaSentado(T, obj, w, fx, fz, bebe = 0, bot = null, habla = 0, seca = 0, toa = null) {
-  const B = huesos(obj); if (!B) { if (bot) bot.visible = false; if (toa) toa.visible = false; return; }
+/** Sienta a la figura obj con peso w (0 de pie, 1 sentado), mirando hacia fx, fz (en el mundo): muslos al frente,
+ *  espinillas abajo, la cadera bajada hasta que los pies tocan el suelo, el cuerpo algo echado hacia delante y los
+ *  antebrazos en los muslos, quietos. Sin esqueleto, no hace nada. */
+export function posturaSentado(T, obj, w, fx, fz) {
+  const B = huesos(obj); if (!B) return;
   const H = B.Hips, u = obj.userData;
   // (la cadera la mueve la animación en cada fotograma; si esta no tiene pista de posición, se deshace lo que se bajó en
   // el anterior antes de volver a bajarla, para que no se hunda)
   if (u.silla?.ult && H.position.equals(u.silla.ult)) H.position.copy(u.silla.base);
-  if (w <= 0.001) { if (bot) bot.visible = false; if (toa) toa.visible = false; if (u.silla) u.silla.ult = null; return; }
+  if (w <= 0.001) { if (u.silla) u.silla.ult = null; return; }
   (u.silla ||= { base: new T.Vector3(), ult: null }).base.copy(H.position);
   obj.updateMatrixWorld(true);
   const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize();
@@ -222,62 +194,26 @@ export function posturaSentado(T, obj, w, fx, fz, bebe = 0, bot = null, habla = 
     const wp = H.getWorldPosition(new T.Vector3()); wp.y -= (y1 - y0);
     H.parent.updateMatrixWorld(true); H.position.copy(H.parent.worldToLocal(wp)); H.updateMatrixWorld(true);
   }
-  // (el cuerpo, algo echado hacia delante, cansado; al secarse, más, hacia la toalla)
-  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.38 + 0.2 * seca).normalize(), w);
-  // (los brazos: los antebrazos apoyados en los muslos; el derecho, al beber, lleva la botella a la boca; al secarse,
-  // los dos a la cara)
+  // (el cuerpo, algo echado hacia delante, cansado)
+  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.38).normalize(), w);
+  // (los brazos: los antebrazos apoyados en los muslos)
   const sp = (B.Spine || H).getWorldPosition(new T.Vector3());
-  for (const [A, Fa, Hd, der] of [[B.LeftArm, B.LeftForeArm, B.LeftHand, false], [B.RightArm, B.RightForeArm, B.RightHand, true]]) {
+  for (const [A, Fa, Hd] of [[B.LeftArm, B.LeftForeArm, B.LeftHand], [B.RightArm, B.RightForeArm, B.RightHand]]) {
     if (!A || !Fa || !Hd) continue;
     const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    const b = Math.max(der ? bebe : 0, seca), hb = der ? habla : 0;
-    const brazo = new T.Vector3().addScaledVector(up, -0.78 + 0.45 * b + 0.3 * hb).addScaledVector(f, 0.5 + 0.1 * b + 0.2 * hb).addScaledVector(fuera, 0.1 + 0.2 * b + 0.15 * hb).normalize();
-    apunta(T, A, Fa, brazo, w);
-    let ante = new T.Vector3().copy(f).multiplyScalar(0.85).addScaledVector(up, -0.42 + 0.75 * hb).addScaledVector(fuera, -0.28 + 0.2 * hb).normalize();
-    if (b > 0 && B.Head) {   // (a la boca, un poco delante y debajo de la cabeza; o a la cara, cada mano a su lado)
-      const cab = B.Head.getWorldPosition(new T.Vector3()), codo = Fa.getWorldPosition(new T.Vector3());
-      const boca = cab.clone().addScaledVector(f, 0.12).addScaledVector(up, -0.06), cara = cab.clone().addScaledVector(f, 0.13).addScaledVector(fuera, 0.06).addScaledVector(up, 0.02);
-      const ob = seca >= (der ? bebe : 0) ? cara : boca;
-      ante.lerp(ob.sub(codo).normalize(), b).normalize();
-    }
-    apunta(T, Fa, Hd, ante, w);
+    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.78).addScaledVector(f, 0.5).addScaledVector(fuera, 0.1).normalize(), w);
+    apunta(T, Fa, Hd, new T.Vector3().copy(f).multiplyScalar(0.85).addScaledVector(up, -0.42).addScaledVector(fuera, -0.28).normalize(), w);
   }
   u.silla.ult = H.position.clone();
-  // (la botella, en la palma derecha; de pie, con el tapón arriba, y al beber, inclinada hacia la boca. Mientras se seca,
-  // guardada)
-  if (bot && B.RightHand) {
-    bot.visible = w > 0.6 && seca < 0.25;
-    if (bot.visible) coloca(T, bot, B.RightHand.getWorldPosition(new T.Vector3()).addScaledVector(f, 0.05), new T.Vector3().copy(up).lerp(new T.Vector3().copy(f).multiplyScalar(-1).addScaledVector(up, 0.55), bebe));
-  }
-  // (la toalla, entre las dos manos y la cara, colgando un poco)
-  if (toa && B.LeftHand && B.RightHand) {
-    toa.visible = w > 0.6 && seca > 0.3;
-    if (toa.visible) {
-      const m = B.LeftHand.getWorldPosition(new T.Vector3()).add(B.RightHand.getWorldPosition(new T.Vector3())).multiplyScalar(0.5).addScaledVector(f, -0.03).addScaledVector(up, -0.1);
-      const par = toa.parent; par.updateMatrixWorld(true); toa.position.copy(par.worldToLocal(m));
-      const lado = new T.Vector3().crossVectors(up, f).normalize(), mm = new T.Matrix4().makeBasis(lado, up, f);
-      toa.quaternion.setFromRotationMatrix(mm).premultiply(par.getWorldQuaternion(new T.Quaternion()).invert());
-    }
-  }
 }
-/** El botillero de pie delante de su pelotari sentado (las dos fotos del autor): con peso w (0 a 1), echado hacia él,
- *  la cabeza baja mirándole, el termo en la mano derecha a la altura de la cintura y la izquierda por delante, moviéndose
- *  al hablar (habla, 0 a 1). fx, fz: hacia el pelotari. ter: el termo (termo()). */
-export function posturaDePie(T, obj, w, fx, fz, habla = 0, ter = null) {
-  const B = huesos(obj); if (!B || w <= 0.001) { if (ter) ter.visible = false; return; }
+/** El botillero de pie delante de su pelotari sentado (las fotos del autor): con peso w (0 a 1), un poco echado hacia él y
+ *  con la cabeza baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */
+export function posturaDePie(T, obj, w, fx, fz) {
+  const B = huesos(obj); if (!B || w <= 0.001) return;
   obj.updateMatrixWorld(true);
-  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize(), H = B.Hips;
-  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.6).normalize(), w);
-  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.75).normalize(), w);
-  const sp = (B.Spine || H).getWorldPosition(new T.Vector3());
-  for (const [A, Fa, Hd, der] of [[B.LeftArm, B.LeftForeArm, B.LeftHand, false], [B.RightArm, B.RightForeArm, B.RightHand, true]]) {
-    if (!A || !Fa || !Hd) continue;
-    const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    const hb = der ? 0 : habla;
-    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.85 + 0.25 * hb).addScaledVector(f, 0.42 + 0.15 * hb).addScaledVector(fuera, 0.1).normalize(), w);
-    apunta(T, Fa, Hd, new T.Vector3().copy(f).multiplyScalar(0.9).addScaledVector(up, der ? 0.05 : 0.15 + 0.55 * hb).addScaledVector(fuera, der ? -0.15 : -0.3).normalize(), w);
-  }
-  if (ter && B.RightHand) { ter.visible = w > 0.5; if (ter.visible) coloca(T, ter, B.RightHand.getWorldPosition(new T.Vector3()).addScaledVector(f, 0.04).addScaledVector(up, -0.02), up); }
+  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize();
+  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.3).normalize(), w);
+  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.45).normalize(), w);
 }
 
 // ---- el consejo del botillero ----
@@ -361,4 +297,18 @@ export function consejo(g, arq = {}, lang = 'es', chica = false, dichos = new Se
   // (y siempre una palabra de ánimo al final; en la final, la de la final)
   if (final) lineas.push(L.final); else if (b && b.peso >= 1.8) lineas.push(una(L.animo));
   return { quien: L.quien, bien: false, lineas };
+}
+
+// ---- unas palabras cuando pierdes varios tantos seguidos ----
+// (el autor, 25 de noviembre de 2026: «si llevas unos cuantos tantos que estás perdiendo seguidos, el entrenador también te
+// dice unas palabras». Cortas, en una burbuja que no para el juego; {el}, el rival: chico o chica)
+const RACHA = {
+  es: ['Tranquilo, respira. Un tanto y cambiamos esto.', 'Venga, que tú puedes. Aguanta, resiste.', 'No te precipites: juega largo y espera tu pelota.',
+    'Intenta meter la pelota en la mano y pégale limpio.', 'Cabeza fría. Échala atrás y que corra {el}.', 'Cambia el ritmo: una dejada y luego atrás.'],
+  eu: ['Lasai, arnasa hartu. Tanto bat eta hau aldatuko dugu.', 'Tira, zuk ahal duzu. Eutsi gogor.', 'Ez presarik izan: jokatu luze eta itxaron zure pilota.',
+    'Saiatu pilota eskuan sartzen eta jo garbi.', 'Burua hotz. Bota atzera eta korri dezala berak.', 'Aldatu erritmoa: utzi bat eta gero atzera.'],
+};
+/** Lo que te dice tu botillero tras n tantos perdidos seguidos (vez: cuántas veces lo ha dicho ya en este partido). */
+export function animoRacha(lang = 'es', vez = 0, chica = false) {
+  const L = RACHA[lang] || RACHA.es; return gen(L[vez % L.length], chica);
 }

@@ -18,11 +18,21 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `418c33a7`.)
+- Pelota: elegir botillero (anillo con su palmarés), descanso con fundido y sin acciones, palabras del botillero tras
+  tres tantos perdidos, cortada y gancho hasta rozar la chapa (Auditoría, 25 nov, noche).
 
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz** (25 nov, noche, lo último de todo): por encargo directo del autor («que cuando
+  elijas pelotari también puedas elegir entrenador… el palmarés del botillero… camisetas de colores, ni roja ni azul»).
+  En `src/game/torneo.js` (tuyo), `anilloPelotari` lleva en el pie, junto a «Jugar», el botón del botillero (su cara y su
+  nombre); al tocarlo, `anilloBotillero`: el anillo con las cartas de los ocho botilleros (silueta de las de los
+  pelotaris, txapelas en grande, escudo de su pueblo, finales y desde cuándo; la cinta de la corona, de su camiseta). Se
+  guarda en `profile().botillero`. Los datos y los retratos, en `src/pelota/botilleroRetrato.js` (mío, sin nada de 3D).
+  El descanso, sin transiciones: fundido a negro y ya están sentados; sin beber, toalla ni termo. Si pierdes tres tantos
+  seguidos, tu botillero te dice algo (bocadillo arriba a la izquierda, `src/game/fronton.js`). La cortada y el gancho
+  bajan con el joystick hasta rozar la chapa (`cutHeight`, `src/pelota/game.js`).
 - **De Auditoría a Pelota · interfaz y a quien lleve los personajes** (25 nov, noche, lo último): por encargo directo del
   autor, el descanso como en los frontones de verdad. `src/pelota/botillero.js` (nuevo): una sola nevera verde en la
   contracancha y, a cada lado, las sillas plegables de cada equipo (pelotari y botillero); el pelotari se sienta de

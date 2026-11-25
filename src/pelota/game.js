@@ -73,7 +73,15 @@ const GANCHO_Y = 1.55;
 // arriba o abajo (−1 a 1). También la usa la marca de puntería que se ve en el frontis mientras se carga
 const pow01 = (pow) => clamp((pow - 0.15) / 0.85, 0, 1);
 // (la cortada va rápida y tensa, pero sin rozar la chapa: de 1,35 m poco cargada a unos 3 m a tope)
-export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45) + ay * 0.5, COURT.CHAPA + 0.35, COURT.FRONT_H * 0.36); }
+// (el joystick abajo baja la cortada hasta rozar la chapa, cargues lo que cargues: lo que queda por encima de la chapa
+// se encoge hasta unos centímetros con el joystick abajo del todo; arriba, sube medio metro. El autor, 25 de noviembre de
+// 2026: «que la cortada puedas controlar la altura hasta ajustarla a la chapa… si es de derecha hacia la pared es cortada,
+// pero si es de la izquierda hacia el ancho, contracancha, es gancho»: el gancho sale con la misma altura. Antes no bajaba
+// de 35 cm por encima de la chapa. Cuanto más rasa, más fácil que el error del golpe la mande a la chapa)
+export function cutHeight(pow, ay = 0) {
+  const a = clamp(ay, -1, 1), sobre = 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45);
+  return clamp(COURT.CHAPA + (a < 0 ? sobre * (1 + a * 0.92) : sobre + a * 0.5), COURT.CHAPA + 0.04, COURT.FRONT_H * 0.36);
+}
 // el joystick a un lado, casi en proporción: medio lado va a media cancha y del todo, a tope (a la izquierda, a la pared; a la
 // derecha, justo a la raya de la contracancha, donde un golpe no del todo bueno se va fuera). Antes se exageraba (medio lado ya
 // iba casi a la pared) y la derecha a tope se quedaba a medio metro de la raya: «casi es imposible fallar golpeando la pelota

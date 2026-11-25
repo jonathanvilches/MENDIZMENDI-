@@ -18,7 +18,8 @@ import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier, tantosDe, TEXT, RETOS, estrellasReto } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { tusCualidades, tuPelotari } from './pelotariProgreso.js';
-import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
+import { pelotariCard, CARTA_ALTO, escudoDe } from '../ui/sportCard.js';
+import { BOTILLEROS, botilleroDe, retratoBotillero, figuraBotillero } from '../pelota/botilleroRetrato.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
@@ -743,8 +744,9 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia }).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
     const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker), titulo: eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
-      ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button>` })}`);
+      ${ptPie({ botones: `${botonBotillero(eu)}<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant');
+    let pausa = false;   // (con el anillo de los botilleros abierto encima, las teclas son suyas)
     // (las figuras animadas, apagadas todas antes de que carguen; la de delante se enciende al llegar)
     const figs = [...r.querySelectorAll('.ep-port')].map(b => b.querySelector('.gx-fig img')); figs.forEach(im => figuraViva(im, false));
     const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = items[0], viva = null, tViva = 0;
@@ -759,17 +761,81 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(k); };
     // (las teclas, aquí y solo aquí: debajo puede estar el anillo de los campeonatos, que también las oye)
     const tecla = (e) => {
+      if (pausa) return;
       if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
       else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
       else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); fin(cur.k); }
     };
     addEventListener('keydown', tecla, true);
-    r.addEventListener('click', (e) => {
+    r.addEventListener('click', async (e) => {
       const c = e.target.closest('.ep-port'); if (c) return fin(c.dataset.p);
       const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'bot') { if (pausa) return; pausa = true; const id = await anilloBotillero(); pausa = false;
+        if (id) { const P = profile(); if (P.botillero !== id) { P.botillero = id; saveProfile(); } b.outerHTML = botonBotillero(eu); } return; }
       fin(b.dataset.a === 'ok' ? cur.k : null);
     });
   });
+}
+/** El botillero que te acompaña (el autor, 25 de noviembre de 2026: «que cuando elijas pelotari también puedas elegir
+ *  entrenador… como en el FIFA, que puedas elegir cuál es tu botillero… el palmarés del botillero, cuántas txapelas ha
+ *  conseguido»). En el pie de «Elige tu pelotari», junto a «Jugar», el tuyo con su cara y su nombre; al tocarlo, el anillo
+ *  de sus cartas. Se guarda en el perfil (botillero) y es el que se sienta contigo en el descanso (game/fronton.js). */
+const botonBotillero = (eu) => { const B = botilleroDe(profile().botillero); cssBotillero();
+  return `<button type="button" class="lg-btn bo-elige" data-a="bot" style="--eq:${B.camiseta}" aria-label="${eu ? 'Botileroa' : 'Botillero'}: ${esc(B.nombre)}"><img src="${retratoBotillero(B)}" alt="" draggable="false"><span><small>${eu ? 'Botileroa' : 'Botillero'}</small><b>${esc(B.nombre)}</b></span></button>`; };
+// (su carta, con la silueta de las de los pelotaris: la categoría, por sus txapelas; la cinta de la corona, de su camiseta;
+// a la izquierda, sus txapelas en grande y el escudo de su pueblo; debajo, las finales a las que llegó y desde cuándo)
+function botilleroCard(B, lang) {
+  const t = B.txapelas >= 15 ? 'oro' : B.txapelas >= 8 ? 'plata' : 'bronce', escudo = escudoDe(B.pueblo);
+  const N = lang === 'eu' ? ['Finalak', 'Noiztik'] : ['Finales', 'Desde'];
+  return `<span class="gx-card azul t-${t} bo-carta${escudo ? ' con-escudo' : ''}" style="--w:170px;--eq:${B.camiseta}">
+    <span class="gx-face"></span><span class="gx-eq"></span><span class="gx-lin"></span><span class="gx-fig"><img src="${figuraBotillero(B)}" alt="" draggable="false" decoding="async"></span>
+    <span class="gx-ovr"><b>${B.txapelas}</b><small>${lang === 'eu' ? 'Txapel' : 'Txap.'}</small>${escudo ? `<img class="gx-esc" src="${escudo}" alt="" draggable="false" decoding="async">` : ''}</span>
+    <span class="gx-pie"><span class="gx-nm">${esc(B.nombre)}</span><span class="gx-st">${[B.finales, B.desde].map((v, i) => `<span><b>${v}</b><small>${N[i]}</small></span>`).join('')}</span></span></span>`;
+}
+/** El anillo de los botilleros, encima de «Elige tu pelotari». Devuelve el id del elegido o null (Volver, Escape). */
+function anilloBotillero() {
+  efCss(); cssCarrusel(); cssBotillero();
+  const eu = isEU(), lang = eu ? 'eu' : 'es', sel = botilleroDe(profile().botillero).id;
+  return new Promise(res => {
+    const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    const port = (B) => `<button type="button" class="c3-port ep-port" data-b="${B.id}" aria-label="${esc(B.nombre)}">${botilleroCard(B, lang).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${B.id === sel ? `<i class="ep-tu">${eu ? 'Zurea' : 'El tuyo'}</i>` : ''}</button>`;
+    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: eu ? 'Zure botileroa' : 'Tu botillero', titulo: eu ? 'Aukeratu botileroa' : 'Elige tu botillero' })}
+      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Botileroak' : 'Botilleros'}">${flecha('izq')}<div class="c3-anillo">${BOTILLEROS.map(port).join('')}</div>${flecha('der')}</div></div>
+      ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Aukeratu' : 'Elegir'}</button>` })}`);
+    r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant', 'bo-pant');
+    const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = botilleroDe(sel);
+    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: CARTA_ALTO, banda: true, inicio: Math.max(0, BOTILLEROS.findIndex(B => B.id === sel)),
+      alCambiar: (i) => { const B = BOTILLEROS[i]; if (!B) return; cur = B;
+        info.querySelector('.c3-que b').textContent = B.nombre; info.querySelector('.c3-que span').textContent = `${B.pueblo} · ${B.estilo[lang] || B.estilo.es}`;
+        ok.textContent = eu ? `${B.nombre} aukeratu` : `Con ${B.nombre}`; reanima(info.querySelector('.c3-que')); } });
+    r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
+    const fin = (id) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(id); };
+    const tecla = (e) => {
+      if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); fin(cur.id); }
+    };
+    addEventListener('keydown', tecla, true);
+    r.addEventListener('click', (e) => {
+      const c = e.target.closest('.ep-port'); if (c) return fin(c.dataset.b);
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      fin(b.dataset.a === 'ok' ? cur.id : null);
+    });
+  });
+}
+let boCss = false;
+function cssBotillero() {
+  if (boCss || typeof document === 'undefined') return; boCss = true;
+  const st = document.createElement('style'); st.textContent = `
+.pt-acc .lg-btn.bo-elige{display:flex;align-items:center;gap:10px;padding:4px 16px 4px 5px;text-align:left;text-transform:none}
+.bo-elige img{flex:none;width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:50% 12%;background:#1a0f2e;box-shadow:0 0 0 2px var(--eq,#2f8f5b)}
+.bo-elige span{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.bo-elige small{font:700 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#d9cdef}
+.bo-elige b{font:800 clamp(15px,3.8vh,19px)/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap}
+.gx-card.bo-carta .gx-st{grid-template-columns:1fr 1fr}
+.gx-card.bo-carta .gx-fig>img{position:absolute;left:50%;top:0;width:150%;height:auto;max-width:none;object-fit:initial;transform:translateX(-50%)}
+@media (orientation:portrait){.pt-acc .lg-btn.bo-elige{flex:1.2 1 0}}`;
+  document.head.appendChild(st);
 }
 /** Antes de la primera ronda de un campeonato: con qué pelotari lo juegas entero. Devuelve true si se ha elegido (y ya
  *  está puesto en el torneo); con «Volver», sigue el que había y no se vuelve a preguntar sola */

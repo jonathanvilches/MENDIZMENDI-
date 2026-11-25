@@ -22,7 +22,7 @@ import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
-import { sillasDe, montaSillas, posturaSentado, botella, consejo, MIRA_SENTADO, DESC, toalla } from './botillero.js';
+import { sillasDe, montaSillas, posturaSentado, consejo, animoRacha, MIRA_SENTADO, DESC } from './botillero.js';
 import { sinCabeza } from './sinCabeza.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
@@ -1430,10 +1430,12 @@ export class PelotaMatch {
       }
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
         const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
-        this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', 3.6);
+        this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', g.mode === 'match' ? 2.2 : 3.6);   // (en el partido, más corto: al volver del fundido no tapa a los del descanso)
         A.mood(0.12, 0.6); this.decir(this.com?.descanso(), 600);
-        // (y los dos van andando a su silla de la contracancha, se sientan y beben; tu botillero te da un consejo: botillero.js)
-        if (g.mode === 'match') { this.sillas ||= sillasDe(this.court?.contra ?? 2.6, !!g.pairs); this.desc = { t0: this.t, fin: null, w: {}, sit: {}, giro: {}, dicho: false }; }
+        // (un fundido corto a negro y, al volver, los dos ya sentados en su silla de la contracancha, con su botillero de pie
+        // delante; al acabar, otro fundido y ya están en su sitio. Sin verlos andar, sentarse ni levantarse, que es lo que
+        // peor queda: el autor, 25 de noviembre de 2026. Tu botillero te da un consejo: botillero.js)
+        if (g.mode === 'match') { this.sillas ||= sillasDe(this.court?.contra ?? 2.6, !!g.pairs); this.desc = { t0: this.t, fin: null, w: {}, sit: {}, dicho: false, dentro: false, fuera: false, salto: false }; }
         break;
       }
       case 'descansoFin': if (this.desc) this.desc.fin = this.t; break;
@@ -1460,6 +1462,10 @@ export class PelotaMatch {
       case 'call': {
         this.jPend = null;   // (el golpe pendiente de comentar ya no se comenta: el tanto ha acabado)
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
+        // (tres tantos perdidos seguidos, y cada tres más: unas palabras de tu botillero, en su burbuja, sin parar el juego:
+        // game/fronton.js, 'botilleroDice'; el autor, 25 de noviembre de 2026)
+        if (g.mode === 'match' && !e.final) { this.malos = e.winner === 'you' ? 0 : (this.malos || 0) + 1;
+          if (this.malos >= 3 && this.malos % 3 === 0) try { this.o.onEvent?.({ type: 'botilleroDice', texto: animoRacha(this.lang, this.vecesMalos = (this.vecesMalos ?? -1) + 1, !!this.o.rival?.girl) }); } catch (er) { console.warn('botillero', er); } }
         // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
         const ex = g.mode === 'rally' ? null : { col: this.cols[e.winner], racha: this.rachaDe(e) };
         // (el rótulo: lo que canta el juez, «¡Dos botes!», «¡Falta!», y para quién es el tanto, sin la explicación de la regla
@@ -1767,6 +1773,12 @@ export class PelotaMatch {
     // la fuerza y la energía de cada uno, en el marcador bajo su nombre
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
       name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
+    // (el descanso: el fundido de entrada y el de salida; en negro, cada uno aparece en su sitio: D.salto)
+    if (this.desc) { const D = this.desc, F = DESC.fundido;
+      if (!D.dentro && this.t - D.t0 >= F.baja) { D.dentro = true; D.tDentro = this.t; D.salto = true; }
+      if (D.fin != null && !D.fuera && this.t - D.fin >= F.baja) { D.fuera = true; D.tFuera = this.t; D.salto = true; }
+      const x = this.t - (D.fin != null ? D.fin : D.t0);
+      this.velo(x < F.baja ? x / F.baja : x < F.baja + F.negro ? 1 : Math.max(0, 1 - (x - F.baja - F.negro) / F.sube)); }
     // pelotaris
     this.esquiva(dt);
     for (const who of g.ids) {
@@ -1776,10 +1788,11 @@ export class PelotaMatch {
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
       const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0, vel: 0, px: P.x, pz: P.z };
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
-      // (en el descanso, su sitio es su silla: va andando, se sienta y, al acabar, se levanta y vuelve corriendo al saque;
-      // la silla mira a la cancha y la figura se queda un poco detrás del centro del asiento: botillero.js, sillasDe)
-      const D = this.desc, ch = D && this.sillas?.[who], wS = D?.w[who] || 0;
-      if (ch && (!D.fin || wS > 0.02)) { px = ch.x + 0.06; pz = ch.z; }
+      // (en el descanso, tras el fundido, su sitio es su silla, ya sentado: la silla mira a la cancha y la figura se queda un
+      // poco detrás del centro del asiento, botillero.js, sillasDe. En el fundido de la vuelta, otra vez en su sitio de juego)
+      const D = this.desc, ch = D && D.dentro && !D.fuera && this.sillas?.[who];
+      if (ch) { px = ch.x + 0.06; pz = ch.z; }
+      if (D?.salto) { S.px = px; S.pz = pz; S.ox = S.oz = 0; S.vel = 0; S.x = px; S.z = pz; }   // (en negro: aparece en su sitio, sin ir andando)
       // (solo es un salto cuando la lógica cambia de golpe su sitio, no cuando la figura aún va de camino: antes se miraba
       // la distancia de la figura a su sitio, que mientras vuelve siempre es grande, y en cada fotograma se rehacía el
       // camino en línea recta y se perdía el desvío de esquiva. Al cambiar el saque, los dos van por la raya del 7 de
@@ -1792,19 +1805,16 @@ export class PelotaMatch {
       // el paso de la figura, que corre con las piernas. Antes se acercaba cada vez más despacio y, al final, parecía que
       // se arrastraba hasta su sitio)
       if (S.ox || S.oz) {
-        const d = Math.hypot(S.ox, S.oz), quiere = Math.min(VUELTA.v * (ch && !D.fin ? 0.4 : 1), Math.sqrt(2 * VUELTA.freno * d));
+        const d = Math.hypot(S.ox, S.oz), quiere = Math.min(VUELTA.v, Math.sqrt(2 * VUELTA.freno * d));
         S.vel = quiere > S.vel ? Math.min(quiere, S.vel + VUELTA.acel * dt) : quiere;
         const step = Math.min(d, S.vel * dt), k = d > 0 ? (d - step) / d : 0;
         S.ox *= k; S.oz *= k; if (dt > 0) S.v = step / dt;
         if (Math.hypot(S.ox, S.oz) < 0.03) { S.ox = S.oz = 0; S.vel = 0; }
         px += S.ox; pz += S.oz;
       } else S.vel = 0;
-      if (ch) {
-        const llego = !(S.ox || S.oz);
-        if (!D.fin) { if (llego && (D.giro[who] ?? 9) < 0.35) { D.w[who] = Math.min(1, wS + dt / DESC.sienta); if (D.w[who] > 0.5) D.sit[who] ??= this.t; } }
-        else D.w[who] = Math.max(0, wS - dt / DESC.levanta);
-      }
-      (g.lejos ||= {})[who] = Math.hypot(S.ox, S.oz) > 0.5 || !!(ch && D.fin && (D.w[who] || 0) > 0.02);   // (aún volviendo: el saque espera, game.js; y mientras se levanta de la silla)
+      if (D) { D.w[who] = ch ? 1 : 0; if (ch) D.sit[who] ??= D.tDentro; }
+      // (aún volviendo: el saque espera, game.js; y hasta que se acaba el fundido de la vuelta del descanso)
+      (g.lejos ||= {})[who] = Math.hypot(S.ox, S.oz) > 0.5 || !!(D && D.fin != null && !(D.fuera && this.t - D.tFuera > DESC.fundido.negro));
       S.x = px; S.z = pz;
       // (la pelota, al alcance de la mano: el que va a golpear se estira hacia ella en sus últimas décimas, lo justo para que
       // su mano llegue, y vuelve a su sitio después del golpe. Solo en la imagen: el juego sigue con su sitio. Medido en
@@ -1839,7 +1849,8 @@ export class PelotaMatch {
       // en cada tanto, y en el último, con la cámara dando la vuelta, no paraba de girar)
       if (this.entra?.ok[who]) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;
       else if (g.phase === 'point' && P.act === 'cheer') yaw = Math.atan2(1, -0.4);
-      if (ch && ((!D.fin && !(S.ox || S.oz)) || (D.w[who] || 0) > 0.02)) { yaw = MIRA_SENTADO; D.giro[who] = Math.abs(Math.atan2(Math.sin(yaw - (P.yaw ?? yaw)), Math.cos(yaw - (P.yaw ?? yaw)))); }   // (en la silla, de cara a la cancha)
+      if (ch) yaw = MIRA_SENTADO;   // (en la silla, de cara a la cancha)
+      if (D?.salto) P.yaw = yaw;   // (y en el fundido, ya mirando hacia donde toca: sin darse la vuelta a la vista)
       // (y el giro, sin latigazos: como mucho 7 rad/s, que es lo que gira alguien al arrancar a correr)
       { const dYaw = Math.atan2(Math.sin(yaw - (P.yaw ?? yaw)), Math.cos(yaw - (P.yaw ?? yaw))) * (1 - Math.exp(-12 * dt)); const tope = (g.phase === 'point' ? 3 : 7) * dt; P.yaw = P.yaw == null ? yaw : P.yaw + Math.max(-tope, Math.min(tope, dYaw)); }   // (entre tanto y tanto, con calma)
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
@@ -1894,24 +1905,18 @@ export class PelotaMatch {
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;
       (this.recSt ||= {})[who] = st;
       if (side.animate) side.animate(side.obj, st, dt); else basicAnimate(side.obj, st, dt, this.t);
-      // (sentado en el descanso: la postura va encima de su animación; bebe dos veces y entre medias se seca la cara con
-      // la toalla, como en la foto del autor; el rival, un poco después que tú)
+      // (sentado en el descanso: la postura va encima de su animación, quieto en su silla; sin beber ni secarse, que no
+      // quedaba bien: el autor, 25 de noviembre de 2026)
       if (D) {
-        const w = D.w[who] || 0, t0 = D.sit[who], ts = t0 != null ? this.t - t0 - (g.side(who) === 'rival' ? 0.8 : 0) : -9;
-        const ventana = ([a, b]) => Math.min(1, Math.max(0, (ts - a) / 0.35), Math.max(0, (b - ts) / 0.35));
-        let bebe = 0; for (const vb of DESC.beber) bebe = Math.max(bebe, ventana(vb));
-        const seca = D.fin ? 0 : ventana(DESC.toalla);
-        const bots = this.botellas ||= {}; if (!bots[who] && w > 0) { bots[who] = botella(T); grp.add(bots[who]); }
-        const toas = this.toallas ||= {}; if (!toas[who] && w > 0) { toas[who] = toalla(T); grp.add(toas[who]); }
         const yw = grp.rotation.y + MIRA_SENTADO + (this.o.yawOffset || 0);
-        try { posturaSentado(T, side.obj, w, Math.sin(yw), Math.cos(yw), D.fin ? 0 : bebe, bots[who], 0, seca, toas[who]); } catch (e) { console.warn('silla', e); }
+        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw)); } catch (e) { console.warn('silla', e); }
       }
       // (y las manos, nunca dentro de la cabeza: al celebrar, al lamentarse, al bailar o al beber; sinCabeza.js)
       if (!this.sinCabOff) try { sinCabeza(T, side.obj); } catch (e) { console.warn('cabeza', e); this.sinCabOff = true; }
     }
-    // (acabado el descanso y ya de pie todos, fuera; y el consejo de tu botillero, una vez sentado tu pelotari)
+    // (acabado el descanso y vuelto cada uno a su sitio, fuera; y el consejo de tu botillero, una vez sentado tu pelotari)
     if (this.desc) {
-      const D = this.desc;
+      const D = this.desc; D.salto = false;
       // (en la ventana de conversación de los vecinos, si quien juega el partido la tiene: game/fronton.js, 'botillero'.
       // Mientras se lee, el descanso espera; al cerrarla, se levantan y vuelven al saque. Si no, en el aviso grande)
       if (!D.dicho && D.sit.you != null && this.t - D.sit.you > DESC.consejo) { D.dicho = true;
@@ -1920,7 +1925,7 @@ export class PelotaMatch {
           this.o.onEvent?.({ type: 'botillero', quien: c.quien, lineas: c.lineas, bien: c.bien, abre: () => { abre = true; D.charla = true; }, fin });
           if (!abre) this.hud.call(c.quien, c.lineas.map(l => `«${l}»`).join(' '), '', 7); } catch (e) { console.warn('botillero', e); } }
       if (D.charla && g.phase === 'descanso') g.phaseT = Math.min(g.phaseT, DESCANSO.t - 0.6);   // (el descanso no acaba con la charla abierta)
-      if ((D.fin && g.ids.every(id => !(D.w[id] > 0.001))) || g.phase === 'end' || g.phase === 'intro') { this.desc = null; for (const b of [...Object.values(this.botellas || {}), ...Object.values(this.toallas || {})]) b.visible = false; }
+      if ((D.fuera && this.t - D.tFuera > DESC.fundido.negro + DESC.fundido.sube) || g.phase === 'end' || g.phase === 'intro') { this.desc = null; this.velo(0); }
     }
     // la pelota del saque, agarrada: mientras espera y corre va en la palma de la mano derecha, pegada a ella y a su tamaño
     // de verdad (en juego se dibuja tres veces mayor, para verla). Al botarla, la mano baja con ella y la suelta hacia el
@@ -2059,7 +2064,7 @@ export class PelotaMatch {
     // (el descanso: tu pelotari en su silla, desde la cancha y del lado de la nevera, como en la foto del autor: tu botillero
     // de pie a la izquierda, tu pelotari en medio, la nevera y, detrás, el rincón del rival; con un corte al entrar y al
     // salir. Las sillas miran siempre a la cancha, hacia -x, también en el trinquete, dentro junto a su pared derecha)
-    { const D = this.desc, ch = D && this.sillas?.you, on = !!ch && D.sit.you != null && !D.fin && !this.replay;
+    { const D = this.desc, ch = D && this.sillas?.you, on = !!ch && D.dentro && !D.fuera && !this.replay;
       if (on !== !!this.descOn) { this.descOn = on; this.camInit = false; }
       if (on) { lp[0] = ch.x - 3.2; lp[1] = 1.5; lp[2] = ch.z + 1.2; ll[0] = ch.x; ll[1] = 0.85; ll[2] = ch.z - 0.3; } }
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
@@ -2225,10 +2230,18 @@ export class PelotaMatch {
     try { localStorage.setItem('herrizherri-pelota-vista', this.vistaFP ? 'fp' : 'tele'); } catch (e) { /* sin guardar */ }
     this.hud.vista(this.conCamara, this.vistaFP);
   }
+  /** El velo negro de los cortes del descanso (0, nada; 1, negro del todo). */
+  velo(op) {
+    if (!(op > 0.001) && !this.veloEl) return;
+    const v = this.veloEl ||= Object.assign(document.createElement('div'), { className: 'pel-velo' });
+    if (!v.isConnected) { v.style.cssText = 'position:fixed;inset:0;background:#05030c;pointer-events:none;z-index:60;opacity:0'; document.body.appendChild(v); }
+    v.style.opacity = String(Math.min(1, Math.max(0, op)));
+  }
   destroy() {
+    this.veloEl?.remove(); this.veloEl = null;
     this.paraAplausoSaque?.(0.3); this.paraAplausoSaque = null;
     { const quita = (o) => { if (!o?.isObject3D) return; o.parent?.remove(o); o.traverse(m => { m.geometry?.dispose?.(); m.material?.dispose?.(); }); };
-      quita(this.sillasG); this.sillasG = null; for (const b of [...Object.values(this.botellas || {}), ...Object.values(this.toallas || {})]) quita(b); this.botellas = null; this.toallas = null; this.desc = null; }
+      quita(this.sillasG); this.sillasG = null; this.desc = null; }
     this.finalFin?.(); this.dianaQuita(); this.quitaCestano(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
