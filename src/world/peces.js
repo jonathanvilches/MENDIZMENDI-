@@ -158,7 +158,9 @@ export class Peces {
     const px = player.pos.x, pz = player.pos.z, py = player.pos.y;
     for (const k in this.esp) this.esp[k].usados = 0;
     for (const B of this.bancos) {
-      if (B.lejos || Math.hypot(B.x - px, B.z - pz) > 46) { if (!this.coloca(B, px, pz)) { B.lejos = true; continue; } }
+      // (si no encuentra sitio, vuelve a mirar dentro de algo menos de un segundo, no en cada imagen: lejos del río eran hasta
+      // 10 búsquedas por banco y por imagen, el 4 % de la lógica en Sangüesa; tools/auditoria-fluidez.mjs)
+      if (B.lejos || Math.hypot(B.x - px, B.z - pz) > 46) { if ((B.espera || 0) > t || !this.coloca(B, px, pz)) { if (!((B.espera || 0) > t)) B.espera = t + 0.6 + Math.random() * 0.4; B.lejos = true; continue; } }
       const E = ESPECIES[B.k], S = this.esp[B.k];
       // (el jugador cerca de la orilla o encima, en un puente: salen río abajo y se juntan otra vez más allá)
       const dJ = Math.hypot(B.x - px, B.z - pz);

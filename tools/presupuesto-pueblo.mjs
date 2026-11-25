@@ -5,6 +5,7 @@
 // carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno, no cuántos hay.
 //   node tools/presupuesto-pueblo.mjs pueblo [pueblo…]   (env BASE: la web compilada, por defecto http://127.0.0.1:8099/;
 //   PELOTA=1 mide también el partido (FOTO=ruta-%.png, con su captura); LIGERA=1, con los partidos aligerados; Chromium en /opt/pw-browsers/chromium o CHROMIUM)
+//   SOLO_PARTIDO=1 (con PELOTA=1): solo el partido, sin medir el pueblo (los campeonatos cargan el frontón solo)
 //   COSECHA=1 mide también el pueblo con la cosecha en marcha: las máquinas en el campo y la nave del destino
 // Sale una línea por pueblo, con lo que se pasa; termina con código 1 si alguno se pasa.
 import { chromium } from 'playwright-core';
@@ -37,7 +38,7 @@ const pasa = (m, t) => Object.keys(t).filter(k => m[k] > t[k]).map(k => `${k} ${
 let mal = 0;
 for (const pueblo of pueblos) {
   const res = { pueblo };
-  try {
+  if (!process.env.SOLO_PARTIDO) try {
     const p = await nuevo();
     await p.goto(BASE + '?q=low&skipintro=1', { timeout: 300000 });
     await p.waitForFunction(() => window.__hub?.visible && window.__ready, null, { timeout: 300000 });
@@ -69,6 +70,8 @@ for (const pueblo of pueblos) {
     const toca = async (sel) => { const r = await p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const q = e.getBoundingClientRect(); return q.width ? [q.x + q.width / 2, q.y + q.height / 2] : null; }, sel).catch(() => null); if (r) { await p.touchscreen.tap(r[0], r[1]); await p.waitForTimeout(500); } return !!r; };
     if (!(await espera(p, () => !!document.querySelector('[data-a="libre"]'), 500000))) throw new Error('sin menú de pelota');
     await p.waitForTimeout(1500); await p.evaluate(() => document.querySelector('[data-a="libre"]').click());   // (en el carrusel 3D puede estar detrás: se elige directamente)
+    // (luego «Elige tu pelotari», siempre antes de jugar: se juega con el que ya está elegido)
+    if (await espera(p, () => !!document.querySelector('[data-p]') && !!document.querySelector('[data-a="ok"]'), 120000)) await p.evaluate(() => document.querySelector('[data-a="ok"]').click());
     if (!(await espera(p, () => !!document.querySelector('[data-pel-go]'), 300000))) throw new Error('sin panel del partido');
     await toca('[data-pel-go]'); if (await espera(p, () => !!document.querySelector('[data-mat-go]'), 60000)) await toca('[data-mat-go]');
     if (!(await espera(p, () => ['serveWait', 'servePrep', 'rally', 'point'].includes(window.__game?.pelotaMatch?.game?.phase), 180000))) throw new Error('el partido no empieza');

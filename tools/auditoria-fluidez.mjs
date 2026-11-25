@@ -7,12 +7,12 @@
 //     el bucle de verdad. La gráfica de software de las pruebas no cuenta: lo que tarda la tarjeta no se mide aquí.
 // Antes se espera a que estén compilados todos los sombreadores del arranque (con la gráfica de software, minutos): si no,
 // lo que sale son esperas de compilación que en un aparato de verdad no pasan.
-// Con el servidor de desarrollo (5173):  node tools/auditoria-fluidez.mjs [pueblo,pueblo…] [fotogramas]   (Q=low para la
+// Con el servidor de desarrollo (5173, u otro con BASE=):  node tools/auditoria-fluidez.mjs [pueblo,pueblo…] [fotogramas]   (Q=low para la
 // calidad del móvil; por defecto la del ordenador, high; SALIDA=carpeta guarda fluidez-<pueblo>-<q>.json)
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import path from 'node:path';
-const [,, lista = 'lesaka', nf = '900'] = process.argv, Q = process.env.Q || 'high', SALIDA = process.env.SALIDA;
+const [,, lista = 'lesaka', nf = '900'] = process.argv, Q = process.env.Q || 'high', SALIDA = process.env.SALIDA, BASE = process.env.BASE || 'http://127.0.0.1:5173/';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info'] });
 const perfil = (profile) => {
   const self = new Map(), dt = profile.timeDeltas || [], porNodo = new Map();
@@ -30,7 +30,7 @@ for (const pueblo of lista.split(',')) {
     localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'explorador', seen: { heroBenat: true, dog: true, comoJugar: true, intro: true } })); });
   try {
     const t0 = Date.now();
-    await p.goto(`http://127.0.0.1:5173/?town=${pueblo}&q=${Q}&weather=clear&skipintro=1`, { timeout: 300000 });
+    await p.goto(`${BASE}?town=${pueblo}&q=${Q}&weather=clear&skipintro=1`, { timeout: 300000 });
     await p.waitForFunction(() => { const L = document.getElementById('loading'); return window.__game?.mode === 'play' && (!L || L.classList.contains('hidden') || getComputedStyle(L).display === 'none'); }, null, { timeout: 400000, polling: 1000 });
     const carga = Math.round((Date.now() - t0) / 1000);
     await p.waitForFunction(() => { const rt = window.__rt, P = rt.renderer.info.programs || []; return !rt.holds && P.length && P.every(x => x.isReady ? x.isReady() : true); }, null, { timeout: 400000, polling: 2000 }).catch(() => {});

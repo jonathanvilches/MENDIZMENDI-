@@ -41,6 +41,17 @@ import { VIENTO, sopla } from '../world/viento.js';
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 // (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
 // le añada después se sigue colocando solo)
+// (three.js recoloca siempre a todos los hijos de la escena, aunque estén marcados como quietos (matrixWorldAutoUpdate =
+// false solo se salta el propio objeto, no lo que cuelga de él), y la escena se fuerza a sí misma en cada imagen. Con
+// esto, los grupos de arriba marcados como quietos se saltan enteros, con sus huesos; los demás, como siempre. Quien pide
+// todo (updateMatrixWorld(true)) lo sigue teniendo. La escena no se mueve.)
+function soloMarcados(S) {
+  if (S.__soloMarcados) return; S.__soloMarcados = true;
+  S.updateMatrixWorld = function (force) {
+    if (this.matrixAutoUpdate) this.updateMatrix(); this.matrixWorld.copy(this.matrix); this.matrixWorldNeedsUpdate = false;
+    const ch = this.children; for (let i = 0; i < ch.length; i++) { const c = ch[i]; if (force || c.matrixWorldAutoUpdate) c.updateMatrixWorld(true); }
+  };
+}
 // (solo lo que es de verdad de three.js: en los campeonatos el pueblo no se carga y la naturaleza es un sustituto vacío,
 // sin hijos; pasarle ese sustituto rompía la entrada a todos los campeonatos: «o.children is not iterable»)
 function fijaQuieto(o, hijos = false) { if (!o?.isObject3D) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
@@ -275,6 +286,7 @@ export class Runtime {
     // cerca de todo el pueblo, y todo se subía a la tarjeta gráfica y allí se quedaba. En Leitza, 45 MB de geometría en el
     // iPhone, de los 35 que aguanta: tools/presupuesto-pueblo.mjs)
     try { const c = this.camera.position, P = this.player?.pos || c; this.terrain?.update(c); updateDetail(c, this.detailQ); this.nature?.update(c, P, this.elapsed, P, false); } catch (e) { }
+    for (const o of S.children) o.matrixWorldAutoUpdate = true;   // (el primer dibujo, con todo en su sitio)
     try {
       this.applySize();   // (el lienzo, a su tamaño: en el menú se queda en un píxel, unload)
       let hecho = false;
@@ -421,8 +433,7 @@ export class Runtime {
     if (!this.covered && !quieto) {
       this.quietoYa = this.tapado;
       if (!alt) applyCharFill(this.charFill);
-      // (lo escondido no se recoloca al dibujar: los vecinos lejanos, con todos sus huesos, eran miles de cuentas por imagen)
-      const S = alt || this.scene; for (const o of S.children) o.matrixWorldAutoUpdate = o.visible;
+      const S = alt || this.scene; this.marcaRecolocar(S, !!alt);
       this.cronoGpu(true);
       try {
         // (el pueblo, con el pase de postprocesado si lo hay; las escenas propias, como siempre)
@@ -535,6 +546,32 @@ export class Runtime {
     if (this.partidoLigero) return Math.min(this.ratioFor(q), 1.2);
     const tope = q === 'low' ? (this.def?.id === 'pamplona' ? 1.35 : tactil ? 1.4 : 1.8) : tactil ? 1.7 : 2;   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
     return Math.max(this.ratioFor(q), Math.min(devicePixelRatio, tope));
+  }
+  // Qué se recoloca en esta imagen (soloMarcados). Lo escondido, una de cada 8: los vecinos lejanos, con todos sus huesos,
+  // eran miles de cuentas por imagen. Y los animales y vecinos (unos 50 huesos cada uno, y en un pueblo hay más de 60 animales), en todas las
+  // imágenes solo si están a menos de 60 m; más lejos, una de cada 2 (a más de 150 m, una de cada 4), y fuera de cuadro,
+  // una de cada 8. Era la mitad de lo que costaba cada imagen en Lesaka (tools/auditoria-fluidez.mjs). A esa distancia no
+  // se nota, y lo que pregunta dónde están (getWorldPosition) lo recalcula al momento. En las escenas propias (el partido,
+  // el fútbol), solo lo escondido: los pelotaris pueden quedar a más de 60 m de la cámara de la retransmisión.
+  marcaRecolocar(S, propia) {
+    soloMarcados(S); const f = this.frameNo;
+    // (lo escondido, una imagen de cada 8: así nada que lo mire sin preguntar se queda con su sitio de hace mucho)
+    if (propia) { for (const o of S.children) o.matrixWorldAutoUpdate = o.visible || (f + o.id) % 8 === 0; return; }
+    const cam = this.camera, yo = this.player?.obj;
+    if (!this._cuerpos || this._cuerposDe !== S || f % 60 === 0) {
+      const conHuesos = (o) => { if (o.isBone || o.isSkinnedMesh) return true; for (const c of o.children) if (conHuesos(c)) return true; return false; };
+      this._cuerpos = new Set(S.children.filter(o => o !== yo && conHuesos(o))); this._cuerposDe = S;
+    }
+    const fr = this._fr ||= new THREE.Frustum(), esf = this._esf ||= new THREE.Sphere(new THREE.Vector3(), 6);
+    fr.setFromProjectionMatrix((this._pm ||= new THREE.Matrix4()).multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+    for (const o of S.children) {
+      let v = o.visible || (f + o.id) % 8 === 0;
+      if (o.visible && this._cuerpos.has(o)) {
+        const d2 = o.position.distanceToSquared(cam.position);
+        if (d2 > 3600) { esf.center.copy(o.position); const k = !fr.intersectsSphere(esf) ? 8 : d2 > 22500 ? 4 : 2; v = (f + o.id) % k === 0; }
+      }
+      o.matrixWorldAutoUpdate = v;
+    }
   }
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */
   applySize() {
