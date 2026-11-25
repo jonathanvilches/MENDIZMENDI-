@@ -18,7 +18,10 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `7d26b4dc`.)
+- (Auditoría, 25 nov) Monumentos con más detalle: vidrieras de colores y rosetones (catedrales de Pamplona y Tudela,
+  basílica de Javier, palacio de Olite, iglesia de Ochagavía, Muskilda y las iglesias de los datos reales), puertas de
+  madera con herrajes (portadas, portones de Olite y Javier, Ayuntamiento de Pamplona, ermitas), cumbreras en los tejados
+  y veletas en los conos de pizarra. Por la noche las vidrieras se encienden.
 
 
 ## Peticiones entre ventanas

@@ -230,7 +230,7 @@ function ayuntamiento(B, S, cx, cz, TOWN) {
   B.add(SA, box(w + 1.4, 0.42, 1.9), F(M(0, top + 0.3, 0.55)));
   for (let x = -w / 2 + 0.4; x <= w / 2 - 0.3; x += 0.95) B.add(SA, box(0.22, 0.34, 1.1, 1), F(M(x, top - 0.06, 0.75)));
   // planta baja: puerta en arco con montante de forja, dos estatuas sobre pedestales y puertas laterales con rejas
-  B.add('woodDark', archPanel(2.5, 4.7, 0.1), F(M(0, 0.3, 0.05)));
+  B.add('puerta', uvHueco(archPanel(2.5, 4.7, 0.1)), F(M(0, 0.3, 0.05)));
   B.add('railing', new THREE.PlaneGeometry(2.3, 1.0), F(M(0, 3.75, 0.12)));
   B.add(SA, archRing(1.25, 1.7, 0.4, 14), F(M(0, 0.3 + 4.7 - 1.25, 0.14)));
   for (const s of [-1, 1]) B.add(SA, box(0.45, 4.7 - 1.25, 0.38, 1), F(M(s * 1.48, 0.3 + (4.7 - 1.25) / 2, 0.12)));
@@ -241,7 +241,7 @@ function ayuntamiento(B, S, cx, cz, TOWN) {
     statue(B, F(M(s * 2.45, 1.85, 1.0, -s * 0.25)), 2.3, 'ashlar', -s);
   }
   for (const x of [-4.7, 4.7]) {
-    B.add('woodDark', box(1.7, 2.9, 0.1), F(M(x, 1.75, 0.05)));
+    B.add('puerta', uvHueco(box(1.7, 2.9, 0.1)), F(M(x, 1.75, 0.05)));
     B.add(SA, box(2.3, 0.35, 0.3), F(M(x, 3.4, 0.12)));
     for (const s of [-1, 1]) B.add(SA, box(0.3, 4.9, 0.3, 1), F(M(x + s * 1.0, 2.75, 0.1)));
     B.add('glass', box(1.7, 1.5, 0.02), F(M(x, 4.45, 0.03)));

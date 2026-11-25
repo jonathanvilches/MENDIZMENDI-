@@ -55,7 +55,7 @@ function ermita(B, T, x, z, y, ry, bell) {
   B.add('stone', box(W, Hh + 1, L, 2.2), MM(T, M(0, (Hh + 1) / 2 - 1, 0)));
   for (const s of [-1, 1]) B.add('slate', box(Math.hypot(W / 2, rise) + 0.5, 0.22, L + 0.8), MM(T, M(s * W / 4, Hh + rise / 2 + 0.1, 0, 0, 0, -s * Math.atan2(rise, W / 2))));
   for (const s of [-1, 1]) B.add('stone', gable(W, rise, 0.5), MM(T, M(0, Hh, s * (L / 2 - 0.25))));
-  B.add(bell ? 'woodDark' : 'wood', archPanel(1.5, 2.5, 0.12), MM(T, M(0, 0, L / 2 + 0.02)));
+  B.add('puerta', uvHueco(archPanel(1.5, 2.5, 0.12)), MM(T, M(0, 0, L / 2 + 0.02)));
   B.add('ashlar', box(2.3, 0.35, 0.25), MM(T, M(0, 2.75, L / 2 + 0.05)));
   for (const s of [-1, 1]) B.add('glass', archPanel(0.45, 1, 0.08), MM(T, M(s * (W / 2 + 0.02), 2.4, 0, s * Math.PI / 2)));
   if (bell) { B.add('stone', box(1.8, 2.6, 0.6), MM(T, M(0, Hh + rise + 0.9, L / 2 - 0.3))); B.add('dark', archPanel(0.55, 1, 0.65), MM(T, M(0, Hh + rise + 0.55, L / 2 - 0.3))); B.add('iron', new THREE.SphereGeometry(0.3, 10, 8), MM(T, M(0, Hh + rise + 0.8, L / 2 - 0.3))); }
@@ -463,7 +463,7 @@ export function landmark(B, lm, ctx) {
       B.add('stone', box(6, 5, 9, 2.2), MM(T, M(0, 2, 0)));
       for (const s of [-1, 1]) B.add('slate', box(4.2, 0.2, 9.6), MM(T, M(s * 1.6, 5.2, 0, 0, 0, -s * 0.5)));
       B.add('stone', gable(6, 1.9, 0.4), MM(T, M(0, 4.5, 4.3)));
-      B.add('woodDark', archPanel(1.6, 2.6, 0.1), MM(T, M(0, 0, 4.55)));
+      B.add('puerta', uvHueco(archPanel(1.6, 2.6, 0.1)), MM(T, M(0, 0, 4.55)));
       B.add('stone', box(1, 2.2, 0.5), MM(T, M(0, 7, 4.3))); B.add('iron', box(0.1, 1, 0.1), MM(T, M(0, 8.5, 4.3)));
       col(6.4, 9.4, { solidView: true }); return { x, z: z + 7 };
     }

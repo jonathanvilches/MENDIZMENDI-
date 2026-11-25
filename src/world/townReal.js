@@ -297,8 +297,8 @@ const FLOR = ['#ff2d55', '#ff5fa2', '#ff7a1a', '#d23cff', '#ffd23f', '#ff3b30'];
 // (con color por vértice, o con coordenadas de textura a lo largo para la barandilla calada, que se repite cada 0,9 m)
 class Lienzo {
   constructor(color) { this.p = []; this.n = []; this.c = []; this.t = []; this.i = []; this.color = color; }
-  rect(F, u0, u1, y0, y1, off, col) {
-    const k = this.p.length / 3, c = col && new THREE.Color(col), tu = (u1 - u0) / 0.9;
+  rect(F, u0, u1, y0, y1, off, col, tu = (u1 - u0) / 0.9) {   // (tu: hasta dónde llega la textura a lo ancho; 1, una vez entera)
+    const k = this.p.length / 3, c = col && new THREE.Color(col);
     for (const [u, y, a, b] of [[u0, y0, 0, 0], [u1, y0, tu, 0], [u1, y1, tu, 1], [u0, y1, 0, 1]]) {
       this.p.push(F.ox + F.ux * u + F.nx * off, y, F.oz + F.uz * u + F.nz * off); this.n.push(F.nx, 0, F.nz); this.t.push(a, b);
       if (this.color) this.c.push(c.r, c.g, c.b);
@@ -334,6 +334,7 @@ const hashRnd = (x, z) => { let s = (Math.imul(Math.round(x * 10), 73856093) ^ M
 function fachada(B, T, w, d, h, o) {
   const E = ESTILO[o.fam] || ESTILO.pyrenean, r = o.rnd, kind = o.kind || 'house', off = o.tier === 3 ? 0.09 : 0.03;
   const vid = new Lienzo(false), car = new Lienzo(true), forja = new Lienzo(false), flo = new Lienzo(false);
+  const vitral = new Lienzo(false), portal = new Lienzo(false);   // (las vidrieras y la puerta de madera de las iglesias)
   // (los balcones de la fachada, para que se asome algún vecino: townGame.spawnBalcones. No en las de lejos, que repiten casa)
   const asomo = (F, u, y, fuera) => { if (o.tier === 3) return; const p = new THREE.Vector3(F.ox + F.ux * u + F.nx * fuera, y, F.oz + F.uz * u + F.nz * fuera).applyMatrix4(T), n = new THREE.Vector3(F.nx, 0, F.nz).transformDirection(T); TOWN.balcones.push({ x: p.x, y: p.y, z: p.z, ry: Math.atan2(n.x, n.z) }); };
   const piedra = o.wall === 'stone' || o.wall === 'ashlar', marco = piedra ? '#cfc5b0' : o.wall === 'brick' ? '#e2d6bf' : E.marco;
@@ -386,8 +387,8 @@ function fachada(B, T, w, d, h, o) {
       const nb = Math.max(1, Math.floor(F.L / 7));
       for (let i = 0; i < nb; i++) {
         const u = -F.L / 2 + F.L / nb * (i + 0.5), y0 = Math.max(3.2, h * 0.42), y1 = Math.min(h - 0.8, y0 + 2.8);
-        if (F.frente && i === Math.floor(nb / 2)) { puerta(F, u, 2.4, Math.min(h - 1, 3.8), E.puerta); continue; }
-        vid.rect(F, u - 0.42, u + 0.42, y0, y1, off);
+        if (F.frente && i === Math.floor(nb / 2)) { const ph = Math.min(h - 1, 3.8); puerta(F, u, 2.4, ph, E.puerta); portal.rect(F, u - 1.2, u + 1.2, 0, ph, off + 0.015, null, 1); continue; }
+        vitral.rect(F, u - 0.42, u + 0.42, y0, y1, off, null, 1);
         car.rect(F, u - 0.6, u + 0.6, y0 - 0.18, y0, off, marco); car.rect(F, u - 0.6, u + 0.6, y1, y1 + 0.2, off, marco);
       }
     }
@@ -431,7 +432,7 @@ function fachada(B, T, w, d, h, o) {
     }
   }
   const t = o.tier ?? 0;
-  for (const [mat, L] of [['glass', vid], ['fachada', car], ['railing', forja], ['flor', flo]]) { const g = L.geo(); if (g) B.add(mat, g, T, t); }
+  for (const [mat, L] of [['glass', vid], ['vidriera', vitral], ['puerta', portal], ['fachada', car], ['railing', forja], ['flor', flo]]) { const g = L.geo(); if (g) B.add(mat, g, T, t); }
 }
 
 /** La fachada sencilla de una casa con todo su detalle (ho, la de buildHouse), solo para verla de lejos. */

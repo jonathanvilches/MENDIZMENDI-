@@ -1,7 +1,7 @@
 // Otsagabia: casas, iglesia, palacios, puentes, muros del río, plaza y fuente
 import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
-import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl, colored } from './builder.js';
+import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl, colored, uvHueco } from './builder.js';
 import { buildHouse } from './houses.js';
 import { tarjeta, mata, CELDAS } from './flores.js';
 import { fachadaLejana } from './townReal.js';
@@ -134,7 +134,7 @@ function buildChurch(B) {
     // ventanas altas en arco
     if (i < 3) {
       const zz = z + (L - 6) / 6;
-      B.add('glass', archPanel(1.0, 2.6, 0.1), MM(T, M(s * (W / 2 + 0.02), H - 5.6, zz, s * Math.PI / 2)));
+      B.add('vidriera', uvHueco(archPanel(1.0, 2.6, 0.1)), MM(T, M(s * (W / 2 + 0.02), H - 5.6, zz, s * Math.PI / 2)));
       B.add('ashlar', archRing(0.5, 0.78, 0.3, 8), MM(T, M(s * (W / 2 + 0.05), H - 5.6 + 2.1, zz, s * Math.PI / 2)));
     }
   }
@@ -160,11 +160,11 @@ function buildChurch(B) {
     B.add('ashlar', box(0.36, 3.4, 0.6), MM(F, M(-(r + 0.18), 1.7, 0.25 + k * 0.12)));
     B.add('ashlar', box(0.36, 3.4, 0.6), MM(F, M(r + 0.18, 1.7, 0.25 + k * 0.12)));
   }
-  B.add('woodDark', archPanel(3.0, 4.9, 0.12), MM(F, M(0, 0, 0.05)));
+  B.add('puerta', uvHueco(archPanel(3.0, 4.9, 0.12)), MM(F, M(0, 0, 0.05)));
   for (let i = 0; i < 6; i++) B.add('iron', box(2.8, 0.06, 0.03), MM(F, M(0, 0.5 + i * 0.7, 0.13)));
   // rosetón
   B.add('ashlar', new THREE.TorusGeometry(1.25, 0.25, 6, 20), MM(F, M(0, 8.4, 0.15)));
-  B.add('glass', new THREE.CircleGeometry(1.2, 20), MM(F, M(0, 8.4, 0.06)));
+  B.add('roseton', new THREE.CircleGeometry(1.2, 24), MM(F, M(0, 8.4, 0.06)));
   for (let i = 0; i < 8; i++) B.add('ashlar', box(0.1, 2.3, 0.1), MM(F, M(0, 8.4, 0.14, 0, 0, i * Math.PI / 8)));
   // escalinata
   for (let i = 0; i < 4; i++) B.add('ashlar', box(8 - i * 0.6, 0.3, 1.2), MM(F, M(0, 0.15 - i * 0.3 + 0.0, 1.3 + i * 1.1)));

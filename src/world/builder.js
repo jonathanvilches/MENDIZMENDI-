@@ -251,9 +251,10 @@ function rosetonTexture() {
 function puertaTexture() {
   const W = 128, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); let sem = 5; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
-  g.fillStyle = '#4a2f1c'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#634029'; g.fillRect(0, 0, W, H);
+  // (madera de roble algo clara: a la sombra, la oscura se veía negra, como un hueco)
   for (let x = 0; x < W; x += 16) {
-    const l = 0.85 + az() * 0.3; g.fillStyle = `rgb(${Math.round(78 * l)},${Math.round(50 * l)},${Math.round(30 * l)})`; g.fillRect(x, 0, 15, H);
+    const l = 0.85 + az() * 0.3; g.fillStyle = `rgb(${Math.round(108 * l)},${Math.round(70 * l)},${Math.round(42 * l)})`; g.fillRect(x, 0, 15, H);
     for (let k = 0; k < 14; k++) { g.strokeStyle = `rgba(30,18,10,${0.15 + az() * 0.2})`; g.lineWidth = 1; g.beginPath(); const xx = x + 2 + az() * 11; g.moveTo(xx, 0); g.bezierCurveTo(xx + az() * 4 - 2, H * 0.3, xx + az() * 4 - 2, H * 0.7, xx, H); g.stroke(); }
     g.fillStyle = 'rgba(20,12,6,0.7)'; g.fillRect(x + 15, 0, 1, H);
   }

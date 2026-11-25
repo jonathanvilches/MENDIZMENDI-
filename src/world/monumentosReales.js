@@ -173,7 +173,7 @@ export function castilloJavier(B, P) {
   almenas(B, S, GP, y + 9, { paso: 1.6, ancho: 0.95 });
   const Fg = M(gx + Math.sin(ryG) * 3.25, y, gz + Math.cos(ryG) * 3.25, ryG);
   B.add(S, archRing(1.6, 2.2, 0.7, 14), MM(Fg, M(0, 3.4, 0.1)));
-  B.add('woodDark', archPanel(3.2, 5.0, 0.12), MM(Fg, M(0, 0, 0.02)));
+  B.add('puerta', uvHueco(archPanel(3.2, 5.0, 0.12)), MM(Fg, M(0, 0, 0.02)));
   ladronera(B, S, { ax: gx + Math.sin(ryG) * 3.2 - Math.cos(ryG) * 1.2, az: gz + Math.cos(ryG) * 3.2 + Math.sin(ryG) * 1.2, dx: Math.cos(ryG), dz: -Math.sin(ryG), nx: Math.sin(ryG), nz: Math.cos(ryG), ry: ryG, L: 2.4 }, 1.2, y + 8.6, 2.4);
   B.add('paint', colored(new THREE.CircleGeometry(0.55, 14), '#c8222a'), MM(Fg, M(0, 6.2, 0.12)));
   // 7. explanada de la entrada, delante de la puerta: losas, murete y pilares de piedra con cadenas
@@ -453,7 +453,7 @@ export function palacioOlite(B, P) {
       B.add('stone', box(0.9, 0.7, 0.9), M(x, y + hj + 0.6, z)); B.add('paint', colored(new THREE.IcosahedronGeometry(0.85, 0), k % 2 ? '#3f6a2a' : '#4e7a31'), M(x, y + hj + 1.7, z)); } }
   // la puerta: el arco de medio punto que da al patio de los Naranjos, en la cara que mira al pueblo
   const pa = OLITE.puerta, pl = lados([pa.a, pa.b, [c.x, c.z]])[0], [gx, gz] = sobre(pl, pl.L / 2, 0.05), G = M(gx, y, gz, pl.ry);
-  B.add('woodDark', archPanel(3.4, 5.4, 0.12), G);
+  B.add('puerta', uvHueco(archPanel(3.4, 5.4, 0.12)), G);
   for (let k = 0; k < 2; k++) B.add(SO, archRing(1.7 + k * 0.35, 2.05 + k * 0.35, 0.5, 14), MM(G, M(0, 3.7, 0.15 - k * 0.1)));
   B.add('paint', colored(new THREE.CircleGeometry(0.7, 14), '#c8222a'), MM(G, M(0, 7, 0.2)));
   const gate = { x: gx + pl.nx * 7, z: gz + pl.nz * 7 };

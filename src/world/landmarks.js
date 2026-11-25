@@ -1,6 +1,6 @@
 // Borda y redil, santuario de Muskilda, mirador, cascada de Irati, carteles, muretes de piedra
 import * as THREE from 'three';
-import { Builder, box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { Builder, box, gable, archRing, archPanel, colored, M, MM, uvHueco } from './builder.js';
 import { PLACES, rx, pathQuery } from './layout.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
@@ -88,8 +88,8 @@ function buildMuskilda(B) {
     B.add('ashlar', archRing(r, r + 0.28, 0.5, 14), MM(F, M(0, 2.6, 0.2 + k * 0.1)));
     for (const s of [-1, 1]) B.add('ashlar', box(0.28, 2.6, 0.5), MM(F, M(s * (r + 0.14), 1.3, 0.2 + k * 0.1)));
   }
-  B.add('woodDark', archPanel(2.2, 3.7, 0.1), MM(F, M(0, 0, 0.05)));
-  B.add('glass', new THREE.CircleGeometry(0.5, 12), MM(F, M(0, 5.6, 0.05)));
+  B.add('puerta', uvHueco(archPanel(2.2, 3.7, 0.1)), MM(F, M(0, 0, 0.05)));
+  B.add('roseton', new THREE.CircleGeometry(0.5, 16), MM(F, M(0, 5.6, 0.05)));
   B.add('ashlar', new THREE.TorusGeometry(0.55, 0.12, 5, 14), MM(F, M(0, 5.6, 0.1)));
   // pórtico lateral con columnas de madera
   for (let i = 0; i < 6; i++) B.add('woodDark', new THREE.CylinderGeometry(0.14, 0.16, 3.2, 8), MM(T, M(W / 2 + 2.6, 1.6, -L / 2 + 2 + i * (L - 4) / 5)));
