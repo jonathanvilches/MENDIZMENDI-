@@ -18,8 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- 25 nov, tarde, Auditoría: la roca de la isla también por pasos (sus anillos, cuatro cada vez). El peor trabajo de una
-  imagen al tocar Tierra Estella, de 50-60 ms a unos 30 ms.
+(Nada por ahora: publicado el 25 nov hasta `7d26b4dc`.)
 
 
 ## Peticiones entre ventanas
@@ -240,6 +239,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 25 nov, tarde, la hizo la ventana de Auditoría (el autor: «sí», publicar): `master` hasta `7d26b4dc`. La roca de la isla también por pasos (sus anillos): el peor trabajo de una imagen al tocar una comarca, unos 30 ms. Probada en el móvil tumbado (844×390): el mapa carga sin errores y la isla sube entera.
 - 25 nov, mediodía, la hizo la ventana de Auditoría (el autor: «sí», publicar): `master` hasta `65763e25`. La isla del mapa sin parones al tocar una comarca (vídeo del iPhone de las 09:43): las texturas de detalle se leen en otro hilo y se suben a trozos, y el contorno ampliado, la losa, la roca y el relieve fino se hacen por pasos; el peor parón, de 0,38 s a 0,06 s. Vista la isla subiendo en el móvil tumbado (844×390) y en el ordenador (1280×720), sin errores.
 - 25 nov, la hizo la ventana de Auditoría (el autor: «publica todo»): `master` hasta `84ee516c`. iPhone: los 39 pueblos y parajes dentro del presupuesto (rocas que comparten forma, el primer dibujo tapado sin lo lejano, recorte de texturas cada 2 s, El Sadar más ligero) y más fluidos (la escena ya no recoloca lo quieto ni lo lejano en cada imagen; peces); las 9 sedes de campeonato dentro de 65 MB (el Labrit, de 69 a 63); se vuelve a entrar en los campeonatos; la cámara del fútbol sin recolocar la página en cada imagen; Palacio Real de Olite y castillo de Javier sobre su planta real; privacidad (informe solo con permiso), material didáctico con más aire, explorador sin la línea rota. Probada en el móvil tumbado (844×390): el mapa carga sin errores.
 - 24 nov, tarde, la hizo la ventana de Auditoría (el autor: «publica los arreglos de la isla flotante»): `master` hasta `9bfa354d`. La isla flotante sin parones al elegir comarca ni al pasar de una a otra (se hace por pasos y la búsqueda del borde va por una rejilla), sin tirones en el vuelo de dron (las texturas de cerca se suben cuando la cámara está quieta); la montura con arreos (silla, cabezada y riendas); y el código sin funciones que nada usaba.
