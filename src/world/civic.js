@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 import { QUALITY } from '../util/quality.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { box, gable, colored, M, MM } from './builder.js';
+import { box, gable, colored, M, MM, curva } from './builder.js';
 
 export const FONT_SERIF = 'Georgia, "Times New Roman", serif';
 export const FONT_ROUND = '"Lilita One", Nunito, "Arial Black", sans-serif';
@@ -136,7 +136,7 @@ export function pointedPanel(w, h, depth) {
   s.absarc(-w / 2, hs, w, 0, Math.PI / 3, false);
   s.absarc(w / 2, hs, w, Math.PI * 2 / 3, Math.PI, false);
   s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 6 });
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: curva(6) });
   g.translate(0, 0, -depth / 2);
   return g;
 }
@@ -147,7 +147,7 @@ export function archedWall(w, h, ow, oh, depth, pointed = false) {
   if (pointed) { const hs = oh - ow * 0.866; s.lineTo(-ow / 2, hs); s.absarc(ow / 2, hs, ow, Math.PI, Math.PI * 2 / 3, true); s.absarc(-ow / 2, hs, ow, Math.PI / 3, 0, true); }
   else { const hs = oh - ow / 2; s.lineTo(-ow / 2, hs); s.absarc(0, hs, ow / 2, Math.PI, 0, true); }
   s.lineTo(ow / 2, 0); s.lineTo(w / 2, 0); s.lineTo(w / 2, h); s.lineTo(-w / 2, h); s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 8 });
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: curva(8) });
   g.translate(0, 0, -depth / 2);
   const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 2.2, uv.getY(i) / 2.2);
   return g;

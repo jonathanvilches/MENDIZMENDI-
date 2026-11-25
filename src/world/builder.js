@@ -443,7 +443,7 @@ export function archRing(rIn, rOut, depth, segs = 12) {
   s.lineTo(-rIn, 0);
   s.absarc(0, 0, rIn, Math.PI, 0, true);
   s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: segs });
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: _mas(segs, 28) });   // (más tramos en el arco: CURVA)
   g.translate(0, 0, -depth / 2);
   const uv = g.attributes.uv;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 1.5, uv.getY(i) / 1.5);
@@ -455,11 +455,50 @@ export function archPanel(w, h, depth) {
   const s = new THREE.Shape();
   const r = w / 2;
   s.moveTo(-r, 0); s.lineTo(r, 0); s.lineTo(r, h - r); s.absarc(0, h - r, r, 0, Math.PI, false); s.closePath();
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 10 });
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: _mas(10, 24) });
   g.translate(0, 0, -depth / 2);
   const uv = g.attributes.uv;
   for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 1.2, uv.getY(i) / 1.2);
   return g;
+}
+
+// Moldura: una sección dibujada de perfil (z hacia fuera de la pared, y hacia arriba) estirada a lo ancho, en x (centrada).
+// dibuja(s) recibe la THREE.Shape y la traza con lineTo/quadraticCurveTo; tramos: los de cada curva (con curva(): más en el
+// ordenador). Para canecillos, ménsulas, alféizares y cantos de losa con bocel: piezas curvas y no cajas
+export function moldura(ancho, dibuja, tramos = 4, uvScale = 1) {
+  const s = new THREE.Shape(); dibuja(s);
+  const g = new THREE.ExtrudeGeometry(s, { depth: ancho, bevelEnabled: false, curveSegments: curva(tramos, 12) });
+  g.rotateY(-Math.PI / 2); g.translate(ancho / 2, 0, 0);
+  const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / uvScale, uv.getY(i) / uvScale);
+  return g;
+}
+// (el canecillo tallado del alero, como los de las casas de piedra navarras: cabeza redondeada y panza en curva; L, el
+// vuelo; h, el canto; a, el ancho)
+export function canecillo(L, h = 0.16, a = 0.12) {
+  return moldura(a, (s) => {
+    const r = Math.min(0.07, L * 0.2);
+    // (tres curvas con pocos tramos: hay veinte por casa y, con cinco curvas finas, cada casa sumaba unos 2.300 triángulos
+    // solo en canecillos; a su tamaño no se distingue)
+    s.moveTo(0, 0); s.lineTo(L - r, 0); s.quadraticCurveTo(L, 0, L, -r);
+    s.quadraticCurveTo(L, -h * 0.85, L - 2.2 * r, -h * 0.6);
+    s.lineTo(L * 0.4, -h * 0.55); s.quadraticCurveTo(L * 0.12, -h * 0.55, 0, -h); s.lineTo(0, 0);
+  }, 2);
+}
+// (la ménsula que aguanta un balcón: arriba recta contra la losa y por debajo en curva hasta la pared, con la punta
+// redondeada; D, lo que sale; H, lo que baja por la pared)
+export function mensula(D, H, a = 0.14) {
+  return moldura(a, (s) => {
+    s.moveTo(0, 0); s.lineTo(D - 0.05, 0); s.quadraticCurveTo(D, 0, D, -0.05); s.quadraticCurveTo(D, -0.1, D - 0.06, -0.11);
+    s.quadraticCurveTo(D * 0.25, -0.16, 0, -H); s.lineTo(0, 0);
+  }, 3);
+}
+// (losa con el canto delantero en bocel, para balcones de piedra y alféizares: ancho en x, fondo D desde z=0, canto H)
+export function losaBocel(ancho, D, H, uvScale = 1) {
+  return moldura(ancho, (s) => {
+    const r = Math.min(H * 0.55, 0.06);
+    s.moveTo(0, H / 2); s.lineTo(D - r, H / 2); s.quadraticCurveTo(D, H / 2, D, H / 2 - r); s.lineTo(D, -H / 2 + r * 0.6);
+    s.quadraticCurveTo(D, -H / 2, D - r, -H / 2); s.lineTo(D - r * 1.4, -H / 2); s.lineTo(D - r * 1.4, -H / 2 - 0.02); s.lineTo(0, -H / 2 - 0.02); s.lineTo(0, H / 2);
+  }, 2, uvScale);
 }
 
 // Piezas de detalle registradas por los constructores: se ocultan cuando la cámara se aleja
@@ -501,9 +540,68 @@ export function updateDetail(cam, quality = 'high') {
   for (const e of DETAIL) e.m.visible = e.tier === 3 ? !e.cell.n1 : e.tier === 2 ? e.cell.n2 : e.cell.n1;
 }
 // Calidad: en «low» no se crean las piezas menudas (marcos, macetas, lamas…) para ahorrar memoria en móviles
+// Piezas redondas más redondas (el autor, 25 nov 2026: «detalles más curvos, no todo tan polígono recto»): las piezas
+// redondas pequeñas que llegan al constructor (postes, columnas, caños, macetas, bolas, molduras torneadas, aros, tubos de
+// forja) se rehacen con más lados: un 60 % más en el ordenador, un 35 % en calidad media y un 15 % en el móvil (con el doble, el
+// ordenador pasaba de 1,30 a 1,66 millones de triángulos en Lesaka; mejor fluido que redondo de más). Solo las
+// pequeñas (hasta unos 60 cm de radio): las torres y pilas ochavadas grandes son así de verdad y se quedan como están. Si la
+// pieza ya venía girada, movida o escalada (sus vértices no son los de una nueva con las mismas medidas), no se toca
+let CURVA = 1.6;
+const _red = new WeakMap(), _bA = new THREE.Box3(), _bB = new THREE.Box3();
+const _mas = (n, cap) => Math.min(cap, Math.max(n, Math.round(n * CURVA)));
+/** Los tramos de una curva (arcos, ojivas), con más en el ordenador: curva(8) es 13 en alta, 11 en media y 9 en el móvil */
+export const curva = (n, cap = 32) => _mas(n, cap);
+function redondea(geo) {
+  const P = geo.parameters; if (!P || CURVA <= 1) return geo;
+  const hit = _red.get(geo); if (hit !== undefined) return hit || geo;
+  let mk = null;
+  switch (geo.type) {
+    case 'CylinderGeometry': case 'ConeGeometry': {
+      const r = geo.type === 'ConeGeometry' ? P.radius : Math.max(P.radiusTop, P.radiusBottom), n = P.radialSegments;
+      const cap = r < 0.08 ? 12 : r < 0.25 ? 20 : 32;   // (lo menudo, con menos: un caño de 4 cm no necesita 32 lados)
+      if (n >= 5 && n <= 14 && r <= 0.6) mk = (k) => geo.type === 'ConeGeometry' ? new THREE.ConeGeometry(P.radius, P.height, k ? _mas(n, cap) : n, P.heightSegments, P.openEnded, P.thetaStart, P.thetaLength)
+        : new THREE.CylinderGeometry(P.radiusTop, P.radiusBottom, P.height, k ? _mas(n, cap) : n, P.heightSegments, P.openEnded, P.thetaStart, P.thetaLength);
+      break; }
+    case 'SphereGeometry':
+      if (P.radius <= 0.8 && P.widthSegments < 16) { const cw = P.radius < 0.08 ? 12 : 24, ch = P.radius < 0.08 ? 8 : 16;
+        mk = (k) => new THREE.SphereGeometry(P.radius, k ? _mas(P.widthSegments, cw) : P.widthSegments, k ? _mas(P.heightSegments, ch) : P.heightSegments, P.phiStart, P.phiLength, P.thetaStart, P.thetaLength); }
+      break;
+    case 'TorusGeometry':
+      if (P.radius <= 1 && (P.radialSegments < 8 || P.tubularSegments < 24)) mk = (k) => new THREE.TorusGeometry(P.radius, P.tube, k ? _mas(P.radialSegments, P.tube < 0.03 ? 5 : 8) : P.radialSegments, k ? _mas(P.tubularSegments, P.radius < 0.15 ? 16 : 32) : P.tubularSegments, P.arc);
+      break;
+    case 'LatheGeometry':
+      if (P.segments < 24 && P.points.every(v => v.x <= 1.2)) mk = (k) => new THREE.LatheGeometry(P.points, k ? _mas(P.segments, 32) : P.segments, P.phiStart, P.phiLength);
+      break;
+    case 'CircleGeometry':
+      if (P.radius <= 0.6 && P.segments < 20) mk = (k) => new THREE.CircleGeometry(P.radius, k ? _mas(P.segments, 32) : P.segments, P.thetaStart, P.thetaLength);
+      break;
+    case 'TubeGeometry':
+      if (P.radius <= 0.12 && (P.radialSegments < 8 || P.tubularSegments < 32)) mk = (k) => new THREE.TubeGeometry(P.path, k ? _mas(P.tubularSegments, 32) : P.tubularSegments, P.radius, k ? Math.max(P.radius < 0.03 ? 6 : 8, P.radialSegments) : P.radialSegments, P.closed);
+      break;
+  }
+  let out = null;
+  if (mk) try {
+    // (¿la pieza está tal cual salió del molde? la misma caja que una recién hecha con las mismas medidas)
+    const ref = mk(false); geo.computeBoundingBox(); ref.computeBoundingBox(); _bA.copy(geo.boundingBox); _bB.copy(ref.boundingBox);
+    const igual = _bA.min.distanceTo(_bB.min) < 1e-4 && _bA.max.distanceTo(_bB.max) < 1e-4 && geo.attributes.position.count === ref.attributes.position.count;
+    if (igual) {
+      out = mk(true);
+      // (la textura, a la misma escala: los moldes dan UV de 0 a 1 y uvFit las estira)
+      const ua = geo.attributes.uv, ub = ref.attributes.uv, uo = out.attributes.uv;
+      if (ua && ub && uo) { let ma = 0, mb = 0, va = 0, vb = 0; for (let i = 0; i < ua.count; i++) { ma = Math.max(ma, ua.getX(i)); va = Math.max(va, ua.getY(i)); mb = Math.max(mb, ub.getX(i)); vb = Math.max(vb, ub.getY(i)); }
+        const su = mb > 1e-6 ? ma / mb : 1, sv = vb > 1e-6 ? va / vb : 1; if (su !== 1 || sv !== 1) for (let i = 0; i < uo.count; i++) uo.setXY(i, uo.getX(i) * su, uo.getY(i) * sv); }
+      if (!ua) out.deleteAttribute('uv');
+      // (y su color, si lo llevaba pintado de un solo color: colored)
+      const ca = geo.attributes.color;
+      if (ca) { const c = ca.itemSize, a = new Float32Array(out.attributes.position.count * c); for (let i = 0; i < a.length; i++) a[i] = ca.array[i % c]; out.setAttribute('color', new THREE.BufferAttribute(a, c)); }
+    }
+    ref.dispose();
+  } catch (e) { out = null; }
+  _red.set(geo, out); return out || geo;
+}
 let TINY = true;
 let BQ = 'high';
-export function setBuilderQuality(q) { TINY = q !== 'low'; BQ = q || 'high'; }
+export function setBuilderQuality(q) { TINY = q !== 'low'; BQ = q || 'high'; CURVA = BQ === 'low' ? 1.15 : BQ === 'mid' ? 1.35 : 1.6; }
 export const builderQuality = () => BQ;
 // Un bloque de un material (una manzana de piezas de un tamaño): los vértices de cada pieza se copian aquí en cuanto
 // llega, ya colocados y compactos (color en bytes, normal en bytes con signo). Antes cada pieza se guardaba suelta hasta
@@ -538,6 +636,7 @@ export class Builder {
   /** Añade una pieza (con su matriz). La pieza no se modifica: se puede volver a añadir con otra matriz. tier: forzar el
    *  grupo (3: solo de lejos, en las manzanas de las medianas); si no, según el tamaño de la pieza. */
   add(mat, geo, matrix, force) {
+    geo = redondea(geo);   // (las piezas redondas pequeñas, con más lados)
     const pa = geo.attributes.position; if (!pa || !pa.count) return;
     const nv = pa.count, idx = geo.index, cnt = idx ? idx.count : nv;
     if (!cnt) return;

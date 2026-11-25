@@ -3,7 +3,7 @@
 // calle Estafeta, catedral de Santa María con su claustro, murallas con el Portal de Francia y el Redín,
 // plaza de toros, Ciudadela y estadio de El Sadar.
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM, uvHueco } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvHueco, curva } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight, SURF, addPlatform } from './heightfield.js';
 import { polyLen, polyAt, toW } from './plot.js';
@@ -401,7 +401,7 @@ function pointedRing(wi, t, depth) {
   s.absarc(-wi / 2, 0, wi, 0, Math.PI / 3, false);
   s.absarc(wi / 2, 0, wi, Math.PI * 2 / 3, Math.PI, false);
   s.lineTo(-wo / 2, 0);
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 5 });
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: curva(5) });
   g.translate(0, 0, -depth / 2); return g;
 }
 // fuste estriado (acanaladuras hechas desplazando vértices alternos) y capitel corintio con dos coronas de hojas

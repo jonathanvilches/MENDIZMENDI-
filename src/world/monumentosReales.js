@@ -8,7 +8,7 @@
 // de los pilares con cadenas; al noroeste, pegada, la basílica (fachada con rosetón, portada de medio punto, pináculos con
 // cupulines y tejado de teja clara), y la peña de arenisca a sus pies.
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM, uvHueco } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvHueco, curva } from './builder.js';
 import { pointedPanel } from './civic.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { roofHip } from './houses.js';
@@ -339,7 +339,7 @@ function anilloApuntado(wi, t, depth) {
   const wo = wi + 2 * t, s = new THREE.Shape();
   s.moveTo(-wo / 2, 0); s.absarc(wo / 2, 0, wo, Math.PI, Math.PI * 2 / 3, true); s.absarc(-wo / 2, 0, wo, Math.PI / 3, 0, true);
   s.lineTo(wi / 2, 0); s.absarc(-wi / 2, 0, wi, 0, Math.PI / 3, false); s.absarc(wi / 2, 0, wi, Math.PI * 2 / 3, Math.PI, false); s.lineTo(-wo / 2, 0);
-  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 5 }); g.translate(0, 0, -depth / 2); return g;
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: curva(5) }); g.translate(0, 0, -depth / 2); return g;
 }
 // torre redonda u ochavada (lados: 8 para la ochavada), almenada por su borde
 function torreRedonda(B, mat, x, z, r, y0, y1, lados8 = 14) {

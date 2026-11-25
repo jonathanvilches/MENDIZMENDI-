@@ -1,6 +1,6 @@
 // Casas pirenaicas del valle de Salazar (piedra, revoco, tejados muy inclinados, balcones de madera)
 import * as THREE from 'three';
-import { box, boxChaflan, faldon, cumbrera, venceDe, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
+import { box, boxChaflan, faldon, cumbrera, venceDe, gable, archRing, archPanel, colored, M, MM, builderQuality, cyl, canecillo, mensula, losaBocel } from './builder.js';
 import { addStep, terrainHeight } from './heightfield.js';
 import { tarjeta, mata, celda, CELDAS } from './flores.js';
 
@@ -18,7 +18,9 @@ function slat(w, h, d, color) {
 // Dibuja una ventana en la fachada (plano local z=0 hacia +z)
 function windowAt(B, T, x, y, w, h, o) {
   const F = (mx) => MM(T, mx);
-  B.add('ashlar', box(w + 0.36, 0.18, 0.28, 1), F(M(x, y - h / 2 - 0.09, 0.1)));      // alféizar
+  // alféizar, con el canto en bocel (en el móvil, la losa recta de siempre)
+  if (builderQuality() === 'low') B.add('ashlar', box(w + 0.36, 0.18, 0.28, 1), F(M(x, y - h / 2 - 0.09, 0.1)));
+  else B.add('ashlar', losaBocel(w + 0.36, 0.28, 0.18), F(M(x, y - h / 2 - 0.09, -0.04)));
   B.add('ashlar', box(w + 0.3, 0.2, 0.2, 1), F(M(x, y + h / 2 + 0.1, 0.06)));         // dintel
   B.add('ashlar', box(0.16, h, 0.2, 1), F(M(x - w / 2 - 0.08, y, 0.06)));
   B.add('ashlar', box(0.16, h, 0.2, 1), F(M(x + w / 2 + 0.08, y, 0.06)));
@@ -47,6 +49,12 @@ function windowAt(B, T, x, y, w, h, o) {
   }
 }
 
+// (el balaustre torneado, de 0,95 m: una sola pieza para todos, ligera; sin parámetros de molde para que el constructor no
+// le añada lados: hay muchos en cada balcón)
+let _clavo = null;
+const CLAVO = () => _clavo || (_clavo = new THREE.SphereGeometry(0.024, 7, 3, 0, Math.PI * 2, 0, Math.PI / 2).toNonIndexed());
+let _balaustre = null;
+const BALAUSTRE = () => _balaustre || (_balaustre = new THREE.LatheGeometry([[0.001, 0], [0.034, 0], [0.034, 0.07], [0.021, 0.11], [0.019, 0.28], [0.038, 0.42], [0.044, 0.5], [0.03, 0.62], [0.019, 0.76], [0.03, 0.84], [0.034, 0.95], [0.001, 0.95]].map(([r, h]) => new THREE.Vector2(r, h)), 7).toNonIndexed());
 // escalón en coordenadas de la fachada (matriz T) → suelo en el mundo
 const _v = new THREE.Vector3();
 export function stepFrom(T, x, top, z, hw, hd) {
@@ -88,16 +96,20 @@ export function peldanosPuerta(B, T, x, w, z0 = 0.7, top0 = 0.12, mat = 'stone',
   // (lo que falta, hacia fuera, desde el final del tramo)
   const cx = xe - s * dep / 2;
   for (let j = 0; j < 16; j++) { const cz = z0 + dep + run * (j + 0.5), t = top - r * (j + 1), g = suelo(cx, cz); if (t < g + 0.05) break; peldano(cx, cz, dep, run + 0.03, t, g); }
-  // barandilla de hierro: en el borde de fuera del rellano y a lo largo del tramo
-  const zb = z0 + dep - 0.06, hb = 0.9;
-  B.add('iron', box(w, 0.05, 0.05), MM(T, M(x, top0 + hb, zb)));
-  B.add('iron', box(0.05, 0.05, dep), MM(T, M(x - s * w / 2, top0 + hb, zc)));
-  for (const px of [x - s * w / 2, x + s * w / 2]) B.add('iron', box(0.05, hb, 0.05), MM(T, M(px, top0 + hb / 2, zb)));
+  // barandilla de hierro: en el borde de fuera del rellano y a lo largo del tramo. De barra redonda, con una bola en lo alto
+  // de cada poste de las puntas (antes, de barra cuadrada: aristas rectas); en el móvil, como antes
+  const zb = z0 + dep - 0.06, hb = 0.9, red = builderQuality() !== 'low', HI = Math.PI / 2;
+  const barra = (len, m) => B.add('iron', red ? new THREE.CylinderGeometry(0.024, 0.024, len, 8) : box(0.05, len, 0.05), MM(T, m));   // (de pie, a lo largo de y)
+  const bola = (px, py) => { if (red) B.add('iron', new THREE.SphereGeometry(0.045, 8, 6), MM(T, M(px, py + 0.04, zb))); };
+  barra(w, M(x, top0 + hb, zb, 0, 0, HI));
+  barra(dep, M(x - s * w / 2, top0 + hb, zc, 0, HI));
+  for (const px of [x - s * w / 2, x + s * w / 2]) barra(hb, M(px, top0 + hb / 2, zb));
+  bola(x - s * w / 2, top0 + hb);
   if (k > 1) {
     const L = Math.abs(xe - (x + s * w / 2)), dy = top0 - top, a = Math.atan2(dy, L);
-    B.add('iron', box(Math.hypot(L, dy), 0.05, 0.05), MM(T, M(x + s * (w / 2 + L / 2), (top0 + top) / 2 + hb, zb, 0, 0, -s * a)));
-    for (let j = 3; j < k; j += 3) { const px = x + s * (w / 2 + run * (j + 0.5)), t = top0 - r * (j + 1); B.add('iron', box(0.04, hb, 0.04), MM(T, M(px, t + hb / 2, zb))); }
-    B.add('iron', box(0.05, hb, 0.05), MM(T, M(xe - s * 0.05, top + hb / 2, zb)));
+    barra(Math.hypot(L, dy), M(x + s * (w / 2 + L / 2), (top0 + top) / 2 + hb, zb, 0, 0, -s * a + HI));
+    for (let j = 3; j < k; j += 3) { const px = x + s * (w / 2 + run * (j + 0.5)), t = top0 - r * (j + 1); B.add('iron', red ? new THREE.CylinderGeometry(0.02, 0.02, hb, 8) : box(0.04, hb, 0.04), MM(T, M(px, t + hb / 2, zb))); }
+    barra(hb, M(xe - s * 0.05, top + hb / 2, zb)); bola(xe - s * 0.05, top + hb);
   }
 }
 function doorAt(B, T, x, o) {
@@ -121,7 +133,7 @@ function doorAt(B, T, x, o) {
   for (let k = 1; k < nb; k++) B.add('paint', colored(box(0.02, hb - 0.1, 0.02), '#241910'), F(M(x - w / 2 + k * w / nb, hb / 2, 0.055)));
   for (const yy of [hb * 0.28, hb * 0.72]) {
     B.add('woodDark', box(w - 0.1, 0.16, 0.05), F(M(x, yy, 0.075)));
-    for (let k = 0; k < nb; k++) B.add('iron', box(0.035, 0.035, 0.03), F(M(x - w / 2 + (k + 0.5) * w / nb, yy, 0.11)));
+    for (let k = 0; k < nb; k++) B.add('iron', CLAVO(), F(M(x - w / 2 + (k + 0.5) * w / nb, yy, 0.1, 0, Math.PI / 2)));   // (clavos de cabeza redonda)
   }
   // escalón (también es suelo: quien llega a la puerta se sube a él, no se le hunden los pies)
   B.add('ashlar', box(w + 0.9, 0.2, 0.7), F(M(x, 0.02, 0.35)));
@@ -133,19 +145,40 @@ function doorAt(B, T, x, o) {
 
 function balconyAt(B, T, x, y, w, o) {
   const F = (mx) => MM(T, mx);
-  const dep = 0.95;
-  B.add(o.iron ? 'ashlar' : 'wood', box(w, 0.16, dep, 1.5), F(M(x, y, dep / 2)));
+  const dep = 0.95, low = builderQuality() === 'low';
+  // (la losa: de piedra, con el canto en bocel; de madera, de tablas)
+  if (o.iron && !low) B.add('ashlar', losaBocel(w, dep, 0.16, 1.5), F(M(x, y, 0)));
+  else B.add(o.iron ? 'ashlar' : 'wood', box(w, 0.16, dep, 1.5), F(M(x, y, dep / 2)));
   const mat = o.iron ? 'iron' : 'wood';
   const n = Math.round(w / 0.2);
-  for (let i = 0; i <= n; i++) B.add(mat, box(0.05, 0.95, 0.05), F(M(x - w / 2 + 0.05 + i * (w - 0.1) / n, y + 0.55, dep - 0.04)));
-  for (const s of [-1, 1]) for (let i = 1; i < 4; i++) B.add(mat, box(0.05, 0.95, 0.05), F(M(x + s * (w / 2 - 0.05), y + 0.55, i * dep / 4)));
+  // (en los de madera, balaustres torneados, con su panza y sus anillos, como los de los balcones de los caseríos; los de
+  // forja, barrotes; en el móvil, listones)
+  const torneado = !o.iron && !low ? BALAUSTRE() : null;
+  for (let i = 0; i <= n; i++) { const bx = x - w / 2 + 0.05 + i * (w - 0.1) / n;
+    if (torneado) B.add('wood', torneado, F(M(bx, y + 0.075, dep - 0.04)));
+    else B.add(mat, box(0.05, 0.95, 0.05), F(M(bx, y + 0.55, dep - 0.04))); }
+  for (const s of [-1, 1]) for (let i = 1; i < 4; i++) { if (torneado) B.add('wood', torneado, F(M(x + s * (w / 2 - 0.05), y + 0.075, i * dep / 4))); else B.add(mat, box(0.05, 0.95, 0.05), F(M(x + s * (w / 2 - 0.05), y + 0.55, i * dep / 4))); }
   B.add(mat, box(w + 0.05, 0.08, 0.1), F(M(x, y + 1.05, dep - 0.04)));
   for (const s of [-1, 1]) B.add(mat, box(0.08, 0.08, dep), F(M(x + s * (w / 2 - 0.04), y + 1.05, dep / 2)));
-  // ménsulas
-  if (!o.iron) for (const s of [-0.4, 0, 0.4]) B.add('woodDark', box(0.14, 0.14, dep * 0.8), F(M(x + s * w, y - 0.14, dep * 0.4, 0, 0.25)));
+  // (la forja: el pasamanos de abajo y, entre barrote y barrote, una «ce» de hierro arriba y otra abajo, y una bola en cada
+  // esquina, como en los balcones de los cascos viejos; en el móvil, sin ellas)
+  if (o.iron && !low) {
+    B.add('iron', box(w - 0.06, 0.04, 0.04), F(M(x, y + 0.2, dep - 0.04)));
+    B.add('iron', box(w - 0.06, 0.035, 0.035), F(M(x, y + 0.88, dep - 0.04)));
+    const paso = (w - 0.1) / n, ce = new THREE.TorusGeometry(Math.min(0.07, paso * 0.4), 0.011, 3, 9, Math.PI * 1.4).toNonIndexed();   // (ligeras: hay muchas por balcón)
+    for (let i = 0; i < n; i++) {
+      const cx = x - w / 2 + 0.05 + (i + 0.5) * paso;
+      B.add('iron', ce, F(M(cx, y + 0.96, dep - 0.04, 0, 0, Math.PI * 0.8 + (i % 2) * Math.PI)));
+      B.add('iron', ce, F(M(cx, y + 0.29, dep - 0.04, 0, 0, -Math.PI * 0.2 + (i % 2) * Math.PI)));
+    }
+    for (const s of [-1, 1]) B.add('iron', new THREE.SphereGeometry(0.045, 8, 6), F(M(x + s * (w / 2 - 0.03), y + 1.13, dep - 0.04)));
+  }
+  // ménsulas: curvas, de madera bajo los balcones de tablas y de piedra bajo las losas (antes, tacos rectos y solo en los de madera)
+  if (!o.iron) for (const s of [-0.4, 0, 0.4]) B.add('woodDark', low ? box(0.14, 0.14, dep * 0.8) : mensula(dep * 0.8, 0.5, 0.14), low ? F(M(x + s * w, y - 0.14, dep * 0.4, 0, 0.25)) : F(M(x + s * w, y - 0.08, 0)));
+  else if (!low) for (const s of [-0.38, 0.38]) B.add('ashlar', mensula(dep * 0.72, 0.42, 0.16), F(M(x + s * w, y - 0.08, 0)));
   // macetas colgadas, muy juntas, y flores que caen por delante de la barandilla (en calidad baja, más separadas y sin lo
   // que cae: las flores pasaban a ser buena parte de las piezas de cada casa)
-  const low = builderQuality() === 'low', paso = low ? 0.8 : 0.55;
+  const paso = low ? 0.8 : 0.55;
   if (o.flowers) for (let i = 0; i < Math.floor(w / paso); i++) {
     const px = x - w / 2 + 0.35 + i * paso;
     B.add('tile', new THREE.CylinderGeometry(0.16, 0.12, 0.24, 7), F(M(px, y + 1.12, dep - 0.02)));
@@ -219,7 +252,12 @@ function chimney(B, T, x, z, base, top) {
   const hs = top - base;
   B.add('stone', box(0.8, hs, 0.8, 1.5), MM(T, M(x, base + hs / 2, z)));
   B.add('slate', box(1.1, 0.12, 1.1, 1), MM(T, M(x, top + 0.06, z)));
-  B.add('stone', box(0.3, 0.3, 0.3, 1), MM(T, M(x, top + 0.27, z)));
+  // (el sombrerete: una teja curva, de canal, sobre dos piedras, como en las chimeneas de los caseríos; antes, un dado)
+  if (builderQuality() === 'low') B.add('stone', box(0.3, 0.3, 0.3, 1), MM(T, M(x, top + 0.27, z)));
+  else {
+    for (const s of [-1, 1]) B.add('stone', box(0.09, 0.26, 0.09, 1), MM(T, M(x + s * 0.2, top + 0.25, z)));
+    B.add('tile', cyl(0.27, 0.27, 0.62, 10, false, 1, 0, Math.PI), MM(T, M(x, top + 0.36, z, 0, 0, Math.PI / 2)));
+  }
   const b = new THREE.Vector3(x, top + 0.5, z).applyMatrix4(T); return { x: b.x, y: b.y, z: b.z };
 }
 // Dónde va la chimenea de una casa: cerca de la cumbrera, un poco caída hacia un faldón, y asomando por encima de la
@@ -261,7 +299,12 @@ function roofGableX(B, T, w, d, h, pitch, mat, o = {}) {
   // canecillos bajo el alero
   for (const s of [-1, 1]) {
     const bl = (s > 0 ? V.z1 : V.z0) * Math.cos(pitch) - 0.08; if (bl < 0.1) continue;
-    for (let i = 0; i < Math.floor(w / 0.9); i++) B.add('woodDark', box(0.12, 0.14, bl), MM(T, M(-w / 2 + 0.5 + i * 0.9, h - 0.14, s * (d / 2 + bl / 2))));
+    // (tallados, con la cabeza redondeada y la panza en curva; en el móvil, el listón de siempre)
+    const cn = builderQuality() === 'low' ? null : canecillo(bl, 0.16, 0.12);
+    for (let i = 0; i < Math.floor(w / 0.9); i++) {
+      if (cn) B.add('woodDark', cn, MM(T, M(-w / 2 + 0.5 + i * 0.9, h - 0.06, s * d / 2, s > 0 ? 0 : Math.PI)));
+      else B.add('woodDark', box(0.12, 0.14, bl), MM(T, M(-w / 2 + 0.5 + i * 0.9, h - 0.14, s * (d / 2 + bl / 2))));
+    }
   }
   return rise;
 }
