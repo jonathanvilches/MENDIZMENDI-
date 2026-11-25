@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { box, boxChaflan, faldon, venceDe, M, MM, builderQuality } from './builder.js';
 import { taludZocalo } from './plot.js';
-import { climber } from './houses.js';
+import { climber, peldanosPuerta } from './houses.js';
 import { celda, uvCelda } from './flores.js';
 import { TOWN } from './townBuilder.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
@@ -362,6 +362,10 @@ function fachada(B, T, w, d, h, o) {
     B.add(mat, box(len, 0.13, dep, 1), MM(T, M(F.ox + F.ux * u + F.nx * dep / 2, y - 0.07, F.oz + F.uz * u + F.nz * dep / 2, ry))); };
   const puerta = (F, u, pw, ph, col) => {
     car.rect(F, u - pw / 2, u + pw / 2, 0, ph, off, col);
+    // (la hoja de madera con sus herrajes encima del color: lisa, a la sombra se veía negra, como un hueco sin puerta)
+    if (o.tier !== 3) portal.rect(F, u - pw / 2, u + pw / 2, 0, ph, off + 0.012, null, 1);
+    // (y los peldaños hasta el suelo si la puerta queda en alto, en las casas en cuesta: houses.js)
+    if (o.tier !== 3) peldanosPuerta(B, MM(T, M(F.ox + F.ux * u + F.nx * off, 0, F.oz + F.uz * u + F.nz * off, Math.atan2(F.nx, F.nz))), 0, pw + 0.5, 0, 0, o.wall === 'brick' ? 'brick' : 'stone', [-F.L / 2 - u + 0.3, F.L / 2 - u - 0.3]);
     car.rect(F, u - pw / 2 - 0.22, u - pw / 2, 0, ph + 0.25, off, marco); car.rect(F, u + pw / 2, u + pw / 2 + 0.22, 0, ph + 0.25, off, marco);
     car.rect(F, u - pw / 2 - 0.22, u + pw / 2 + 0.22, ph, ph + 0.25, off, marco);
   };
@@ -387,7 +391,7 @@ function fachada(B, T, w, d, h, o) {
       const nb = Math.max(1, Math.floor(F.L / 7));
       for (let i = 0; i < nb; i++) {
         const u = -F.L / 2 + F.L / nb * (i + 0.5), y0 = Math.max(3.2, h * 0.42), y1 = Math.min(h - 0.8, y0 + 2.8);
-        if (F.frente && i === Math.floor(nb / 2)) { const ph = Math.min(h - 1, 3.8); puerta(F, u, 2.4, ph, E.puerta); portal.rect(F, u - 1.2, u + 1.2, 0, ph, off + 0.015, null, 1); continue; }
+        if (F.frente && i === Math.floor(nb / 2)) { const ph = Math.min(h - 1, 3.8); puerta(F, u, 2.4, ph, E.puerta); continue; }
         vitral.rect(F, u - 0.42, u + 0.42, y0, y1, off, null, 1);
         car.rect(F, u - 0.6, u + 0.6, y0 - 0.18, y0, off, marco); car.rect(F, u - 0.6, u + 0.6, y1, y1 + 0.2, off, marco);
       }

@@ -1,7 +1,7 @@
 // Casas pirenaicas del valle de Salazar (piedra, revoco, tejados muy inclinados, balcones de madera)
 import * as THREE from 'three';
 import { box, boxChaflan, faldon, cumbrera, venceDe, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
-import { addStep } from './heightfield.js';
+import { addStep, terrainHeight } from './heightfield.js';
 import { tarjeta, mata, celda, CELDAS } from './flores.js';
 
 // (contraventanas verdes, rojo sangre de toro, azules y ocres como las de los pueblos, en tonos algo apagados, como la
@@ -53,6 +53,53 @@ export function stepFrom(T, x, top, z, hw, hd) {
   _v.set(x, top, z).applyMatrix4(T); const e = T.elements, ry = Math.atan2(e[8], e[10]);
   addStep(_v.x, _v.z, ry, -hw, hw, -hd, hd, _v.y);
 }
+// Los peldaños de delante de una puerta que queda en alto: la casa en cuesta asienta en su esquina alta, y por el lado bajo
+// la puerta se quedaba a un metro del suelo con un solo escalón (el autor, 25 nov: «faltan escaleras, puertas»). T, la
+// fachada (y 0 en el suelo de la casa, +z hacia fuera); x, el centro de la puerta; w, el ancho; desde z0, con el de arriba a
+// top0 (el escalón que ya hay); lim, de dónde a dónde llega la fachada en x. De 20 cm cada uno hasta tocar el suelo, macizos
+// hasta él y pisables; ninguno si ya está a ras. Hasta 1,2 m, de frente; más alta, como el patín de las casas navarras: un
+// rellano delante de la puerta y la escalera pegada a la fachada, hacia el lado que antes llega al suelo, con barandilla (de
+// frente salía un macizo de cinco metros a la calle). Si no cabe en la fachada, lo que falta gira hacia fuera.
+const _q = new THREE.Vector3();
+export function peldanosPuerta(B, T, x, w, z0 = 0.7, top0 = 0.12, mat = 'stone', lim = [x - 6, x + 6]) {
+  const r = 0.2, run = 0.32, suelo = (lx, lz) => { _q.set(lx, 0, lz).applyMatrix4(T); return terrainHeight(_q.x, _q.z) - _q.y; };
+  // (el cuerpo, de la mampostería del zócalo de la casa, y la huella de piedra labrada: toda labrada parecía una pared nueva)
+  const peldano = (cx, cz, sx, sz, top, g) => {
+    const base = Math.min(top - 0.2, g - 0.3);
+    B.add(mat, box(sx, top - 0.07 - base, sz, 1.6), MM(T, M(cx, (top - 0.07 + base) / 2, cz)));
+    B.add('ashlar', box(sx + 0.03, 0.08, sz + 0.03, 1), MM(T, M(cx, top - 0.04, cz)));
+    stepFrom(T, cx, top, cz, sx / 2, sz / 2);
+  };
+  let n = 0; while (n < 7 && top0 - r * (n + 1) >= suelo(x, z0 + run * (n + 0.5)) + 0.05) n++;
+  if (n < 7) { for (let i = 0; i < n; i++) { const zc = z0 + run * (i + 0.5); peldano(x, zc, w, run + 0.03, top0 - r * (i + 1), suelo(x, zc)); } return; }
+  const dep = 1.2, zc = z0 + dep / 2, gz = (lx) => Math.min(suelo(lx, z0), suelo(lx, z0 + dep));
+  // el lado: el que llega antes al suelo sin salirse de la fachada (o el que tiene más sitio)
+  const cuenta = (s) => { let k = 0; while (k < 16 && top0 - r * (k + 1) >= gz(x + s * (w / 2 + run * (k + 0.5))) + 0.05) k++; return k; };
+  const sitio = (s) => Math.floor((s > 0 ? lim[1] - x - w / 2 : x - w / 2 - lim[0]) / run);
+  const op = [-1, 1].map(s => ({ s, k: cuenta(s), m: sitio(s) })), caben = op.filter(o => o.k <= o.m);
+  const { s } = caben.length ? caben.reduce((a, b) => (b.k < a.k ? b : a)) : op.reduce((a, b) => (b.m > a.m ? b : a));
+  peldano(x, zc, w, dep, top0, Math.min(gz(x - w / 2), gz(x + w / 2)));   // (el rellano)
+  let top = top0, xe = x + s * w / 2, k = 0;
+  for (; k < 16; k++) {
+    const xc = xe + s * run / 2, t = top - r, g = gz(xc);
+    if (t < g + 0.05 || (s > 0 ? xe + run > lim[1] : xe - run < lim[0])) break;
+    peldano(xc, zc, run + 0.03, dep, t, g); top = t; xe += s * run;
+  }
+  // (lo que falta, hacia fuera, desde el final del tramo)
+  const cx = xe - s * dep / 2;
+  for (let j = 0; j < 16; j++) { const cz = z0 + dep + run * (j + 0.5), t = top - r * (j + 1), g = suelo(cx, cz); if (t < g + 0.05) break; peldano(cx, cz, dep, run + 0.03, t, g); }
+  // barandilla de hierro: en el borde de fuera del rellano y a lo largo del tramo
+  const zb = z0 + dep - 0.06, hb = 0.9;
+  B.add('iron', box(w, 0.05, 0.05), MM(T, M(x, top0 + hb, zb)));
+  B.add('iron', box(0.05, 0.05, dep), MM(T, M(x - s * w / 2, top0 + hb, zc)));
+  for (const px of [x - s * w / 2, x + s * w / 2]) B.add('iron', box(0.05, hb, 0.05), MM(T, M(px, top0 + hb / 2, zb)));
+  if (k > 1) {
+    const L = Math.abs(xe - (x + s * w / 2)), dy = top0 - top, a = Math.atan2(dy, L);
+    B.add('iron', box(Math.hypot(L, dy), 0.05, 0.05), MM(T, M(x + s * (w / 2 + L / 2), (top0 + top) / 2 + hb, zb, 0, 0, -s * a)));
+    for (let j = 3; j < k; j += 3) { const px = x + s * (w / 2 + run * (j + 0.5)), t = top0 - r * (j + 1); B.add('iron', box(0.04, hb, 0.04), MM(T, M(px, t + hb / 2, zb))); }
+    B.add('iron', box(0.05, hb, 0.05), MM(T, M(xe - s * 0.05, top + hb / 2, zb)));
+  }
+}
 function doorAt(B, T, x, o) {
   const F = (mx) => MM(T, mx);
   const w = o.w || 1.7, h = o.h || 2.7;
@@ -79,6 +126,7 @@ function doorAt(B, T, x, o) {
   // escalón (también es suelo: quien llega a la puerta se sube a él, no se le hunden los pies)
   B.add('ashlar', box(w + 0.9, 0.2, 0.7), F(M(x, 0.02, 0.35)));
   stepFrom(T, x, 0.12, 0.35, (w + 0.9) / 2, 0.35);
+  peldanosPuerta(B, T, x, w + 0.6, 0.7, 0.12, 'stone', o.fw ? [-o.fw / 2 + 0.2, o.fw / 2 - 0.2] : undefined);
   // aldaba
   B.add('iron', new THREE.TorusGeometry(0.07, 0.015, 5, 10), F(M(x + w * 0.22, h * 0.45, 0.07)));
 }
@@ -283,7 +331,7 @@ export function buildHouse(B, T, o, rnd) {
   if (o.cornice) B.add('ashlar', box(w + (vec[0] ? 0 : 0.05) + (vec[1] ? 0 : 0.05), 0.16, d + 0.1), MM(T, M(((vec[1] ? 0 : 0.05) - (vec[0] ? 0 : 0.05)) / 2, fh + 0.05, 0)));
   // puerta
   const doorX = o.doorX ?? (rnd() < 0.5 ? 0 : (rnd() < 0.5 ? -1 : 1) * (w / 2 - 1.6));
-  doorAt(B, MM(T, M(0, 0, d / 2)), doorX, { arch: o.arch, w: o.arch ? 1.9 : 1.4, h: o.arch ? 2.9 : 2.4 });
+  doorAt(B, MM(T, M(0, 0, d / 2)), doorX, { arch: o.arch, w: o.arch ? 1.9 : 1.4, h: o.arch ? 2.9 : 2.4, fw: w });
   // ventanas
   const cols = Math.max(1, Math.floor((w - 0.8) / 2.3));
   const shutter = SHUTTERS[Math.floor(rnd() * SHUTTERS.length)];

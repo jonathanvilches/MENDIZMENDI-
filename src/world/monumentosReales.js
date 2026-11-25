@@ -13,6 +13,7 @@ import { pointedPanel } from './civic.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { roofHip } from './houses.js';
 import { addBox, addCircle } from './colliders.js';
+import { PLACES } from './layout.js';
 import PLANTAS from '../data/reales/plantas.json';
 
 export const plantaDe = (id) => PLANTAS[id] || null;
@@ -171,7 +172,8 @@ export function castilloJavier(B, P) {
   const ryG = Math.atan2(gx - c.x, gz - c.z), GP = rect(gx, gz, ryG + Math.PI / 2, 6.4, 6.4);
   B.add(S, prisma(GP, yb, y + 9));
   almenas(B, S, GP, y + 9, { paso: 1.6, ancho: 0.95 });
-  const Fg = M(gx + Math.sin(ryG) * 3.25, y, gz + Math.cos(ryG) * 3.25, ryG);
+  // (el umbral, a la altura de la explanada de delante, y + 0,4: antes la puerta arrancaba 40 cm por debajo y quedaba hundida)
+  const Fg = M(gx + Math.sin(ryG) * 3.25, y + 0.4, gz + Math.cos(ryG) * 3.25, ryG);
   B.add(S, archRing(1.6, 2.2, 0.7, 14), MM(Fg, M(0, 3.4, 0.1)));
   B.add('puerta', uvHueco(archPanel(3.2, 5.0, 0.12)), MM(Fg, M(0, 0, 0.02)));
   ladronera(B, S, { ax: gx + Math.sin(ryG) * 3.2 - Math.cos(ryG) * 1.2, az: gz + Math.cos(ryG) * 3.2 + Math.sin(ryG) * 1.2, dx: Math.cos(ryG), dz: -Math.sin(ryG), nx: Math.sin(ryG), nz: Math.cos(ryG), ry: ryG, L: 2.4 }, 1.2, y + 8.6, 2.4);
@@ -246,7 +248,7 @@ export function basilicaJavier(B, P) {
   for (let zz = -4.5; zz > -largo + 3; zz -= 5.2) for (const s of [-1, 1]) {
     B.add(S, box(1.2, hn + 1.2, 1.4), MM(F, M(s * (W / 2 + 0.6), (hn + 1.2) / 2 - 1.5, zz)));
     B.add(S, new THREE.ConeGeometry(0.6, 2.4, 4), MM(F, M(s * (W / 2 + 0.6), hn + 1.4, zz, Math.PI / 4)));
-    if (s < 0 && zz < -16) { B.add('vidriera', uvHueco(archPanel(1.1, 4.8, 0.08)), MM(F, M(-W / 2 - 0.03, hn * 0.55 - 2.1, zz + 2.6, -Math.PI / 2))); B.add(S, archRing(0.55, 0.8, 0.3, 8), MM(F, M(-W / 2 - 0.05, hn * 0.55 + 2.1, zz + 2.6, Math.PI / 2))); }
+    if (s < 0 && zz < -16) { B.add('vidriera', uvHueco(archPanel(1.1, 4.8, 0.08)), MM(F, M(-W / 2 - 0.22, hn * 0.55 - 2.1, zz + 2.6, -Math.PI / 2))); B.add(S, archRing(0.55, 0.8, 0.3, 8), MM(F, M(-W / 2 - 0.25, hn * 0.55 + 2.1, zz + 2.6, Math.PI / 2))); }
   }
   // fachada: paño algo más ancho que la nave, con la cornisa y el hastial escalonado
   const Wf = W + 1.0, hf = 16.5;
@@ -266,8 +268,10 @@ export function basilicaJavier(B, P) {
   // portada de medio punto con arquivoltas, puerta y escalinata
   for (let k = 0; k < 3; k++) B.add(S, archRing(2.1 + k * 0.42, 2.48 + k * 0.42, 0.5, 18), MM(F, M(0, 6.2, 1.12 - k * 0.12)));
   for (const s of [-1, 1]) for (let k = 0; k < 3; k++) B.add(S, new THREE.CylinderGeometry(0.2, 0.2, 6.2, 8), MM(F, M(s * (2.3 + k * 0.42), 3.1, 1.22 - k * 0.12)));
-  B.add('dark', archPanel(4.2, 8.3, 0.1), MM(F, M(0, 0, 0.6)));
-  B.add('puerta', uvHueco(archPanel(3.0, 4.4, 0.12)), MM(F, M(0, 0, 0.66)));
+  // (delante del paño de la fachada, que llega a z 1,1: a 0,6 quedaban dentro del muro y la portada se veía ciega)
+  B.add(S, archPanel(4.2, 8.3, 0.04), MM(F, M(0, 0, 1.12)));   // (el tímpano, de la misma arenisca: en negro parecía un agujero)
+  B.add('puerta', uvHueco(archPanel(3.0, 4.4, 0.08)), MM(F, M(0, 0, 1.16)));
+  B.add('ashlar', box(6.2, 0.4, 0.5), MM(F, M(0, -0.2, 1.3)));   // (el umbral, hasta el primer peldaño)
   for (const s of [-1, 1]) { B.add('vidriera', uvHueco(archPanel(1.1, 2.6, 0.08)), MM(F, M(s * 4.0, 2.8, 1.12))); B.add(S, box(1.6, 0.25, 0.4), MM(F, M(s * 4.0, 2.7, 1.25))); }
   // el rosetón en su arco
   const yr = 11.6;
@@ -466,6 +470,15 @@ export function palacioViejoOlite(B, P) {
   almenas(B, SO, PV, y + 14);
   colisionesPlanta(PV);
   for (const l of lados(PV)) if (l.L > 9) { ventanaGotica(B, l, l.L * 0.33, y + 8.5); ventanaGotica(B, l, l.L * 0.66, y + 8.5); }
+  // (su portada, en el muro que mira a la plaza, a ras del suelo de delante: era un bloque sin entrada)
+  { const cv = centro(PV), pz = PLACES.plaza || cv;
+    const l = lados(PV).filter(q => q.L > 6).reduce((a, b) => ((b.nx * (pz.x - cv.x) + b.nz * (pz.z - cv.z)) > (a.nx * (pz.x - cv.x) + a.nz * (pz.z - cv.z)) ? b : a));
+    // (a lo largo de ese muro, donde no la tape una de las dos torres)
+    const torres = [[-141.6, -226.4], [-122.8, -203.2]], libre = (t) => { const [qx, qz] = sobre(l, t, 0); return Math.min(...torres.map(([tx, tz]) => Math.hypot(qx - tx, qz - tz))); };
+    const tp = [0.5, 0.35, 0.65, 0.25, 0.75, 0.15, 0.85].map(f => f * l.L).reduce((a, b) => (libre(a) >= 6.5 ? a : libre(b) > libre(a) ? b : a));
+    const [px, pz2] = sobre(l, tp, 0.04), yd = terrainHeight(px + l.nx * 1.5, pz2 + l.nz * 1.5) - 0.05, G = M(px, yd, pz2, Math.atan2(l.nx, l.nz));
+    B.add('puerta', uvHueco(archPanel(2.6, 4.2, 0.12)), G);
+    for (let k = 0; k < 2; k++) B.add(SO, archRing(1.3 + k * 0.3, 1.6 + k * 0.3, 0.4, 12), MM(G, M(0, 4.2 - 1.3, 0.12 - k * 0.08))); }
   const T1 = torreCuadrada(B, SO, { x: -141.6, z: -226.4, ry: 0.72, w: 7, d: 7 }, yb, y, 21, { canesCorona: true });
   const T2 = torreCuadrada(B, SO, { x: -122.8, z: -203.2, ry: 0.72, w: 6.4, d: 6.4 }, yb, y, 19);
   // (cubierto de hiedra, como el parador de las fotos: por los muros largos y las dos torres)

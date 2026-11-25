@@ -8,6 +8,26 @@ import { addBox, addCircle, rectFree } from './colliders.js';
 import { PLACES } from './layout.js';
 
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
+// (el suelo más bajo y el más alto bajo una planta rectangular, de w × d centrada en x, z: los muros bajan hasta el más bajo y
+// en una cuesta no quedan volando por una esquina)
+function sueloPlanta(x, z, ry, w, d, n = 4) {
+  let lo = Infinity, hi = -Infinity;
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) { const p = toW(x, z, ry, -w / 2 + w * i / n, -d / 2 + d * j / n), h = terrainHeight(p.x, p.z); lo = Math.min(lo, h); hi = Math.max(hi, h); }
+  return { lo, hi };
+}
+// Los escalones de una entrada: F, la puerta (y 0 en el umbral, +z hacia fuera); yF, la altura del umbral en el mundo, y
+// suelo(d), la del suelo a d metros delante. Peldaños de 20 cm hasta tocar el suelo, macizos hasta él y pisables; ninguno si
+// la puerta ya queda a ras (antes, en las cuestas, la puerta de la ermita o la del castillo se quedaba a un metro del suelo)
+function escalones(B, F, yF, suelo, w = 2.4, mat = 'ashlar') {
+  const r = 0.2, run = 0.36;
+  for (let i = 0; i < 30; i++) {
+    const zc = run * (i + 0.5), top = -r * (i + 1), g = suelo(zc) - yF;
+    if (top < g + 0.05) break;
+    const base = Math.min(top - 0.2, g - 0.3);
+    B.add(mat, box(w, top - base, run + 0.04, 1), MM(F, M(0, (top + base) / 2, zc)));
+    stepFrom(F, 0, top, zc, w / 2, run / 2);
+  }
+}
 function merlons(B, T, w, d, y, mat = 'ashlar') {
   for (const s of [-1, 1]) {
     for (let i = 0; i < Math.floor(w / 1.2); i++) B.add(mat, box(0.6, 0.7, 0.6), MM(T, M(-w / 2 + 0.6 + i * 1.2, y + 0.35, s * d / 2)));
@@ -52,7 +72,10 @@ export function eaveCorbels(B, T, W, L, H) {
 // tejado de dos aguas, puerta en arco y un poyo a la entrada
 function ermita(B, T, x, z, y, ry, bell) {
   const W = 6.6, L = 10, Hh = 4.6, rise = 1.9;
-  B.add('stone', box(W, Hh + 1, L, 2.2), MM(T, M(0, (Hh + 1) / 2 - 1, 0)));
+  // (los muros, hasta el suelo más bajo de la planta: en una ladera la ermita no queda volando por detrás)
+  const dy = Math.max(1, y - sueloPlanta(x, z, ry, W, L).lo + 0.3);
+  B.add('stone', box(W, Hh + dy, L, 2.2), MM(T, M(0, (Hh - dy) / 2, 0)));
+  escalones(B, MM(T, M(0, 0, L / 2 + 0.1)), y, (d) => { const f = toW(x, z, ry, 0, L / 2 + 0.1 + d); return terrainHeight(f.x, f.z); }, 2.2, 'stone');
   for (const s of [-1, 1]) B.add('slate', box(Math.hypot(W / 2, rise) + 0.5, 0.22, L + 0.8), MM(T, M(s * W / 4, Hh + rise / 2 + 0.1, 0, 0, 0, -s * Math.atan2(rise, W / 2))));
   for (const s of [-1, 1]) B.add('stone', gable(W, rise, 0.5), MM(T, M(0, Hh, s * (L / 2 - 0.25))));
   B.add('puerta', uvHueco(archPanel(1.5, 2.5, 0.12)), MM(T, M(0, 0, L / 2 + 0.02)));
@@ -103,7 +126,9 @@ function solapan(a, b, m = 0) {
   return true;
 }
 export function church(B, x, z, ry, style, fam, opts = {}) {
-  if (style === 'ermita' || style === 'borda') { const y = terrainHeight(x, z) - 0.2; return ermita(B, M(x, y, z, ry), x, z, y, ry, style === 'ermita'); }
+  // (a la altura del suelo de delante de la puerta si está más alto que el del centro: si no, la puerta quedaba medio enterrada
+  // cuando la ladera sube hacia ella)
+  if (style === 'ermita' || style === 'borda') { const f = toW(x, z, ry, 0, 6), y = Math.max(terrainHeight(x, z), terrainHeight(f.x, f.z)) - 0.2; return ermita(B, M(x, y, z, ry), x, z, y, ry, style === 'ermita'); }
   const brick = fam === 'ribera' && style === 'baroque';
   const mat = opts.piedra || (brick ? 'brick' : 'ashlar');
   const roof = fam === 'pyrenean' || fam === 'atlantic' && style !== 'baroque' ? 'slate' : 'tile';
@@ -142,7 +167,15 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   const y = terrainHeight(x, z) - 0.2;
   const T = M(x, y, z, ry);
   B.add(mat, box(W, Hh + 2, L, 2.2), MM(T, M(0, (Hh + 2) / 2 - 2, 0)));
-  B.add('stoneDark', box(W + 0.4, 1.4, L + 0.4, 2), MM(T, M(0, 0.3, 0)));
+  // (el zócalo: por los lados y la cabecera; por delante, a ras de la fachada, para que no tape el pie de la puerta: antes
+  // sobresalía 20 cm y la puerta parecía colgada sobre una franja de piedra oscura)
+  B.add('stoneDark', box(W + 0.4, 1.4, L + 0.2, 2), MM(T, M(0, 0.3, -0.1)));
+  // (el cimiento: en la ladera, nave, ábside y torre bajan, con la piedra del zócalo, hasta el suelo más bajo de su planta; en
+  // Leitza, en un alto, se les veía la panza flotando sobre la cuesta por debajo de la escalinata)
+  const fondo = (cx, cz, w, d) => { const c = toW(x, z, ry, cx, cz); return sueloPlanta(c.x, c.z, ry, w, d, 4).lo; };
+  const cimiento = (cx, cz, w, d) => { const h = y - fondo(cx, cz, w, d) + 0.3; if (h > 1.1) B.add('stoneDark', box(w, h, d, 2), MM(T, M(cx, -h / 2, cz))); };
+  cimiento(0, -0.1, W + 0.4, L + 0.2);
+  { const ra = W / 2 - 0.1, h = y - fondo(0, -L / 2 - ra / 2, ra * 2, ra) + 0.3; if (h > 1.1) B.add('stoneDark', cyl(ra, ra, h, style === 'romanesque' ? 14 : 7, false, 2, Math.PI / 2, Math.PI), MM(T, M(0, -h / 2, -L / 2))); }
   // contrafuertes y ventanas
   const nb = Math.max(3, Math.round(L / 7));
   for (const s of [-1, 1]) for (let i = 0; i < nb; i++) {
@@ -171,10 +204,12 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   const F = MM(T, M(0, 0, L / 2));
   if (style === 'cathedral') {
     // fachada con pórtico de columnas y dos torres
-    for (let i = 0; i < 6; i++) B.add('ashlar', new THREE.CylinderGeometry(0.5, 0.55, 9, 12), MM(F, M(-W / 2 + 2 + i * (W - 4) / 5, 4.5, 2.2)));
+    // (tres a cada lado, con el paso de en medio libre: las dos del centro se ponían delante de la puerta)
+    const half = W / 2 - 2, gap = Math.min(3.2, half - 1);
+    for (const s of [-1, 1]) for (let k = 0; k < 3; k++) B.add('ashlar', new THREE.CylinderGeometry(0.5, 0.55, 9, 12), MM(F, M(s * (gap + k * (half - gap) / 2), 4.5, 2.2)));
     B.add('ashlar', box(W, 1.2, 3.6), MM(F, M(0, 9.6, 2)));
     B.add('ashlar', gable(W, 3.4, 3.6), MM(F, M(0, 10.2, 2)));
-    portal(B, F, 1.8, 3, mat, 4.4);
+    portal(B, MM(F, M(0, 0.3, 0)), 1.8, 3, mat, 4.4);
     for (const s of [-1, 1]) spireTower(B, MM(F, M(s * (W / 2 - 3), 0, -2)), 6, Hh + 14, 'slate', mat, 'baroque', s < 0);
     // cimborrio
     B.add(mat, new THREE.CylinderGeometry(5, 5, 6, 8), MM(T, M(0, Hh + 3, -L * 0.2)));
@@ -182,7 +217,8 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     // claustro
     for (let i = 0; i < 8; i++) B.add('ashlar', new THREE.CylinderGeometry(0.22, 0.22, 3, 8), MM(T, M(W / 2 + 3 + (i % 4) * 3.5, 1.5, -L / 2 + 4 + Math.floor(i / 4) * 12)));
   } else {
-    portal(B, F, style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
+    // (la portada, con el umbral a la altura del peldaño de arriba de la escalinata, 30 cm sobre el suelo de la iglesia)
+    portal(B, MM(F, M(0, 0.3, 0)), style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
     if (style === 'gothic') {
       // rosetón con tracería: anillo, óculo central y ocho radios de piedra sobre la vidriera
       const RF = MM(F, M(0, Hh - 4.6, 0));
@@ -200,6 +236,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     const tx = style === 'baroque' ? W / 2 + tw / 2 - 0.5 : W / 2 + tw / 2 + 0.3, tz = style === 'baroque' || opts.twin ? L / 2 - tw / 2 : -L / 2 + tw;
     for (const s of opts.twin ? [1, -1] : [1]) {
       spireTower(B, MM(T, M(s * tx, 0, tz)), tw, th, roof, mat, style, s > 0 && !opts.remate, opts.remate);
+      cimiento(s * tx, tz, tw + 0.2, tw + 0.2);
       const tp = toW(x, z, ry, s * tx, tz);
       addBox(tp.x, tp.z, tw + 0.4, tw + 0.4, ry, { solidView: true });
     }
@@ -217,8 +254,10 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     // (los de abajo, del ancho del cuarto: estrechándose a 3 m, en diagonal no había paso en la rejilla de caminos; Isaba;
     // pero sin meterse en una casa: se estrecha lo justo)
     let w = Math.max(6.2, 8 - i * 0.6); while (w > 3.2 && !rectFree(x, z, ry, -w / 2, w / 2, L / 2 + zc - hd, L / 2 + zc + hd, 0, true)) w -= 0.5;
-    B.add('ashlar', box(w, top - base, run + 0.1), MM(F, M(0, (top + base) / 2, zc)));
-    stepFrom(F, 0, top, zc, w / 2, hd);   // (cada peldaño es suelo: se sube la escalinata)
+    // (el de arriba llega hasta la fachada: es el rellano de la puerta; antes quedaba un hueco entre el umbral y el peldaño)
+    const z0 = i ? zc - hd : 0, z1 = zc + hd;
+    B.add('ashlar', box(w, top - base, z1 - z0), MM(F, M(0, (top + base) / 2, (z0 + z1) / 2)));
+    stepFrom(F, 0, top, (z0 + z1) / 2, w / 2, (z1 - z0) / 2);   // (cada peldaño es suelo: se sube la escalinata)
   }
   // (el sitio de la escalinata, reservado: que no se construya una casa encima; se pisa)
   if (nE > 4) boxCol(x, z, ry, 0, L / 2 + zE + (nE - 1) * run / 2, 8.4, (nE - 1) * run + run + 0.4, { ghost: true });
@@ -230,16 +269,19 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
 
 // ---------- Castillo (Marcilla, Cortes; el Palacio Real de Olite va sobre su planta en monumentosReales.js) ----------
 export function castle(B, x, z, ry) {
-  const y = terrainHeight(x, z) - 0.3;
-  const T = M(x, y, z, ry);
   const W = 30, D = 26, Hh = 10;
+  // (a la altura del suelo delante de la puerta si está más alto que el del centro, y los lienzos, el talud y las torres hasta
+  // el suelo más bajo de su planta: en una cuesta el castillo quedaba con una esquina volando y la puerta medio enterrada)
+  const gp = toW(x, z, ry, 0, D / 2 + 4), y = Math.max(terrainHeight(x, z), terrainHeight(gp.x, gp.z)) - 0.3;
+  const dy = Math.max(0, y - sueloPlanta(x, z, ry, W + 6, D + 6).lo + 0.4);
+  const T = M(x, y, z, ry);
   for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [0, D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
     const gate = lz === D / 2;
     if (gate) {
-      for (const s of [-1, 1]) { B.add('ashlar', box(W / 2 - 3, Hh, 2, 2.4), MM(T, M(s * (W / 4 + 1.5), Hh / 2, lz))); boxCol(x, z, ry, s * (W / 4 + 1.5), lz, W / 2 - 3, 2.4, { solidView: true }); }
+      for (const s of [-1, 1]) { B.add('ashlar', box(W / 2 - 3, Hh + dy, 2, 2.4), MM(T, M(s * (W / 4 + 1.5), (Hh - dy) / 2, lz))); boxCol(x, z, ry, s * (W / 4 + 1.5), lz, W / 2 - 3, 2.4, { solidView: true }); }
       B.add('ashlar', archRing(3, 3.6, 2.2, 12), MM(T, M(0, Hh - 5, lz)));
       B.add('ashlar', box(7.2, 2.4, 2), MM(T, M(0, Hh - 1.2, lz)));
-    } else { B.add('ashlar', box(w, Hh, d, 2.4), MM(T, M(lx, Hh / 2, lz))); boxCol(x, z, ry, lx, lz, w + 0.4, d + 0.4, { solidView: true }); }
+    } else { B.add('ashlar', box(w, Hh + dy, d, 2.4), MM(T, M(lx, (Hh - dy) / 2, lz))); boxCol(x, z, ry, lx, lz, w + 0.4, d + 0.4, { solidView: true }); }
     // almenas
     const n = Math.floor(Math.max(w, d) / 1.4);
     for (let i = 0; i < n; i++) B.add('ashlar', box(w > d ? 0.7 : 2.2, 0.8, w > d ? 2.2 : 0.7), MM(T, M(w > d ? lx - w / 2 + 0.7 + i * 1.4 : lx, Hh + 0.4, w > d ? lz : lz - d / 2 + 0.7 + i * 1.4)));
@@ -249,8 +291,8 @@ export function castle(B, x, z, ry) {
   for (const [lx, lz, w, d] of [[0, -D / 2, W, 2], [0, D / 2, W, 2], [-W / 2, 0, 2, D], [W / 2, 0, 2, D]]) {
     const along = w > d, len = along ? w : d, gate = lz === D / 2, out = along ? Math.sign(lz) : Math.sign(lx);
     // talud (en la muralla de la puerta, a los dos lados del portón: antes cruzaba la entrada como un muro de metro y medio)
-    if (gate) for (const sg of [-1, 1]) { const tl = (w + 1.2) / 2 - 3.6; B.add('stoneDark', box(tl, 1.6, 3.2), MM(T, M(lx + sg * (3.6 + tl / 2), 0.8, lz))); }
-    else B.add('stoneDark', box(along ? w + 1.2 : 3.2, 1.6, along ? 3.2 : d + 1.2), MM(T, M(lx, 0.8, lz)));
+    if (gate) for (const sg of [-1, 1]) { const tl = (w + 1.2) / 2 - 3.6; B.add('stoneDark', box(tl, 1.6 + dy, 3.2), MM(T, M(lx + sg * (3.6 + tl / 2), (1.6 - dy) / 2, lz))); }
+    else B.add('stoneDark', box(along ? w + 1.2 : 3.2, 1.6 + dy, along ? 3.2 : d + 1.2), MM(T, M(lx, (1.6 - dy) / 2, lz)));
     B.add('ashlar', box(along ? w + 0.5 : 2.7, 0.35, along ? 2.7 : d + 0.5), MM(T, M(lx, Hh - 0.15, lz)));                              // cornisa
     for (let t = -len / 2 + 1.2; t < len / 2 - 1; t += 1.6) {
       if (gate && Math.abs(t) < 4.5) continue;
@@ -280,8 +322,8 @@ export function castle(B, x, z, ry) {
   const towers = [[-W / 2, -D / 2, 6, 16, 'sq'], [W / 2, -D / 2, 6, 16, 'sq'], [-W / 2, D / 2, 6, 15, 'rd'], [W / 2, D / 2, 6, 15, 'rd'], [0, -D / 2, 7, 20, 'sq']];
   for (const [lx, lz, tw, th, sh] of towers) {
     const TT = MM(T, M(lx, 0, lz));
-    const geo = sh === 'sq' ? box(tw, th + 2, tw, 2.4) : new THREE.CylinderGeometry(tw / 2, tw / 2 + 0.3, th + 2, sh === 'oct' ? 8 : 14);
-    B.add('ashlar', geo, MM(TT, M(0, (th + 2) / 2 - 2, 0)));
+    const geo = sh === 'sq' ? box(tw, th + 2 + dy, tw, 2.4) : new THREE.CylinderGeometry(tw / 2, tw / 2 + 0.3, th + 2 + dy, sh === 'oct' ? 8 : 14);
+    B.add('ashlar', geo, MM(TT, M(0, (th - 2 - dy) / 2, 0)));
     for (let k = 0; k < 3; k++) B.add('glass', archPanel(0.7, 1.4, 0.1), MM(TT, M(0, th * (0.4 + k * 0.18), tw / 2 + 0.02)));
     if (sh === 'sq' && tw > 6.5) merlons(B, TT, tw + 0.4, tw + 0.4, th);
     else { const c = new THREE.ConeGeometry(tw * 0.72, tw * 1.3, sh === 'sq' ? 4 : sh === 'oct' ? 8 : 14); if (sh === 'sq') c.rotateY(Math.PI / 4); B.add('slate', c, MM(TT, M(0, th + tw * 0.65, 0))); }
@@ -404,9 +446,25 @@ export function landmark(B, lm, ctx) {
   const col = (w, d, meta) => addBox(x, z, w, d, lm.ry || 0, meta);
   switch (lm.kind) {
     case 'towerhouse': {
-      B.add('stone', box(8, 16, 8, 2.2), MM(T, M(0, 7, 0)));
-      for (let i = 0; i < 3; i++) B.add('glass', archPanel(0.8, 1.6, 0.1), MM(T, M(0, 4 + i * 4, 4.02)));
-      roofHip(B, T, 8, 8, 15, 3, 'tile');
+      // (la cara de la puerta, la que mira a la plaza; antes la entrada y las ventanas daban a la espalda y desde la plaza
+      // se veía una caja lisa)
+      const r0 = lm.ry || 0, k = Math.round((Math.atan2(PLACES.plaza.x - x, PLACES.plaza.z - z) - r0) / (Math.PI / 2));
+      // (a la altura del suelo delante de la puerta y con los muros hasta el suelo más bajo, como la capilla)
+      const rd = r0 + k * Math.PI / 2, fp = toW(x, z, rd, 0, 5.5), yc = Math.max(y, terrainHeight(fp.x, fp.z)) - 0.1;
+      const dy = Math.max(1, yc - sueloPlanta(x, z, r0, 8, 8).lo + 0.3);
+      const T3 = M(x, yc, z, r0);
+      B.add('stone', box(8, 15 + dy, 8, 2.2), MM(T3, M(0, (15 - dy) / 2, 0)));
+      escalones(B, MM(MM(T3, M(0, 0, 0, k * Math.PI / 2)), M(0, 0, 4.1)), yc, (d) => { const f = toW(x, z, rd, 0, 4.1 + d); return terrainHeight(f.x, f.z); }, 2.0, 'stone');
+      for (let c = 0; c < 4; c++) {
+        const R = MM(T3, M(0, 0, 0, (k + c) * Math.PI / 2));
+        for (let i = c ? 1 : 0; i < 3; i++) B.add('glass', archPanel(0.8, 1.6, 0.1), MM(R, M(c === 2 ? 1.6 : 0, 4 + i * 4, 4.02)));
+        if (c) continue;
+        // la puerta de abajo, de tablas con herrajes, en su arco de dovelas
+        B.add('puerta', uvHueco(archPanel(1.7, 3.0, 0.1)), MM(R, M(0, -0.05, 4.03)));
+        B.add('ashlar', archRing(0.85, 1.25, 0.3, 10), MM(R, M(0, 3.0 - 0.85, 4.1)));
+        for (const s of [-1, 1]) B.add('ashlar', box(0.4, 2.15, 0.3), MM(R, M(s * 1.05, 1.03, 4.1)));
+      }
+      roofHip(B, T3, 8, 8, 15, 3, 'tile');
       col(8.4, 8.4, { solidView: true }); return { x, z: z + 6 };
     }
     case 'palace': case 'house': return null; // se hacen como casas especiales
@@ -441,17 +499,32 @@ export function landmark(B, lm, ctx) {
       col(3, 3); return { x, z: z + 3 };
     }
     case 'ruin': {
-      for (let i = 0; i < 7; i++) { const a = i / 7 * 6.28; const hh = 2 + ((i * 37) % 5); B.add('stone', box(4, hh, 1.2, 2), MM(T, M(Math.cos(a) * 7, hh / 2 - 0.5, Math.sin(a) * 7, -a + Math.PI / 2))); }
-      B.add('stone', box(5, 9, 5, 2), MM(T, M(-3, 4, -3)));
+      // (cada trozo de muro baja hasta su propio suelo: en la ladera, los del lado bajo volaban)
+      const r0 = lm.ry || 0, pie = (lx, lz, ry, w, d) => { const c = toW(x, z, r0, lx, lz); return Math.min(-0.5, sueloPlanta(c.x, c.z, r0 + ry, w, d, 2).lo - y - 0.3); };
+      for (let i = 0; i < 7; i++) {
+        const a = i / 7 * 6.28, hh = 2 + ((i * 37) % 5), lx = Math.cos(a) * 7, lz = Math.sin(a) * 7, b0 = pie(lx, lz, -a + Math.PI / 2, 4, 1.2), t0 = hh - 0.5;
+        B.add('stone', box(4, t0 - b0, 1.2, 2), MM(T, M(lx, (t0 + b0) / 2, lz, -a + Math.PI / 2)));
+      }
+      const b1 = pie(-3, -3, 0, 5, 5);
+      B.add('stone', box(5, 8.5 - b1, 5, 2), MM(T, M(-3, (8.5 + b1) / 2, -3)));
       col(5, 5); return { x, z: z + 9 };
     }
     case 'mill': {
-      B.add('stone', box(9, 8, 7, 2.2), MM(T, M(0, 3, 0))); roofHip(B, T, 9, 7, 7, 2.6, 'tile');
+      // (con su puerta y un ventanuco en la fachada, que era una caja ciega, y los muros hasta el suelo más bajo: junto al río,
+      // en cuesta, una esquina volaba)
+      // (con la puerta hacia la plaza: daba la espalda al pueblo y desde el camino solo se veía la rueda)
+      const r0 = lm.ry ?? Math.atan2(PLACES.plaza.x - x, PLACES.plaza.z - z), fp = toW(x, z, r0, -1.5, 4.5), yc = Math.max(y, terrainHeight(fp.x, fp.z)) - 0.1, T2 = M(x, yc, z, r0);
+      const dy = Math.max(1, yc - sueloPlanta(x, z, r0, 9, 7).lo + 0.3);
+      B.add('stone', box(9, 7 + dy, 7, 2.2), MM(T2, M(0, (7 - dy) / 2, 0))); roofHip(B, T2, 9, 7, 7, 2.6, 'tile');
+      B.add('puerta', uvHueco(archPanel(1.6, 2.6, 0.1)), MM(T2, M(-1.5, 0, 3.53)));
+      B.add('ashlar', archRing(0.8, 1.1, 0.25, 10), MM(T2, M(-1.5, 1.8, 3.58)));
+      B.add('glass', box(0.9, 1.1, 0.1), MM(T2, M(1.8, 4.6, 3.52))); B.add('ashlar', box(1.2, 0.14, 0.3), MM(T2, M(1.8, 3.98, 3.6)));
+      escalones(B, MM(T2, M(-1.5, 0, 3.6)), yc, (d) => { const f = toW(x, z, r0, -1.5, 3.6 + d); return terrainHeight(f.x, f.z); }, 1.9, 'stone');
       const wheel = new THREE.CylinderGeometry(3, 3, 0.6, 16, 1, true); wheel.rotateZ(Math.PI / 2);
-      B.add('woodDark', wheel, MM(T, M(5, 2.4, 0)));
-      for (let i = 0; i < 8; i++) B.add('wood', box(0.3, 6, 0.4), MM(T, M(5, 2.4, 0, 0, i * Math.PI / 8)));
-      B.add('woodDark', box(0.4, 0.4, 3), MM(T, M(5, 2.4, 0)));
-      col(9.5, 7.5, { solidView: true }); return { x: x - 6, z };
+      B.add('woodDark', wheel, MM(T2, M(5, 2.4, 0)));
+      for (let i = 0; i < 8; i++) B.add('wood', box(0.3, 6, 0.4), MM(T2, M(5, 2.4, 0, 0, i * Math.PI / 8)));
+      B.add('woodDark', box(0.4, 0.4, 3), MM(T2, M(5, 2.4, 0)));
+      addBox(x, z, 9.5, 7.5, r0, { solidView: true }); const sp = toW(x, z, r0, -1.5, 7.5); return { x: sp.x, z: sp.z };
     }
     case 'horreo': {
       for (const [lx, lz] of [[-2, -1.5], [2, -1.5], [-2, 1.5], [2, 1.5], [0, -1.5], [0, 1.5]]) { B.add('ashlar', new THREE.CylinderGeometry(0.25, 0.35, 1.8, 8), MM(T, M(lx, 0.9, lz))); B.add('ashlar', new THREE.CylinderGeometry(0.55, 0.55, 0.15, 10), MM(T, M(lx, 1.85, lz))); }
@@ -460,12 +533,19 @@ export function landmark(B, lm, ctx) {
       col(5.8, 4.2); return { x, z: z + 4 };
     }
     case 'chapel': {
-      B.add('stone', box(6, 5, 9, 2.2), MM(T, M(0, 2, 0)));
-      for (const s of [-1, 1]) B.add('slate', box(4.2, 0.2, 9.6), MM(T, M(s * 1.6, 5.2, 0, 0, 0, -s * 0.5)));
-      B.add('stone', gable(6, 1.9, 0.4), MM(T, M(0, 4.5, 4.3)));
-      B.add('puerta', uvHueco(archPanel(1.6, 2.6, 0.1)), MM(T, M(0, 0, 4.55)));
-      B.add('stone', box(1, 2.2, 0.5), MM(T, M(0, 7, 4.3))); B.add('iron', box(0.1, 1, 0.1), MM(T, M(0, 8.5, 4.3)));
-      col(6.4, 9.4, { solidView: true }); return { x, z: z + 7 };
+      // (a la altura del suelo de delante de la puerta, con los muros hasta el suelo más bajo de su planta y escalones si la
+      // puerta queda en alto: en la ladera, una esquina volaba y la puerta quedaba sin subida)
+      // (y con la puerta hacia la plaza si los datos no dicen otra cosa: desde el pueblo se veía la espalda, sin entrada)
+      const r0 = lm.ry ?? Math.atan2(PLACES.plaza.x - x, PLACES.plaza.z - z), fp = toW(x, z, r0, 0, 5.6), yc = Math.max(y, terrainHeight(fp.x, fp.z)) - 0.1, T2 = M(x, yc, z, r0);
+      const dy = Math.max(0.5, yc - sueloPlanta(x, z, r0, 6, 9).lo + 0.3);
+      B.add('stone', box(6, 4.5 + dy, 9, 2.2), MM(T2, M(0, (4.5 - dy) / 2, 0)));
+      for (const s of [-1, 1]) B.add('slate', box(4.2, 0.2, 9.6), MM(T2, M(s * 1.6, 5.2, 0, 0, 0, -s * 0.5)));
+      B.add('stone', gable(6, 1.9, 0.4), MM(T2, M(0, 4.5, 4.3)));
+      B.add('puerta', uvHueco(archPanel(1.6, 2.6, 0.1)), MM(T2, M(0, 0, 4.55)));
+      B.add('stone', archRing(0.8, 1.1, 0.25, 10), MM(T2, M(0, 2.6 - 0.8, 4.6)));
+      escalones(B, MM(T2, M(0, 0, 4.6)), yc, (d) => { const f = toW(x, z, r0, 0, 4.6 + d); return terrainHeight(f.x, f.z); }, 2.2, 'stone');
+      B.add('stone', box(1, 2.2, 0.5), MM(T2, M(0, 7, 4.3))); B.add('iron', box(0.1, 1, 0.1), MM(T2, M(0, 8.5, 4.3)));
+      addBox(x, z, 6.4, 9.4, r0, { solidView: true }); const sp = toW(x, z, r0, 0, 7.5); return { x: sp.x, z: sp.z };
     }
     case 'cross': case 'stone': {
       if (lm.kind === 'cross') { for (let i = 0; i < 3; i++) B.add('ashlar', new THREE.CylinderGeometry(1.8 - i * 0.5, 1.8 - i * 0.5, 0.3, 8), MM(T, M(0, 0.15 + i * 0.3, 0))); B.add('ashlar', box(0.3, 4, 0.3), MM(T, M(0, 2.8, 0))); B.add('ashlar', box(1.4, 0.3, 0.3), MM(T, M(0, 4.2, 0))); }
@@ -684,7 +764,10 @@ export function landmark(B, lm, ctx) {
         B.add('gold', new THREE.SphereGeometry(0.12, 8, 6), MM(T, M(0, H + 4.8, 0)));
         addCircle(x, z, R + 0.25); return { x, z: z + R + 3.5 };
       }
-      B.add('ashlar', new THREE.CylinderGeometry(5, 5.2, 1.4, 8), MM(T, M(0, 0.7, 0)));
+      // (el podio baja hasta el suelo más bajo y tiene su escalera, en una cara del octógono: se subía por ningún sitio)
+      const r0 = lm.ry || 0, dy = Math.max(0.1, y - sueloPlanta(x, z, r0, 10, 10).lo + 0.2);
+      B.add('ashlar', new THREE.CylinderGeometry(5, 5.2, 1.4 + dy, 8), MM(T, M(0, (1.4 - dy) / 2, 0)));
+      escalones(B, MM(MM(T, M(0, 1.4, 0, Math.PI / 8)), M(0, 0, 4.7)), y + 1.4, (d) => { const f = toW(x, z, r0 + Math.PI / 8, 0, 4.7 + d); return terrainHeight(f.x, f.z); }, 2.2, 'ashlar');
       for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28; B.add('iron', new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6), MM(T, M(Math.cos(a) * 4.5, 3.1, Math.sin(a) * 4.5))); }
       B.add('zinc', new THREE.ConeGeometry(5.8, 2.4, 8), MM(T, M(0, 5.9, 0)));
       B.add('gold', new THREE.SphereGeometry(0.3, 8, 6), MM(T, M(0, 7.3, 0)));

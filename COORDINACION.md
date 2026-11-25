@@ -22,6 +22,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   basílica de Javier, palacio de Olite, iglesia de Ochagavía, Muskilda y las iglesias de los datos reales), puertas de
   madera con herrajes (portadas, portones de Olite y Javier, Ayuntamiento de Pamplona, ermitas), cumbreras en los tejados
   y veletas en los conos de pizarra. Por la noche las vidrieras se encienden.
+- (Auditoría, 25 nov) Monumentos y casas bien asentados (revisados los 32 pueblos con capturas): las puertas en alto tienen
+  sus escalones hasta el suelo (de frente si son pocos; si no, patín navarro con rellano y barandilla pegado a la fachada),
+  muros de iglesias (con cimiento de piedra en la ladera, como en Leitza), ermitas, capillas, casas-torre, castillos,
+  molino y ruinas hasta el suelo más bajo, la portada de la basílica de Javier fuera del muro (quedaba dentro), puertas de madera
+  en todas las casas sencillas (la lisa se veía negra, como un hueco), escalera al kiosco de Tudela, pórtico de la catedral
+  de Tudela con el paso libre, puerta en el molino de Amaiur y en el Palacio Viejo de Olite, y capilla y molino con la
+  entrada hacia la plaza.
 
 
 ## Peticiones entre ventanas
