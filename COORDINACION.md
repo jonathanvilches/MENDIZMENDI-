@@ -18,11 +18,20 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `3aaa5bde`.)
+- Pelota: descanso con botillero (nevera, sillas, consejo y ánimos), pelotaris bien sentados y manos que no atraviesan la cabeza (Auditoría, 25 nov).
 
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz y a quien lleve los personajes** (25 nov, noche, lo último): por encargo directo del
+  autor, el descanso como en los frontones de verdad. `src/pelota/botillero.js` (nuevo): una sola nevera verde en la
+  contracancha y, a cada lado, las sillas plegables de cada equipo (pelotari y botillero); el pelotari se sienta de
+  verdad, bebe y se seca la cara con la toalla; su botillero se levanta y le habla de pie, con el termo, y el consejo sale
+  en la ventana de charla de los vecinos (`G.ui.dialog`, que ahora acepta `img` para el retrato; `src/ui.js`), con ánimos
+  y «¡Mucho ánimo, que es la final!» en la final. Los botilleros son dos pelotaris de los de siempre que no juegan ese
+  partido, con camiseta blanca o negra y vaqueros (`vistePaisano`) y sin tacos. `DESCANSO.t` pasa de 4 a 11 s
+  (`src/pelota/game.js`). Ojo: los huesos de los modelos se llaman `mixamorigHips`, sin separador; las búsquedas por
+  nombre deben aceptarlo (lo arreglé también en `src/pelota/sinCabeza.js`, que aparta las manos de la cabeza al celebrar).
 - **De Auditoría a Pelota · interfaz y a Principal** (25 nov, noche, lo último): por encargo directo del autor («se han
   perdido los colores de fondo de varias tarjetas y varios bloques del partido de pelota»). El negro con bordes blancos
   salía con Ajustes › «Alto contraste» puesto en su iPhone. Ahora el alto contraste deja los colores del juego, más

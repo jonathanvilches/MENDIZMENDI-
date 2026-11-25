@@ -39,8 +39,10 @@ const EN = { cortada: 0.05, cortPow: 0.025, racha: 0.75, rachaT: 9, dos: 0.035, 
   normal: 0.035, trote: 0.01, run: 0.04, caza: 0.16, rally: 0.006, rest: 0.06, pausa: 0.15, low: 0.5, esprint: 0.03, esprintMin: 0.08 };
 // los descansos: el reglamento de juego de la Federación Navarra de Pelota da a cada equipo hasta cinco descansos de un
 // minuto en el partido; aquí, en proporción a los tantos (5 a 22 tantos: en uno a 5, uno; a 7 o a 9, dos). Se piden entre
-// tanto y tanto. El que descansa recupera mucho; el otro, que también para, algo. Ese minuto pasa en unos segundos
-const DESCANSO = { porTanto: 5 / 22, t: 4, gana: 0.42, ganaOtro: 0.12 };
+// tanto y tanto. El que descansa recupera mucho; el otro, que también para, algo. Ese minuto pasa en unos segundos:
+// 11 desde el 25 de noviembre de 2026 (antes 4), lo que tardan los dos en ir andando a su silla, sentarse, beber y oír
+// al botillero (botillero.js, match.js); con el botón del descanso se vuelve antes, y lo que no se ha descansado no se gana
+export const DESCANSO = { porTanto: 5 / 22, t: 11, gana: 0.42, ganaOtro: 0.12 };
 export const descansosDe = (target) => Math.max(1, Math.round((target || 7) * DESCANSO.porTanto));
 /** Lo que cuesta (o, si es negativo, lo que devuelve) un golpe en energía: shot y sub del golpe, su fuerza (0 a 1) y si fue de volea. */
 function shotEnergy(shot, sub, pow, volea) {

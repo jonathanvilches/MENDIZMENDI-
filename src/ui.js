@@ -454,12 +454,13 @@ export class UI {
       const show = () => {
         const L = lines[i];
         this.onDialogLine?.(L);
-        const fk = L.look ? JSON.stringify(L.look) : L.icon || 'talk';
+        const fk = L.img || (L.look ? JSON.stringify(L.look) : L.icon || 'talk');
         if (fk !== lastFace) {
           lastFace = fk;
           // (los vecinos de Meshy, con su retrato; las demás personas, con las ilustraciones del autor, cabeza y hombros)
           const rv = L.look ? retratoVecino(L.look, L.who) : null;
-          $('.face', d).innerHTML = rv ? `<img class="retrato" src="${rv}" alt="" draggable="false">` : L.look ? `<img class="ilus" src="${vecinoSrc(L.who, !!L.look.female)}" alt="" draggable="false">` : I(L.icon || 'talk', 64);
+          // (img: un retrato dado tal cual, como el del botillero en el descanso de la pelota; game/fronton.js)
+          $('.face', d).innerHTML = L.img ? `<img class="retrato" src="${L.img}" alt="" draggable="false">` : rv ? `<img class="retrato" src="${rv}" alt="" draggable="false">` : L.look ? `<img class="ilus" src="${vecinoSrc(L.who, !!L.look.female)}" alt="" draggable="false">` : I(L.icon || 'talk', 64);
         }
         $('h3', d).textContent = L.who || '';
         // (en euskera se escribe ya traducido: si no, se veía el castellano letra a letra y cambiaba al final; al
