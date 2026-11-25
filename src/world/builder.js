@@ -42,6 +42,41 @@ function stillWater() {
   m.customProgramCacheKey = () => 'still-water';
   return m;
 }
+// Las ventanas de noche (lo pidió el autor el 25 nov 2026: «por la noche que se vean sombras pasando por las ventanas»):
+// cada ventana con su luz (una de cada cinco, apagada; las demás, más o menos fuertes y algo más cálidas o más blancas) y,
+// en algo menos de la mitad, de vez en cuando la sombra de alguien que cruza la habitación por detrás: cabeza y hombros,
+// borrosos como tras la cortina, que entran por un lado y salen por el otro andando. Solo toca la luz de dentro (el
+// emisivo), así que de día no cambia nada. Cada ventana se reconoce por la esquina de su cristal, que se saca de cómo
+// cambian el sitio y las UV de un píxel al de al lado (la UV del cristal va en metros desde esa esquina: box y Lienzo)
+function cristalNoche(m) {
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uTime = groundUniforms.uTime;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; varying vec2 vUvC;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz; vUvC = uv;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; varying vec2 vUvC; uniform float uTime;\nfloat hV(vec3 p){ return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }')
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+{
+  vec3 A = dFdx(vWW), B = dFdy(vWW); vec2 a = dFdx(vUvC), b = dFdy(vUvC); float det = a.x * b.y - a.y * b.x;
+  if (abs(det) > 1e-12) {
+    vec3 Wu = (A * b.y - B * a.y) / det, Wv = (B * a.x - A * b.x) / det, O = vWW - vUvC.x * Wu - vUvC.y * Wv;
+    vec3 id = floor(O * 2.0 + 0.5); float h1 = hV(id), h2 = hV(id + 7.3), h3 = hV(id + 13.1);
+    // (su luz: apagada, o de 0,6 a 1,2 veces, algo más naranja o más blanca)
+    float luz = h1 < 0.2 ? 0.0 : 0.6 + 0.6 * h2;
+    totalEmissiveRadiance *= luz * mix(vec3(1.0, 0.9, 0.78), vec3(1.0, 1.04, 1.12), step(0.7, h3));
+    vec3 T = normalize(vec3(Wu.x, 0.0, Wu.z) + 1e-6); float lx = dot(vWW - O, T), ly = vWW.y - O.y;
+    if (h2 < 0.45 && luz > 0.0) {
+      // (pasa alguien cada 9 a 23 s, a paso de andar por casa, en un sentido o en el otro)
+      float P = 9.0 + 14.0 * h3, f = fract(uTime / P + h1) * P, x = (h3 > 0.5 ? f * 0.8 - 1.0 : 2.6 - f * 0.8);
+      float dx = lx - x, cab = length(vec2(dx, (ly - 0.68) * 0.85)) - 0.14, hom = max(abs(dx) - 0.23 - 0.06 * smoothstep(0.44, 0.3, ly), ly - 0.49);
+      float sil = 1.0 - smoothstep(-0.03, 0.09, min(cab, hom));
+      totalEmissiveRadiance *= 1.0 - 0.82 * sil * step(f, 6.0);
+    }
+  }
+}`);
+  };
+  m.customProgramCacheKey = () => 'cristal-noche';
+  return m;
+}
 // Envejecimiento en coordenadas del mundo (rompe la repetición de la textura):
 //  · manchas amplias más claras y más oscuras · humedad y salpicaduras de barro en el primer metro sobre el suelo
 //  · musgo verdoso al pie de la piedra · churretes de lluvia que bajan de ventanas y aleros
@@ -138,7 +173,7 @@ export function makeMaterials() {
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo.
     // (gris azulado, el de siempre: casi negro, las ventanas parecían agujeros)
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
-    glass: new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
+    glass: cristalNoche(new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 })),
     water: stillWater(),
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),
