@@ -41,7 +41,9 @@ import { VIENTO, sopla } from '../world/viento.js';
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 // (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
 // le añada después se sigue colocando solo)
-function fijaQuieto(o, hijos = false) { if (!o) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
+// (solo lo que es de verdad de three.js: en los campeonatos el pueblo no se carga y la naturaleza es un sustituto vacío,
+// sin hijos; pasarle ese sustituto rompía la entrada a todos los campeonatos: «o.children is not iterable»)
+function fijaQuieto(o, hijos = false) { if (!o?.isObject3D) return; for (const x of hijos ? [o, ...o.children] : [o]) { x.updateMatrix(); x.matrixAutoUpdate = false; } }
 // (las imágenes de las texturas de raiz más grandes que su tope, reducidas a él por su lado mayor: max, y las de los personajes
 // y animales que no son el jugador, otros. Solo las de imagen: las de lienzo se redibujan y los datos los hace el juego a su
 // medida. Lo ya mirado no se vuelve a mirar (vistas: texturas y materiales con su versión), así que se puede repetir para
