@@ -18,36 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (Auditoría, 25 nov) Bardenas Reales rehechas con sentido: los cabezos son mesas de techo plano con su losa de arenisca
-  arriba, laderas acanaladas por los regueros y las capas de arcilla, marga y yeso a la misma altura en todos (también en
-  Castildetierra); el llano es arcilla clara con costras de yeso, barro cuarteado en las hondonadas y barrancos secos; el
-  horizonte, planas escalonadas. Fuera lo que no pintaba: hayas, robles y pinos de cerca (la Bardena Negra, que está lejos, solo se intuye en las planas del sur),
-  la casa consistorial, el empedrado, las rocas grises sueltas y casi todas las flores de prado.
-- (Auditoría, 25 nov) Casas con detalles curvos y tallados en vez de cajas: balaustres torneados, canecillos y ménsulas
-  curvas, alféizares con canto redondeado, clavos y barandillas redondas y arcos más suaves (solo en el ordenador y de cerca;
-  el móvil sigue dentro de su presupuesto).
-- (Auditoría, 25 nov) Monumentos con más detalle: vidrieras de colores y rosetones (catedrales de Pamplona y Tudela,
-  basílica de Javier, palacio de Olite, iglesia de Ochagavía, Muskilda y las iglesias de los datos reales), puertas de
-  madera con herrajes (portadas, portones de Olite y Javier, Ayuntamiento de Pamplona, ermitas), cumbreras en los tejados
-  y veletas en los conos de pizarra. Por la noche las vidrieras se encienden.
-- (Auditoría, 25 nov) Monumentos y casas bien asentados (revisados los 32 pueblos con capturas): las puertas en alto tienen
-  sus escalones hasta el suelo (de frente si son pocos; si no, patín navarro con rellano y barandilla pegado a la fachada),
-  muros de iglesias (con cimiento de piedra en la ladera, como en Leitza), ermitas, capillas, casas-torre, castillos,
-  molino y ruinas hasta el suelo más bajo, la portada de la basílica de Javier fuera del muro (quedaba dentro), puertas de madera
-  en todas las casas sencillas (la lisa se veía negra, como un hueco), escalera al kiosco de Tudela, pórtico de la catedral
-  de Tudela con el paso libre, puerta en el molino de Amaiur y en el Palacio Viejo de Olite, y capilla y molino con la
-  entrada hacia la plaza.
-- (Auditoría, 25 nov) Revisión general de casas, iglesias, castillos y frontones: en el ordenador las texturas se ven
-  nítidas hasta lejos (filtrado 16 en tejados, muros y empedrado; el móvil sigue en 8), las ventanas de las iglesias
-  llevan su marco de sillar claro con alféizar, las de los castillos y palacios (Olite) son huecos góticos oscuros con
-  parteluz en vez de vidrieras de iglesia, las gradas de los frontones de pueblo son de hormigón con su textura (lisas
-  parecían de cartón) y el anexo del trinquete de Lekunberri es de chapa grecada.
-- (Auditoría, 25 nov) Pueblos con más vida: más verde alrededor (frutales en los huertos de las afueras, árboles sueltos en
-  los prados, más jardines y más trepadoras en las fachadas); nubes de verdad, con volumen, que pasan con el viento por
-  encima del pueblo (blancas a mediodía, rosas y doradas al atardecer, grises de noche y con tormenta; las pintadas del
-  cielo, algo menos); de noche cada ventana con su luz (alguna apagada) y, de vez en cuando, la sombra de alguien que
-  cruza por detrás; bandadas de estorninos y milanos reales en lo alto en vez de las uves de antes; y la ropa tendida
-  ondea según el viento (quieta en calma, se levanta con las rachas).
+(Nada por ahora: publicado el 25 nov hasta `3c58cb5b`.)
 
 
 ## Peticiones entre ventanas
@@ -274,6 +245,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 25 nov, noche, la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `3c58cb5b`. Bardenas rehechas, casas con detalles curvos, vidrieras y puertas en los monumentos, monumentos y casas bien asentados, revisión de casas, iglesias, castillos y frontones, y pueblos con más verde, nubes con volumen, sombras en las ventanas de noche, pájaros nuevos y ropa tendida al viento. Probada en el móvil tumbado (844×390): el mapa carga sin errores.
 - 25 nov, tarde, la hizo la ventana de Auditoría (el autor: «sí», publicar): `master` hasta `7d26b4dc`. La roca de la isla también por pasos (sus anillos): el peor trabajo de una imagen al tocar una comarca, unos 30 ms. Probada en el móvil tumbado (844×390): el mapa carga sin errores y la isla sube entera.
 - 25 nov, mediodía, la hizo la ventana de Auditoría (el autor: «sí», publicar): `master` hasta `65763e25`. La isla del mapa sin parones al tocar una comarca (vídeo del iPhone de las 09:43): las texturas de detalle se leen en otro hilo y se suben a trozos, y el contorno ampliado, la losa, la roca y el relieve fino se hacen por pasos; el peor parón, de 0,38 s a 0,06 s. Vista la isla subiendo en el móvil tumbado (844×390) y en el ordenador (1280×720), sin errores.
 - 25 nov, la hizo la ventana de Auditoría (el autor: «publica todo»): `master` hasta `84ee516c`. iPhone: los 39 pueblos y parajes dentro del presupuesto (rocas que comparten forma, el primer dibujo tapado sin lo lejano, recorte de texturas cada 2 s, El Sadar más ligero) y más fluidos (la escena ya no recoloca lo quieto ni lo lejano en cada imagen; peces); las 9 sedes de campeonato dentro de 65 MB (el Labrit, de 69 a 63); se vuelve a entrar en los campeonatos; la cámara del fútbol sin recolocar la página en cada imagen; Palacio Real de Olite y castillo de Javier sobre su planta real; privacidad (informe solo con permiso), material didáctico con más aire, explorador sin la línea rota. Probada en el móvil tumbado (844×390): el mapa carga sin errores.

@@ -1,1 +1,0 @@
-var e=`high`,t=t=>{e=t||`high`};export{t as n,e as t};
