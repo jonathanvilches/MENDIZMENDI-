@@ -22,7 +22,7 @@ import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
-import { sillasDe, montaSillas, posturaSentado, consejo, animoRacha, MIRA_SENTADO, DESC } from './botillero.js';
+import { sillasDe, montaSillas, posturaSentado, consejo, animoRacha, MIRA_SENTADO, DESC, ASIENTO_Y } from './botillero.js';
 import { sinCabeza } from './sinCabeza.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
@@ -1791,7 +1791,7 @@ export class PelotaMatch {
       // (en el descanso, tras el fundido, su sitio es su silla, ya sentado: la silla mira a la cancha y la figura se queda un
       // poco detrás del centro del asiento, botillero.js, sillasDe. En el fundido de la vuelta, otra vez en su sitio de juego)
       const D = this.desc, ch = D && D.dentro && !D.fuera && this.sillas?.[who];
-      if (ch) { px = ch.x + 0.06; pz = ch.z; }
+      if (ch) { px = ch.x - 0.01; pz = ch.z; }   // (la cadera, en el centro del asiento, un centímetro hacia delante: más atrás, las nalgas tocaban el respaldo y las pantorrillas, el borde del asiento)
       if (D?.salto) { S.px = px; S.pz = pz; S.ox = S.oz = 0; S.vel = 0; S.x = px; S.z = pz; }   // (en negro: aparece en su sitio, sin ir andando)
       // (solo es un salto cuando la lógica cambia de golpe su sitio, no cuando la figura aún va de camino: antes se miraba
       // la distancia de la figura a su sitio, que mientras vuelve siempre es grande, y en cada fotograma se rehacía el
@@ -1909,7 +1909,10 @@ export class PelotaMatch {
       // quedaba bien: el autor, 25 de noviembre de 2026)
       if (D) {
         const yw = grp.rotation.y + MIRA_SENTADO + (this.o.yawOffset || 0);
-        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw)); } catch (e) { console.warn('silla', e); }
+        // (apoyado en el asiento de su silla, medido con sus vértices: ni hundido ni en el aire; los pies, en el suelo)
+        const sc = D.dentro && !D.fuera && this.sillas?.[who];
+        const as = sc ? ((this.asientos ||= {})[who] ||= (() => { const c = grp.localToWorld(new T.Vector3(sc.x, ASIENTO_Y, sc.z)), e = grp.localToWorld(new T.Vector3(sc.x + 0.2, ASIENTO_Y, sc.z)); return { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; })()) : null;
+        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw), { asiento: as }); } catch (e) { console.warn('silla', e); }
       }
       // (y las manos, nunca dentro de la cabeza: al celebrar, al lamentarse, al bailar o al beber; sinCabeza.js)
       if (!this.sinCabOff) try { sinCabeza(T, side.obj); } catch (e) { console.warn('cabeza', e); this.sinCabOff = true; }
@@ -2241,7 +2244,7 @@ export class PelotaMatch {
     this.veloEl?.remove(); this.veloEl = null;
     this.paraAplausoSaque?.(0.3); this.paraAplausoSaque = null;
     { const quita = (o) => { if (!o?.isObject3D) return; o.parent?.remove(o); o.traverse(m => { m.geometry?.dispose?.(); m.material?.dispose?.(); }); };
-      quita(this.sillasG); this.sillasG = null; this.desc = null; }
+      quita(this.sillasG); this.sillasG = null; this.desc = null; this.asientos = null; }
     this.finalFin?.(); this.dianaQuita(); this.quitaCestano(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);

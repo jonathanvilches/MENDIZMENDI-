@@ -781,7 +781,7 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
  *  conseguido»). En el pie de «Elige tu pelotari», junto a «Jugar», el tuyo con su cara y su nombre; al tocarlo, el anillo
  *  de sus cartas. Se guarda en el perfil (botillero) y es el que se sienta contigo en el descanso (game/fronton.js). */
 const botonBotillero = (eu) => { const B = botilleroDe(profile().botillero); cssBotillero();
-  return `<button type="button" class="lg-btn bo-elige" data-a="bot" style="--eq:${B.camiseta}" aria-label="${eu ? 'Botileroa' : 'Botillero'}: ${esc(B.nombre)}"><img src="${retratoBotillero(B)}" alt="" draggable="false"><span><small>${eu ? 'Botileroa' : 'Botillero'}</small><b>${esc(B.nombre)}</b></span></button>`; };
+  return `<button type="button" class="lg-btn bo-elige" data-a="bot" style="--eq:${B.camiseta}" aria-label="${eu ? 'Botileroa' : B.girl ? 'Botillera' : 'Botillero'}: ${esc(B.nombre)}"><img src="${retratoBotillero(B)}" alt="" draggable="false"><span><small>${eu ? 'Botileroa' : B.girl ? 'Botillera' : 'Botillero'}</small><b>${esc(B.nombre)}</b></span></button>`; };
 // (su carta, con la silueta de las de los pelotaris: la categoría, por sus txapelas; la cinta de la corona, de su camiseta;
 // a la izquierda, sus txapelas en grande y el escudo de su pueblo; debajo, las finales a las que llegó y desde cuándo)
 function botilleroCard(B, lang) {
@@ -798,8 +798,8 @@ function anilloBotillero() {
   const eu = isEU(), lang = eu ? 'eu' : 'es', sel = botilleroDe(profile().botillero).id;
   return new Promise(res => {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
-    const port = (B) => `<button type="button" class="c3-port ep-port" data-b="${B.id}" aria-label="${esc(B.nombre)}">${botilleroCard(B, lang).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${B.id === sel ? `<i class="ep-tu">${eu ? 'Zurea' : 'El tuyo'}</i>` : ''}</button>`;
-    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: eu ? 'Zure botileroa' : 'Tu botillero', titulo: eu ? 'Aukeratu botileroa' : 'Elige tu botillero' })}
+    const port = (B) => `<button type="button" class="c3-port ep-port" data-b="${B.id}" aria-label="${esc(B.nombre)}">${botilleroCard(B, lang).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${B.id === sel ? `<i class="ep-tu">${eu ? 'Zurea' : B.girl ? 'La tuya' : 'El tuyo'}</i>` : ''}</button>`;
+    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: eu ? 'Zure botileroa' : 'Botilleros y botilleras', titulo: eu ? 'Aukeratu botileroa' : 'Elige quién te asiste' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Botileroak' : 'Botilleros'}">${flecha('izq')}<div class="c3-anillo">${BOTILLEROS.map(port).join('')}</div>${flecha('der')}</div></div>
       ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Aukeratu' : 'Elegir'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant', 'bo-pant');

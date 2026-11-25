@@ -18,11 +18,16 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `0b6783d6`.)
+- Botilleras (Arantxa, Maite, Nekane); sillas a la altura de las piernas de los muñecos, nadie atraviesa sillas, respaldo
+  ni nevera; los botilleros siguen la pelota con la cabeza durante el partido (Auditoría).
 
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz** (26 nov, madrugada): por encargo directo del autor («que metieras alguna mujer
+  también, botillera»). En `src/game/torneo.js` (tuyo) solo los textos: el anillo se titula «Elige quién te asiste» con
+  el antetítulo «Botilleros y botilleras»; la marca de la elegida dice «La tuya»; el botón del pie, «Botillera» si es
+  chica. Tres botilleras nuevas (Arantxa, Maite y Nekane) en `src/pelota/botilleroRetrato.js` (mío), con `girl: true`.
 - **De Auditoría a Pelota · interfaz** (25 nov, noche, lo último de todo): por encargo directo del autor («que cuando
   elijas pelotari también puedas elegir entrenador… el palmarés del botillero… camisetas de colores, ni roja ni azul»).
   En `src/game/torneo.js` (tuyo), `anilloPelotari` lleva en el pie, junto a «Jugar», el botón del botillero (su cara y su

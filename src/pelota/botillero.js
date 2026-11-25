@@ -21,6 +21,10 @@ export const MIRA_SENTADO = -Math.PI / 2;
 /** Tiempos del descanso (s): cuándo habla el botillero tras el corte, y el fundido a negro de la entrada y de la salida
  *  (baja, se queda en negro y sube). Nadie se ve andando a la silla, sentándose ni levantándose: en negro, cada uno aparece
  *  ya en su sitio (el autor, 25 de noviembre de 2026: «que no se vea cómo se sienta o cómo se levanta»). */
+// (lo alto del tablero del asiento de las sillas: a la medida de las piernas de las figuras del juego, que sentadas tienen
+// la rodilla a unos 40 cm del suelo y el muslo, por debajo, a unos 31-34 (más con el pantalón ancho); con el asiento a 48, como una silla de adulto, o
+// se hundían en él o se quedaban con los pies colgando. El autor, 26 de noviembre de 2026: «los pelotaris traspasan las sillas… mucho cuidado»)
+export const ASIENTO_Y = 0.31;
 export const DESC = { consejo: 1.2, fundido: { baja: 0.3, negro: 0.2, sube: 0.4 } };
 
 export { BOTILLEROS, botilleroDe } from './botilleroRetrato.js';   // (los datos, con sus retratos: el menú los lee sin cargar nada del partido)
@@ -39,12 +43,12 @@ export function sillasDe(contra = 2.6, pairs = false) {
   const zc = conContra ? 19.2 : 28.5;
   const S = {}, bot = {}, pie = {};
   for (const [lado, s] of [['you', -1], ['rival', 1]]) {
-    let d = 0.6; S[lado] = { x, z: zc + s * d };
+    let d = 0.7; S[lado] = { x, z: zc + s * d };   // (a 17 cm de la nevera: con 0,6 el codo del pelotari sentado se metía en ella)
     if (pairs) { d += 0.54; S[lado + 'Mate'] = { x, z: zc + s * d }; }
     d += 0.54; bot[lado] = { x, z: zc + s * d };
     // (el tuyo, delante de tu pelotari y un poco a un lado, echado hacia él, como en la primera foto; el del rival, de pie
     // detrás de la silla del suyo, a su lado: la cámara del descanso mira desde la cancha y, delante, lo tapaba todo)
-    pie[lado] = lado === 'rival' ? { x: x + 0.42, z: S[lado].z + s * (pairs ? 0.27 : 0.45) } : pairs ? { x: x - 0.86, z: S[lado].z + s * 0.27 } : { x: x - 0.64, z: S[lado].z + s * 0.5 };
+    pie[lado] = lado === 'rival' ? { x: x + 0.62, z: S[lado].z + s * (pairs ? 0.27 : 0.45) } : pairs ? { x: x - 0.86, z: S[lado].z + s * 0.27 } : { x: x - 0.64, z: S[lado].z + s * 0.5 };
   }
   return { ...S, sillas: [...Object.values(S), bot.you, bot.rival], nevera: { x, z: zc }, bot, pie, x };
 }
@@ -61,12 +65,13 @@ export function montaSillas(T, S) {
   // (la silla mira hacia -x, a la cancha: el respaldo, del lado de +x, arriba de las patas de atrás)
   for (const s of S.sillas) {
     const { x, z } = s;
-    caja(NEG, 0.42, 0.035, 0.42, x, 0.46, z);                          // (asiento)
-    caja(NEG, 0.025, 0.22, 0.4, x + 0.205, 0.79, z);                     // (respaldo)
+    const A = ASIENTO_Y;
+    caja(NEG, 0.42, 0.035, 0.42, x, A - 0.0175, z);                      // (asiento)
+    caja(NEG, 0.025, 0.2, 0.4, x + 0.205, A + 0.29, z);                  // (respaldo)
     for (const dz of [-0.19, 0.19]) {
-      caja(TUBO, 0.024, 0.92, 0.024, x + 0.21, 0.46, z + dz);            // (patas de atrás, hasta el respaldo)
-      caja(TUBO, 0.024, 0.46, 0.024, x - 0.19, 0.23, z + dz);            // (patas de delante)
-      caja(TUBO, 0.4, 0.018, 0.018, x + 0.01, 0.12, z + dz);             // (travesaño de abajo)
+      caja(TUBO, 0.024, A + 0.4, 0.024, x + 0.21, (A + 0.4) / 2, z + dz);  // (patas de atrás, hasta el respaldo)
+      caja(TUBO, 0.024, A, 0.024, x - 0.19, A / 2, z + dz);              // (patas de delante)
+      caja(TUBO, 0.4, 0.018, 0.018, x + 0.01, 0.11, z + dz);             // (travesaño de abajo)
     }
   }
   { const { x, z } = S.nevera, H = 1.0;
@@ -155,7 +160,7 @@ function v(T, k) { return _a[k] ||= new T.Vector3(); }
 function q(T, k) { return _a[k] ||= new T.Quaternion(); }
 function huesos(obj) {
   const u = obj.userData; if (u.huesosSilla) return u.huesosSilla;
-  const B = {}, want = ['Hips', 'Spine', 'Neck', 'Head', 'LeftUpLeg', 'RightUpLeg', 'LeftLeg', 'RightLeg', 'LeftFoot', 'RightFoot', 'LeftArm', 'RightArm', 'LeftForeArm', 'RightForeArm', 'LeftHand', 'RightHand'];
+  const B = {}, want = ['Hips', 'Spine', 'Neck', 'Head', 'LeftUpLeg', 'RightUpLeg', 'LeftLeg', 'RightLeg', 'LeftFoot', 'RightFoot', 'LeftToeBase', 'RightToeBase', 'LeftArm', 'RightArm', 'LeftForeArm', 'RightForeArm', 'LeftHand', 'RightHand'];
   obj.traverse(o => { if (!o.isBone) return; for (const k of want) if (!B[k] && new RegExp('(^|[^A-Za-z]|mixamorig)' + k + '$').test(o.name)) B[k] = o; });
   return (u.huesosSilla = B.Hips && B.LeftUpLeg && B.RightUpLeg && B.LeftLeg && B.RightLeg ? B : null);
 }
@@ -167,44 +172,137 @@ function apunta(T, b, c, dir, w) {
   const wq = b.getWorldQuaternion(q(T, 'q3')); wq.premultiply(qw);
   const pq = b.parent.getWorldQuaternion(q(T, 'q')); b.quaternion.copy(pq.invert().multiply(wq)); b.updateMatrixWorld(true);
 }
+// (los vértices de la figura que se apoyan en el asiento: los que mueven sobre todo la cadera, los muslos o la espalda
+// baja; se buscan una vez por figura)
+function nalgas(obj) {
+  const u = obj.userData; if (u.nalgas) return u.nalgas;
+  const L = [];
+  obj.traverse(m => {
+    if (!m.isSkinnedMesh || !m.skeleton) return;
+    const sk = m.skeleton.bones.map(b => /(^|[^A-Za-z]|mixamorig)(Hips|LeftUpLeg|RightUpLeg|Spine)$/.test(b.name));
+    const si = m.geometry.attributes.skinIndex, sw = m.geometry.attributes.skinWeight; if (!si || !sw) return;
+    const idx = [];
+    for (let i = 0; i < si.count; i += 2) { let w = 0; for (let c = 0; c < 4; c++) if (sk[si.getComponent(i, c)]) w += sw.getComponent(i, c); if (w >= 0.45) idx.push(i); }
+    if (idx.length) L.push({ m, idx });
+  });
+  return (u.nalgas = L);
+}
+// (cuánto queda la cadera por encima de lo más bajo del cuerpo que cae encima del asiento: con la figura ya sentada. Sin
+// la tira de entre las piernas, la entrepierna del pantalón, que al doblar los muslos cuelga, estirada entre los dos, y
+// subía a algunos pelotaris diez centímetros; y sin los tres vértices más bajos, por si alguno se sale)
+function altoNalga(T, obj, H, a, de) {
+  const vv = v(T, 'e'), hp = H.getWorldPosition(new T.Vector3()), ys = [];
+  for (const { m, idx } of nalgas(obj)) for (const i of idx) {
+    vv.fromBufferAttribute(m.geometry.attributes.position, i); m.applyBoneTransform(i, vv); vv.applyMatrix4(m.matrixWorld);
+    if (Math.hypot(vv.x - a.cx, vv.z - a.cz) > a.r) continue;
+    if (Math.abs((vv.x - hp.x) * de.x + (vv.z - hp.z) * de.z) < 0.05) continue;
+    ys.push(vv.y);
+  }
+  if (ys.length < 12) return null;
+  ys.sort((p, q) => p - q);
+  return hp.y - ys[3];
+}
 /** Sienta a la figura obj con peso w (0 de pie, 1 sentado), mirando hacia fx, fz (en el mundo): muslos al frente,
- *  espinillas abajo, la cadera bajada hasta que los pies tocan el suelo, el cuerpo algo echado hacia delante y los
- *  antebrazos en los muslos, quietos. Sin esqueleto, no hace nada. */
-export function posturaSentado(T, obj, w, fx, fz) {
+ *  espinillas abajo, el cuerpo algo echado hacia delante y los antebrazos en los muslos, quietos. Sin esqueleto, no hace
+ *  nada. o.asiento = { y, cx, cz, r } (en el mundo: la altura de encima del asiento, su centro y su radio): la figura se
+ *  apoya en él, sin hundirse ni quedarse en el aire (se mide con sus vértices), y las espinillas bajan hasta que los pies
+ *  tocan el suelo, sin meterse en él (el autor, 26 de noviembre de 2026: «los pelotaris traspasan las sillas… mucho
+ *  cuidado»). Sin asiento, la cadera baja hasta que los pies vuelven al suelo. o.atento: el cuerpo más derecho, para seguir
+ *  el partido; o.mira: un punto del mundo al que mira (la pelota), con la cabeza. */
+export function posturaSentado(T, obj, w, fx, fz, o = {}) {
   const B = huesos(obj); if (!B) return;
   const H = B.Hips, u = obj.userData;
   // (la cadera la mueve la animación en cada fotograma; si esta no tiene pista de posición, se deshace lo que se bajó en
   // el anterior antes de volver a bajarla, para que no se hunda)
   if (u.silla?.ult && H.position.equals(u.silla.ult)) H.position.copy(u.silla.base);
   if (w <= 0.001) { if (u.silla) u.silla.ult = null; return; }
-  (u.silla ||= { base: new T.Vector3(), ult: null }).base.copy(H.position);
+  (u.silla ||= { base: new T.Vector3(), ult: null, n: 0, nalga: null, tobillo: null }).base.copy(H.position);
   obj.updateMatrixWorld(true);
-  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize();
+  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize(), suelo = obj.getWorldPosition(new T.Vector3()).y;
   const pie = () => Math.min(B.LeftFoot ? B.LeftFoot.getWorldPosition(v(T, 'd')).y : Infinity, B.RightFoot ? B.RightFoot.getWorldPosition(v(T, 'd')).y : Infinity);
   const y0 = pie(), hp = H.getWorldPosition(new T.Vector3());
+  // (lo alto del tobillo de pie, sobre el suelo: con eso, los pies se quedan en el suelo al sentarse)
+  if (u.silla.tobillo == null && Number.isFinite(y0)) u.silla.tobillo = Math.max(0.03, Math.min(0.16, y0 - suelo));
+  // (y cómo va el pie de pie, del tobillo a los dedos: tanto hacia delante, tanto hacia abajo; sentado, igual, plano en el suelo)
+  if (u.silla.pieDir == null && B.LeftFoot && B.LeftToeBase) { const d = B.LeftToeBase.getWorldPosition(new T.Vector3()).sub(B.LeftFoot.getWorldPosition(new T.Vector3())), h = Math.hypot(d.x, d.z), l = d.length(); if (l > 1e-4) u.silla.pieDir = [h / l, d.y / l]; }
+  // (la pelvis, derecha y de cara adonde mira: la animación la inclina o la gira, y entonces los muslos y las nalgas
+  // bajaban o se torcían y se metían en el asiento)
+  if (B.Spine) apunta(T, H, B.Spine, up, w);
+  { const lr = B.RightUpLeg.getWorldPosition(new T.Vector3()).sub(B.LeftUpLeg.getWorldPosition(new T.Vector3())).setY(0), de = new T.Vector3().crossVectors(f, up).normalize();
+    if (lr.lengthSq() > 1e-8) { lr.normalize(); const ang = Math.atan2(lr.z * de.x - lr.x * de.z, lr.x * de.x + lr.z * de.z) * w;
+      const qd = new T.Quaternion().setFromAxisAngle(up, ang), wq = H.getWorldQuaternion(new T.Quaternion()).premultiply(qd); H.quaternion.copy(H.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); H.updateMatrixWorld(true); } }
+  hp.copy(H.getWorldPosition(new T.Vector3()));
   // (muslos al frente, un poco abiertos; espinillas abajo, con los pies algo adelantados)
   for (const [U, L, F] of [[B.LeftUpLeg, B.LeftLeg, B.LeftFoot], [B.RightUpLeg, B.RightLeg, B.RightFoot]]) {
     const fuera = U.getWorldPosition(new T.Vector3()).sub(hp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    apunta(T, U, L, new T.Vector3().copy(f).multiplyScalar(0.97).addScaledVector(fuera, 0.16).addScaledVector(up, -0.08).normalize(), w);
+    apunta(T, U, L, new T.Vector3().copy(f).multiplyScalar(0.97).addScaledVector(fuera, 0.13).addScaledVector(up, -0.06).normalize(), w);
     apunta(T, L, F, new T.Vector3().copy(f).multiplyScalar(0.16).addScaledVector(up, -1).addScaledVector(fuera, 0.05).normalize(), w);
   }
-  // (la cadera, abajo hasta que los pies vuelven al suelo: así se queda sentado, con el culo a la altura del asiento)
-  const y1 = pie();
-  if (Number.isFinite(y0) && Number.isFinite(y1) && y1 > y0) {
-    const wp = H.getWorldPosition(new T.Vector3()); wp.y -= (y1 - y0);
-    H.parent.updateMatrixWorld(true); H.position.copy(H.parent.worldToLocal(wp)); H.updateMatrixWorld(true);
+  const a = o.asiento;
+  if (a && w > 0.99) {
+    // (encima del asiento: lo más bajo de las nalgas y los muslos que caen sobre él, a medio centímetro de su tablero.
+    // Se mide de vez en cuando; la pose de las piernas no cambia)
+    if (u.silla.nalga == null || ++u.silla.n % 30 === 0) { const k = altoNalga(T, obj, H, a, new T.Vector3().crossVectors(f, up).normalize()); if (k != null && k > 0.02 && k < 0.4) u.silla.nalga = k; }
+    if (u.silla.nalga != null) {
+      const wp = H.getWorldPosition(new T.Vector3()); wp.y = a.y + 0.005 + u.silla.nalga;
+      H.parent.updateMatrixWorld(true); H.position.copy(H.parent.worldToLocal(wp)); H.updateMatrixWorld(true);
+    }
+    // (las espinillas, hasta que el tobillo queda a su altura de pie sobre el suelo: ni en el aire ni dentro del suelo)
+    const tob = suelo + (u.silla.tobillo ?? 0.08);
+    for (const [U, L, F] of [[B.LeftUpLeg, B.LeftLeg, B.LeftFoot], [B.RightUpLeg, B.RightLeg, B.RightFoot]]) {
+      if (!F) continue;
+      const kn = L.getWorldPosition(new T.Vector3()), Ls = kn.distanceTo(F.getWorldPosition(new T.Vector3())), dy = kn.y - tob;
+      const fuera = U.getWorldPosition(new T.Vector3()).sub(hp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
+      // (si no llega al suelo, la espinilla algo hacia delante, con el pie colgando un poco adelantado: recta hacia abajo, la
+      // pantorrilla rozaba el borde del asiento)
+      const adel = dy >= Ls * 0.98 ? 0.2 : Math.sqrt(Ls * Ls - dy * dy) / Ls, abajo = dy >= Ls * 0.98 ? 0.98 : Math.min(1, Math.max(0, dy) / Ls);
+      apunta(T, L, F, new T.Vector3().copy(f).multiplyScalar(adel).addScaledVector(up, -abajo).addScaledVector(fuera, 0.04).normalize(), 1);
+      const Tb = F === B.LeftFoot ? B.LeftToeBase : B.RightToeBase, pd = u.silla.pieDir;
+      if (Tb && pd) apunta(T, F, Tb, new T.Vector3().copy(f).multiplyScalar(pd[0]).addScaledVector(up, pd[1]).addScaledVector(fuera, 0.05).normalize(), 1);   // (el pie, plano)
+    }
+  } else {
+    // (la cadera, abajo hasta que los pies vuelven al suelo: así se queda sentado, con el culo a la altura del asiento)
+    const y1 = pie();
+    if (Number.isFinite(y0) && Number.isFinite(y1) && y1 > y0) {
+      const wp = H.getWorldPosition(new T.Vector3()); wp.y -= (y1 - y0);
+      H.parent.updateMatrixWorld(true); H.position.copy(H.parent.worldToLocal(wp)); H.updateMatrixWorld(true);
+    }
   }
-  // (el cuerpo, algo echado hacia delante, cansado)
-  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.38).normalize(), w);
+  // (el cuerpo: algo echado hacia delante, cansado; atento al partido, más derecho)
+  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, o.atento ? 0.2 : 0.38).normalize(), w);
   // (los brazos: los antebrazos apoyados en los muslos)
   const sp = (B.Spine || H).getWorldPosition(new T.Vector3());
   for (const [A, Fa, Hd] of [[B.LeftArm, B.LeftForeArm, B.LeftHand], [B.RightArm, B.RightForeArm, B.RightHand]]) {
     if (!A || !Fa || !Hd) continue;
     const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.78).addScaledVector(f, 0.5).addScaledVector(fuera, 0.1).normalize(), w);
+    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.78).addScaledVector(f, 0.5).addScaledVector(fuera, 0.06).normalize(), w);
     apunta(T, Fa, Hd, new T.Vector3().copy(f).multiplyScalar(0.85).addScaledVector(up, -0.42).addScaledVector(fuera, -0.28).normalize(), w);
   }
+  if (o.mira) mira(T, obj, B, o.mira, f, w, o.dt || 1 / 60);
   u.silla.ult = H.position.clone();
+}
+/** La cabeza hacia un punto del mundo (la pelota), con el cuello: como quien sigue el partido. Con un poco de retraso,
+ *  sin pasar de lo que gira un cuello (unos 70° a cada lado, 30° arriba y abajo). f: hacia dónde mira el cuerpo. */
+function mira(T, obj, B, punto, f, w, dt) {
+  if (!B.Neck || !B.Head) return;
+  const u = obj.userData, M = u.mirada ||= { yaw: 0, pitch: 0 };
+  const up = new T.Vector3(0, 1, 0);
+  apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);   // (el cuello derecho, la cabeza alta)
+  const hp = B.Head.getWorldPosition(new T.Vector3()), d = new T.Vector3().subVectors(punto, hp); if (d.lengthSq() < 1e-4) return; d.normalize();
+  const dh = new T.Vector3(d.x, 0, d.z); if (dh.lengthSq() < 1e-6) return; dh.normalize();
+  // (hacia dónde mira ya la cara, con lo que traiga su animación de reposo: se gira lo que falta hasta la pelota, no
+  // encima de lo que tuviera; si no, el que la animación deja con la cabeza ladeada se quedaba mirando a otro lado)
+  const ang = (a, b) => Math.atan2(a.z * b.x - a.x * b.z, a.x * b.x + a.z * b.z);   // (el giro, sobre la vertical, de a hasta b)
+  const cara = () => new T.Vector3(0, 0, 1).applyQuaternion(B.Head.getWorldQuaternion(new T.Quaternion()));
+  const yaw = Math.max(-1.22, Math.min(1.22, ang(f, dh))), pitch = Math.max(-0.5, Math.min(0.35, Math.asin(Math.max(-1, Math.min(1, d.y)))));
+  const k = 1 - Math.exp(-dt * 7); M.yaw += (yaw - M.yaw) * k; M.pitch += (pitch - M.pitch) * k;
+  const gira = (b, a, eje) => { const qd = new T.Quaternion().setFromAxisAngle(eje, a * w), wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(qd); b.quaternion.copy(b.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); b.updateMatrixWorld(true); };
+  const c0 = cara(), ch = new T.Vector3(c0.x, 0, c0.z); if (ch.lengthSq() < 1e-6) return; ch.normalize();
+  const falta = M.yaw - ang(f, ch);
+  gira(B.Neck, falta * 0.4, up);
+  gira(B.Head, falta * 0.6, up);
+  const c1 = cara(), fy = new T.Vector3(c1.x, 0, c1.z).normalize(), eje = new T.Vector3().crossVectors(fy, up).normalize();
+  gira(B.Head, M.pitch - Math.asin(Math.max(-1, Math.min(1, c1.y))), eje);
 }
 /** El botillero de pie delante de su pelotari sentado (las fotos del autor): con peso w (0 a 1), un poco echado hacia él y
  *  con la cabeza baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */

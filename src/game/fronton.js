@@ -3,7 +3,7 @@
 import { arqDe, ARQ_LOOK } from '../data/frontonArq.js';
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl, meshyBust } from '../actors/glbChar.js';
-import { sillasDe, posturaSentado, posturaDePie, vistePaisano, MIRA_SENTADO, BOTILLEROS, botilleroDe } from '../pelota/botillero.js';
+import { sillasDe, posturaSentado, posturaDePie, vistePaisano, MIRA_SENTADO, BOTILLEROS, botilleroDe, ASIENTO_Y } from '../pelota/botillero.js';
 import { sinTacos } from '../actors/sinTacos.js';
 import { retratoBotillero } from '../pelota/botilleroRetrato.js';
 import { hairTint } from '../actors/hairColor.js';
@@ -80,7 +80,7 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
 // manos (el autor los quiere así; antes iban de blanco con boina, moño y pañuelo), a la altura de la chapa, del 4 y del
 // 7, de cara a la cancha. En cada
 // falta (chapa, fuera, alta, pasa…) levanta la mano el que la ve: el de la chapa lo del frontis; si no, el más cercano
-const _jv = new THREE.Vector3();
+const _jv = new THREE.Vector3(), _bolaW = new THREE.Vector3();
 function makeJueces(G, C) {
   const g = C.group; g.updateMatrixWorld(true);
   const yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y, x = COURT.W / 2 + (C.contra || 2.6) * 0.62;
@@ -112,16 +112,17 @@ async function makeBotilleros(G, C, pairs) {
   const tuyo = botilleroTuyo(), rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), dist = (a, b) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
   // (el del rival, uno de los otros con la camiseta bien distinta de la tuya: de los que más se distinguen, uno distinto cada día)
   const otros = BOTILLEROS.filter(b => b.id !== tuyo.id && dist(b.camiseta, tuyo.camiseta) > 150), suyo = otros.length ? otros[(Date.now() / 86400000 | 0) % otros.length] : BOTILLEROS.find(b => b.id !== tuyo.id);
-  const libres = ['aitor', 'xabier', 'mikel', 'jokin', 'ander', 'julen', 'asier', 'unai', 'ekaitz', 'inaki', 'inigo'].map(n => 'pelotari_' + n).filter(m => !enCancha.has(m.slice(9)) && hasMeshy(m));
+  const libres = (B) => (B.girl ? ['ane', 'nerea', 'irati', 'amaia', 'garazi', 'leire', 'maialen', 'miren', 'nahia', 'oihana', 'uxue'] : ['aitor', 'xabier', 'mikel', 'jokin', 'ander', 'julen', 'asier', 'unai', 'ekaitz', 'inaki', 'inigo']).map(n => 'pelotari_' + n).filter(m => !enCancha.has(m.slice(9)) && hasMeshy(m));   // (la botillera, con figura de chica)
   const out = [];
   for (const [lado, B] of [['you', tuyo], ['rival', suyo]]) {
     // (su figura; si ese pelotari juega hoy, otro que no juegue)
-    const model = !enCancha.has(B.modelo.slice(9)) && hasMeshy(B.modelo) ? B.modelo : libres.find(m => !out.some(r => r.modelo === m)) || B.modelo;
+    const model = !enCancha.has(B.modelo.slice(9)) && hasMeshy(B.modelo) ? B.modelo : libres(B).find(m => !out.some(r => r.modelo === m)) || B.modelo;
     enCancha.add(model.slice(9));
     nitido(model); const r = new GlbRig(await loadMeshy(model), model);
     vistePaisano(THREE, r.char.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: lado === 'you' ? '#3b5878' : '#45607e' }); sinTacos(r.char, true);   // (manos de piel: el botillero no lleva tacos)
     const b = S.bot[lado], p = S.pie[lado], pel = S[lado];
-    r.silla = g.localToWorld(new THREE.Vector3(b.x + 0.06, 0, b.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
+    r.silla = g.localToWorld(new THREE.Vector3(b.x - 0.01, 0, b.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
+    { const c = g.localToWorld(new THREE.Vector3(b.x, ASIENTO_Y, b.z)), e = g.localToWorld(new THREE.Vector3(b.x + 0.2, ASIENTO_Y, b.z)); r.asiento = { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; }   // (encima del asiento: ahí se apoya, sin hundirse)
     r.yawSit = yaw + MIRA_SENTADO; r.yawMira = yaw + Math.atan2(pel.x - p.x, pel.z - p.z);
     r.obj.position.copy(r.silla); r.obj.rotation.y = r.yawSit;   // (sentado, de cara a la cancha)
     r.obj.name = 'botillero-' + lado; r.obj.userData.modelo = model; r.modelo = model; r.datos = B;
@@ -131,11 +132,13 @@ async function makeBotilleros(G, C, pairs) {
   return out;
 }
 // (un botillero, en cada fotograma: sentado en su silla o, en el descanso, después del fundido, de pie delante de su pelotari)
-function mueveBotillero(a, D, dt) {
+// (sentado, sigue el partido con atención: el cuerpo derecho y la cabeza tras la pelota, mira; el autor, 26 de noviembre de
+// 2026: «durante el partido los botilleros siguen el partido con atención»)
+function mueveBotillero(a, D, dt, mira) {
   const dePie = !!(D && D.dentro && !D.fuera);
   a.obj.position.copy(dePie ? a.pie : a.silla); a.obj.rotation.y = dePie ? a.yawMira : a.yawSit;
   a.update(dt, 0, true, 0);
-  posturaSentado(THREE, a.obj, dePie ? 0 : 1, Math.sin(a.yawSit), Math.cos(a.yawSit));
+  posturaSentado(THREE, a.obj, dePie ? 0 : 1, Math.sin(a.yawSit), Math.cos(a.yawSit), { asiento: a.asiento, atento: true, mira: dePie ? null : mira, dt });
   posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira));
 }
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -151,7 +154,7 @@ function burbujaBotillero(B, texto) {
 @media (max-height:420px){.bot-dice{top:calc(env(safe-area-inset-top) + 62px);font-size:13px}.bot-dice img{width:38px;height:38px}}` }));
   document.querySelector('.bot-dice')?.remove();
   const el = document.createElement('div'); el.className = 'bot-dice'; el.style.setProperty('--bc', B.camiseta);
-  el.innerHTML = `<img alt="" src="${retratoBotillero(B)}"><div><b>${esc(B.nombre)} · ${isEU() ? 'botilleroa' : 'botillero'}</b>${esc(texto)}</div>`;
+  el.innerHTML = `<img alt="" src="${retratoBotillero(B)}"><div><b>${esc(B.nombre)} · ${isEU() ? 'botileroa' : B.girl ? 'botillera' : 'botillero'}</b>${esc(texto)}</div>`;
   document.body.appendChild(el); void el.offsetWidth; el.classList.add('on');   // (sin esperar al fotograma: con el juego cargado, el siguiente puede tardar)
   setTimeout(() => { el.classList.remove('on'); setTimeout(() => el.remove(), 400); }, 4600);
 }
@@ -784,7 +787,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p);
         // (el consejo del botillero en el descanso, en la ventana de conversación de los vecinos, con su retrato; mientras
         // se lee, el descanso espera, y al cerrarla vuelven al saque: match.js)
-        if (e.type === 'botillero' && G.ui?.dialog) { e.abre(); const B = botilleroTuyo(), img = retratoBotillero(B); G.ui.dialog(e.lineas.map(text => ({ who: `${B.nombre} · ${e.quien}`, img, icon: 'talk', text }))).then(e.fin, e.fin); }
+        if (e.type === 'botillero' && G.ui?.dialog) { e.abre(); const B = botilleroTuyo(), img = retratoBotillero(B); G.ui.dialog(e.lineas.map(text => ({ who: `${B.nombre} · ${isEU() ? e.quien : B.girl ? 'Tu botillera' : e.quien}`, img, icon: 'talk', text }))).then(e.fin, e.fin); }
         if (e.type === 'botilleroDice') try { burbujaBotillero(botilleroTuyo(), e.texto); } catch (er) { console.warn('botillero', er); } },
     }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     if (mode === 'match') makeBotilleros(G, fronton.court, !!match.game?.pairs).then(b => { if (ended) { for (const r of b) { r.obj.parent?.remove(r.obj); r.dispose?.(); } return; } botis = b; for (const r of b) G.rt?.warm?.(r.obj); }, e => { console.warn('botilleros', e); apunta('botilleros', e); });
@@ -799,7 +802,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
       // (los botilleros, sentados en su silla; en el descanso, con su pelotari ya sentado, de pie delante de él, hablándole)
-      try { if (botis.length) { const D = match.desc; for (const a of botis) mueveBotillero(a, D, dt); } } catch (e) { console.warn('botilleros', e); botis = []; }
+      try { if (botis.length) { const D = match.desc, bola = fronton.court?.ball, mira = bola ? bola.getWorldPosition(_bolaW) : null; for (const a of botis) mueveBotillero(a, D, dt, mira); } } catch (e) { console.warn('botilleros', e); botis = []; }
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); brazoJuez(j, dt); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);
