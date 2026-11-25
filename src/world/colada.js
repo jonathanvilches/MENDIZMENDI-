@@ -1,6 +1,6 @@
 // La ropa tendida de los balcones del pueblo: en uno de cada tres (uno de cada cuatro en el móvil), una cuerda por fuera de
 // la barandilla con tres o cuatro prendas (camisas, toallas, trapos y alguna sábana pequeña) de colores de casa, colgadas de
-// arriba, que se mecen con el viento; más abajo, más se mueven. Los balcones son los mismos en los que se asoman los
+// arriba, que se mecen con el viento del pueblo (viento.js: más con las rachas); más abajo, más se mueven. Los balcones son los mismos en los que se asoman los
 // vecinos (TOWN.balcones: townBuilder.js y townReal.js): la cuerda va medio metro por fuera, para no pisarlos.
 // Dos mallas: las cuerdas (una sola geometría) y las prendas (InstancedMesh; el vaivén, en el sombreador). Unas 80 prendas.
 //   new Colada(scene, { quality }) · update(t) · dispose()
@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TOWN } from './townBuilder.js';
 import { mulberry32 } from '../util/math.js';
+import { VIENTO } from './viento.js';
 
 // (blancos y colores claros de ropa de casa, alguno más vivo)
 const COLORES = ['#f4f1ea', '#f4f1ea', '#eeeae0', '#dfe9f2', '#f2d9df', '#f6e7b8', '#d9e8d6', '#e2d8f2', '#c9d6e8', '#e8c9b0', '#c94a3a', '#3f5f8a'];
@@ -45,15 +46,23 @@ export class Colada {
     const g = new THREE.PlaneGeometry(1, 1, 2, 3); g.translate(0, -0.5, 0);
     const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 0.92, side: THREE.DoubleSide });
     const T = this.T = { value: 0 };
+    // (y con el viento del pueblo, world/viento.js: en calma, casi quietas; con brisa, se mecen; con las rachas se
+    // levantan hacia donde sopla, hacia fuera o de lado, nunca contra la pared, y la tela flamea)
     mat.onBeforeCompile = (sh) => {
-      sh.uniforms.uT = T;
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uT;')
+      sh.uniforms.uT = T; sh.uniforms.uWind = VIENTO.uWind; sh.uniforms.uDir = VIENTO.uDir;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uT, uWind; uniform vec2 uDir;')
         .replace('#include <begin_vertex>', `#include <begin_vertex>
-{ vec3 ip = vec3(instanceMatrix[3]); float ph = ip.x * 1.7 + ip.z * 1.3, k = -position.y;
-  float s = sin(uT * 1.9 + ph + position.x * 1.6) * 0.6 + sin(uT * 3.3 + ph * 1.7) * 0.4;
-  transformed.z += s * 0.09 * k * k; transformed.x += s * 0.025 * k; }`);
+{ vec3 ip = vec3(instanceMatrix[3]), ax = vec3(instanceMatrix[0]), az = vec3(instanceMatrix[2]); float w = length(ax), h = length(vec3(instanceMatrix[1]));
+  ax /= w; az /= length(az);
+  vec3 dw = vec3(uDir.x, 0.0, uDir.y); float wo = dot(dw, az), wx = dot(dw, ax), k = -position.y, ph = ip.x * 1.7 + ip.z * 1.3;
+  float f = clamp(uWind - 0.7, 0.0, 1.8), amp = 0.35 + 0.65 * min(uWind, 2.2), lev = 0.55 * f;
+  float s = sin(uT * (1.9 + f) + ph + position.x * 1.6) * 0.6 + sin(uT * (3.3 + 1.5 * f) + ph * 1.7) * 0.4, s2 = sin(uT * 2.3 + ph * 0.7);
+  float curva = 0.45 + 0.55 * k, aO = (lev * max(wo, 0.0) + s * 0.2 * amp) * curva, aS = (lev * wx * 0.9 + s2 * 0.07 * amp) * curva, d = k * h;
+  transformed.y = -k * cos(aO) * cos(aS);
+  transformed.z += d * sin(aO) + sin(uT * 7.0 + position.x * 5.0 + k * 4.0 + ph) * 0.035 * k * f;
+  transformed.x += d * sin(aS) / w; }`);
     };
-    mat.customProgramCacheKey = () => 'colada';
+    mat.customProgramCacheKey = () => 'colada-viento';
     const im = this.prendas = new THREE.InstancedMesh(g, mat, this.n), M = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), c = new THREE.Color();
     prendas.forEach((p, i) => { im.setMatrixAt(i, M.compose(new THREE.Vector3(p.x, p.y, p.z), q.setFromAxisAngle(Y, p.ry), new THREE.Vector3(p.w, p.h, 1))); im.setColorAt(i, c.set(p.c)); });
     im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; im.computeBoundingSphere();

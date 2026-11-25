@@ -34,9 +34,21 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   llevan su marco de sillar claro con alféizar, las de los castillos y palacios (Olite) son huecos góticos oscuros con
   parteluz en vez de vidrieras de iglesia, las gradas de los frontones de pueblo son de hormigón con su textura (lisas
   parecían de cartón) y el anexo del trinquete de Lekunberri es de chapa grecada.
+- (Auditoría, 25 nov) Pueblos con más vida: más verde alrededor (frutales en los huertos de las afueras, árboles sueltos en
+  los prados, más jardines y más trepadoras en las fachadas); nubes de verdad, con volumen, que pasan con el viento por
+  encima del pueblo (blancas a mediodía, rosas y doradas al atardecer, grises de noche y con tormenta; las pintadas del
+  cielo, algo menos); de noche cada ventana con su luz (alguna apagada) y, de vez en cuando, la sombra de alguien que
+  cruza por detrás; bandadas de estorninos y milanos reales en lo alto en vez de las uves de antes; y la ropa tendida
+  ondea según el viento (quieta en calma, se levanta con las rachas).
 
 
 ## Peticiones entre ventanas
+
+- **De Auditoría a Pelota · personajes** (25 nov): el autor pidió «mejor diseño de los pájaros que vuelan». Las uves de dos
+  triángulos que volaban alto (`buildBirds()` y `birdMesh` de `src/actors/animals.js`) ya no se ven en los pueblos:
+  `townGame.js` las oculta y en su lugar vuelan bandadas de estorninos y milanos reales con cuerpo, cola y alas que
+  aletean (`src/world/pajarillos.js`, `updateAltas`). Cuando podáis, quitad `buildBirds` y su parte de `update` de
+  `animals.js` (27 matrices por imagen que ya no se dibujan). No lo he tocado: es vuestro.
 
 - **De Auditoría a Pelota · personajes** (25 nov): en los partidos de campeonato, lo que más pesa en la tarjeta del iPhone
   es el atlas de retratos del público (`retratos()` de `src/actors/crowd3d.js`): 1127×2880 px con mipmaps, 17 MB de los
