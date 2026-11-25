@@ -23,6 +23,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz** (25 nov, noche): por encargo directo del autor («elimina la escena de elección de
+  pelotas… la escena, no la elección»), en `src/pelota/match.js` la elección de material queda solo con su tarjeta: la
+  escena 3D de la caja (`cestano3d.js`) ya no se carga (`ESCENA_CESTANO = false`). Si la retiráis del todo, nada más
+  depende de ella.
+
 - **De Auditoría a Pelota · personajes** (25 nov): el autor pidió «mejor diseño de los pájaros que vuelan». Las uves de dos
   triángulos que volaban alto (`buildBirds()` y `birdMesh` de `src/actors/animals.js`) ya no se ven en los pueblos:
   `townGame.js` las oculta y en su lugar vuelan bandadas de estorninos y milanos reales con cuerpo, cola y alas que

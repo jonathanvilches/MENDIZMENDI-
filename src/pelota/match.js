@@ -24,6 +24,7 @@ import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
+const ESCENA_CESTANO = false;   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 // vuelta a su sitio entre tanto y tanto (la figura; la lógica ya los ha puesto allí): a paso de carrera, con su arranque y
 // su frenada, en m/s y m/s²
@@ -281,7 +282,9 @@ export class PelotaMatch {
       // Hecha el 17 de noviembre y sin conectar hasta el 22: la tarjeta, abajo y compacta, con la escena a la vista)
       const azul = this.cols.you === 'azul' ? 'you' : 'rival', rojo = azul === 'you' ? 'rival' : 'you';
       const marca = () => this.cestano?.marca(azul === 'you' ? mias : rv, azul === 'you' ? rv : mias);
-      import('./cestano3d.js').then(({ Cestano3D }) => {
+      // (el autor, 25 nov 2026: «elimina la escena de elección de pelotas… la escena, no la elección»: queda la tarjeta para
+      // elegir, sin la escena de la caja detrás)
+      if (ESCENA_CESTANO) import('./cestano3d.js').then(({ Cestano3D }) => {
         if (!this.active || this.hud.panelEl !== p || this.cestano) return;
         try { this.cestano = new Cestano3D({ T: this.T, grp: this.court.group, cam: this.cam, azul: this.o[azul], rojo: this.o[rojo], lote: lot }); p.classList.add('con-cestano'); marca(); }
         catch (err) { console.warn('cestaño', err); this.cestano = null; }
