@@ -18,7 +18,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `65763e25`.)
+- 25 nov, tarde, Auditoría: la roca de la isla también por pasos (sus anillos, cuatro cada vez). El peor trabajo de una
+  imagen al tocar Tierra Estella, de 50-60 ms a unos 30 ms.
 
 
 ## Peticiones entre ventanas

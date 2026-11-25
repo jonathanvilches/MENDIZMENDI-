@@ -274,11 +274,11 @@ export function* hazIslaPasos({ id, P, hueco = null, grosor, alto, salen = [], e
   // (las estrías: surcos verticales cada medio metro largo del mapa, que se tuercen un poco al bajar, y bultos más grandes)
   const estria = (s, k) => { const ss = s + 0.12 * Math.sin(k * 1.7 + s * 0.6), g = 0.5 + 0.5 * Math.sin(ss * 13.4 + 1.3 * Math.sin(ss * 0.9)); return 0.09 * g * g + 0.14 * Math.sin(s * 2.7 + k * 0.45 + seed); };
   // (los anillos para un contorno: el de la isla, la panza; y el del hueco, su molde)
-  const anillos = (Q, LQ, cx, cz, rMed, dentro, sal = null) => {
+  function* anillos(Q, LQ, cx, cz, rMed, dentro, sal = null) {   // (por pasos: cede cada cuatro anillos)
   const pos = [], col = [], uv = [], c = new THREE.Color();
   const NIN = Q.map((q, i) => { const a2 = Q[(i + N - 3) % N], b2 = Q[(i + 3) % N]; let tx = b2[0] - a2[0], tz = b2[1] - a2[1]; const l = Math.hypot(tx, tz) || 1; let nx = -tz / l, nz = tx / l; if (!dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz]; });   // (hacia dentro)
   const ssI = (a0, b0, x) => { const t = Math.min(1, Math.max(0, (x - a0) / (b0 - a0))); return t * t * (3 - 2 * t); };
-  ANI.forEach(([e, h, m], k) => { for (let i = 0; i <= N; i++) {
+  for (let k = 0; k < ANI.length; k++) { const [e, h, m] = ANI[k]; if (k && k % 4 === 0) yield; for (let i = 0; i <= N; i++) {
     const [x, z] = Q[i % N], dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) || 1, a = Math.atan2(dz, dx);
     const bx = lerp(dx, dx / r * rMed, m) * e + ladoX * h ** 1.6, bz = lerp(dz, dz / r * rMed, m) * e + ladoZ * h ** 1.6;
     const fe = ssI(0.06, 0.22, h);   // (las estrías y los bultos empiezan algo más abajo: arriba la roca sigue el filo de la hierba)
@@ -295,16 +295,17 @@ export function* hazIslaPasos({ id, P, hueco = null, grosor, alto, salen = [], e
     // (la caliza pone su color la foto; algo más oscura hacia la punta, adonde llega menos luz)
     const f = -y / D;
     c.copy(CALIZA).lerp(HONDO, Math.min(1, Math.max(0, (f - 0.3) / 0.65))); c.lerp(TIERRA_ARRIBA, (1 - ssI(0.0, 0.07, h)) * 0.7); c.multiplyScalar(0.94 + R() * 0.08); col.push(c.r, c.g, c.b);   // (justo bajo la hierba, la tierra, en la misma pieza: antes era una franja aparte)
-  } });
+  } }
+  yield;
   const base = pos.length / 3; { let yb = 0; for (let i = 0; i < N; i++) yb = Math.min(yb, pos[((ANI.length - 1) * N1 + i) * 3 + 1]); pos.push(cx + ladoX, yb - D * 0.012, cz + ladoZ); } uv.push(0, D / TEX); c.copy(HONDO); col.push(c.r, c.g, c.b);
   const idx = [], L = (ANI.length - 1) * N1;
   for (let k = 0; k + 1 < ANI.length; k++) for (let i = 0; i < N; i++) { const a = k * N1 + i, b = a + 1; idx.push(a, b + N1, b, a, a + N1, b + N1); }
   for (let i = 0; i < N; i++) idx.push(L + i, base, L + i + 1);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); geos.push(g);
-  return { pos, g }; };
-  const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro, SAL); yield;
-  const MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g; yield;
+  return { pos, g }; }
+  const { pos, g } = yield* anillos(Q, LQ, cx, cz, rMed, dentro, SAL); yield;
+  const MH = amplia ? yield* anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g; yield;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
   const sc0 = Math.min(1.3, Math.max(0.6, rMed / 7));
   const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = 0; rocaM.uniforms.uHumus.value = 0.6 * sc0; conMusgo(rocaM, tex); mats.push(rocaM);   // (desde el 17 de noviembre de 2026, nada de musgo pintado en la roca: el autor lo seguía viendo «apegado», «no es 3D»; el verde que cuelga es de matas y terrones con volumen)   // (desde el 16 de noviembre de 2026, casi sin musgo pintado: el autor lo veía «apegado», no 3D; el musgo, en matas que cuelgan del borde)   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
