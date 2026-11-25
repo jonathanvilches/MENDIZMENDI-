@@ -36,7 +36,11 @@ export class FloraSpots {
   // qué plantas y dónde: unas pocas de la comarca (dos o tres árboles, dos o tres arbustos y tres flores), en sitios
   // libres y llanos alrededor del pueblo, separadas entre sí
   build() {
-    const G = this.g, ids = floraOf(G.comarca), rnd = mulberry32(([...G.def.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7) >>> 0) || 1);
+    const G = this.g, rnd = mulberry32(([...G.def.id].reduce((a, ch) => a * 31 + ch.charCodeAt(0), 7) >>> 0) || 1);
+    // (en las Bardenas, solo plantas de allí: el tamariz de los barrancos y las matas de la estepa; la lista de la Ribera
+    // ponía un olivo o un chopo suelto en pleno desierto)
+    const BARD = ['tamariz', 'romero', 'tomillo', 'ontina', 'cardo', 'siempreviva', 'lino'];
+    const ids = G.def.bosque === 'bardenas' ? BARD.filter(id => FLORA[id]) : floraOf(G.comarca);
     if (!ids.length) return;
     const by = (k) => ids.filter(id => (k === 'tree' ? FLORA[id].m.t === 'tree' : k === 'flower' ? FLORA[id].m.t === 'flower' : FLORA[id].m.t !== 'tree' && FLORA[id].m.t !== 'flower')).sort(() => rnd() - 0.5);
     const pick = [...by('tree').slice(0, 3), ...by('shrub').slice(0, 3), ...by('flower').slice(0, 3)];

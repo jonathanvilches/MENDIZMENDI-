@@ -668,32 +668,52 @@ export function landmark(B, lm, ctx) {
       addCircle(x + 4.2, z, 0.4); return { x: x + 3, z: z + 4 };
     }
     case 'castildetierra': {
-      // el pie (la ladera de arcilla que se desmorona), el cuello estrecho y el sombrero de roca dura que vuela por fuera;
-      // con vetas blancas y ocres, como las capas de arcilla, yeso y arenisca de la Bardena Blanca, y los regueros que abre
-      // la lluvia en la arcilla (surcos de arriba abajo, más hondos en la ladera)
-      const P = [[14, 0], [10.5, 2.5], [7.5, 5], [5.2, 8], [3.8, 11], [3, 14], [2.6, 17], [2.4, 19.2], [2.8, 20.2], [4.6, 20.6], [4.9, 21.6], [4.6, 22.6], [3.2, 23.3], [0, 23.5]];
-      const pts = []; for (let i = 0; i < P.length - 1; i++) { const [r0, y0] = P[i], [r1, y1] = P[i + 1], n = Math.max(1, Math.ceil(Math.abs(y1 - y0) / 0.6)); for (let j = 0; j < n; j++) pts.push([r0 + (r1 - r0) * j / n, y0 + (y1 - y0) * j / n]); }
+      // Castildetierra como en las fotos del autor (25 nov 2026): una falda de arcilla muy ancha y cóncava, toda acanalada por
+      // los regueros (aristas y barrancos en V, más hondos abajo); a media altura un collar rojizo de arenisca que asoma; encima
+      // un cuello largo y fino, y en lo alto solo un bloque pequeño de arenisca oscura en láminas (antes, un sombrero enorme
+      // como de seta). Las vetas, con la misma serie de capas que el suelo (terrain.js, bCapa), por su altura en el mundo
+      // (la falda sigue bajo tierra unos metros: así su borde no queda como un plato apoyado en el llano)
+      const P = [[25, -1.8], [17, 0], [12.5, 1.3], [9.5, 2.8], [7.4, 4.4], [5.9, 6.2], [4.8, 8], [4, 9.8], [3.4, 11.6], [3.1, 12.6], [3.55, 12.8], [3.5, 13.2], [2.9, 13.4],
+        [2.6, 15], [2.3, 17], [2.0, 18.8], [1.7, 20.2], [1.5, 20.9], [1.95, 21.0], [2.05, 21.5], [1.9, 21.9], [2.0, 22.1], [1.5, 22.35], [0, 22.4]];
+      const pts = []; for (let i = 0; i < P.length - 1; i++) { const [r0, y0] = P[i], [r1, y1] = P[i + 1], n = Math.max(1, Math.ceil(Math.abs(y1 - y0) / 0.45)); for (let j = 0; j < n; j++) pts.push([r0 + (r1 - r0) * j / n, y0 + (y1 - y0) * j / n]); }
       pts.push(P[P.length - 1]);
-      // (25 nov 2026: las vetas, con la misma serie de capas que el sombreador del suelo, por su altura en el mundo: las de
-      // Castildetierra siguen en los cabezos de alrededor, como en la Bardena Blanca. Antes, cuatro colores en franjas
-      // iguales que se repetían como un caramelo. Los surcos de los regueros, más oscuros; el sombrero, arenisca en láminas)
       const F = Math.fround, bH = (p0) => { let p = F(p0 * 0.1031); p = F(p - Math.floor(p)); p = F(p * F(p + 33.33)); p = F(p * F(p + p)); return p - Math.floor(p); };
       const capa = (yw) => { const t = yw / 1.15, i = Math.floor(t), f = t - i, r = bH(i), r2 = bH(i + 17.3);
-        const arc = [0.80 - 0.01 * r2, 0.69 - 0.06 * r2, 0.55 - 0.06 * r2], mar = [0.74, 0.71, 0.65], yes = [0.93, 0.90, 0.83];
-        if (r < 0.40) return arc; if (r < 0.63) return mar.map((m, k) => m + (arc[k] - m) * r2 * 0.35); if (r < 0.79) return f > 0.74 ? yes : arc;
-        if (r < 0.89) return f > 0.22 && f < 0.68 ? yes : mar; return [0.66, 0.55, 0.41]; };
-      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 36), pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color();
+        const arc = [0.84 - 0.02 * r2, 0.67 - 0.08 * r2, 0.47 - 0.04 * r2], mar = [0.78, 0.68, 0.54], yes = [0.88, 0.79, 0.62];
+        if (r < 0.46) return arc; if (r < 0.68) return mar.map((m, k) => m + (arc[k] - m) * r2 * 0.5); if (r < 0.82) return f > 0.86 ? yes : arc;
+        if (r < 0.88) return f > 0.3 && f < 0.6 ? yes : mar; return [0.66, 0.45, 0.32]; };
+      const tri = (q) => Math.abs(q - Math.floor(q) - 0.5) * 2;
+      // (se alza sobre su cerro de arcilla, town.js castilH: el pie se mide en el llano de alrededor, no en lo alto del
+      // cerro, y la falda sale del montículo a unos 8 m del eje; lo de abajo queda enterrado)
+      let yb = 0; for (let k = 0; k < 12; k++) yb += terrainHeight(x + Math.cos(k * 0.5236) * 29, z + Math.sin(k * 0.5236) * 29) / 12;
+      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 96), pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color();
       for (let i = 0; i < pos.count; i++) {
-        const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i), th = Math.atan2(pz, px), cap = py > 20.4;
-        const surco = Math.max(0, Math.sin(9 * th + py * 0.15)) ** 2, k = cap ? 1 + 0.06 * Math.sin(5 * th + 1.3) + 0.04 * Math.sin(11 * th) : 1 - (0.12 * surco + 0.05 * Math.sin(17 * th + 2)) * Math.min(1, Math.max(0, (20 - py) / 6));
+        const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i), th = Math.atan2(pz, px), a = (th + Math.PI) / (Math.PI * 2);
+        const cap = py > 20.95, collar = py > 12.6 && py < 13.4, falda = py < 12.6;
+        // la falda: 30 aristas con otras más finas entre medias, que se abren hacia el pie; el cuello, 9 surcos suaves
+        const v1 = tri(a * 30 + 0.12 * Math.sin(th * 3 + py * 0.3)), v2 = tri(a * 69 + 0.3 + py * 0.05);
+        const fl = falda ? (0.62 * v1 + 0.38 * v2) : 0.5 + 0.5 * Math.sin(9 * th + py * 0.2);
+        // (más hondos a media falda; abajo se abren y se pierden en el derrubio del pie, sin dejar el borde en estrella)
+        // (y abajo del todo, donde la falda se mete en su cerro, lisa: los surcos del cerro son los del suelo)
+        const fq = Math.max(0, Math.min(1, (py - 4) / 4)), fade = fq * fq * (3 - 2 * fq);
+        const hondo = falda ? Math.min(1, (12.6 - py) / 5) * fade : 0.25;
+        const k = cap ? 1 + 0.09 * Math.sin(3 * th + 1.3) + 0.06 * Math.sin(7 * th) + (Math.sin(py * 18) > 0.4 ? 0.04 : 0)
+          : collar ? 1 + 0.08 * Math.sin(3 * th + 0.7) - 0.1 * Math.max(0, Math.sin(11 * th))
+          : 1 - (falda ? 0.18 * hondo : 0.06) * (1 - fl);
         pos.setX(i, px * k); pos.setZ(i, pz * k);
-        const v = cap ? [0.62, 0.5, 0.37].map(q => q * (0.88 + 0.12 * Math.sin(py * 14 + th * 2))) : capa(y - 0.6 + py), lav = Math.min(1, Math.max(0, (20 - py) / 8)) * surco;
-        c.setRGB(...v.map((q, kk) => (q + ([0.77, 0.68, 0.56][kk] - q) * lav * 0.5) * (0.9 + 0.1 * Math.sin(th * 3 + py)) * (1 - 0.12 * lav)), THREE.SRGBColorSpace);
+        const yw = yb - 0.6 + py;
+        let v = cap ? [0.6, 0.43, 0.31].map(q => q * (0.86 + 0.18 * (Math.sin(py * 22 + th) > 0 ? 1 : 0)))
+          : collar ? [0.72, 0.5, 0.35].map(q => q * (0.92 + 0.1 * Math.sin(py * 9 + th * 3)))
+          : capa(yw);
+        // (las vetas, suaves: casi todo es arcilla dorada; el cuello algo más claro, y el pie del color del llano)
+        if (!cap && !collar) v = v.map((q, kk) => q * 0.55 + [0.85, 0.68, 0.48][kk] * 0.45);
+        const sombra = (1 - fl) * (falda ? 0.3 * hondo : 0.1);   // (los barrancos, en sombra)
+        c.setRGB(...v.map((q) => q * (1 - sombra) * (0.94 + 0.06 * Math.sin(th * 3 + py))), THREE.SRGBColorSpace);
         col.set([c.r, c.g, c.b], i * 3);
       }
       g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
-      B.add('paint', g, MM(T, M(0, -0.6, 0))); addCircle(x, z, 8);
-      return { x, z: z + 18 };
+      B.add('paint', g, M(x, yb - 0.6, z)); addCircle(x, z, 9.5);
+      return { x, z: z + 21 };
     }
     case 'rocks': {
       for (const s of [-1, 1]) { B.add('stoneDark', new THREE.CylinderGeometry(3, 5, 26, 7), MM(T, M(s * 9, 12, 0))); B.add('stoneDark', new THREE.DodecahedronGeometry(4, 0), MM(T, M(s * 9, 25, 0))); addCircle(x + s * 9, z, 5); }

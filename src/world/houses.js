@@ -369,7 +369,7 @@ export function buildHouse(B, T, o, rnd) {
   B.add('stoneDark', boxChaflan(w + z0 + z1, 0.7 + 3, d + 0.06 + zb, 2, CHAFLAN + 0.035, esqL), MM(T, M((z1 - z0) / 2, (0.7 + 3) / 2 - 3, (0.06 - zb) / 2)));
   if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h, vec);
   // imposta entre plantas
-  const floors = Math.max(2, Math.round(h / 2.9));
+  const floors = o.floors || Math.max(2, Math.round(h / 2.9));   // (floors: 1, las casetas de una planta de las Bardenas)
   const fh = h / floors;
   if (o.cornice) B.add('ashlar', box(w + (vec[0] ? 0 : 0.05) + (vec[1] ? 0 : 0.05), 0.16, d + 0.1), MM(T, M(((vec[1] ? 0 : 0.05) - (vec[0] ? 0 : 0.05)) / 2, fh + 0.05, 0)));
   // puerta

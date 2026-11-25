@@ -982,6 +982,17 @@ export class Nature {
       if (f > 0.3 && rnd() < 0.5) fernSpots.push({ x, z, s: 0.7 + rnd() * 0.7 });
       else if ((f > 0.1 || (r.edge < 8 && villageMask(x, z) < 0.3)) && rnd() < 0.25) bushSpots.push({ x, z, s: 0.7 + rnd() * 0.9 });
     }
+    // (en las Bardenas, como en las fotos del autor: matas bajas sueltas por el llano, más en el fondo de los barrancos y al pie
+    // de los cabezos, donde queda algo de humedad; nunca en las laderas de arcilla)
+    if (TONE === 'bardena') for (let k = 0; k < 5000; k++) {
+      const x = P0.x + (rnd() - 0.5) * 680, z = P0.z + (rnd() - 0.5) * 680;
+      const nx = terrainHeight(x + 1, z) - terrainHeight(x - 1, z), nz = terrainHeight(x, z + 1) - terrainHeight(x, z - 1), sl = Math.hypot(nx, nz) / 2;
+      if (sl > 0.18 || villageMask(x, z) > 0.3) continue;
+      const p = pathQuery(x, z); if (p.d < p.w + 1.2) continue;
+      if (!isFree(x, z, 0.8)) continue;
+      const h0 = terrainHeight(x, z), hondo = (terrainHeight(x + 6, z) + terrainHeight(x - 6, z) + terrainHeight(x, z + 6) + terrainHeight(x, z - 6)) / 4 - h0 > 0.25 ? 1 : 0;   // (en una hondonada)
+      if (rnd() < 0.05 + 0.25 * hondo + 0.12 * Math.min(1, sl / 0.1)) bushSpots.push({ x, z, s: 0.4 + rnd() * 0.45 });
+    }
     this.bushSpots = bushSpots;   // (para revisar choques: tools/movimiento.mjs)
     // las matas no se atraviesan (antes el jugador, los vecinos y los animales pasaban por dentro); los helechos sí, son bajos
     for (const b of bushSpots) { b.col = addCircle(b.x, b.z, 0.36 * b.s, { bush: true }); MATAS.push(b); }

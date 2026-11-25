@@ -249,12 +249,15 @@ export function createTownLevel(def) {
   // que se abre hacia el llano, cóncava, acanalada por los regueros (costillas y surcos de arriba abajo, más hondos abajo)
   // y con un rellano en cada capa dura. Donde dos se juntan manda el más alto, no la suma. Los techos van de 8 a 26 m)
   const CABEZOS = [];
-  if (BQ?.cabezos) for (let i = 0; i < 44; i++) {
-    const a = rnd() * 6.28, d = 105 + rnd() * 310, mesa = rnd() < 0.45;
-    CABEZOS.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r: mesa ? 16 + rnd() * 26 : 7 + rnd() * 12, e: mesa ? 1.3 + rnd() * 1.1 : 1 + rnd() * 0.35, ang: rnd() * 3.14,
-      h: mesa ? 12 + rnd() * 14 : 8 + rnd() * 12, w: 9 + rnd() * 9, f1: rnd() * 6.28, f2: rnd() * 6.28, f3: rnd() * 6.28, n: 0 });
+  // (25 nov 2026, con las fotos del autor: en la Bardena Blanca abundan los cabezos en pirámide, de aristas afiladas y
+  // barrancos en V muy juntos de arriba abajo, junto a las mesas de techo plano y las lomas bajas de los pies)
+  const prepCab = (K) => { K.ca = Math.cos(K.ang); K.sa = Math.sin(K.ang); const per = 6.283 * (K.r * (1 + K.e) / 2 + K.w); K.n = Math.max(10, Math.round(per / 5.5)); K.ext = K.r * K.e * 1.3 + K.w + 4; return K; };
+  if (BQ?.cabezos) for (let i = 0; i < 52; i++) {
+    const a = rnd() * 6.28, d = 105 + rnd() * 310, t = rnd(), tipo = t < 0.35 ? 'mesa' : t < 0.75 ? 'pico' : 'loma';
+    const [r, e, h, w] = tipo === 'mesa' ? [16 + rnd() * 26, 1.3 + rnd() * 1.1, 11 + rnd() * 12, 15 + rnd() * 12]
+      : tipo === 'pico' ? [1.5 + rnd() * 2.5, 1 + rnd() * 0.25, 14 + rnd() * 14, 16 + rnd() * 12] : [4 + rnd() * 5, 1 + rnd() * 0.4, 6 + rnd() * 6, 8 + rnd() * 6];
+    CABEZOS.push(prepCab({ x: Math.cos(a) * d, z: Math.sin(a) * d, r, e, h, w, tipo, ang: rnd() * 3.14, f1: rnd() * 6.28, f2: rnd() * 6.28, f3: rnd() * 6.28 }));
   }
-  for (const K of CABEZOS) { K.ca = Math.cos(K.ang); K.sa = Math.sin(K.ang); K.n = Math.max(9, Math.round(K.r * K.e * 0.75)); K.ext = K.r * K.e * 1.3 + K.w + 4; }
   // perfil de la ladera: u = 0 en el borde del techo, 1 al pie. Primero la cornisa (la arenisca cae casi a plomo: 9 % del
   // ancho, 16 % del alto), luego la arcilla cóncava, con dos rellanos donde asoman capas duras
   const ladera = (u) => {
@@ -266,6 +269,18 @@ export function createTownLevel(def) {
     return f;
   };
   let capU = 9;   // (el u del último cabezo medido: para marcar su losa del techo, capMask)
+  // el cerro de Castildetierra: la chimenea no está en el llano liso, sale de un montículo de arcilla acarcavado (sus
+  // costillas y barrancos son los mismos del suelo, con su textura y sus capas); la falda del monumento (monuments.js)
+  // nace de él a unos 8 m del eje y lo de abajo queda enterrado: así no se ve un borde apoyado en el suelo
+  let CASTIL = null;
+  const castilH = (x, z) => {
+    const dx = x - CASTIL.x, dz = z - CASTIL.z; if (Math.abs(dx) > 30 || Math.abs(dz) > 30) return 0;
+    const d = Math.hypot(dx, dz), th = Math.atan2(dz, dx), q = 14 * th / 6.283 + 0.3 * Math.sin(3 * th + 0.8);
+    const g = Math.abs(q - Math.floor(q) - 0.5) * 2, dd = d * (1 + 0.2 * (g - 0.5) * smoothstep(8.5, 14, d));
+    // (el perfil corta la falda a unos 8 m del eje con casi su misma pendiente y la cubre desde ahí; por dentro queda
+    // siempre bajo la superficie del monumento)
+    const k = Math.max(0, 1 - dd / 27); return 10.97 * Math.pow(k, 3.33);
+  };
   function cabezoH(K, x, z) {
     const dx = x - K.x, dz = z - K.z; if (Math.abs(dx) > K.ext || Math.abs(dz) > K.ext) return 0;
     const lx = dx * K.ca + dz * K.sa, lz = (-dx * K.sa + dz * K.ca) * K.e;   // (la mesa, estirada a lo largo de su eje)
@@ -273,14 +288,19 @@ export function createTownLevel(def) {
     // borde del techo mordido por la erosión, y las costillas de la ladera (más marcadas cuanto más abajo)
     const rt = K.r * (1 + 0.16 * Math.sin(3 * th + K.f1) + 0.08 * Math.sin(7 * th + K.f2) + 0.04 * Math.sin(13 * th + K.f3));
     const u0 = (dist - rt) / K.w;
-    const cost = Math.pow(Math.abs(Math.sin(K.n * th * 0.5 + 1.7 * Math.sin(3 * th + K.f2))), 0.6);
-    const u = u0 + (0.1 + 0.16 * clamp(u0, 0, 1)) * (cost - 0.6) * (u0 > 0 ? 1 : 0);
+    // aristas y barrancos en V (onda en dientes de sierra, con otra más fina encima: ramifican como en las fotos), más
+    // hondos hacia el pie
+    const tri = (q) => Math.abs(q - Math.floor(q) - 0.5) * 2;
+    const ph = K.n * th / 6.283 + 0.35 * Math.sin(3 * th + K.f2) + 0.15 * Math.sin(7 * th + K.f3);
+    const cost = tri(ph) * 0.72 + tri(ph * 2.3 + 0.37) * 0.28;
+    const u = u0 + (0.1 + 0.2 * clamp(u0, 0, 1)) * (cost - 0.5) * (u0 > 0 ? 1 : 0);
     capU = u;
     return K.h * ladera(u);
   }
   function bosqueH(x, z) {
     let h = 0, hc = 0;
     for (const K of CABEZOS) { const c = cabezoH(K, x, z); if (c > hc) hc = c; }
+    if (CASTIL) hc = Math.max(hc, castilH(x, z));
     h += hc;
     for (const D of DOLINAS) { if (Math.abs(x - D.x) > D.r || Math.abs(z - D.z) > D.r) continue; const k = 1 - Math.min(1, Math.hypot(x - D.x, z - D.z) / D.r); h -= D.h * k * k * (3 - 2 * k); }
     if (BQ.escarpe) h -= 95 * smoothstep(262, 300, z + fbm(x / 70, 3.3, 2) * 26);
@@ -317,7 +337,10 @@ export function createTownLevel(def) {
       const e0 = mt * st * r4 * (0.85 + 0.3 * (fbm(x / 260 + 5, z / 260 - 8, 2) * 0.5 + 0.5)), q = e0 / 20, fl = Math.floor(q);
       h += (fl + smoothstep(0.58, 0.9, q - fl)) * 20;
       // barrancos del llano: cauces secos que serpentean, de metro y medio, donde el agua de las tormentas se lleva la arcilla
-      const bz = Math.abs(fbm(x / 95 + 13, z / 95 - 4, 3)), lejos = smoothstep(R + 25, R + 70, r) * (1 - mt);
+      // (ninguno pasa al pie de Castildetierra: su falda sigue bajo tierra y asomaría por el cauce)
+      let lejos = smoothstep(R + 25, R + 70, r) * (1 - mt);
+      for (const L of PLACES.landmarks || []) if (L.kind === 'castildetierra') lejos *= smoothstep(32, 48, Math.hypot(x - L.x, z - L.z));
+      const bz = Math.abs(fbm(x / 95 + 13, z / 95 - 4, 3));
       if (lejos > 0) h -= 1.5 * (1 - smoothstep(0.012, 0.06, bz)) * lejos;
     } else h += mt * skyTan(x, z) * r4 * (0.75 + 0.4 * ridged(x / 160, z / 160, 4));
     const rough = 0.25 + smoothstep(30, 220, dRiv) * 0.8 + mt;
@@ -470,6 +493,16 @@ export function createTownLevel(def) {
     const sendas = PATHS.flatMap(p => p.pts);
     for (let i = CABEZOS.length - 1; i >= 0; i--) { const K = CABEZOS[i], lejos = K.r * K.e * 1.1 + K.w;
       if (sitios.some(p => Math.hypot(p.x - K.x, p.z - K.z) < lejos + (p.kind === 'castildetierra' ? 55 : 30)) || sendas.some(([x, z]) => Math.hypot(x - K.x, z - K.z) < lejos + 8)) CABEZOS.splice(i, 1); }
+    // al pie de Castildetierra, lomas bajas y acarcavadas como en las fotos (no un llano liso), sin tapar la senda que llega
+    const C = PLACES.landmarks.find(l => l.kind === 'castildetierra');
+    if (C) {
+      CASTIL = { x: C.x, z: C.z };
+      const aS = Math.atan2(P.z - C.z, P.x - C.x);
+      for (let i = 0; i < 9; i++) {
+        const a = aS + 0.75 + i * (6.283 - 1.5) / 8, d = 24 + rnd() * 16, K = prepCab({ x: C.x + Math.cos(a) * d, z: C.z + Math.sin(a) * d, r: 1 + rnd() * 2, e: 1 + rnd() * 0.5, h: 3 + rnd() * 4.5, w: 6 + rnd() * 5, tipo: 'loma', ang: rnd() * 3.14, f1: rnd() * 6.28, f2: rnd() * 6.28, f3: rnd() * 6.28 });
+        if (!sendas.some(([x, z]) => Math.hypot(x - K.x, z - K.z) < K.r * K.e + K.w + 3)) CABEZOS.push(K);
+      }
+    }
   }
   // Pamplona: murallas al borde del casco
   PLACES.courts = [];
