@@ -286,19 +286,23 @@ function canvasTex(w, h, draw, repeat = false) {
   if (repeat) t.wrapS = THREE.RepeatWrapping;
   return t;
 }
+// (en calidad baja, el césped y las franjas de luz del estadio a la mitad: se ven de lejos, y en el iPhone eran 4 MB de
+// los 80 que caben en Pamplona)
+const mitad = () => builderQuality() === 'low' ? 0.5 : 1;
 function pitchTexture() {
-  return canvasTex(512, 768, (g, W, H) => {
+  const k = mitad();
+  return canvasTex(512 * k, 768 * k, (g, W, H) => {
     const sx = W / 52, sz = H / 78, X = (x) => (x + 26) * sx, Y = (z) => (z + 39) * sz;
     for (let i = 0; i < 13; i++) { g.fillStyle = i % 2 ? '#3f8a37' : '#4b9a41'; g.fillRect(0, i * H / 13, W, H / 13 + 1); }
-    g.strokeStyle = '#f4f6f2'; g.lineWidth = 2.6;
+    g.strokeStyle = '#f4f6f2'; g.lineWidth = 2.6 * k;
     g.strokeRect(X(-23), Y(-36), 46 * sx, 72 * sz);
     g.beginPath(); g.moveTo(X(-23), Y(0)); g.lineTo(X(23), Y(0)); g.stroke();
     g.beginPath(); g.arc(X(0), Y(0), 9.15 * sx, 0, Math.PI * 2); g.stroke();
-    g.fillStyle = '#f4f6f2'; g.beginPath(); g.arc(X(0), Y(0), 3, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#f4f6f2'; g.beginPath(); g.arc(X(0), Y(0), 3 * k, 0, Math.PI * 2); g.fill();
     for (const s of [-1, 1]) {
       g.strokeRect(X(-20.15), s < 0 ? Y(-36) : Y(19.5), 40.3 * sx, 16.5 * sz);
       g.strokeRect(X(-9.15), s < 0 ? Y(-36) : Y(30.5), 18.3 * sx, 5.5 * sz);
-      g.beginPath(); g.arc(X(0), Y(s * 25), 3, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(X(0), Y(s * 25), 3 * k, 0, Math.PI * 2); g.fill();
       g.save(); g.beginPath(); g.rect(0, s < 0 ? Y(-19.5) : 0, W, s < 0 ? H : Y(19.5)); g.clip();
       g.beginPath(); g.arc(X(0), Y(s * 25), 9.15 * sx, 0, Math.PI * 2); g.stroke(); g.restore();
       for (const t of [-1, 1]) { g.beginPath(); g.arc(X(t * 23), Y(s * 36), 1 * sx, 0, Math.PI * 2); g.stroke(); }
@@ -576,7 +580,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
   perf.wrapT = THREE.RepeatWrapping; perf.repeat.set(0.5, 0.5);
   // luz de dentro a través de la chapa: el rojo y las letras (en las caras largas EL SADAR; en los fondos IRUÑA)
   const glow = (len, word) => {
-    const t = canvasTex(1024, 128, (g, W, H) => {
+    const t = canvasTex(1024 * mitad(), 128 * mitad(), (g, W, H) => {
       const hz = yB - y0, vy = (h) => H * (1 - (h - y0) / hz);
       g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
       const gr = g.createLinearGradient(0, vy(yB), 0, vy(0)); gr.addColorStop(0, '#5a0a10'); gr.addColorStop(1, '#2a0408'); g.fillStyle = gr; g.fillRect(0, vy(yB), W, vy(0) - vy(yB));

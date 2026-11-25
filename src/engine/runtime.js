@@ -46,15 +46,23 @@ function fijaQuieto(o, hijos = false) { if (!o) return; for (const x of hijos ? 
 // y animales que no son el jugador, otros. Solo las de imagen: las de lienzo se redibujan y los datos los hace el juego a su
 // medida. Lo ya mirado no se vuelve a mirar (vistas: texturas y materiales con su versión), así que se puede repetir para
 // lo que llega después de cargar. Si ya estaba en la tarjeta, se suelta y se sube otra vez, pequeña)
-function topeTexturas(raiz, max, { otros = max, jugador = null, vistas = { t: new WeakSet(), m: new WeakMap() } } = {}) {
-  const mira = (o, lim) => { for (const m of [].concat(o.material || [])) { if (!m || vistas.m.get(m) === m.version) continue; vistas.m.set(m, m.version);
-    for (const k in m) { const t = m[k]; if (!t?.isTexture || vistas.t.has(t) || t.isCanvasTexture || t.isVideoTexture || t.isDataTexture || t.isRenderTargetTexture) continue; vistas.t.add(t);
+function topeTexturas(raiz, max, { otros = max, jugador = null, vistas = { t: new WeakMap() } } = {}) {
+  // (cada material se mira entero cada vez: un personaje que termina de cargar después pone su imagen en un material ya
+  // mirado, sin cambiarle la versión, y se quedaba grande; en Pamplona, uno de 768 px. Lo ya mirado es cada textura con su imagen)
+  // (las de los vecinos con huesos, también si son un lienzo, que así las deja glbChar al reducirlas. Menos las que comparte
+  // el jugador, que se queda con las suyas a 1024: un clon comparte la imagen)
+  const suyas = new Set();
+  const mira = (o, lim, delJugador) => { for (const m of [].concat(o.material || [])) { if (!m) continue;
+    for (const k in m) { const t = m[k]; if (!t?.isTexture) continue; if (delJugador) suyas.add(t.source);
+      if (vistas.t.get(t) === t.image || (t.isCanvasTexture && !o.isSkinnedMesh) || suyas.has(t.source) && !delJugador || t.isVideoTexture || t.isDataTexture || t.isRenderTargetTexture) continue;
       const im = t.image, w = im?.width, h = im?.height;
-      if (!w || !h || Math.max(w, h) <= lim || !((typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || im instanceof HTMLImageElement)) continue;
+      if (!w || !h) continue;   // (la imagen aún no ha llegado: se mira otra vez la próxima. Antes se daba por mirada y se quedaba grande)
+      vistas.t.set(t, im);   // (con su imagen: si luego le ponen otra, como los personajes de Meshy al repintarse, se mira otra vez)
+      if (Math.max(w, h) <= lim || !((typeof ImageBitmap !== 'undefined' && im instanceof ImageBitmap) || im instanceof HTMLImageElement || (o.isSkinnedMesh && im instanceof HTMLCanvasElement))) continue;
       const s = lim / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
-      try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.dispose(); t.image = c; t.needsUpdate = true; } catch (e) { } } } };
-  jugador?.traverse((o) => mira(o, max));
-  raiz.traverse((o) => mira(o, o.isSkinnedMesh ? otros : max));
+      try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.dispose(); t.image = c; t.needsUpdate = true; vistas.t.set(t, c); } catch (e) { } } } };
+  jugador?.traverse((o) => mira(o, max, true));
+  raiz.traverse((o) => mira(o, o.isSkinnedMesh ? otros : max, false));
   return vistas;
 }
 
@@ -426,7 +434,8 @@ export class Runtime {
     this.cpuT += performance.now() - t0; this.cpuN++;
     input.endFrame();
     this.frames++; this.frameNo++; this.fpsT += dt;
-    if (this.topeVistas && (this.frameNo & 127) === 0 && !alt) topeTexturas(this.scene, 1024, { otros: 512, jugador: this.player?.obj, vistas: this.topeVistas });
+    // (cada 2 s de reloj, no cada tantas imágenes: con pocas imágenes por segundo, el vecino que acaba de cargar seguía grande)
+    if (this.topeVistas && !alt && t0 - (this.topeT || 0) > 2000) { this.topeT = t0; try { topeTexturas(this.scene, 1024, { otros: 512, jugador: this.player?.obj, vistas: this.topeVistas }); } catch (e) { this.reportError(e); } }
     // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
     if (this.covered || quieto) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {
