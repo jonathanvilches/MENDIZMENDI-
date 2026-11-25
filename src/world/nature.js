@@ -672,16 +672,30 @@ function townTrees(fits) {
       acc -= L;
     }
   }
-  // huertos y jardines: en el casco, en la hierba y cerca de una casa (pero con sitio)
-  const P0 = PLACES.plaza, cap = out.length + 60;
-  for (let k = 0; k < 5000 && out.length < cap; k++) {
+  // huertos y jardines: en el casco, en la hierba y cerca de una casa (pero con sitio). (25 nov 2026, el autor: «añade
+  // más verde y vegetación»: de 60 a 160, algo más juntos, de 9 a 7 m, y hasta 14 m de la casa, no 10)
+  const P0 = PLACES.plaza, cap = out.length + 160;
+  for (let k = 0; k < 12000 && out.length < cap; k++) {
     const x = P0.x + (rnd() - 0.5) * 520, z = P0.z + (rnd() - 0.5) * 520;
     if (villageMask(x, z) < 0.45 || surfAt('street', x, z) > 0.05 || surfAt('dirt', x, z) > 0.2) continue;
-    const p = pathQuery(x, z); if (p.d < p.w + 3) continue;
+    const p = pathQuery(x, z); if (p.d < p.w + 1.6) continue;   // (a 1,6 m de la calle, no a 3: en los pueblos de calles juntas casi no quedaba sitio)
     // (y lejos de tarimas y escalinatas, con la copa: en Lumbier un roble crecía en los escalones de la iglesia)
-    if (cerca(x, z, 9) || !isFree(x, z, 3.2) || isFree(x, z, 10) || onPlatform(x, z, 3.2, true)) continue;
-    const t = TONE === 'arid' ? (rnd() < 0.6 ? 'olive' : 'apple') : rnd() < 0.6 ? 'apple' : 'oak';
-    out.push({ x, z, y: terrainHeight(x, z), type: t, s: t === 'oak' ? 0.55 + rnd() * 0.2 : 0.7 + rnd() * 0.25, rot: rnd() * 6.28, special: true });
+    if (cerca(x, z, 7) || !isFree(x, z, 3.2) || isFree(x, z, 14) || onPlatform(x, z, 3.2, true)) continue;
+    const t = TONE === 'arid' ? (rnd() < 0.6 ? 'olive' : 'apple') : rnd() < 0.45 ? 'apple' : rnd() < 0.7 ? 'oak' : 'chestnut';
+    out.push({ x, z, y: terrainHeight(x, z), type: t, s: t === 'apple' || t === 'olive' ? 0.7 + rnd() * 0.25 : 0.55 + rnd() * 0.25, rot: rnd() * 6.28, special: true });
+  }
+  // y en los prados de alrededor del casco, donde el pueblo se acaba: árboles sueltos y en corros, como los robles,
+  // castaños y fresnos que rodean los pueblos de Navarra (antes, de la última casa al monte, prado pelado)
+  const capP = out.length + 110;
+  for (let k = 0; k < 9000 && out.length < capP; k++) {
+    const x = P0.x + (rnd() - 0.5) * 600, z = P0.z + (rnd() - 0.5) * 600, vm = villageMask(x, z);
+    if (vm >= 0.45 || surfAt('street', x, z) > 0.05 || surfAt('dirt', x, z) > 0.2 || fieldInfo(x, z).mask > 0.5) continue;
+    const p = pathQuery(x, z); if (p.d < p.w + 2) continue;
+    // (fuera del casco pero cerca de él: a menos de 45 m de una casa, una tapia o un cercado)
+    if (cerca(x, z, 8) || !isFree(x, z, 4) || isFree(x, z, 45) || onPlatform(x, z, 4, true)) continue;
+    const n = fbm(x / 70 + 20, z / 70, 2), t0 = TREE_MIX ? TREE_MIX(x, z, terrainHeight(x, z), n) : (n > 0 ? 'oak' : 'chestnut');
+    const t1 = TONE === 'arid' ? (rnd() < 0.5 ? 'olive' : 'oak') : t0 === 'fir' && rnd() < 0.6 ? 'beech' : t0, t = ['beech', 'oak', 'fir', 'olive', 'poplar', 'pine', 'chestnut', 'apple'].includes(t1) ? t1 : 'oak';
+    out.push({ x, z, y: terrainHeight(x, z), type: t, s: 0.65 + rnd() * 0.35, rot: rnd() * 6.28, special: true });
   }
   return out;
 }
@@ -998,14 +1012,14 @@ export class Nature {
     const flor = [['#b3245f', '#ff6fae'], ['#4f4fb8', '#9bb4ff'], ['#c2410c', '#ff9a3d'], ['#e8e3ef', '#ffffff'], ['#7a3fb0', '#c79bff'], ['#c81e3a', '#ff5a6e']];
     // (una mata verde con flores por encima: dos copas, la de color algo más pequeña y asomando)
     const geos = [makeBush(rnd), ...flor.map(([a, b]) => mergeKeep([blobCanopy(rnd, [[0, 0.62, 0, 0.78]], 0, verde[0], verde[1], 1, 0.6), blobCanopy(rnd, [[0.12, 0.82, 0.06, 0.6], [-0.3, 0.7, -0.18, 0.46]], -1, a, b, 1, 0.75)]))];
-    const lists = geos.map(() => []), q = this.quality, cap = q === 'low' ? 380 : q === 'mid' ? 700 : 1000, cel = new Set();
+    const lists = geos.map(() => []), q = this.quality, cap = q === 'low' ? 520 : q === 'mid' ? 1000 : 1400, cel = new Set();   // (25 nov 2026: más verde, de 380/700/1000 a 520/1000/1400)
     let n = 0;
     for (let k = 0; k < cap * 14 && n < cap; k++) {
       const x = P0.x + (rnd() - 0.5) * 560, z = P0.z + (rnd() - 0.5) * 560;
       const c = Math.floor(x / 2.2) * 8192 + Math.floor(z / 2.2); if (cel.has(c)) continue;
       if (villageMask(x, z) < 0.4 || surfAt('street', x, z) > 0.08 || surfAt('water', x, z) > 0) continue;
       const p = pathQuery(x, z); if (p.d < p.w + 1.2) continue;
-      if (!isFree(x, z, 0.9) || isFree(x, z, 3.6) || onPlatform(x, z, 1) || enCasa(x, z)) continue;   // (pegadas a una pared, una tapia o un árbol; nunca dentro de una casa)
+      if (!isFree(x, z, 0.9) || isFree(x, z, 4.4) || onPlatform(x, z, 1) || enCasa(x, z)) continue;   // (pegadas a una pared, una tapia o un árbol; nunca dentro de una casa)
       cel.add(c); n++;
       lists[rnd() < 0.4 ? 0 : 1 + Math.floor(rnd() * flor.length)].push({ x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 });
     }

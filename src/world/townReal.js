@@ -493,7 +493,7 @@ const TREPAS = { atlantic: [['hiedra', 0.8], ['glicinia', 1]], pyrenean: [['hied
 function plantas(x, z, fam) {
   const r = hashRnd(x + 0.37, z - 0.71), out = {};
   if (r() < 0.72) out.macetas = [FLOR[Math.floor(r() * FLOR.length)], FLOR[Math.floor(r() * FLOR.length)]];   // (antes, en algo más de la mitad)
-  if (r() < 0.3) { const t = r(), L = TREPAS[fam] || TREPAS.pyrenean; out.trepa = { kind: L.find(q => t < q[1])[0], side: r() < 0.5 ? -1 : 1, w: 1.1 + r() * 0.5, h: 3.5 + r() * 3.5, r }; }
+  if (r() < 0.45) { const t = r(), L = TREPAS[fam] || TREPAS.pyrenean; out.trepa = { kind: L.find(q => t < q[1])[0], side: r() < 0.5 ? -1 : 1, w: 1.1 + r() * 0.5, h: 3.5 + r() * 3.5, r }; }   // (antes en una de cada tres; 25 nov 2026, más verde)
   return out;
 }
 
