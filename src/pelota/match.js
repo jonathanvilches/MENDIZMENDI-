@@ -773,7 +773,21 @@ export class PelotaMatch {
    *  girando despacio a su alrededor. En las medidas de la cancha. */
   camBaile(t) {
     const P = this.game.players.you, yaw = Number.isFinite(P.yaw) ? P.yaw : Math.PI, fx = Math.sin(yaw), fz = Math.cos(yaw);
-    const a = 0.55 * Math.sin(t * 0.42), r = 2.7 - Math.min(0.5, t * 0.12), ca = Math.cos(a), sa = Math.sin(a);
+    // (el lado del plano, una vez: de frente o algo de lado, el que deja al rival más lejos de la línea de la cámara,
+    // para que no se meta delante)
+    const B = this.bailePl || {};
+    if (B.a0 == null) {
+      const R = this.game.players.rival; B.a0 = 0;
+      if (R && R !== P && Math.hypot(R.x - P.x, R.z - P.z) < 7) {
+        const ra = Math.atan2(R.x - P.x, R.z - P.z); let best = -Infinity;
+        for (const a of [0, 0.4, -0.4, 0.8, -0.8, 1.1, -1.1]) {
+          const ca = Math.atan2(fx * Math.cos(a) - fz * Math.sin(a), fz * Math.cos(a) + fx * Math.sin(a));
+          const sep = Math.abs(Math.atan2(Math.sin(ca - ra), Math.cos(ca - ra))), sc = Math.min(sep, 2.4) - 0.6 * Math.abs(a);   // (de tres cuartos como mucho, para verle la cara, y con el rival al fondo, no al borde)
+          if (sc > best) { best = sc; B.a0 = a; }
+        }
+      }
+    }
+    const a = B.a0 + 0.25 * Math.sin(t * 0.42), r = 2.7 - Math.min(0.5, t * 0.12), ca = Math.cos(a), sa = Math.sin(a);
     const dx = fx * ca - fz * sa, dz = fz * ca + fx * sa;
     return [[P.x + dx * r, 1.35, P.z + dz * r], [P.x, 0.98, P.z]];
   }
