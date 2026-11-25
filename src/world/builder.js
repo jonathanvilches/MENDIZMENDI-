@@ -160,6 +160,14 @@ export function makeMaterials() {
     flor: std({ map: TEX.flores, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.85 }),
     lamp: std({ color: '#fff3c4', emissive: new THREE.Color('#ffcf73'), emissiveIntensity: 0 }),
     shield: std({ map: shieldTexture(), transparent: true, alphaTest: 0.5, roughness: 0.9 }),
+    // vidrieras de los monumentos (25 nov 2026, el autor: «añadiendo detalles y texturas a las construcciones más famosas de
+    // Navarra. Vidrieras, puertas, tejados»). El vidrio emplomado de colores llena su hueco (uvHueco); de día, mate y algo
+    // encendido, como cuando se ve desde fuera con el sol detrás; de noche brilla más (fx.js). Con prioridad de profundidad,
+    // como el cristal
+    vidriera: vidrio(vidrieraTexture()),
+    roseton: vidrio(rosetonTexture()),
+    // la puerta de madera de las portadas: dos hojas de tablas con cuarterones, bisagras y clavos de forja (uvHueco)
+    puerta: std({ map: puertaTexture(), roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     // barandilla de forja calada (una sola cara con transparencia recortada): balcones, kioscos, barreras
     railing: std({ map: railingTexture(), alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.55, metalness: 0.45 }),
   };
@@ -176,6 +184,103 @@ function railingTexture() {
   for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(i * 32 + 16, 100, 9, 0, Math.PI * 2); g.stroke(); }
   for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(i * 32 + 8, 30); g.quadraticCurveTo(i * 32 + 16, 18, i * 32 + 24, 30); g.stroke(); }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+}
+
+// (vidrio emplomado: mate, con la textura también como brillo propio, de día flojo y de noche más, fx.js)
+function vidrio(t) {
+  const m = new THREE.MeshLambertMaterial({ map: t, emissive: new THREE.Color('#ffffff'), emissiveMap: t, emissiveIntensity: 0.28, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+  m.userData.night = [0.28, 0.9]; return m;
+}
+const VIDRIO = ['#1d4fa6', '#2b62c4', '#a3202c', '#c43a2e', '#d9a127', '#e8c35a', '#2e7a3c', '#5a2e86', '#3f86c9'];
+// una vidriera gótica: marco de borde rojo y azul, tres medallones con su escena de colores (en círculos de vidrios en
+// abanico) sobre un fondo de rombos azules, y la red de plomo por encima; un poco más clara en el centro (la luz del sol)
+function vidrieraTexture() {
+  const W = 128, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'); let sem = 7; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  const col = (i, k = 1) => { const h = new THREE.Color(VIDRIO[i % VIDRIO.length]); h.multiplyScalar(k * (0.85 + az() * 0.3)); return '#' + h.getHexString(); };
+  g.fillStyle = '#16120f'; g.fillRect(0, 0, W, H);
+  // fondo de rombos
+  const d = 14;
+  for (let y = -d; y < H + d; y += d) for (let x = -d; x < W + d; x += d) {
+    const ox = (Math.round(y / d) % 2) * d / 2; g.fillStyle = col(az() < 0.82 ? (az() < 0.5 ? 0 : 1) : 8, 0.9);
+    g.beginPath(); g.moveTo(x + ox, y - d / 2 + 1); g.lineTo(x + ox + d / 2 - 1, y); g.lineTo(x + ox, y + d / 2 - 1); g.lineTo(x + ox - d / 2 + 1, y); g.closePath(); g.fill();
+  }
+  // medallones
+  for (const [cy, r] of [[H * 0.24, 34], [H * 0.52, 38], [H * 0.8, 34]]) {
+    g.fillStyle = '#16120f'; g.beginPath(); g.arc(W / 2, cy, r + 4, 0, 7); g.fill();
+    g.fillStyle = col(2); g.beginPath(); g.arc(W / 2, cy, r, 0, 7); g.fill();
+    const n = 10; for (let k = 0; k < n; k++) {
+      g.fillStyle = col([4, 6, 7, 3, 5][k % 5]); g.beginPath(); g.moveTo(W / 2, cy); g.arc(W / 2, cy, r - 6, k / n * 6.283, (k + 1) / n * 6.283); g.closePath(); g.fill();
+    }
+    g.fillStyle = col(5, 1.1); g.beginPath(); g.arc(W / 2, cy, r * 0.32, 0, 7); g.fill();
+    g.strokeStyle = '#16120f'; g.lineWidth = 2;
+    for (let k = 0; k < n; k++) { const a = k / n * 6.283; g.beginPath(); g.moveTo(W / 2 + Math.cos(a) * r * 0.32, cy + Math.sin(a) * r * 0.32); g.lineTo(W / 2 + Math.cos(a) * (r - 6), cy + Math.sin(a) * (r - 6)); g.stroke(); }
+    g.beginPath(); g.arc(W / 2, cy, r - 6, 0, 7); g.stroke(); g.beginPath(); g.arc(W / 2, cy, r * 0.32, 0, 7); g.stroke();
+  }
+  // marco: tira de cuadros rojos y azules
+  for (let y = 0; y < H; y += 12) for (const x of [0, W - 10]) { g.fillStyle = col((y / 12) % 2 ? 2 : 0); g.fillRect(x + 1, y + 1, 8, 10); }
+  g.strokeStyle = '#16120f'; g.lineWidth = 2; g.strokeRect(10, 0, W - 20, H);
+  // luz: más clara en el centro, más oscura en los bordes
+  const gr = g.createRadialGradient(W / 2, H * 0.5, 10, W / 2, H * 0.5, H * 0.62);
+  gr.addColorStop(0, 'rgba(255,240,210,0.18)'); gr.addColorStop(1, 'rgba(0,0,0,0.25)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+// el rosetón: óculo dorado, doce pétalos alternos azules y rojos, una corona de veinticuatro vidrios y el plomo
+function rosetonTexture() {
+  const S = 256, R = S / 2, c = document.createElement('canvas'); c.width = S; c.height = S;
+  const g = c.getContext('2d'); let sem = 3; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  const col = (i, k = 1) => { const h = new THREE.Color(VIDRIO[i % VIDRIO.length]); h.multiplyScalar(k * (0.85 + az() * 0.3)); return '#' + h.getHexString(); };
+  g.fillStyle = '#16120f'; g.fillRect(0, 0, S, S);
+  const sector = (r0, r1, a0, a1, f) => { g.fillStyle = f; g.beginPath(); g.arc(R, R, r1, a0, a1); g.arc(R, R, r0, a1, a0, true); g.closePath(); g.fill(); };
+  for (let k = 0; k < 24; k++) sector(R * 0.78, R * 0.98, k / 24 * 6.283 + 0.01, (k + 1) / 24 * 6.283 - 0.01, col(k % 2 ? 4 : 6));
+  for (let k = 0; k < 12; k++) {
+    const a = k / 12 * 6.283, a0 = a + 0.02, a1 = a + 6.283 / 12 - 0.02;
+    sector(R * 0.3, R * 0.75, a0, a1, col(k % 2 ? 0 : 2));
+    g.fillStyle = col(k % 2 ? 5 : 8); g.beginPath(); g.arc(R + Math.cos(a + 0.26) * R * 0.53, R + Math.sin(a + 0.26) * R * 0.53, R * 0.09, 0, 7); g.fill();
+  }
+  g.fillStyle = col(4, 1.1); g.beginPath(); g.arc(R, R, R * 0.26, 0, 7); g.fill();
+  g.fillStyle = col(2); g.beginPath(); g.arc(R, R, R * 0.12, 0, 7); g.fill();
+  g.strokeStyle = '#16120f'; g.lineWidth = 3;
+  for (const r of [0.12, 0.26, 0.3, 0.75, 0.78, 0.98]) { g.beginPath(); g.arc(R, R, R * r, 0, 7); g.stroke(); }
+  for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283; g.beginPath(); g.moveTo(R + Math.cos(a) * R * 0.26, R + Math.sin(a) * R * 0.26); g.lineTo(R + Math.cos(a) * R * 0.98, R + Math.sin(a) * R * 0.98); g.stroke(); }
+  const gr = g.createRadialGradient(R, R, 8, R, R, R); gr.addColorStop(0, 'rgba(255,240,210,0.2)'); gr.addColorStop(1, 'rgba(0,0,0,0.2)'); g.fillStyle = gr; g.fillRect(0, 0, S, S);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+// la puerta: dos hojas de tablas verticales de roble oscuro, con su veta, cuarterones arriba y abajo, dos bisagras largas
+// de forja por hoja y filas de clavos de cabeza gruesa; el arco de arriba sigue la madera
+function puertaTexture() {
+  const W = 128, H = 256, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'); let sem = 5; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+  g.fillStyle = '#4a2f1c'; g.fillRect(0, 0, W, H);
+  for (let x = 0; x < W; x += 16) {
+    const l = 0.85 + az() * 0.3; g.fillStyle = `rgb(${Math.round(78 * l)},${Math.round(50 * l)},${Math.round(30 * l)})`; g.fillRect(x, 0, 15, H);
+    for (let k = 0; k < 14; k++) { g.strokeStyle = `rgba(30,18,10,${0.15 + az() * 0.2})`; g.lineWidth = 1; g.beginPath(); const xx = x + 2 + az() * 11; g.moveTo(xx, 0); g.bezierCurveTo(xx + az() * 4 - 2, H * 0.3, xx + az() * 4 - 2, H * 0.7, xx, H); g.stroke(); }
+    g.fillStyle = 'rgba(20,12,6,0.7)'; g.fillRect(x + 15, 0, 1, H);
+  }
+  g.fillStyle = 'rgba(15,9,5,0.9)'; g.fillRect(W / 2 - 1, 0, 2, H);   // (la junta entre las hojas)
+  // cuarterones en relieve (moldura clara arriba e izquierda, oscura abajo y derecha)
+  for (const hx of [0, W / 2]) for (const [y0, y1] of [[H * 0.12, H * 0.42], [H * 0.55, H * 0.88]]) {
+    const x0 = hx + 9, x1 = hx + W / 2 - 9;
+    g.strokeStyle = 'rgba(140,100,64,0.6)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y1); g.lineTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+    g.strokeStyle = 'rgba(15,9,5,0.75)'; g.beginPath(); g.moveTo(x1, y0); g.lineTo(x1, y1); g.lineTo(x0, y1); g.stroke();
+  }
+  // bisagras de forja con su punta en flor de lis, y los clavos
+  g.fillStyle = '#1e1d20';
+  for (const y of [H * 0.2, H * 0.78]) for (const s of [-1, 1]) {
+    const xa = s < 0 ? 2 : W - 2, xb = W / 2 + s * -6; g.fillRect(Math.min(xa, xb), y - 3, Math.abs(xb - xa), 6);
+    g.beginPath(); g.moveTo(xb, y - 7); g.lineTo(xb - s * 7, y); g.lineTo(xb, y + 7); g.closePath(); g.fill();
+  }
+  for (let y = 18; y < H - 8; y += 22) for (let x = 8; x < W; x += 16) { g.fillStyle = '#18171a'; g.beginPath(); g.arc(x, y, 2.4, 0, 7); g.fill(); g.fillStyle = 'rgba(160,150,140,0.5)'; g.fillRect(x - 1.5, y - 1.5, 1.2, 1.2); }
+  // aldabas de anilla
+  g.strokeStyle = '#1e1d20'; g.lineWidth = 2.5; for (const s of [-1, 1]) { g.beginPath(); g.arc(W / 2 + s * 14, H * 0.5, 6, 0, 7); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+// UV de 0 a 1 en todo el hueco (por su caja en x e y): la vidriera, el rosetón o la puerta llenan su ventana una vez, sin
+// repetirse
+export function uvHueco(g) {
+  g.computeBoundingBox(); const b = g.boundingBox, p = g.attributes.position, uv = g.attributes.uv, w = b.max.x - b.min.x || 1, h = b.max.y - b.min.y || 1;
+  for (let i = 0; i < uv.count; i++) uv.setXY(i, (p.getX(i) - b.min.x) / w, (p.getY(i) - b.min.y) / h);
+  return g;
 }
 
 function shieldTexture() {
@@ -467,7 +572,7 @@ export class Builder {
       if (!globalThis.__exportar) { for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
         if (tier !== 0) g.index.onUpload(free); }
       const m = new THREE.Mesh(g, this.mats[mat]);
-      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing', 'trepa', 'flor'].includes(mat);
+      m.castShadow = shadows && tier === 0 && !['glass', 'vidriera', 'roseton', 'puerta', 'lamp', 'jet', 'fachada', 'railing', 'trepa', 'flor'].includes(mat);
       if (tier) addDetail(m, tier, g.boundingSphere, key.split('|')[1]);
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;

@@ -1,6 +1,6 @@
 // Monumentos genéricos: iglesias por estilo, castillos, murallas, puentes, cuevas, hórreos, molinos...
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvFit, cyl, uvHueco } from './builder.js';
 import { roofHip, stepFrom } from './houses.js';
 import { toW } from './plot.js';
 import { terrainHeight, deckY, addPlatform } from './heightfield.js';
@@ -20,7 +20,7 @@ function portal(B, F, r0, n, mat = 'ashlar', h = 3.4) {
     B.add(k % 2 ? 'ashlar' : 'stone', archRing(r, r + 0.34, 0.6 - k * 0.08, 16), MM(F, M(0, h, 0.25 + k * 0.12)));
     for (const s of [-1, 1]) B.add(mat, box(0.34, h, 0.6), MM(F, M(s * (r + 0.17), h / 2, 0.25 + k * 0.12)));
   }
-  B.add('woodDark', archPanel(r0 * 2, h + r0, 0.12), MM(F, M(0, 0, 0.05)));
+  B.add('puerta', uvHueco(archPanel(r0 * 2, h + r0, 0.12)), MM(F, M(0, 0, 0.05)));
   // hojas claveteadas: herrajes largos y filas de clavos de forja
   for (const y of [0.7, h - 0.5]) for (const s of [-1, 1]) B.add('iron', box(r0 * 0.85, 0.09, 0.03), MM(F, M(s * r0 * 0.5, y, 0.125)));
   for (let y = 0.45; y < h; y += 0.5) for (let i = -2; i <= 2; i++) if (i) B.add('iron', box(0.06, 0.06, 0.04), MM(F, M(i * r0 * 0.36, y, 0.13)));
@@ -151,7 +151,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     if (i < nb - 1) {
       const wz = zz + (L - 6) / (nb - 1) / 2;
       const wh = style === 'gothic' || style === 'cathedral' ? 3.4 : 1.8;
-      B.add('glass', archPanel(style === 'romanesque' ? 0.6 : 1.1, wh, 0.1), MM(T, M(s * (W / 2 + 0.02), Hh - 3 - wh, wz, s * Math.PI / 2)));
+      B.add('vidriera', uvHueco(archPanel(style === 'romanesque' ? 0.6 : 1.1, wh, 0.1)), MM(T, M(s * (W / 2 + 0.02), Hh - 3 - wh, wz, s * Math.PI / 2)));
     }
   }
   if (style === 'fortress') merlons(B, T, W, L, Hh);
@@ -159,6 +159,8 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   const pitch = style === 'romanesque' ? 0.45 : 0.6;
   const rise = Math.tan(pitch) * W / 2, ov = 0.5;
   for (const s of [-1, 1]) B.add(roof, box(Math.hypot(W / 2, rise) + ov, 0.3, L + 1, 2), MM(T, M(s * (W / 4 + ov / 2 * Math.cos(pitch)), Hh + rise / 2 - Math.sin(pitch) * ov / 2 + 0.1, 0, 0, 0, -s * pitch)));
+  // (la cumbrera: la hilada de tejas que cubre la arista de arriba, algo más gruesa que los faldones)
+  B.add(roof, box(0.62, 0.3, L + 1.15, 2), MM(T, M(0, Hh + rise + 0.18, 0)));
   B.add(mat, gable(W, rise, 0.6), MM(T, M(0, Hh, L / 2 - 0.3)));
   B.add(mat, gable(W, rise, 0.6), MM(T, M(0, Hh, -L / 2 + 0.3)));
   // ábside
@@ -185,7 +187,7 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
       // rosetón con tracería: anillo, óculo central y ocho radios de piedra sobre la vidriera
       const RF = MM(F, M(0, Hh - 4.6, 0));
       B.add('ashlar', new THREE.TorusGeometry(1.25, 0.25, 6, 20), MM(RF, M(0, 0, 0.15)));
-      B.add('glass', new THREE.CircleGeometry(1.2, 20), MM(RF, M(0, 0, 0.06)));
+      B.add('roseton', new THREE.CircleGeometry(1.2, 24), MM(RF, M(0, 0, 0.06)));
       B.add('ashlar', new THREE.TorusGeometry(0.34, 0.08, 5, 14), MM(RF, M(0, 0, 0.12)));
       for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; B.add('ashlar', box(0.09, 0.82, 0.1), MM(RF, M(Math.sin(a) * 0.76, Math.cos(a) * 0.76, 0.12, 0, 0, -a))); }
       for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; B.add('ashlar', new THREE.TorusGeometry(0.2, 0.04, 4, 10), MM(RF, M(Math.sin(a) * 0.82, Math.cos(a) * 0.82, 0.11))); }

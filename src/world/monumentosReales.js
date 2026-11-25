@@ -8,7 +8,8 @@
 // de los pilares con cadenas; al noroeste, pegada, la basílica (fachada con rosetón, portada de medio punto, pináculos con
 // cupulines y tejado de teja clara), y la peña de arenisca a sus pies.
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvHueco } from './builder.js';
+import { pointedPanel } from './civic.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { roofHip } from './houses.js';
 import { addBox, addCircle } from './colliders.js';
@@ -239,12 +240,13 @@ export function basilicaJavier(B, P) {
   // tejado a dos aguas de teja clara, a lo largo de la nave
   const rise = W * 0.36, Lt = largo - 1.2, Tn = MM(F, M(0, hn, -Lt / 2 - 0.6));
   for (const s of [-1, 1]) B.add('tile', box(Math.hypot(W / 2 + 0.5, rise), 0.28, Lt, 2.4), MM(Tn, M(s * (W / 4 + 0.12), rise / 2, 0, 0, 0, -s * Math.atan2(rise, W / 2 + 0.5))));
+  B.add('tile', box(0.6, 0.3, Lt + 0.2, 2), MM(Tn, M(0, rise + 0.2, 0)));   // (la cumbrera)
   B.add(S, gable(W, rise, 0.6), MM(Tn, M(0, 0, -Lt / 2 + 0.3)));
   // contrafuertes con pináculos a los dos lados de la nave
   for (let zz = -4.5; zz > -largo + 3; zz -= 5.2) for (const s of [-1, 1]) {
     B.add(S, box(1.2, hn + 1.2, 1.4), MM(F, M(s * (W / 2 + 0.6), (hn + 1.2) / 2 - 1.5, zz)));
     B.add(S, new THREE.ConeGeometry(0.6, 2.4, 4), MM(F, M(s * (W / 2 + 0.6), hn + 1.4, zz, Math.PI / 4)));
-    if (s < 0 && zz < -16) { B.add('dark', box(0.06, 4.2, 1.1), MM(F, M(-W / 2 - 0.03, hn * 0.55, zz + 2.6))); B.add(S, archRing(0.55, 0.8, 0.3, 8), MM(F, M(-W / 2 - 0.05, hn * 0.55 + 2.1, zz + 2.6, Math.PI / 2))); }
+    if (s < 0 && zz < -16) { B.add('vidriera', uvHueco(archPanel(1.1, 4.8, 0.08)), MM(F, M(-W / 2 - 0.03, hn * 0.55 - 2.1, zz + 2.6, -Math.PI / 2))); B.add(S, archRing(0.55, 0.8, 0.3, 8), MM(F, M(-W / 2 - 0.05, hn * 0.55 + 2.1, zz + 2.6, Math.PI / 2))); }
   }
   // fachada: paño algo más ancho que la nave, con la cornisa y el hastial escalonado
   const Wf = W + 1.0, hf = 16.5;
@@ -265,13 +267,13 @@ export function basilicaJavier(B, P) {
   for (let k = 0; k < 3; k++) B.add(S, archRing(2.1 + k * 0.42, 2.48 + k * 0.42, 0.5, 18), MM(F, M(0, 6.2, 1.12 - k * 0.12)));
   for (const s of [-1, 1]) for (let k = 0; k < 3; k++) B.add(S, new THREE.CylinderGeometry(0.2, 0.2, 6.2, 8), MM(F, M(s * (2.3 + k * 0.42), 3.1, 1.22 - k * 0.12)));
   B.add('dark', archPanel(4.2, 8.3, 0.1), MM(F, M(0, 0, 0.6)));
-  B.add('woodDark', archPanel(3.0, 4.4, 0.12), MM(F, M(0, 0, 0.66)));
-  for (const s of [-1, 1]) { B.add('dark', archPanel(1.1, 2.6, 0.08), MM(F, M(s * 4.0, 2.8, 1.12))); B.add(S, box(1.6, 0.25, 0.4), MM(F, M(s * 4.0, 2.7, 1.25))); }
+  B.add('puerta', uvHueco(archPanel(3.0, 4.4, 0.12)), MM(F, M(0, 0, 0.66)));
+  for (const s of [-1, 1]) { B.add('vidriera', uvHueco(archPanel(1.1, 2.6, 0.08)), MM(F, M(s * 4.0, 2.8, 1.12))); B.add(S, box(1.6, 0.25, 0.4), MM(F, M(s * 4.0, 2.7, 1.25))); }
   // el rosetón en su arco
   const yr = 11.6;
   B.add(S, archRing(2.4, 2.9, 0.4, 18), MM(F, M(0, yr, 1.15)));
   B.add(S, new THREE.TorusGeometry(1.75, 0.22, 6, 24), MM(F, M(0, yr, 1.16)));
-  B.add('dark', new THREE.CircleGeometry(1.7, 24), MM(F, M(0, yr, 1.1)));
+  B.add('roseton', new THREE.CircleGeometry(1.7, 28), MM(F, M(0, yr, 1.1)));
   for (let k = 0; k < 8; k++) B.add(S, box(0.12, 3.3, 0.12), MM(F, M(0, yr, 1.16, 0, 0, k * Math.PI / 8)));
   B.add(S, new THREE.TorusGeometry(0.45, 0.12, 6, 14), MM(F, M(0, yr, 1.2)));
   B.add(S, box(Wf - 1.2, 0.3, 0.5), MM(F, M(0, 8.9, 1.25)));
@@ -321,8 +323,7 @@ function torreCuadrada(B, mat, t, y0, y, h, { canesCorona = false, ventana = tru
 // ventana gótica: hueco oscuro de arco apuntado con su parteluz
 function ventanaGotica(B, l, t, y, w = 1.2, h = 2.4) {
   const [x, z] = sobre(l, t, 0.03), T = M(x, y, z, l.ry);
-  B.add('dark', box(w, h, 0.06), T);
-  B.add('dark', new THREE.ConeGeometry(w * 0.6, w * 0.9, 3, 1), MM(T, M(0, h / 2 + w * 0.3, 0, 0, Math.PI / 2, 0, 1, 1, 0.08)));
+  B.add('vidriera', uvHueco(pointedPanel(w, h + w * 0.7, 0.06)), MM(T, M(0, -h / 2, 0)));
   B.add(SO, box(0.12, h, 0.12), MM(T, M(0, 0, 0.06)));
 }
 // torre redonda u ochavada (lados: 8 para la ochavada), almenada por su borde
@@ -346,6 +347,7 @@ function conoPizarra(B, x, z, r, y, h, n = 12) {
   B.add('slate', new THREE.ConeGeometry(r, h, n), M(x, y + h / 2, z, Math.PI / n));
   B.add(SO, box(r * 2 + 0.3, 0.3, r * 2 + 0.3), M(x, y + 0.1, z));
   B.add('iron', box(0.1, 1.5, 0.1), M(x, y + h + 0.7, z)); B.add('iron', new THREE.SphereGeometry(0.16, 6, 4), M(x, y + h + 0.4, z));
+  B.add('iron', box(0.62, 0.34, 0.03), M(x + 0.3, y + h + 1.2, z));   // (la veleta)
 }
 // hiedra trepando por un muro (tarjetas de hojas pegadas a la cara de fuera; el Palacio Viejo, hoy parador, está cubierto)
 function hiedra(B, l, y0, y1, cubre = 0.7, semilla = 1) {

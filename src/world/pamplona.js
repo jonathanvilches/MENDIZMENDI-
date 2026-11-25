@@ -3,7 +3,7 @@
 // calle Estafeta, catedral de Santa María con su claustro, murallas con el Portal de Francia y el Redín,
 // plaza de toros, Ciudadela y estadio de El Sadar.
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM } from './builder.js';
+import { box, gable, archRing, archPanel, colored, M, MM, uvHueco } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight, SURF, addPlatform } from './heightfield.js';
 import { polyLen, polyAt, toW } from './plot.js';
@@ -429,6 +429,7 @@ function catedral(B, S, cx, cz, TOWN) {
   B.add('stoneDark', box(28.4, 1.2, 54.4, 2), F(M(0, 0.2, -7)));
   const pitch = 0.58, rise = 8 * Math.tan(pitch);
   for (const s of [-1, 1]) B.add('tile', box(Math.hypot(8, rise) + 0.6, 0.3, 55, 2), F(M(s * (4 + 0.25), 20 + rise / 2 + 0.05, -7, 0, 0, -s * pitch)));
+  B.add('tile', box(0.66, 0.3, 55.2, 2), F(M(0, 20 + rise + 0.2, -7)));   // (la cumbrera de la nave)
   B.add('sandstone', gable(16, rise, 0.6), F(M(0, 20, -33.8)));
   for (const s of [-1, 1]) B.add('tile', box(6.8, 0.25, 54.5, 2), F(M(s * 11.2, 12.2, -7, 0, 0, -s * 0.36)));
   const tr = 6 * Math.tan(pitch);
@@ -436,9 +437,9 @@ function catedral(B, S, cx, cz, TOWN) {
   for (const s of [-1, 1]) {
     B.add('sandstone', gable(12, tr, 0.6), F(M(s * 19.7, 18, -14, Math.PI / 2)));
     B.add('sandstone', new THREE.TorusGeometry(2.3, 0.28, 6, 22), F(M(s * 20.05, 12, -14, s * Math.PI / 2)));
-    B.add('glass', new THREE.CircleGeometry(2.25, 22), F(M(s * 20.03, 12, -14, s * Math.PI / 2)));
+    B.add('roseton', new THREE.CircleGeometry(2.25, 28), F(M(s * 20.03, 12, -14, s * Math.PI / 2)));
     for (let k = 0; k < 4; k++) B.add('sandstone', box(0.16, 4.4, 0.2), F(M(s * 20.1, 12, -14, s * Math.PI / 2, 0, k * Math.PI / 4)));
-    B.add('glass', pointedPanel(2.4, 6, 0.1), F(M(s * 20.03, 2.2, -14, s * Math.PI / 2)));
+    B.add('vidriera', uvHueco(pointedPanel(2.4, 6, 0.1)), F(M(s * 20.03, 2.2, -14, s * Math.PI / 2)));
   }
   // cabecera poligonal con girola
   B.add('sandstone', new THREE.CylinderGeometry(8, 8, 22, 7, 1, false, Math.PI / 2, Math.PI), F(M(0, 9, -34)));
@@ -447,7 +448,7 @@ function catedral(B, S, cx, cz, TOWN) {
   B.add('tile', new THREE.ConeGeometry(14.6, 3.2, 9, 1, false, Math.PI / 2, Math.PI), F(M(0, 12.6, -34)));
   for (let k = 0; k < 7; k++) {
     const a = Math.PI / 2 + (k + 0.5) / 7 * Math.PI;
-    B.add('glass', pointedPanel(1.5, 5, 0.1), F(M(Math.sin(a) * 7.84, 13.5, -34 + Math.cos(a) * 7.84, a)));
+    B.add('vidriera', uvHueco(pointedPanel(1.5, 5, 0.1)), F(M(Math.sin(a) * 7.84, 13.5, -34 + Math.cos(a) * 7.84, a)));
   }
   for (let k = 0; k <= 5; k++) { const a = Math.PI / 2 + k / 5 * Math.PI; B.add('sandstone', box(1.3, 12.5, 1.6, 2), F(M(Math.sin(a) * 14.5, 4.25, -34 + Math.cos(a) * 14.5, a))); B.add('sandstone', new THREE.ConeGeometry(0.62, 2.2, 4), F(M(Math.sin(a) * 14.5, 11.6, -34 + Math.cos(a) * 14.5, a + Math.PI / 4))); }
   // contrafuertes, arbotantes y ventanales apuntados
@@ -459,8 +460,8 @@ function catedral(B, S, cx, cz, TOWN) {
       B.add('sandstone', new THREE.ConeGeometry(0.62, 2.4, 4), F(M(s * 14.6, 11.7, lz, Math.PI / 4)));
       B.add('sandstone', box(8.2, 0.6, 0.7), F(M(s * 11.55, 14.25, lz, 0, 0, -s * 0.735)));
       if (i < 7 && !(lz + 3.4 > -21 && lz + 3.4 < -7)) {
-        B.add('glass', pointedPanel(1.7, 5.4, 0.1), F(M(s * 14.03, 3.4, lz + 3.4, s * Math.PI / 2)));
-        B.add('glass', pointedPanel(2.0, 5.2, 0.1), F(M(s * 8.03, 13.8, lz + 3.4, s * Math.PI / 2)));
+        B.add('vidriera', uvHueco(pointedPanel(1.7, 5.4, 0.1)), F(M(s * 14.03, 3.4, lz + 3.4, s * Math.PI / 2)));
+        B.add('vidriera', uvHueco(pointedPanel(2.0, 5.2, 0.1)), F(M(s * 8.03, 13.8, lz + 3.4, s * Math.PI / 2)));
         B.add('sandstone', box(0.14, 3.6, 0.16), F(M(s * 14.09, 5.2, lz + 3.4)));
       }
     }
@@ -536,11 +537,11 @@ function catedral(B, S, cx, cz, TOWN) {
   B.add('sandstone', box(1.0, 0.8, 1.0), F(M(0, 21.0, 31.2)));
   B.add('sandstone', box(0.3, 2.2, 0.3), F(M(0, 22.5, 31.2))); B.add('sandstone', box(1.2, 0.3, 0.3), F(M(0, 23.0, 31.2)));
   // tres puertas bajo el pórtico, con ventanas encima
-  B.add('woodDark', box(3.2, 6.2, 0.12), F(M(0, 4.3, 26.06)));
+  B.add('puerta', uvHueco(box(3.2, 6.2, 0.12)), F(M(0, 4.3, 26.06)));
   B.add('sandstone', box(4.4, 0.6, 0.45), F(M(0, 7.8, 26.2)));
   for (const s of [-1, 1]) {
     B.add('sandstone', box(0.45, 6.8, 0.3), F(M(s * 1.85, 4.6, 26.15)));
-    B.add('woodDark', box(1.8, 4.4, 0.12), F(M(s * 4.45, 3.4, 26.06)));
+    B.add('puerta', uvHueco(box(1.8, 4.4, 0.12)), F(M(s * 4.45, 3.4, 26.06)));
     B.add('sandstone', box(2.6, 0.45, 0.4), F(M(s * 4.45, 5.9, 26.18)));
     B.add('glass', box(1.4, 2.3, 0.05), F(M(s * 4.45, 10.2, 26.04)));
     B.add('sandstone', gable(2.2, 0.6, 0.3), F(M(s * 4.45, 11.55, 26.15)));
