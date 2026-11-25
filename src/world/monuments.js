@@ -86,7 +86,7 @@ function ermita(B, T, x, z, y, ry, bell) {
   addBox(x, z, W + 0.4, L + 0.4, ry, { solidView: true });
   return { door: toW(x, z, ry, 0, L / 2 + 3), x, z, y, W, L };
 }
-function spireTower(B, T, tw, th, roof, mat, style, clock = true, remate = null) {
+export function spireTower(B, T, tw, th, roof, mat, style, clock = true, remate = null) {
   B.add(mat, box(tw, th + 2, tw, 2.2), MM(T, M(0, (th + 2) / 2 - 2, 0)));
   for (const y of [th * 0.35, th * 0.68]) B.add('ashlar', box(tw + 0.3, 0.3, tw + 0.3), MM(T, M(0, y, 0)));
   for (let s = 0; s < 4; s++) {
