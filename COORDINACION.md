@@ -18,11 +18,20 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `670c49f3`.)
+- Pelota: el alto contraste ya no deja negras las tarjetas y bloques del partido; aplauso durante todo el saque del tanto
+  que puede acabar el partido; el golpe de la mano, la palmada contra los tacos que eligió el autor (Auditoría, 25 nov).
 
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz y a Principal** (25 nov, noche, lo último): por encargo directo del autor («se han
+  perdido los colores de fondo de varias tarjetas y varios bloques del partido de pelota»). El negro con bordes blancos
+  salía con Ajustes › «Alto contraste» puesto en su iPhone. Ahora el alto contraste deja los colores del juego, más
+  oscuros, con letra blanca y bordes claros: las reglas `body.alto-contraste` de `src/pelota/hud.js`, `vs.js`, `ficha.js`
+  y `ceremonia.js` (Pelota · interfaz) y de `src/ui/pausa.css` (paneles morados `#2b0c60`→`#0f0326`, fondos `#1d0a45`,
+  bloques `#24104f`, botones `#2a1262`, bordes `#cdb8ff`); en `src/ui/neon.css` (Principal), los rellenos de los botones
+  secundarios y elegidos ya no se quitan con el alto contraste (`body :is(` en vez de `body:not(.alto-contraste) :is(`), y
+  la nota de Ajustes de `src/hub/hub.js` lo explica. Si tocáis esos estilos, partid de esto.
 - **De Auditoría a Pelota · interfaz** (25 nov, noche, más tarde): por encargo directo del autor («quiero que se vean las
   escenas del personaje bailando cuando gana»), en `src/pelota/match.js`, si ganas el partido, tras el «¡Tanto y
   partido!» hay un plano cercano de tu pelotari bailando (`camBaile`, `bailePl`, `BAILE_T0`/`BAILE_S`: del segundo 1 al 6,

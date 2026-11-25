@@ -11,6 +11,8 @@ const GOLPES = ['mano', 'frontis', 'bote', 'pared'];
 // (y la tercera del bote no era un bote: una nota de unos 600 Hz que dura toda la muestra, como un zumbido o el chirrido
 // de una zapatilla, y sonaba en uno de cada tres botes; el autor, 22 de noviembre: «sigo escuchando un sonido raro que no
 // es ningún sonido referente a la pelota». Fuera: quedan las dos que son golpe de verdad)
+// (las dos de la mano, desde el 25 de noviembre, la palmada contra los tacos que eligió el autor en la página de golpes,
+// tools/sonidos/golpe-mano-tacos.py: las de antes sonaban a pelota contra el frontis o el suelo, no contra la mano)
 const VARIANTES = { mano: 2, frontis: 3, bote: 2, pared: 3 };
 const SHARED = { ctx: null };
 // (dónde empieza de verdad cada muestra de golpe, en segundos: ver golpe)
@@ -92,6 +94,24 @@ export class PelotaAudio {
       s.start(t, off); s.stop(t + dur + 0.6);
     }
     // (si la grabación aún no ha llegado, nada: las palmas sintetizadas sonaban a ruido)
+  }
+  /** El aplauso del saque del tanto de partido: empieza cuando el pelotari va a sacar y sigue todo el rato, sin cortarse,
+   *  hasta que golpea el saque, como en los frontones (el autor, 25 nov: «cuando el jugador va a sacar, se le aplaude
+   *  todo el rato hasta que termina de sacar»; antes eran 4,2 s fijos y, si se tardaba en sacar, se apagaba). La grabación
+   *  en bucle, con su fundido de entrada. Devuelve para(baja), que lo apaga en baja segundos; null si no hay grabación */
+  aplausoSostenido(v = 0.72) {
+    const c = this.ensure(); if (!c) return null; const b = carga(c, 'aplausos-final').buf; if (!b || b.duration < 4) return null;
+    this.paraAplausoSostenido?.(0.4);
+    const t = c.currentTime, s = c.createBufferSource(), g = c.createGain();
+    s.buffer = b; s.loop = true; s.loopStart = 0.6; s.loopEnd = b.duration - 0.6;
+    s.connect(g); g.connect(this.bus || c.destination);
+    g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(Math.min(0.95, v), t, 0.22);
+    s.start(t, 0.6 + Math.random() * Math.max(0, b.duration - 4));
+    const para = (baja = 1.4) => {
+      if (this.paraAplausoSostenido === para) this.paraAplausoSostenido = null;
+      try { const t2 = c.currentTime; g.gain.cancelScheduledValues(t2); g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), t2); g.gain.setTargetAtTime(0.0001, t2, baja / 4); s.stop(t2 + baja + 0.4); } catch (e) { /* ya parado */ }
+    };
+    this.paraAplausoSostenido = para; return para;
   }
   /** El abucheo de la grada: un trozo de la grabación (de un sitio distinto cada vez), con su fundido de entrada y de
    *  salida, como el aplauso. Si la grabación aún no ha llegado, false: entonces suena el aplauso de siempre */

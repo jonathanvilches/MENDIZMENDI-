@@ -713,7 +713,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       venue: fronton.realNombre || (fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null), vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
-      onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
+      onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }
+        if (e.type === 'aplausoSaque' && seated) { seated.cheer(true, null, 2.4); cheerT = Math.max(cheerT, 2.6); }   // (el saque del tanto de partido: la grada aplaude hasta que se saca; match.js lo repite cada 1,8 s)   // (la grada, al salir los pelotaris)
         if (e.type === 'grada' && seated) { seated.cheer(true, null, e.dur || 3, true); cheerT = (e.dur || 3) + 1.5; }   // (un buen tanto: casi todos en pie, y la cámara los enseña desde las de la retransmisión; match.js, dronGrada)
         if (e.type === 'ceremonia' && seated) { seated.cheer(true, e.color ? colors[e.color] || null : null, e.dur || 6); cheerT = e.dur || 6; }   // (la entrega de la txapela: todos en pie)
         if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { cheerT = e.final ? 4.6 : 1.6; seated.cheer(true, colors[e.winner] || null, cheerT); }

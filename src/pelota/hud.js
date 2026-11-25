@@ -532,7 +532,7 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-root.calling .pel-golpe{opacity:0}
 @media (prefers-reduced-motion:reduce){.pel-tanto.on>u{animation:none}.pel-tanto.on>i,.pel-tanto.on>b{animation:pel-banda-q 1.7s both}.pa-in,.pel-autor.on .pa-in{transition:none}}
 @keyframes pel-banda-q{0%,84%{transform:none;opacity:1}100%{transform:none;opacity:0}}
-body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pel-root .pel-mid{background:#000}
+body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pel-root .pel-mid{background:#160736}
 /* (el nombre del golpe, arriba a la derecha: la misma franja, más pequeña, que entra desde la derecha) */
 .pel-golpe{background:none;border:0;border-radius:0;padding:6px 18px 6px 20px;font-style:italic;isolation:isolate;transform:translateX(18px);transition:opacity .14s,transform .3s cubic-bezier(.16,1,.3,1);--gc:#ff2e88}
 .pel-golpe::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.94),rgba(36,13,78,.92));border-left:5px solid var(--gc);box-shadow:0 8px 22px rgba(0,0,0,.35);transform:skewX(-14deg) scaleX(0);transform-origin:right;transition:transform .18s cubic-bezier(.7,0,.84,0)}
@@ -649,17 +649,17 @@ body.alto-contraste .pel-root .pel-btn::before{display:none}
 @media (prefers-reduced-motion:reduce){.pel-call::before,.pel-call::after,.pel-call>*,.pel-golpe::before{transition:none!important}.pel-call.on h3::after{animation:none}}
 @media (orientation:portrait){.pel-com{left:16px;right:16px;width:auto;max-width:none;transform:translateY(8px);bottom:calc(env(safe-area-inset-bottom,0px) + 200px)}.pel-com.on{transform:none}}
 .pel-root.paneled .pel-com{visibility:hidden}
-body.alto-contraste .pel-com{background:#000;border:2px solid #fff;border-left:4px solid var(--cc)}
+body.alto-contraste .pel-com{background:#1d0a45;border:2px solid #cdb8ff;border-left:4px solid var(--cc)}
 /* accesibilidad (util/accesible.js): textos grandes, un 20 % más, y alto contraste, con fondo negro, letra blanca y bordes
    blancos en el marcador, los avisos, los paneles y los botones */
 body.textos-grandes .pel-root{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px;--fs-4xl:52px;--fs-hero:clamp(36px,7vw,56px)}
 body.textos-grandes .pel-root :is(.pel-est,.pel-xp) li b{font-size:13px}body.textos-grandes .pel-side{width:calc(var(--psw,176px) * 1.12)}
 body.alto-contraste .pel-side :is(span,b){color:#fff;text-shadow:0 1px 0 #000}
-body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b){background:#000!important;border:2px solid #fff!important;color:#fff!important;box-shadow:none!important}
-body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto-contraste .pel-racha{background:#000;border:2px solid #ffd166;color:#ffd166;box-shadow:none}
-body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
-body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
-body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
+body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b){background:#1d0a45!important;border:2px solid #cdb8ff!important;color:#fff!important;box-shadow:none!important}
+body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto-contraste .pel-racha{background:#1d0a45;border:2px solid #ffd166;color:#ffd166;box-shadow:none}
+body.alto-contraste .pel-card{background:linear-gradient(170deg,#2b0c60 0%,#0f0326 80%);border:2px solid #cdb8ff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
+body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-ctrl){background:#24104f;border:2px solid #cdb8ff}
+body.alto-contraste .pel-row{background:#1d0a45}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#2a1262;border:2px solid #cdb8ff;color:#fff}
 body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}
 .pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
 .pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
@@ -713,7 +713,7 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}
    .pel-top (ui/neon.css le pone las esquinas al marcador con !important; aquí no lleva fondo ni borde propios) */
 .pel-top{gap:0;align-items:stretch;border-radius:8px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .pel-top .pel-score{background:transparent;border:0;border-radius:0;box-shadow:none;opacity:1}
-body.alto-contraste .pel-top{background:#000;border-top-color:#fff;box-shadow:0 0 0 2px #fff}
+body.alto-contraste .pel-top{background:#160736;border-top-color:#cdb8ff;box-shadow:0 0 0 2px #cdb8ff}
 /* los botones del partido, sueltos arriba a la izquierda (12 de noviembre de 2026, lo pidió el autor: «mucho más rápido»):
    la pausa, el descanso, con los que te quedan en su badge, y la pelota, con su desplegable del cestaño. Redondos, de 48 px,
    oscuros y sin sombra, como los del pueblo. Del 11 al 12 de noviembre la pausa fue el último tramo del marcador, con el
@@ -744,7 +744,7 @@ body.alto-contraste .pel-top{background:#000;border-top-color:#fff;box-shadow:0 
 .pr-op svg{width:28px;height:28px}.pr-op b{font:800 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pr-op small{font:700 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#cbbff0}
 .pr-op[aria-checked="true"]{background:rgba(255,43,214,.3);border-color:rgba(255,122,200,.7)}
 .pr-op:disabled{cursor:default}.pr-op:disabled:not([aria-checked="true"]){opacity:.5}
-body.alto-contraste .pr-b{background:#000;border:2px solid #fff}body.alto-contraste .pr-bhoja{background:#000;border:2px solid #fff}
+body.alto-contraste .pr-b{background:#1d0a45;border:2px solid #cdb8ff}body.alto-contraste .pr-bhoja{background:#1d0a45;border:2px solid #cdb8ff}
 /* (el menú del partido es la ventana de pausa de src/ui/pausa.js: centrada sobre el partido, con sus filas) */
 .pm-hoja{display:none}.pel-menu.on .pm-hoja{display:grid}
 .pz-k{flex:none;display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#e6def7}

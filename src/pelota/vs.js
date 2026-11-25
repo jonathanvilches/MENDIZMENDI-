@@ -79,8 +79,8 @@ const CSS = `
 .pvs-st b{display:inline;font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;margin-left:3px}
 /* accesibilidad (util/accesible.js) */
 body.textos-grandes .pvs{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
-body.alto-contraste .pvs :is(.pvs-plate,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#000;border:2px solid #fff}
-body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pvs-tick .q){color:#fff}body.alto-contraste .pvs .pvs-arq span{background:#000;border:1px solid #fff}
+body.alto-contraste .pvs :is(.pvs-plate,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#1d0a45;border:2px solid #cdb8ff}
+body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pvs-tick .q){color:#fff}body.alto-contraste .pvs .pvs-arq span{background:#1d0a45;border:1px solid #cdb8ff}
 /* (su arquetipo, su mano y su golpe estrella: rules.js, arqChips) */
 .pvs-arq{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;margin-top:6px}.pvs-plate.rojo .pvs-arq{justify-content:flex-end}
 /* el arquetipo y el golpe estrella, en una línea de texto, sin cajas: antes eran tres etiquetas en dos filas y la placa

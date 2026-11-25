@@ -62,7 +62,7 @@ body:has(.pel-root.cere) .rotulo{visibility:hidden!important}
 .cer-go:focus-visible{outline:2px solid #fff;outline-offset:3px}
 @media (orientation:portrait){.cer-low{max-width:calc(100% - 2 * var(--edge,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--edge,16px) + 64px)}.cer-grito{top:12%}}
 @media (prefers-reduced-motion:reduce){.cer-grito::before,.cer-grito b,.cer-low::before,.cer-low>*,.cer-go{transition:none!important}}
-body.alto-contraste .cer-low::before,body.alto-contraste .cer-grito::before{background:#000;border:2px solid #fff}`;
+body.alto-contraste .cer-low::before,body.alto-contraste .cer-grito::before{background:#1d0a45;border:2px solid #cdb8ff}`;
 
 // (el brillo de la plata: un cielo pintado con focos arriba, para el reflejo de las copas y del confeti; sin él, el metal
 // sale negro)

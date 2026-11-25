@@ -1,7 +1,8 @@
 // Ajustes de accesibilidad: textos grandes y alto contraste. Se guardan aparte del perfil (como el modo sencillo,
 // util/sencillo.js), en herrizherri-accesible, y se ponen como clases de <body> al abrir el juego y al cambiarlos en
 // Ajustes: textos-grandes (la letra de los partidos de pelota, de la pantalla VS y de las fichas, un 20 % más grande) y
-// alto-contraste (marcador, avisos, paneles y botones con fondo negro, letra blanca y bordes blancos; también el anillo de
+// alto-contraste (marcador, avisos, paneles y botones con letra blanca, bordes claros y el fondo de su color más oscuro, sin
+// perder los morados del juego: antes, todo negro, «se han perdido los colores», el autor, 25 nov; también el anillo de
 // la aventura, ui/aventuraHud.js). Los estilos de cada cosa van con ella (pelota/hud.js, vs.js, ficha.js).
 const K = 'herrizherri-accesible';
 const lee = () => { try { return JSON.parse(localStorage.getItem(K) || '{}') || {}; } catch (e) { return {}; } };

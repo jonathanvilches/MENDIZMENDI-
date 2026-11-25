@@ -1205,7 +1205,7 @@ export class Hub {
         <p class="set-note">Bruma en el valle, sombras de nubes, resplandor de las luces y color de cada hora. Solo con calidad Media o Alta; si el juego va justo, se apagan solos.</p>
         <label class="set">Textos grandes <input type="checkbox" id="pGrandes" ${accesible().grandes ? 'checked' : ''}></label>
         <label class="set">Alto contraste <input type="checkbox" id="pContraste" ${accesible().contraste ? 'checked' : ''}></label>
-        <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
+        <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones llevan letra blanca, bordes claros y sus colores más oscuros.</p>
         ${sencilloSet}`)}
       ${tarjeta('play', 'Cómo jugar', `
         <button class="btn" id="pCj">${I('play', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>

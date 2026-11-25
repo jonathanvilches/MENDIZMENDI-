@@ -1344,6 +1344,12 @@ export class PelotaMatch {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
     this.vigia(dt);
+    // (el aplauso del saque del tanto de partido: la grada sigue aplaudiendo, también a la vista, mientras se va a sacar; se
+    // apaga si se pausa o el saque no llega a darse)
+    if (this.paraAplausoSaque) {
+      if (this.paused || !/^serve/.test(this.game?.phase || '')) { this.paraAplausoSaque(0.8); this.paraAplausoSaque = null; }
+      else if (this.t - (this.apsT ?? -9) > 1.8) { this.apsT = this.t; this.o.onEvent?.({ type: 'aplausoSaque' }); }
+    }
     if (this.cere) { this.cere.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la entrega de la txapela: ni juego ni cámara del partido)
     if (this.cestano) { this.cestano.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la elección de material, con la caja: igual)
     if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
@@ -1385,11 +1391,12 @@ export class PelotaMatch {
         // (a un tanto del final: con empate, «último tanto»; si no, «tanto de partido» y quién está a un tanto. Antes salía
         // siempre «el que gane este tanto, gana el partido», que solo es verdad con empate)
         if (e.matchPoint) { const T1 = g.target - 1, ambos = g.score.you === T1 && g.score.rival === T1, lider = g.score.you === T1 ? 'you' : 'rival';
-          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 2.6); A.mood(0.45, 0.3); A.aplauso(0.8, 4.2); /* (en el tanto que puede acabar el partido, la grada aplaude antes y mientras se saca, como en los frontones; el autor, noviembre de 2026) */ this.mpLider = ambos ? null : lider; this.decir(this.com?.tantoPartido(ambos, this.vocesC?.[lider]), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 2.6); A.mood(0.45, 0.3); this.paraAplausoSaque?.(0.3); this.paraAplausoSaque = A.aplausoSostenido(0.72); if (!this.paraAplausoSaque) A.aplauso(0.8, 4.2); this.apsT = -9; /* (en el tanto que puede acabar el partido, la grada aplaude desde que se va a sacar hasta el golpe del saque, todo el rato, como en los frontones; el autor, noviembre de 2026 y 25 nov: «se le aplaude todo el rato hasta que termina de sacar») */ this.mpLider = ambos ? null : lider; this.decir(this.com?.tantoPartido(ambos, this.vocesC?.[lider]), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         // (el primer saque del partido, si ya ha acabado la presentación; después, a veces, quién saca, si nadie habla)
         else if (g.mode === 'match' && this.com?.on) { const n = g.score.you + g.score.rival; if (n === 0 ? !this.voz?.habla_ : Math.random() < 0.18) this.decir(this.com.saque(n === 0, this.vocesC?.[g.server]), 300, true); }
         break;
       case 'hit': {
+        if (this.paraAplausoSaque) { this.paraAplausoSaque(1.6); this.paraAplausoSaque = null; }   // (el saque del tanto de partido: con el golpe se apaga el aplauso)
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; if (!this.callada) A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75));   /* (sin el destello blanco en la mano: crecía hasta un metro y cruzaba el cuerpo del pelotari como una mancha; queda el del frontis) */
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
@@ -2168,6 +2175,7 @@ export class PelotaMatch {
     this.hud.vista(this.conCamara, this.vistaFP);
   }
   destroy() {
+    this.paraAplausoSaque?.(0.3); this.paraAplausoSaque = null;
     this.finalFin?.(); this.dianaQuita(); this.quitaCestano(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
