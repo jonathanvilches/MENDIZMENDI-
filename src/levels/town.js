@@ -612,9 +612,9 @@ export function createTownLevel(def) {
       if (BQ.rasos) k *= smoothstep(BQ.rasos - 0.06, BQ.rasos + 0.06, fbm(x / 190 + 7, z / 190 - 5, 3) * 0.5 + 0.5);
       if (BQ.soto) k *= 1 - smoothstep(70, 125, r.d + fbm(x / 60, z / 60, 2) * 25);
       if (BQ.escarpe) k *= 1 - smoothstep(250, 268, z);
-      // (en las Bardenas, el pinar solo al fondo del sur, hacia la Bardena Negra, y ralo; la Blanca, pelada.
+      // (en las Bardenas, sin monte: la Blanca es pelada.
       // Antes, un 8 % de monte por todas partes con hayas y robles, que allí no crecen)
-      if (BQ.cabezos) k = smoothstep(-0.2, 0.25, n1) * smoothstep(340, 430, z) * 0.35;
+      if (BQ.cabezos) k = 0;   // (de cerca, sus pinos parecían palmeras; la Negra queda a muchos kilómetros: se intuye en las planas del sur, terrain.js)
       return k;
     }),
     // (en las Bardenas, la «roca» del suelo es solo la losa de arenisca del techo de cada cabezo y su cornisa: el sombreador
