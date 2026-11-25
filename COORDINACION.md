@@ -23,6 +23,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz** (25 nov, noche, más tarde): por encargo directo del autor («quiero que se vean las
+  escenas del personaje bailando cuando gana»), en `src/pelota/match.js`, si ganas el partido, tras el «¡Tanto y
+  partido!» hay un plano cercano de tu pelotari bailando (`camBaile`, `bailePl`, `BAILE_T0`/`BAILE_S`: del segundo 1 al 6,
+  lo que dura su clip «Baile»); después siguen los highlights, la txapela o el panel del final, lanzados con el tiempo
+  del juego. Durante el plano, el HUD va como en la repetición (clase `repe` y `controls(false)`): solo el marcador; los
+  botones vuelven al empezar el siguiente partido. Si tocáis `finPartido` o la cámara del final, partid de esto.
 - **De Auditoría a Pelota · interfaz** (25 nov, noche): por encargo directo del autor («elimina la escena de elección de
   pelotas… la escena, no la elección»), en `src/pelota/match.js` la elección de material queda solo con su tarjeta: la
   escena 3D de la caja (`cestano3d.js`) ya no se carga (`ESCENA_CESTANO = false`). Si la retiráis del todo, nada más

@@ -24,6 +24,7 @@ import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
+const BAILE_T0 = 1.0, BAILE_S = 5.0;   // (el plano del baile del que gana: empieza al segundo del último tanto y acaba con el baile, que dura 6 s)
 const ESCENA_CESTANO = false;   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 // vuelta a su sitio entre tanto y tanto (la figura; la lógica ya los ha puesto allí): a paso de carrera, con su arranque y
@@ -339,6 +340,7 @@ export class PelotaMatch {
     this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => [t.kinds[clase(b)], pesoTxt(b)], mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
   }
   newGame() {
+    this.bailePl = null;
     this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hl = []; this.hlN = 0; this.hlCola = null; this.hlTodos = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
     this.com = new Comentarios(this.lang); this.com.sinMano = this.herrDe() !== 'mano'; this.com.tiene = tiene; this.forma = { mano: { you: [], rival: [] }, fallo: { you: [], rival: [] }, err: { you: 0, rival: 0 }, cort: { you: 0, rival: 0 }, ados: {}, perf: {}, lado: { you: '', rival: '' } }; this.comIni = false; this.vocesC = null; this.mpLider = null; this.escapo = false; this.mitadDicha = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
@@ -752,14 +754,34 @@ export class PelotaMatch {
     const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
     // (en la final de un campeonato, después de los highlights, la entrega de la txapela en el podio: pelota/ceremonia.js)
     this.cerePend = this.o.final && this.game.mode === 'match' && !this.o.reto && !(navigator.webdriver && !window.__ceremonia) ? e : null;
-    if (this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl)) { this.hlTodos = H; this.verHl(e, 2400); }
+    // EL BAILE DEL QUE GANA (el autor, 25 nov 2026: «quiero que se vean las escenas del personaje bailando cuando gana»).
+    // El que gana ya bailaba al acabar (fronton.js, doDance), pero a los 2,4 s empezaban los highlights y desde la cámara
+    // de lejos apenas se veía. Ahora, si ganas tú, tras el «¡Tanto y partido!» un plano cercano de tu pelotari bailando,
+    // de frente y girando despacio a su alrededor (camBaile); luego, los highlights, la txapela o el panel del final
+    // (lo que viene después del baile se lanza con el tiempo del juego, no con el reloj: en un móvil que va justo, el
+    // plano no se corta antes de tiempo)
+    const baila = e.win && this.game.mode === 'match' && !this.o.reto && !(navigator.webdriver && !window.__baile);
+    const conHl = this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl);
+    if (conHl) this.hlTodos = H;
+    const sigue = () => { if (!this.active) return; if (conHl) this.verHl(e, 0); else if (this.cerePend) this.ceremonia(); else this.endPanel(e); };
+    if (baila) { this.bailePl = { t0: this.t + BAILE_T0, t1: this.t + BAILE_T0 + BAILE_S, sigue }; return; }
+    this.bailePl = null;
+    if (conHl) this.verHl(e, 2400);
     else if (this.cerePend) setTimeout(() => this.ceremonia(), 2400); else this.endPanel(e);
+  }
+  /** El plano del baile: delante de tu pelotari (que mira al frontis), a la altura del pecho, acercándose un poco y
+   *  girando despacio a su alrededor. En las medidas de la cancha. */
+  camBaile(t) {
+    const P = this.game.players.you, yaw = Number.isFinite(P.yaw) ? P.yaw : Math.PI, fx = Math.sin(yaw), fz = Math.cos(yaw);
+    const a = 0.55 * Math.sin(t * 0.42), r = 2.7 - Math.min(0.5, t * 0.12), ca = Math.cos(a), sa = Math.sin(a);
+    const dx = fx * ca - fz * sa, dz = fz * ca + fx * sa;
+    return [[P.x + dx * r, 1.35, P.z + dz * r], [P.x, 0.98, P.z]];
   }
   // (los highlights empiezan cuando se ha visto el «¡Tanto y partido!» del último tanto, y ese rótulo se quita antes: si
   // no, el rótulo grande del primero se montaba encima de él)
   verHl(e, espera = 0) {
     this.hud.closePanel(); this.hud.controls(false);
-    const va = () => { if (!this.active) return; this.hud.callT = 0; this.hud.autorT = 0; this.hud.$('.pel-call')?.classList.remove('on'); this.hud.$('.pel-autor')?.classList.remove('on'); this.hud.root.classList.remove('calling');
+    const va = () => { if (!this.active) return; this.bailePl = null; this.hud.callT = 0; this.hud.autorT = 0; this.hud.$('.pel-call')?.classList.remove('on'); this.hud.$('.pel-autor')?.classList.remove('on'); this.hud.root.classList.remove('calling');
       this.hlCola = this.hlTodos.slice(); this.hlFin = e; this.sigHl(); };
     if (espera > 0) setTimeout(va, espera); else va();
   }
@@ -924,6 +946,7 @@ export class PelotaMatch {
     finally { this.fichaOpen = false; if (this.active) this.paused = was; }
   }
   endPanel(e) {
+    this.bailePl = null;
     const t = this.txt, g = this.game;
     this.hud.controls(false); this.hud.tip('');
     const fact = t.facts[(this.o.factIndex ?? Math.floor(Math.random() * t.facts.length)) % t.facts.length];
@@ -1293,7 +1316,7 @@ export class PelotaMatch {
     if (V.pausa > 1.5) { V.pausa = 0; apunta('pausa sin menú'); this.paused = false; this.menuPausa = false; }
     V.repe = this.replay && !this.paused ? V.repe + dt : 0;
     if (V.repe > 14) { V.repe = 0; apunta('repetición sin fin'); this.endReplay(); }
-    if (!this.replay) h.root.classList.remove('repe');
+    if (!this.replay && !this.bailaOn) h.root.classList.remove('repe');   // (en el plano del baile también va sin botones)
     if (!this.entra) h.root.classList.remove('sale');
     // (en pleno juego: ni en la repetición, ni con una ventana, ni en la llegada, la salida, el VS o el recorrido)
     const juego = ['serveWait', 'servePrep', 'rally'].includes(g.phase) && !this.replay && !h.panelEl && !this.entra && !this.flying && !this.vsOpen && !this.tour && !this.finalOn;
@@ -1962,6 +1985,11 @@ export class PelotaMatch {
     this.lastCorte = corte;
     if (g.phase === 'intro') { const [p, l] = this.introCam(this.t - (this.t0 || 0)); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
     if (this.tossCam) { const [p, l] = this.tossCam(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }   // (el sorteo: la cámara junto a la chapa)
+    // (el baile del que gana: su plano, con un corte al entrar y otro al salir)
+    { const B = this.bailePl, on = !!B && g.phase === 'end' && this.t >= B.t0 && this.t < B.t1 && !this.replay;
+      if (on !== !!this.bailaOn) { this.bailaOn = on; this.camInit = false; if (on) { this.hud?.root?.classList.add('repe'); this.hud?.controls?.(false); } else if (!this.replay) this.hud?.root?.classList.remove('repe'); }   // (sin botones de juego: solo el baile y el marcador; vuelven al empezar el siguiente partido)
+      if (on) { const [p, l] = this.camBaile(this.t - B.t0); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
+      if (B?.sigue && this.t >= B.t1) { const n = B.sigue; B.sigue = null; setTimeout(n, 0); } }
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
     { const pl = this.entra?.go ? (this.entra.salu ? 2 : 1) : 0; if (pl !== (this.entraPl || 0)) { this.entraPl = pl; this.camInit = false; }
       if (pl) { const [p, l] = this.camEntrada(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; } }
