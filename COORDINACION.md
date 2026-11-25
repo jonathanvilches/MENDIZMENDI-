@@ -18,6 +18,14 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
+- (Auditoría, 25 nov) Bardenas Reales rehechas con sentido: los cabezos son mesas de techo plano con su losa de arenisca
+  arriba, laderas acanaladas por los regueros y las capas de arcilla, marga y yeso a la misma altura en todos (también en
+  Castildetierra); el llano es arcilla clara con costras de yeso, barro cuarteado en las hondonadas y barrancos secos; el
+  horizonte, planas escalonadas. Fuera lo que no pintaba: hayas y robles (solo algún pino al fondo, hacia la Bardena Negra),
+  la casa consistorial, el empedrado, las rocas grises sueltas y casi todas las flores de prado.
+- (Auditoría, 25 nov) Casas con detalles curvos y tallados en vez de cajas: balaustres torneados, canecillos y ménsulas
+  curvas, alféizares con canto redondeado, clavos y barandillas redondas y arcos más suaves (solo en el ordenador y de cerca;
+  el móvil sigue dentro de su presupuesto).
 - (Auditoría, 25 nov) Monumentos con más detalle: vidrieras de colores y rosetones (catedrales de Pamplona y Tudela,
   basílica de Javier, palacio de Olite, iglesia de Ochagavía, Muskilda y las iglesias de los datos reales), puertas de
   madera con herrajes (portadas, portones de Olite y Javier, Ayuntamiento de Pamplona, ermitas), cumbreras en los tejados
