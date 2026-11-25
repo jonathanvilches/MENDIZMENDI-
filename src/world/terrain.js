@@ -195,10 +195,12 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
     sh.uniforms.uRock = { value: rockCol };
     sh.uniforms.uSnowY = { value: TONE === 'alpine' ? cota(2150, 212) : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
+    { const P = MOD?.PLACES?.plaza; sh.uniforms.uBardY = { value: P ? finalHeight(P.x, P.z) : 0 }; }
     sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], karst: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47], bardena: [0.2, 0.32] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
     if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel
+    if (TONE === 'bardena') sh.defines.BARDENA = 1;   // (las Bardenas: arcilla, yeso, capas y regueros)
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nattribute vec4 aCampo;\nvarying vec4 vSurf;\nvarying vec3 vCampo;\nvarying vec3 vWP;\nvarying vec3 vNW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvCampo = aCampo.xyz;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);')
@@ -209,8 +211,32 @@ uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; un
 varying vec4 vSurf; varying vec3 vCampo; varying vec3 vWP; varying vec3 vNW;
 uniform float uMojado; uniform vec3 uCieloCharco;
 uniform sampler2D tCopas; uniform vec4 uCopas; uniform float uCopasCerca;   // (la sombra de las copas: sombraCopas.js)
+uniform float uBardY;   // (las Bardenas: la altura del llano, para saber qué es hondonada)
 vec3 sr(vec3 c) { return c * c; }   // (un color de los de la paleta, a lineal: aproximado, como los demás del suelo)
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
+#ifdef BARDENA
+// Bardenas: la serie de capas por su altura (la misma en todos los cabezos: es la misma pila de sedimentos, y por eso en la
+// Bardena Blanca las vetas de un cabezo siguen en el de al lado) y la arcilla cuarteada del llano
+float bH(float p) { p = fract(p * 0.1031); p *= p + 33.33; p *= p + p; return fract(p); }   // (sin seno: igual en monuments.js)
+vec3 bCapa(float i, float f, out float duro) {
+  float r = bH(i), r2 = bH(i + 17.3);
+  vec3 arc = mix(vec3(0.80, 0.69, 0.55), vec3(0.79, 0.63, 0.49), r2);   // arcilla ocre o rosada
+  vec3 mar = vec3(0.74, 0.71, 0.65);                                   // marga gris
+  vec3 yes = vec3(0.93, 0.90, 0.83);                                   // yeso
+  duro = 0.0;
+  if (r < 0.40) return arc;
+  if (r < 0.63) return mix(mar, arc, r2 * 0.35);
+  if (r < 0.79) return f > 0.74 ? yes : arc;                           // arcilla con su veta de yeso encima
+  if (r < 0.89) return (f > 0.22 && f < 0.68) ? yes : mar;
+  duro = 1.0; return vec3(0.66, 0.55, 0.41);                           // arenisca: más oscura, y hace resalte
+}
+vec2 bH2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453); }
+float bGrieta(vec2 x) {   // distancia al borde de la placa de barro (F2 - F1 de Voronoi)
+  vec2 n = floor(x), f = fract(x); float a = 8.0, b = 8.0;
+  for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++) { vec2 g = vec2(float(i), float(j)), r = g + bH2(n + g) * 0.85 - f; float d = dot(r, r); if (d < a) { b = a; a = d; } else if (d < b) b = d; }
+  return sqrt(b) - sqrt(a);
+}
+#endif
 #ifdef OUTER
 #define ROCK_S1 26.0
 #define ROCK_S2 8.0
@@ -340,10 +366,91 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   }
   // roca en las laderas (proyección triplanar: no se estira en los cortados). Solo donde la hay: en los prados y las
   // calles se salta entera (eran seis lecturas de textura por píxel aunque no se viera roca)
+  vec4 rk2 = vec4(0.5);
+#ifdef BARDENA
+  // ---- las Bardenas (25 nov 2026, el autor: «las texturas de las Bardenas hay que mejorarlas muchísimo aún. Formas de
+  // tierra, texturas y demás; y revisa que tenga coherencia y sentido»). Antes llevaban la roca gris de monte, con juntas
+  // de sillería, musgo y líquenes, en cuanto la ladera pasaba de 37°: los cabezos parecían murallas. Ahora:
+  float rockM = 0.0;
+  {
+    float dcam = length(vWP - cameraPosition);
+    // 1) el llano: arcilla clara y polvorienta con rodales más ocres, costras blancas de yeso y sal, la arcilla cuarteada en
+    //    placas donde se encharca tras las tormentas, y bajo el pinar del sur (la Bardena Negra) tierra más parda
+    vec3 llano = sr(vec3(0.84, 0.76, 0.62)) * (0.87 + 0.2 * d1.r) * (0.93 + 0.12 * d2.g) * (0.9 + 0.18 * big);
+    llano = mix(llano, sr(vec3(0.77, 0.65, 0.51)) * (0.9 + 0.15 * d2.r), smoothstep(0.5, 0.85, huge + (d1.g - 0.5) * 0.2) * 0.5);
+    float bajo = 1.0 - smoothstep(uBardY + 0.6, uBardY + 3.5, vWP.y);   // (lo hondo del llano y el fondo de los barrancos)
+    float costra = smoothstep(0.6, 0.74, big * 0.65 + d1.g * 0.35) * (1.0 - smoothstep(0.04, 0.1, slope)) * (0.35 + 0.65 * bajo);
+    llano = mix(llano, sr(vec3(0.94, 0.91, 0.85)) * (0.93 + 0.1 * d2.r), costra * 0.7);
+    llano = mix(llano, sr(vec3(0.56, 0.52, 0.39)) * (0.8 + 0.3 * d2.g), vSurf.w * 0.55);
+#ifndef LOWQ
+    float charca = max(smoothstep(0.42, 0.6, huge * 0.55 + big * 0.45 + (d1.r - 0.5) * 0.15) * bajo, smoothstep(0.5, 1.0, 1.0 - smoothstep(uBardY - 1.3, uBardY - 0.2, vWP.y))) * (1.0 - smoothstep(0.025, 0.07, slope)) * (1.0 - smoothstep(28.0, 60.0, dcam)) * (1.0 - vSurf.w);
+    if (charca > 0.01) {
+      float gr = bGrieta(vWP.xz / 0.42 + d2.rg * 0.25);
+      float borde = 1.0 - smoothstep(0.03, 0.11, gr);
+      vec3 placa = mix(sr(vec3(0.86, 0.79, 0.67)), sr(vec3(0.9, 0.85, 0.75)), smoothstep(0.1, 0.4, gr)) * (0.94 + 0.1 * d2.g);
+      placa = mix(placa, sr(vec3(0.5, 0.43, 0.34)), borde * 0.85);
+      llano = mix(llano, placa, charca);
+    }
+#endif
+    // 2) la ladera: las capas por su altura, alabeadas apenas; de lejos, cuando una capa mide menos de un píxel, se funden en
+    //    su tono medio (si no, hacían aguas). La arcilla de la ladera se lava hacia abajo por los regueros: los surcos más
+    //    oscuros y lisos, las costillas claras con la capa limpia
+    float wall = smoothstep(0.09, 0.27, slope + (d1.g - 0.5) * 0.05);
+    float apron = smoothstep(0.025, 0.09, slope) * (1.0 - wall);
+    vec3 col2 = llano;
+    if (wall + apron > 0.002 || vSurf.z > 0.01) {
+      float t = (vWP.y + (big - 0.5) * 1.4 + (d1.r - 0.5) * 0.35) / 1.15, tw = fwidth(t);
+      float i0 = floor(t), f0 = fract(t), duro;
+      vec3 cap = sr(bCapa(i0, f0, duro));
+      cap = mix(cap, sr(vec3(0.79, 0.7, 0.58)), smoothstep(0.25, 0.9, tw));
+      // (los regueros corren ladera abajo: rayas a lo largo de x en las caras que miran al norte o al sur y a lo largo de z en
+      // las que miran al este o al oeste, fundidas como una proyección triplanar. Con una coordenada que giraba con la ladera
+      // salían ondas como de duna y aguas de huella dactilar. De lejos, cuando la raya es más fina que un píxel, se apagan)
+      vec2 hz2 = nw.xz * nw.xz; float wz = hz2.x / (hz2.x + hz2.y + 1e-4);
+      float ph1 = vWP.x * 2.3 + d1.r * 5.0 + vWP.y * 0.12, ph2 = vWP.z * 2.3 + d1.r * 5.0 + vWP.y * 0.12;
+      float sAc = mix(vWP.x, vWP.z, wz);
+      float vis = 1.0 - smoothstep(0.12, 0.4, max(fwidth(ph1) * (1.0 - wz), fwidth(ph2) * wz));
+      float surco = mix(0.6, mix(abs(sin(ph1)), abs(sin(ph2)), wz), vis);
+      float cost = smoothstep(0.55, 1.0, surco), hondo = (1.0 - smoothstep(0.0, 0.45, surco)) * vis;
+      vec3 lava = sr(vec3(0.77, 0.68, 0.56)) * (0.9 + 0.12 * d2.g);
+      vec3 ladera = mix(cap, lava, hondo * 0.55) * (0.88 + 0.16 * cost) * (0.92 + 0.12 * d2.r);
+      ladera *= 1.0 + duro * 0.06 * (1.0 - smoothstep(0.3, 0.9, tw));
+      // el pie: derrubio de la ladera, arcilla con el tono de las capas de arriba corrido hacia abajo y piedrecitas
+      vec3 pie = mix(llano, lava, 0.4) * (0.93 + 0.1 * d1.g);
+      float peb = texture2D(tDetail, vWP.xz / 5.0 + 0.5).b;
+      pie = mix(pie, sr(vec3(0.6, 0.5, 0.37)) * (0.8 + 0.3 * d2.r), smoothstep(0.62, 0.8, peb) * 0.6);
+      col2 = mix(col2, pie, apron);
+      col2 = mix(col2, ladera, wall);
+      // 3) la losa de arenisca del techo de cada cabezo (vSurf.z: la marca town.js): en la cornisa, la roca ocre en bloques
+      //    con su laminación y el barniz oscuro que deja el agua al escurrir; encima, el techo llano de losa con algo de tierra
+      if (vSurf.z > 0.01) {
+        vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
+#ifdef LOWQ
+        vec2 rq = bw.y > max(bw.x, bw.z) ? vWP.xz : bw.x > bw.z ? vWP.zy : vWP.xy;
+        vec4 rk = texture2D(tRock, rq / ROCK_S1);
+#else
+        vec4 rk = triRock(vWP, bw, ROCK_S1);
+#endif
+        float lam = 0.5 + 0.5 * sin(vWP.y * 9.0 + d1.r * 3.0 + sAc * 0.4);
+        vec3 are = sr(vec3(0.69, 0.57, 0.42)) * (0.62 + 0.55 * rk.r) * (0.9 + 0.1 * lam) * (0.75 + 0.25 * rk.b);
+        float barniz = smoothstep(0.55, 0.85, texture2D(tDetail, vec2(sAc, vWP.y * 0.08) / 6.0).g) * smoothstep(0.2, 0.4, slope);
+        are = mix(are, sr(vec3(0.42, 0.33, 0.25)), barniz * 0.45);
+        vec3 techo = mix(sr(vec3(0.74, 0.65, 0.52)) * (0.8 + 0.3 * rk.r), llano * 0.92, smoothstep(0.4, 0.7, d1.g) * 0.6);
+        col2 = mix(col2, mix(techo, are, smoothstep(0.08, 0.2, slope)), vSurf.z);
+      }
+      rockM = max(wall, vSurf.z);
+    }
+    col = mix(col, col2, 1.0 - vSurf.x);
+  }
+  float scree = 0.0;
+  if (false) {
+#else
   float rockM = max(vSurf.z, smoothstep(uRockSlope.x, uRockSlope.y, slope + (d1.g - 0.5) * 0.18)) * (1.0 - vSurf.x);
   float scree = smoothstep(uRockSlope.x - 0.13, uRockSlope.x, slope) * (1.0 - rockM) * (1.0 - vSurf.x);
+  {
+#endif
   col = mix(col, uRock * (0.62 + 0.45 * d2.b + 0.3 * d2.g), scree * 0.45);
-  vec4 rk2 = vec4(0.5);
+  rk2 = vec4(0.5);
   if (rockM > 0.002) {
     vec3 bw = pow(abs(nw), vec3(4.0)); bw /= (bw.x + bw.y + bw.z);
 #ifdef LOWQ
@@ -371,11 +478,15 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
     rc = mix(rc, vec3(0.2, 0.29, 0.1) * (0.7 + 0.5 * blades), ledge * 0.55);                          // musgo y hierba en las repisas
     col = mix(col, rc, rockM);
   }
+  }
 #ifdef OUTER
   // hondonadas y canales más oscuros (oclusión), crestas algo más claras
   { vec2 q = vWP.xz; float oh = texture2D(tDetail, q / 140.0).r + texture2D(tDetail, q / 41.0 + 0.2).g * 0.55; col *= 0.8 + 0.3 * smoothstep(0.35, 1.25, oh); }
   // montañas lejanas: manchas de bosque y prados
   float fo = smoothstep(0.48, 0.6, texture2D(tDetail, vWP.xz / 190.0).r) * (1.0 - rockM) * (1.0 - smoothstep(170.0, 215.0, vWP.y));
+#ifdef BARDENA
+  fo *= smoothstep(250.0, 520.0, vWP.z) * smoothstep(0.9, 0.97, nw.y) * 0.4;   // (en las Bardenas, pinar solo al sur, en los techos de las planas: el de la Negra)
+#endif
   col = mix(col, vec3(0.13, 0.24, 0.1) * (0.8 + 0.4 * d1.r), fo * 0.75);
   // bosque con copas: donde el color es de bosque (verde oscuro) se dibujan copas a dos escalas, con su sombra
   float lum = dot(base, vec3(0.3, 0.59, 0.11));
@@ -388,7 +499,11 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   float crowns = smoothstep(0.38, 0.72, c1 * 0.65 + c2 * 0.35);
   col = mix(col, col * mix(0.45, 1.45, crowns) * mix(vec3(0.9, 1.0, 0.85), vec3(1.08, 1.04, 0.86), smoothstep(0.55, 0.85, c2)), isF);
   // prados altos: manchas de pasto seco y de hierba fresca
+#ifdef BARDENA
+  float mead = 0.0;   // (sin manchas de pasto verde en el desierto)
+#else
   float mead = (1.0 - isF) * (1.0 - rockM);
+#endif
   col = mix(col, col * mix(vec3(0.86, 0.95, 0.82), vec3(1.12, 1.05, 0.82), big) * (0.88 + 0.24 * d1.g), mead * 0.8);
   // nieve dibujada por píxel: borde irregular, solo donde se sostiene, con sombra azulada en las caras en sombra
   float snowA = smoothstep(uSnowY, uSnowY + 34.0, vWP.y + (big - 0.5) * 70.0 + (d1.r - 0.5) * 26.0) * (1.0 - smoothstep(0.3, 0.5, slope + (d2.g - 0.5) * 0.12));
@@ -418,6 +533,10 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
     dirt *= 1.0 - smoothstep(0.15, 0.4, peb) * (1.0 - smoothstep(0.4, 0.6, peb)) * 0.3;           // su sombra alrededor
     dirt = mix(dirt, vec3(0.63, 0.59, 0.53) * (0.78 + 0.34 * d2.r), smoothstep(0.5, 0.75, peb) * 0.7);
     dirt = mix(dirt, dirt * 0.84, smoothstep(0.45, 0.7, g2.g) * 0.4);
+#ifdef BARDENA
+    // (las pistas y el claro de las Bardenas: arcilla apisonada, clara y polvorienta; la tierra parda del monte quedaba oscura)
+    dirt = mix(dirt * 1.25, sr(vec3(0.83, 0.75, 0.61)) * (0.86 + 0.22 * d2.r), 0.6);
+#endif
     diffuseColor.rgb = mix(diffuseColor.rgb, dirt, dm);
   }
   // empedrado
@@ -443,6 +562,9 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
 #else
   float fade = smoothstep(90.0, 260.0, dcam) * smoothstep(0.12, 0.3, 1.0 - nw0.y) * 0.8;
 #endif
+#ifdef BARDENA
+  fade *= 0.22;   // (en las Bardenas, ese relieve dibujado salía a manchas de leopardo en las laderas de arcilla: casi fuera)
+#endif
   if (fade > 0.01) {
     float h0 = OH(p), hx = OH(p + vec2(e, 0.0)), hz = OH(p + vec2(0.0, e));
     vec3 wn = normalize(nw0 + vec3(-(hx - h0), 0.0, -(hz - h0)) / e * 26.0 * fade);
@@ -454,6 +576,21 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   vec3 nw = normalize(vNW);
   float rs = 1.0 - nw.y;
   float rn = max(vSurf.z, smoothstep(uRockSlope.x - 0.06, uRockSlope.y, rs)) * (1.0 - vSurf.x) * (1.0 - smoothstep(0.1, 0.9, vSurf.y));
+#ifdef BARDENA
+  rn = vSurf.z * (1.0 - smoothstep(0.1, 0.9, vSurf.y));   // (en las Bardenas, el relieve de roca solo en la losa de arenisca)
+  {
+    // los regueros de la ladera: surcos en V de arriba abajo, con su luz y su sombra (sin lecturas de textura)
+    float wl = smoothstep(0.13, 0.3, rs) * (1.0 - vSurf.z) * (1.0 - smoothstep(0.1, 0.9, vSurf.y)) * (1.0 - smoothstep(70.0, 160.0, length(vWP - cameraPosition)));
+    if (wl > 0.01) {
+      vec2 hz2 = nw.xz * nw.xz; float wz = hz2.x / (hz2.x + hz2.y + 1e-4), dr = texture2D(tDetail, vWP.xz / 11.0).r * 5.0 + vWP.y * 0.12;
+      float ph1 = vWP.x * 2.3 + dr, ph2 = vWP.z * 2.3 + dr;
+      float vis = 1.0 - smoothstep(0.12, 0.4, max(fwidth(ph1) * (1.0 - wz), fwidth(ph2) * wz));
+      float d1x = cos(ph1) * sign(sin(ph1)), d2z = cos(ph2) * sign(sin(ph2));   // pendiente del perfil |sin|: lomo y surco
+      vec3 wn = normalize(nw - vec3(d1x * (1.0 - wz), 0.0, d2z * wz) * 0.55 * vis);
+      normal = normalize(mix(normal, normalize((viewMatrix * vec4(wn, 0.0)).xyz), wl));
+    }
+  }
+#endif
 #ifdef LOWQ
   rn = 0.0;   // móvil: sin mapa de normales de la roca (cinco lecturas menos; el color ya marca grietas y estratos)
 #endif
@@ -525,7 +662,7 @@ if (uMojado > 0.001) {
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
 if (charco > 0.001) { float fr = 1.0 - saturate(dot(normal, normalize(vViewPosition))); totalEmissiveRadiance += uCieloCharco * charco * (0.1 + 0.9 * fr * fr * fr) * 0.55; }`);
   };
-  m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain') + (quality === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain') + (quality === 'low' ? '-low' : '') + (TONE === 'bardena' ? '-bard' : '');
   return m;
 }
 

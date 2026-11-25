@@ -242,16 +242,46 @@ export function createTownLevel(def) {
   if (BQ?.karst) for (let i = 0; i < 26 * BQ.karst; i++) { const a = rnd() * 6.28, d = 95 + rnd() * 290; DOLINAS.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r: 9 + rnd() * 15, h: 2.5 + rnd() * 4 }); }
   // Bardenas: los cabezos, mesas de techo plano y laderas empinadas y gastadas, con el borde mordido por la erosión
   // (una roca dura arriba hace de tejado y la arcilla de abajo se va), lejos del claro donde se empieza
+  // (25 nov 2026, el autor: «las texturas de las Bardenas hay que mejorarlas muchísimo… formas de tierra… que tenga
+  // coherencia y sentido». Antes eran conos redondos que se sumaban entre sí (un cabezo encima de otro llegaba a 60 m) con
+  // la ladera entera de pared. Ahora, como los de la Bardena Blanca: una mesa de techo plano, alargada o redonda, con su
+  // losa de arenisca arriba que hace cornisa (un escalón casi vertical de un par de metros), y debajo la ladera de arcilla
+  // que se abre hacia el llano, cóncava, acanalada por los regueros (costillas y surcos de arriba abajo, más hondos abajo)
+  // y con un rellano en cada capa dura. Donde dos se juntan manda el más alto, no la suma. Los techos van de 8 a 26 m)
   const CABEZOS = [];
-  if (BQ?.cabezos) for (let i = 0; i < 40; i++) { const a = rnd() * 6.28, d = 105 + rnd() * 310; CABEZOS.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r: 12 + rnd() * 28, h: 9 + rnd() * 22, w: 6 + rnd() * 5, f1: rnd() * 6.28, f2: rnd() * 6.28 }); }
+  if (BQ?.cabezos) for (let i = 0; i < 44; i++) {
+    const a = rnd() * 6.28, d = 105 + rnd() * 310, mesa = rnd() < 0.45;
+    CABEZOS.push({ x: Math.cos(a) * d, z: Math.sin(a) * d, r: mesa ? 16 + rnd() * 26 : 7 + rnd() * 12, e: mesa ? 1.3 + rnd() * 1.1 : 1 + rnd() * 0.35, ang: rnd() * 3.14,
+      h: mesa ? 12 + rnd() * 14 : 8 + rnd() * 12, w: 9 + rnd() * 9, f1: rnd() * 6.28, f2: rnd() * 6.28, f3: rnd() * 6.28, n: 0 });
+  }
+  for (const K of CABEZOS) { K.ca = Math.cos(K.ang); K.sa = Math.sin(K.ang); K.n = Math.max(9, Math.round(K.r * K.e * 0.75)); K.ext = K.r * K.e * 1.3 + K.w + 4; }
+  // perfil de la ladera: u = 0 en el borde del techo, 1 al pie. Primero la cornisa (la arenisca cae casi a plomo: 9 % del
+  // ancho, 16 % del alto), luego la arcilla cóncava, con dos rellanos donde asoman capas duras
+  const ladera = (u) => {
+    if (u <= 0) return 1;
+    if (u >= 1) return 0;
+    const c = 0.09; if (u < c) return 1 - 0.16 * smoothstep(0, c, u);
+    const t = (u - c) / (1 - c); let f = 0.84 * Math.pow(1 - t, 1.9);
+    for (const [r0, k] of [[0.33, 0.05], [0.6, 0.035]]) f += k * smoothstep(r0 - 0.07, r0 + 0.02, t) * (1 - smoothstep(r0 + 0.02, r0 + 0.12, t)) * (1 - t);
+    return f;
+  };
+  let capU = 9;   // (el u del último cabezo medido: para marcar su losa del techo, capMask)
+  function cabezoH(K, x, z) {
+    const dx = x - K.x, dz = z - K.z; if (Math.abs(dx) > K.ext || Math.abs(dz) > K.ext) return 0;
+    const lx = dx * K.ca + dz * K.sa, lz = (-dx * K.sa + dz * K.ca) * K.e;   // (la mesa, estirada a lo largo de su eje)
+    const th = Math.atan2(lz, lx), dist = Math.hypot(lx, lz) / K.e;
+    // borde del techo mordido por la erosión, y las costillas de la ladera (más marcadas cuanto más abajo)
+    const rt = K.r * (1 + 0.16 * Math.sin(3 * th + K.f1) + 0.08 * Math.sin(7 * th + K.f2) + 0.04 * Math.sin(13 * th + K.f3));
+    const u0 = (dist - rt) / K.w;
+    const cost = Math.pow(Math.abs(Math.sin(K.n * th * 0.5 + 1.7 * Math.sin(3 * th + K.f2))), 0.6);
+    const u = u0 + (0.1 + 0.16 * clamp(u0, 0, 1)) * (cost - 0.6) * (u0 > 0 ? 1 : 0);
+    capU = u;
+    return K.h * ladera(u);
+  }
   function bosqueH(x, z) {
-    let h = 0;
-    for (const K of CABEZOS) {
-      const dx = x - K.x, dz = z - K.z; if (Math.abs(dx) > K.r * 1.5 + K.w || Math.abs(dz) > K.r * 1.5 + K.w) continue;
-      const th = Math.atan2(dz, dx), rr = K.r * (1 + 0.22 * Math.sin(3 * th + K.f1) + 0.12 * Math.sin(7 * th + K.f2));
-      const k = 1 - smoothstep(rr - K.w * 0.25, rr + K.w, Math.hypot(dx, dz));
-      if (k > 0) h += K.h * (k * k * (3 - 2 * k));
-    }
+    let h = 0, hc = 0;
+    for (const K of CABEZOS) { const c = cabezoH(K, x, z); if (c > hc) hc = c; }
+    h += hc;
     for (const D of DOLINAS) { if (Math.abs(x - D.x) > D.r || Math.abs(z - D.z) > D.r) continue; const k = 1 - Math.min(1, Math.hypot(x - D.x, z - D.z) / D.r); h -= D.h * k * k * (3 - 2 * k); }
     if (BQ.escarpe) h -= 95 * smoothstep(262, 300, z + fbm(x / 70, 3.3, 2) * 26);
     return h;
@@ -278,7 +308,18 @@ export function createTownLevel(def) {
       if (BARD) { const b = Math.atan2(x, -z) * 180 / Math.PI, d = Math.abs(((b - BARD.bearing) % 360 + 540) % 360 - 180); k = (1 - smoothstep(35, 75, d)) * (1 - smoothstep(15, 45, BARD.km)); }
       h += mt * (18 + 30 * smoothstep(0.05, 0.12, m)) * k;
     }
-    h += mt * skyTan(x, z) * r4 * (0.75 + 0.4 * ridged(x / 160, z / 160, 4));
+    if (BQ?.cabezos) {
+      // (en las Bardenas, el horizonte no son sierras de crestas sino planas: los escarpes de El Plano al norte y la
+      // Negra al sur, mesas escalonadas de techo llano y cortado de capas; antes, picos de monte como en el Pirineo)
+      // (escalones grandes, de 20 m: dos o tres planas con su cortado, no un bancal de arroz)
+      // (el horizonte real, suavizado en ±10°: grado a grado los escalones salían a manchas, como de camuflaje)
+      let st = 0; if (mt > 0) for (const k of [-0.17, -0.085, 0, 0.085, 0.17]) { const c = Math.cos(k), s = Math.sin(k); st += skyTan(x * c - z * s, x * s + z * c) / 5; }
+      const e0 = mt * st * r4 * (0.85 + 0.3 * (fbm(x / 260 + 5, z / 260 - 8, 2) * 0.5 + 0.5)), q = e0 / 20, fl = Math.floor(q);
+      h += (fl + smoothstep(0.58, 0.9, q - fl)) * 20;
+      // barrancos del llano: cauces secos que serpentean, de metro y medio, donde el agua de las tormentas se lleva la arcilla
+      const bz = Math.abs(fbm(x / 95 + 13, z / 95 - 4, 3)), lejos = smoothstep(R + 25, R + 70, r) * (1 - mt);
+      if (lejos > 0) h -= 1.5 * (1 - smoothstep(0.012, 0.06, bz)) * lejos;
+    } else h += mt * skyTan(x, z) * r4 * (0.75 + 0.4 * ridged(x / 160, z / 160, 4));
     const rough = 0.25 + smoothstep(30, 220, dRiv) * 0.8 + mt;
     h += fbm(x / 140 + 3.1, z / 140 - 1.7, 4) * F.noise * rough;
     if (detail) h += fbm(x / 26, z / 26, 3) * 0.7 * (0.3 + rough);
@@ -427,7 +468,7 @@ export function createTownLevel(def) {
   if (BQ?.cabezos) {
     const sitios = [...Object.values(PLACES).filter(p => p && Number.isFinite(p.x) && Number.isFinite(p.z)), ...PLACES.landmarks];
     const sendas = PATHS.flatMap(p => p.pts);
-    for (let i = CABEZOS.length - 1; i >= 0; i--) { const K = CABEZOS[i], lejos = K.r * 1.25 + K.w;
+    for (let i = CABEZOS.length - 1; i >= 0; i--) { const K = CABEZOS[i], lejos = K.r * K.e * 1.1 + K.w;
       if (sitios.some(p => Math.hypot(p.x - K.x, p.z - K.z) < lejos + (p.kind === 'castildetierra' ? 55 : 30)) || sendas.some(([x, z]) => Math.hypot(x - K.x, z - K.z) < lejos + 8)) CABEZOS.splice(i, 1); }
   }
   // Pamplona: murallas al borde del casco
@@ -531,6 +572,7 @@ export function createTownLevel(def) {
     if (b === 'orgi') return n > 0.5 ? 'beech' : n < -0.5 ? 'chestnut' : 'oak';         // robledal
     if (b === 'bertiz') return n > 0.2 ? 'beech' : n > -0.35 ? 'oak' : 'chestnut';
     if (b === 'sotos') return riverInfo(x, z).edge < 45 + n * 30 ? 'poplar' : 'oak';    // chopos y sauces junto al agua; fresnos y olmos detrás
+    if (b === 'bardenas') return 'pine';                                                   // (pino carrasco: solo hacia la Bardena Negra)
     if (b) return n < -0.55 ? 'oak' : 'beech';                                            // hayedo de Urbasa y Aralar
     if (f === 'pyrenean') return h > 60 || n > 0 ? 'fir' : 'beech';
     if (f === 'atlantic') return n > 0.25 ? 'beech' : n > -0.2 ? 'oak' : 'chestnut';
@@ -570,10 +612,15 @@ export function createTownLevel(def) {
       if (BQ.rasos) k *= smoothstep(BQ.rasos - 0.06, BQ.rasos + 0.06, fbm(x / 190 + 7, z / 190 - 5, 3) * 0.5 + 0.5);
       if (BQ.soto) k *= 1 - smoothstep(70, 125, r.d + fbm(x / 60, z / 60, 2) * 25);
       if (BQ.escarpe) k *= 1 - smoothstep(250, 268, z);
-      if (BQ.cabezos) k *= 0.08;   // (en las Bardenas, alguna mata y algún pino suelto)
+      // (en las Bardenas, el pinar solo al fondo del sur, hacia la Bardena Negra, y ralo; la Blanca, pelada.
+      // Antes, un 8 % de monte por todas partes con hayas y robles, que allí no crecen)
+      if (BQ.cabezos) k = smoothstep(-0.2, 0.25, n1) * smoothstep(340, 430, z) * 0.35;
       return k;
     }),
-    rockMask: BQ?.cabezos ? ((x, z) => smoothstep(0.42, 0.62, fbm(x / 28 + 4, z / 28 - 3, 3) * 0.5 + 0.5) * (1 - villageMask(x, z))) : BQ?.karst && ((x, z) => BQ.karst * smoothstep(0.6, 0.74, fbm(x / 34 + 2, z / 34 + 9, 3) * 0.5 + 0.5 + fbm(x / 9, z / 9, 2) * 0.12) * (1 - villageMask(x, z))),
+    // (en las Bardenas, la «roca» del suelo es solo la losa de arenisca del techo de cada cabezo y su cornisa: el sombreador
+    // pinta las laderas con sus capas y el llano con su arcilla; antes había losas de roca sueltas por el llano)
+    capMask: BQ?.cabezos ? ((x, z) => { let best = 0, u = 9; for (const K of CABEZOS) { const c = cabezoH(K, x, z); if (c > best) { best = c; u = capU; } } return best > 2 ? 1 - smoothstep(0.07, 0.14, u) : 0; }) : null,
+    rockMask: BQ?.cabezos ? null : BQ?.karst && ((x, z) => BQ.karst * smoothstep(0.6, 0.74, fbm(x / 34 + 2, z / 34 + 9, 3) * 0.5 + 0.5 + fbm(x / 9, z / 9, 2) * 0.12) * (1 - villageMask(x, z))),
     RIVERS: rv ? [{ rx, level: z => FA(z) - 0.9, half }] : [],
     BOUNDARY: 440, def, family: def.family, relief, addPad, PADS, FOREST: F.forest, TONE: F.grass,
   };

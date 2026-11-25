@@ -674,12 +674,21 @@ export function landmark(B, lm, ctx) {
       const P = [[14, 0], [10.5, 2.5], [7.5, 5], [5.2, 8], [3.8, 11], [3, 14], [2.6, 17], [2.4, 19.2], [2.8, 20.2], [4.6, 20.6], [4.9, 21.6], [4.6, 22.6], [3.2, 23.3], [0, 23.5]];
       const pts = []; for (let i = 0; i < P.length - 1; i++) { const [r0, y0] = P[i], [r1, y1] = P[i + 1], n = Math.max(1, Math.ceil(Math.abs(y1 - y0) / 0.6)); for (let j = 0; j < n; j++) pts.push([r0 + (r1 - r0) * j / n, y0 + (y1 - y0) * j / n]); }
       pts.push(P[P.length - 1]);
-      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 28), pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color(), VETA = ['#d8c9a8', '#c9ad80', '#e6dcc6', '#bfa47a'];
+      // (25 nov 2026: las vetas, con la misma serie de capas que el sombreador del suelo, por su altura en el mundo: las de
+      // Castildetierra siguen en los cabezos de alrededor, como en la Bardena Blanca. Antes, cuatro colores en franjas
+      // iguales que se repetían como un caramelo. Los surcos de los regueros, más oscuros; el sombrero, arenisca en láminas)
+      const F = Math.fround, bH = (p0) => { let p = F(p0 * 0.1031); p = F(p - Math.floor(p)); p = F(p * F(p + 33.33)); p = F(p * F(p + p)); return p - Math.floor(p); };
+      const capa = (yw) => { const t = yw / 1.15, i = Math.floor(t), f = t - i, r = bH(i), r2 = bH(i + 17.3);
+        const arc = [0.80 - 0.01 * r2, 0.69 - 0.06 * r2, 0.55 - 0.06 * r2], mar = [0.74, 0.71, 0.65], yes = [0.93, 0.90, 0.83];
+        if (r < 0.40) return arc; if (r < 0.63) return mar.map((m, k) => m + (arc[k] - m) * r2 * 0.35); if (r < 0.79) return f > 0.74 ? yes : arc;
+        if (r < 0.89) return f > 0.22 && f < 0.68 ? yes : mar; return [0.66, 0.55, 0.41]; };
+      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 36), pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color();
       for (let i = 0; i < pos.count; i++) {
         const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i), th = Math.atan2(pz, px), cap = py > 20.4;
-        const k = cap ? 1 + 0.06 * Math.sin(5 * th + 1.3) + 0.04 * Math.sin(11 * th) : 1 - (0.12 * Math.max(0, Math.sin(9 * th + py * 0.15)) ** 2 + 0.05 * Math.sin(17 * th + 2)) * Math.min(1, Math.max(0, (20 - py) / 6));
+        const surco = Math.max(0, Math.sin(9 * th + py * 0.15)) ** 2, k = cap ? 1 + 0.06 * Math.sin(5 * th + 1.3) + 0.04 * Math.sin(11 * th) : 1 - (0.12 * surco + 0.05 * Math.sin(17 * th + 2)) * Math.min(1, Math.max(0, (20 - py) / 6));
         pos.setX(i, px * k); pos.setZ(i, pz * k);
-        c.set(cap ? '#8f7a5c' : VETA[Math.floor(py / 1.3) % 4]).multiplyScalar(0.9 + 0.1 * Math.sin(th * 3 + py));
+        const v = cap ? [0.62, 0.5, 0.37].map(q => q * (0.88 + 0.12 * Math.sin(py * 14 + th * 2))) : capa(y - 0.6 + py), lav = Math.min(1, Math.max(0, (20 - py) / 8)) * surco;
+        c.setRGB(...v.map((q, kk) => (q + ([0.77, 0.68, 0.56][kk] - q) * lav * 0.5) * (0.9 + 0.1 * Math.sin(th * 3 + py)) * (1 - 0.12 * lav)), THREE.SRGBColorSpace);
         col.set([c.r, c.g, c.b], i * 3);
       }
       g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();

@@ -205,7 +205,9 @@ export function buildTown(scene, mats, def) {
         const g = minGround(x, z, w, d, ry);
         if (g.mx - g.mn < 2.4) {
           // la primera casa que da a la plaza es la casa consistorial: lleva el escudo del pueblo en la fachada
-          const hall = !pamp && !TOWN.armsSpot && Math.hypot(x - P.x, z - P.z) < P.r + 16;
+          // (en el bosque no hay ayuntamiento: en las Bardenas salía una casa consistorial de tres alturas con balcones en mitad
+          // del desierto)
+          const hall = !pamp && !def.bosque && !TOWN.armsSpot && Math.hypot(x - P.x, z - P.z) < P.r + 16;
           const hb = slopeBase(B, x, z, w, d, ry, g), ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1, cornice: rnd() < 0.4, ...st, w, d, h };
           if (hall) Object.assign(ho, HALL(w, h));
           buildHouse(B, M(x, hb, z, ry), ho, rnd);

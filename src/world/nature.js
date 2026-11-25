@@ -393,7 +393,7 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
   m.customProgramCacheKey = () => 'rock-tri' + (low ? '-low' : '');
   return m;
 }
-const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684', selva: '#7d8076', karst: '#bab5a9', bardena: '#ddd2bc' };
+const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684', selva: '#7d8076', karst: '#bab5a9', bardena: '#c4a983' };   // (en las Bardenas, las losas caídas son de arenisca ocre, no de yeso blanco)
 
 function makeOlive(rnd, detail) {
   // tronco retorcido y copa gris verdosa
@@ -898,6 +898,14 @@ export class Nature {
       const rock = surfAt('rock', x, z), r = riverInfo(x, z), forest = surfAt('forest', x, z);
       const nx = terrainHeight(x + 1, z) - terrainHeight(x - 1, z), nz = terrainHeight(x, z + 1) - terrainHeight(x, z - 1), slope = Math.hypot(nx, nz) / 2;
       const nearRiver = r.edge > -r.half * 0.7 && r.edge < 3;
+      if (TONE === 'bardena') {
+        // (en las Bardenas, ni piedras grises por el llano ni rocas pegadas a la pared de los cabezos, que parecían platos
+        // volando: solo las losas de arenisca que se desprenden de la cornisa y quedan al pie, en el derrubio de la ladera,
+        // planas y medio hundidas en la arcilla; alguna suelta en el llano cerca de ellos)
+        if (slope > 0.12 && slope < 0.55 && rnd() < 0.55) put(x, z, 0.5 + rnd() * 1.3, 0.42, 0);
+        else if (slope > 0.05 && slope <= 0.12 && rnd() < 0.06) put(x, z, 0.3 + rnd() * 0.6, 0.4, 0);
+        continue;
+      }
       if (rock > 0.3 || slope > 0.9) {
         // afloramiento: una roca grande medio enterrada y varias pequeñas alrededor
         const big = 1.6 + rnd() * 2.8 * Math.min(1, rock + 0.3);
@@ -1195,7 +1203,8 @@ class FlowerField {
   constructor(scene, quality) {
     dataTextures();
     // (en el móvil, 1.000: con 1.800 eran unos 100.000 triángulos alrededor del jugador, la décima parte del pueblo)
-    const count = quality === 'low' ? 1000 : quality === 'mid' ? 3000 : 4500;
+    // (en las Bardenas, casi ninguna: un prado de margaritas, amapolas y acianos no pinta en la arcilla del desierto)
+    const count = Math.round((quality === 'low' ? 1000 : quality === 'mid' ? 3000 : 4500) * (TONE === 'bardena' ? 0.08 : 1));
     const R = quality === 'low' ? 22 : 30;
     // mata de flores pintada (flores.js, silvestres.webp: margaritas, botones de oro, amapolas, lavanda y acianos): dos
     // tarjetas cruzadas de 34 cm, que se ven desde cualquier lado, con las normales hacia arriba para que la luz les dé
@@ -1211,7 +1220,7 @@ class FlowerField {
     g.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 2));
     g.setAttribute('aRnd', new THREE.InstancedBufferAttribute(rr, 4));
     g.instanceCount = count;
-    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
+    this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', bardena: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
     const m = new THREE.MeshLambertMaterial({ map: TEX.silvestres, alphaTest: 0.5, side: THREE.DoubleSide });
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, this.uniforms);

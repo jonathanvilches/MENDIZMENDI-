@@ -17,7 +17,7 @@ export const SURF = {
 const idx = (i, j) => j * N + i;
 
 export function bake() {
-  const FM = MOD?.forestMask, RM = MOD?.rockMask;   // (los bosques: su monte y su roca a flor de suelo, src/levels/town.js)
+  const FM = MOD?.forestMask, RM = MOD?.rockMask, CM = MOD?.capMask;   // (los bosques: su monte y su roca a flor de suelo, src/levels/town.js)
   for (let j = 0; j < N; j++) {
     const z = -HALF + j * CELL;
     for (let i = 0; i < N; i++) {
@@ -54,6 +54,9 @@ export function bake() {
       street = Math.max(street, plazaMask(x, z));
       // cancha del frontón
       for (const c of PLACES.courts || []) if (Math.abs(x - c.x) < c.hw && Math.abs(z - c.z) < c.hd) street = 1;
+      // (en las Bardenas no hay empedrado: el claro, el corral y las pistas son de tierra apisonada; antes, una plaza de adoquín
+      // en pleno desierto)
+      if (MOD?.bosque === 'bardenas') { dirt = Math.max(dirt, street); street = 0; }
       SURF.street[k] = street * 255;
       SURF.dirt[k] = dirt * 255;
       // bosque
@@ -96,7 +99,8 @@ export function bake() {
     const s = Math.hypot(gx, gz);
     const xw = -HALF + i * CELL, zw = -HALF + j * CELL;
     const re = riverInfo(xw, zw).edge;
-    const rock = Math.max((smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5), RM ? RM(xw, zw) : 0) * smoothstep(1, 7, re);
+    // (las Bardenas: solo la losa del techo de los cabezos; las laderas, con sus capas, las pinta el sombreador del suelo)
+    const rock = (CM ? CM(xw, zw) : Math.max((smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5), RM ? RM(xw, zw) : 0)) * smoothstep(1, 7, re);
     // (el empedrado no sube por un talud: donde la calle o la plaza se cortan en cuesta muy fuerte, piedra)
     const st = SURF.street[k] / 255, talud = st * smoothstep(0.42, 0.7, s);
     if (talud > 0) SURF.street[k] = (st - talud) * 255;
