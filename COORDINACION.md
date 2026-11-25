@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `95aca841`.)
+(Nada por ahora: publicado el 25 nov hasta `9334a0d8`.)
 
 
 ## Peticiones entre ventanas
@@ -250,6 +250,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 25 nov, noche (3.ª), la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `9334a0d8`. Rocas bien asentadas en las laderas de todos los pueblos y parajes (tumbadas con la pendiente, sin hueco por el lado de abajo) y, en la pelota, la elección de material sin la escena 3D de la caja (queda la tarjeta). Probada en el móvil tumbado (844×390): el mapa carga sin errores.
 - 25 nov, noche (2.ª), la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `95aca841`. Bardenas como en las fotos del autor: Castildetierra sobre su cerro acarcavado (sin borde apoyado en el llano), cabezos en pirámide con barrancos en V, color dorado, barro cuarteado a rodales, matas en las hondonadas y casetas de una planta. Probada en el móvil tumbado (844×390): el mapa carga sin errores; Bardenas, 215.000 triángulos.
 - 25 nov, noche, la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `3c58cb5b`. Bardenas rehechas, casas con detalles curvos, vidrieras y puertas en los monumentos, monumentos y casas bien asentados, revisión de casas, iglesias, castillos y frontones, y pueblos con más verde, nubes con volumen, sombras en las ventanas de noche, pájaros nuevos y ropa tendida al viento. Probada en el móvil tumbado (844×390): el mapa carga sin errores.
 - 25 nov, tarde, la hizo la ventana de Auditoría (el autor: «sí», publicar): `master` hasta `7d26b4dc`. La roca de la isla también por pasos (sus anillos): el peor trabajo de una imagen al tocar una comarca, unos 30 ms. Probada en el móvil tumbado (844×390): el mapa carga sin errores y la isla sube entera.
