@@ -37,6 +37,7 @@ import { vacio } from './vacio.js';
 import { Post } from './post.js';
 import { H } from '../world/heightfield.js';
 import { VIENTO, sopla } from '../world/viento.js';
+import { NubesPueblo } from '../world/nubesPueblo.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 // (algo que ya no se va a mover, colocado una vez y no en cada imagen; con hijos, también sus hijos directos. Lo que se
@@ -199,6 +200,10 @@ export class Runtime {
     const solo = !salazar && !!opt.soloFronton; this.soloFronton = solo;
     this.terrain = solo && !opt.conSuelo ? vacio.terrain() : new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q, familiaAire(def?.comarca));
+    // (las nubes con volumen que pasan por encima del pueblo: world/nubesPueblo.js; en los campeonatos, sin ellas)
+    this.nubes?.dispose(); this.nubes = solo ? null : new NubesPueblo(scene, q);
+    // (con ellas, las nubes pintadas en la cúpula del cielo, algo menos: si no, las de volumen se perdían entre las pintadas)
+    if (this.nubes) { this.sky.nubesVol = 0.78; this.sky.uniforms.uCloud.value *= 0.78; }
     { let m = Infinity; for (let i = 0; i < H.length; i += 7) if (H[i] < m) m = H[i]; this.fondoValle = isFinite(m) ? m : 0; }   // (para la bruma del valle: post.js)
     this.weather?.dispose(); this.weather = new Weather(scene, solo ? 'clear' : pickWeather(def), q);
     this.water = solo ? vacio.water() : new Water(scene, q);
@@ -391,7 +396,7 @@ export class Runtime {
     this.scene = null;
     // y todo lo demás del pueblo: antes seguía vivo hasta que el pueblo siguiente lo sustituía, ya a mitad de su carga
     // (al viajar estaban los dos pueblos a la vez en memoria, que es cuando más justo va el móvil)
-    this.weather?.dispose(); this.weather = null;
+    this.weather?.dispose(); this.weather = null; this.nubes?.dispose(); this.nubes = null;
     this.terrain = this.sky = this.water = this.mats = this.nature = this.fauna = this.player = this.particles = this.waterfall = this.smoke = this.lights = this.beacon = this.sierras = null;
     this.canvas.style.visibility = 'hidden';
     // (en el menú el lienzo del juego no se ve: se queda en un píxel y suelta la imagen del postprocesado. Son unos 25 o 30 MB
@@ -653,6 +658,10 @@ export class Runtime {
       const mute = this.sportQuiet = hold || /^(sport|pelota)$/.test(this.moodOf(g)) || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || this.sportUi;
       this.weather?.update(dt, this.camera, this.sky, this.sound, hold, mute); }
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
+    if (this.nubes) { const U = this.sky.uniforms, L = this._luzNubes || (this._luzNubes = {});
+      L.sol = this.sky.sunDir; L.solCol = U.uSunCol.value; L.zen = U.uZen.value; L.fog = this.sky.fog.color; L.fogNear = this.sky.fog.near; L.fogFar = this.sky.fog.far;
+      L.noche = this.sky.night; L.tormenta = U.uStorm.value; L.cubre = Math.min(1, (this.sky.aire?.nubes ?? 0.5) + U.uStorm.value * 0.5); L.dentro = !!this.sky.indoor || !!g.altScene;
+      this.nubes.update(this.elapsed, P.pos, this.camera.position, L); }
     { const T = g.tinte; if (T?.k > 0) this.sky.tinte(T.col, T.k); if (this.lights) this.lights.parpadeo = T?.parpadeo || 0; }   // (el final rojo de los momotxorros: game/townLeyendas.js)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
