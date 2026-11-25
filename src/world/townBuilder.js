@@ -3,11 +3,11 @@ import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, dig, wallsRing, bridge, landmark } from './monuments.js';
-import { plantaDe, castilloJavier, basilicaJavier, palacioOlite, palacioViejoOlite, evitaPlanta, iglesiaOpciones } from './monumentosReales.js';
+import { plantaDe, castilloJavier, basilicaJavier, palacioOlite, palacioViejoOlite, evitaPlanta, iglesiaOpciones, dentro as dentroPlanta } from './monumentosReales.js';
 import { bench, lamp, fountain, fuenteBeber, papelera } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
-import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
+import { polyLen, polyAt, minGround, slopeBase, toW } from './plot.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { realChurchRy, realBridges, realHouses, fachadaLejana } from './townReal.js';
@@ -75,7 +75,10 @@ export function buildTown(scene, mats, def) {
   const real = MOD.real || null;
   // iglesia mirando a la plaza (la de los datos, en su sitio y a lo largo de su eje)
   const ch = PLACES.church;
-  const ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
+  let ry = real && ch.real ? realChurchRy(ch.real, PLACES.plaza) : Math.atan2(PLACES.plaza.x - ch.x, PLACES.plaza.z - ch.z);
+  // (la fachada no da nunca dentro de un palacio de planta real: en Olite, Santa María la Real miraba al Palacio Real, que
+  // se le echaba encima, con el atrio a la espalda; se le da la vuelta y la portada queda en su atrio, a poniente, como es)
+  { const pr = plantaDe(def.id)?.palacio, f = pr && ch.real && toW(ch.x, ch.z, ry, 0, Math.max(ch.real.w, ch.real.d) / 2 + 6); if (f && dentroPlanta(pr, f.x, f.z)) ry += Math.PI; }
   // (los castillos se levantan después, con su sitio ya sabido: la iglesia no se mete en ellos; castle, en monuments.js:
   // 44 × 34 m en Olite y 30 × 26 en los demás, más media torre de las esquinas)
   // (en Olite, los muros del Palacio Real sobre su planta de verdad: monumentosReales.js)
