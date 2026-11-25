@@ -355,6 +355,23 @@ export function roofHip(B, T, w, d, h, rise, mat) {
 }
 
 // ---- Casa completa ----
+// Reja de forja en una ventana de la planta baja: cuatro barrotes y dos pletinas, por fuera del marco
+function reja(B, T, x, y, w, h) {
+  const n = 4;
+  for (let k = 0; k < n; k++) B.add('iron', box(0.028, h + 0.12, 0.028), MM(T, M(x - w / 2 + (k + 0.5) * w / n, y, 0.16)));
+  for (const t of [-0.3, 0.3]) B.add('iron', box(w + 0.08, 0.028, 0.03), MM(T, M(x, y + h * t, 0.165)));
+}
+// Farol de forja sobre la puerta: el brazo que sale del muro, la linterna con sus cristales y el sombrerete
+function farolPared(B, T, x, y) {
+  B.add('iron', box(0.04, 0.04, 0.5), MM(T, M(x, y + 0.42, 0.25)));
+  B.add('iron', box(0.03, 0.3, 0.03), MM(T, M(x, y + 0.27, 0.03)));
+  B.add('iron', box(0.03, 0.03, 0.36, 1), MM(T, M(x, y + 0.27, 0.18, 0, -0.62, 0)));
+  B.add('glass', box(0.18, 0.26, 0.18), MM(T, M(x, y + 0.08, 0.48)));
+  for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) B.add('iron', box(0.02, 0.28, 0.02), MM(T, M(x + a * 0.09, y + 0.08, 0.48 + b * 0.09)));
+  B.add('iron', box(0.22, 0.03, 0.22), MM(T, M(x, y - 0.06, 0.48)));
+  B.add('iron', new THREE.ConeGeometry(0.17, 0.14, 4), MM(T, M(x, y + 0.28, 0.48, Math.PI / 4)));
+  B.add('iron', box(0.03, 0.12, 0.03), MM(T, M(x, y + 0.38, 0.48)));
+}
 export function buildHouse(B, T, o, rnd) {
   const { w, d, h } = o;
   const wallMat = o.wall;
@@ -375,6 +392,10 @@ export function buildHouse(B, T, o, rnd) {
   // puerta
   const doorX = o.doorX ?? (rnd() < 0.5 ? 0 : (rnd() < 0.5 ? -1 : 1) * (w / 2 - 1.6));
   doorAt(B, MM(T, M(0, 0, d / 2)), doorX, { arch: o.arch, w: o.arch ? 1.9 : 1.4, h: o.arch ? 2.9 : 2.4, fw: w });
+  // (más detalle de cerca, sin gastar rnd —el resto del pueblo sale igual— y no en el móvil: rejas de forja en las ventanas
+  // de la planta baja en casi la mitad de las casas, y en una de cada tres un farol de forja sobre la puerta)
+  const hz = (k) => { const v = Math.sin(w * 12.9898 + d * 78.233 + h * 37.719 + k * 4.1) * 43758.5453; return v - Math.floor(v); };
+  const detalle = builderQuality() !== 'low', conRejas = detalle && hz(1) < 0.45;
   // ventanas
   const cols = Math.max(1, Math.floor((w - 0.8) / 2.3));
   const shutter = SHUTTERS[Math.floor(rnd() * SHUTTERS.length)];
@@ -403,6 +424,7 @@ export function buildHouse(B, T, o, rnd) {
       }
       const ww = f === 0 ? 0.8 : 0.95, wh = f === floors - 1 ? 1.05 : 1.35;
       windowAt(B, front, x, y, ww, wh, { shutter: rnd() < 0.85 ? shutter : null, flowers: f > 0 && rnd() < 0.7 ? flowers : null });
+      if (f === 0 && conRejas) reja(B, front, x, y, ww, wh);
     }
   }
   if (o.balcony) {
@@ -411,6 +433,9 @@ export function buildHouse(B, T, o, rnd) {
     o.balcon = [Math.min(0.9, o.balconyW / 2 - 0.5) * ((w * 7.3 + d * 3.1) % 2 > 1 ? 1 : -1), fh + 0.1, d / 2 + 0.5];
   }
   if (o.timber) timberFrame(B, front, w, h, floors, fh);
+  // el farol, entre el dintel de la puerta y la ventana de encima (ni con un balcón o el escudo encima, ni en las puertas
+  // de arco, que llegan casi a la planta de arriba)
+  if (detalle && hz(2) < 0.35 && !o.arch && fh > 2.9 && !(o.balcony && Math.abs(doorX) < o.balconyW / 2 + 0.6) && !(o.shield && Math.abs(doorX - shX) < 1.6)) farolPared(B, front, doorX, 2.9);
   // ventanas traseras y laterales (sencillas; casi siempre, para que no queden paredes lisas a la vista. Con el mismo
   // número de tiradas de rnd que antes, que de él sale también el resto del pueblo)
   const back = MM(T, M(0, 0, -d / 2, Math.PI));

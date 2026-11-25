@@ -12,7 +12,7 @@ import { addBox, COLLIDERS, isFree } from './colliders.js';
 import { riverInfo, villageMask, pathQuery, MOD, PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
 import { especFamoso, planFamoso, levantaFamoso } from './puentesFamosos.js';
-import { spireTower } from './monuments.js';
+import { spireTower, detallesTemplo } from './monuments.js';
 
 /** La iglesia de los datos: su eje largo y la fachada (+z local) hacia el lado de la plaza o de su calle. */
 export function realChurchRy(b, plaza) {
@@ -567,7 +567,12 @@ export function realHouses(B, def, rnd, H) {
       // un almacén; San Juan Bautista en la plaza de los Fueros de Estella. Sale un poco de los muros, para no pisarse con ellos)
       if (templo && Math.min(w, d) >= 9) {
         const tw = clamp(Math.min(w, d) * 0.2, 4, 6.5), th = h + clamp(Math.min(w, d) * 0.3, 7, 12), lado = hr() < 0.5 ? -1 : 1;
-        spireTower(B, MM(M(x, hb, z, ry), M(lado * (w / 2 - tw / 2 + 0.35), 0, d / 2 - tw / 2 + 0.35)), tw, th, fam === 'pyrenean' ? 'slate' : 'tile', 'ashlar', 'romanesque', true);
+        const torre = { x: lado * (w / 2 - tw / 2 + 0.35), z: d / 2 - tw / 2 + 0.35, tw };
+        spireTower(B, MM(M(x, hb, z, ry), M(torre.x, 0, torre.z)), tw, th, fam === 'pyrenean' ? 'slate' : 'tile', 'ashlar', 'romanesque', true);
+        // (y los detalles de la nave: contrafuertes, cornisa con canecillos, portada de arquivoltas y óculos en los piñones;
+        // la puerta, donde la pone fachada())
+        const nb = Math.max(1, Math.floor(w / 7)), doorU = -w / 2 + w / nb * (Math.floor(nb / 2) + 0.5);
+        detallesTemplo(B, M(x, hb, z, ry), w, d, h, { wideX: vec?.[0] || vec?.[1] ? true : w >= d, mat: 'ashlar', vec: vec || [], torre, doorU });
       }
       simple++; continue;
     }

@@ -6,6 +6,7 @@ import { toW } from './plot.js';
 import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle, rectFree } from './colliders.js';
 import { PLACES } from './layout.js';
+import { clamp } from '../util/math.js';
 
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
 // (el suelo más bajo y el más alto bajo una planta rectangular, de w × d centrada en x, z: los muros bajan hasta el más bajo y
@@ -67,6 +68,51 @@ export function eaveCorbels(B, T, W, L, H) {
     B.add('ashlar', box(0.5, 0.26, L + 0.2, 1.2), MM(T, M(s * (W / 2 + 0.12), H - 0.05, 0)));
     for (let zc = -L / 2 + 0.7; zc < L / 2 - 0.4; zc += 1.25) B.add('ashlar', box(0.32, 0.36, 0.26, 1), MM(T, M(s * (W / 2 + 0.16), H - 0.38, zc)));
   }
+}
+// Los detalles de la nave de una iglesia o un convento de los pueblos reales (townReal.js, las que en los datos van como
+// nave): contrafuertes en los muros largos, cornisa sobre canecillos bajo los aleros, portada de arquivoltas con su
+// puerta claveteada y un óculo con vidriera en cada piñón. Sin ellos, aun con el campanario, la nave era una caja lisa.
+// T: el sistema de la nave (puerta hacia +z, en z = d/2); o.wideX: la cumbrera va a lo largo de x; o.vec: las paredes
+// pegadas a otra casa ([−x, +x, −z]), donde no se pone nada; o.torre: {x, z, tw}, la esquina del campanario
+export function detallesTemplo(B, T, w, d, h, o = {}) {
+  const { wideX = w >= d, mat = 'ashlar', vec = [], torre = null, doorU = 0 } = o;
+  const R = wideX ? MM(T, M(0, 0, 0, Math.PI / 2)) : T;   // (en R, los aleros en x = ±W/2 y la cumbrera a lo largo de z)
+  const W = wideX ? d : w, L = wideX ? w : d, rise = W / 4;
+  // (de R al sistema de la nave, para saber qué pared es cada una y no pisar la puerta ni el campanario)
+  const aT = (xr, zr) => wideX ? [zr, -xr] : [xr, zr];
+  const pegado = (xr, zr) => { const [x, z] = aT(xr, zr); return (x < -w / 2 + 0.5 && vec[0]) || (x > w / 2 - 0.5 && vec[1]) || (z < -d / 2 + 0.5 && vec[2]); };
+  const libre = (xr, zr, m) => { const [x, z] = aT(xr, zr);
+    if (z > d / 2 - 1 && Math.abs(x - doorU) < 2.4 + m) return false;                     // (la portada)
+    if (torre && Math.abs(x - torre.x) < torre.tw / 2 + 0.9 + m && Math.abs(z - torre.z) < torre.tw / 2 + 0.9 + m) return false;
+    return true; };
+  const mk = mat === 'ashlar' ? 'sandstone' : 'ashlar';
+  for (const s of [-1, 1]) {
+    if (pegado(s * W / 2, 0)) continue;
+    // cornisa y canecillos
+    B.add(mat, box(0.5, 0.26, L + 0.2, 1.2), MM(R, M(s * (W / 2 + 0.12), h - 0.05, 0)));
+    for (let zc = -L / 2 + 0.7; zc < L / 2 - 0.4; zc += 1.3) if (libre(s * W / 2, zc, -2)) B.add(mat, box(0.32, 0.36, 0.26, 1), MM(R, M(s * (W / 2 + 0.16), h - 0.38, zc)));
+    // contrafuertes, uno cada siete metros, con su remate en talud
+    const n = Math.max(2, Math.round(L / 7));
+    for (let i = 0; i <= n; i++) {
+      const zc = -L / 2 + 0.6 + i * (L - 1.2) / n;
+      if (!libre(s * W / 2, zc, 0)) continue;
+      const hb = Math.max(2.5, h - 1.4);
+      B.add(mat, box(1.1, hb + 2, 0.95, 2), MM(R, M(s * (W / 2 + 0.5), hb / 2 - 1, zc)));
+      B.add(mat, box(1.12, 0.3, 1.3, 1), MM(R, M(s * (W / 2 + 0.38), hb + 0.05, zc, 0, 0, s * 0.62)));
+      B.add(mk, box(1.2, 0.18, 1.05, 1), MM(R, M(s * (W / 2 + 0.52), hb * 0.45, zc)));   // (la imposta, de piedra clara)
+    }
+  }
+  // óculo con su vidriera en cada piñón
+  const r = clamp(W * 0.055, 0.75, 1.5), yo = h + rise * 0.36;
+  for (const e of [1, -1]) {
+    if (pegado(0, e * L / 2)) continue;
+    const F = MM(R, M(0, yo, e * (L / 2 + 0.04), e > 0 ? 0 : Math.PI));
+    B.add(mk, new THREE.TorusGeometry(r, 0.2, 6, 20), MM(F, M(0, 0, 0.1)));
+    B.add('roseton', new THREE.CircleGeometry(r * 0.96, 20), MM(F, M(0, 0, 0.03)));
+    for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; B.add(mk, box(0.08, r * 0.92, 0.08), MM(F, M(Math.sin(a) * r * 0.46, Math.cos(a) * r * 0.46, 0.08, 0, 0, -a))); }
+  }
+  // la portada, de arquivoltas, sobre la puerta de la fachada
+  portal(B, MM(T, M(doorU, 0, d / 2 + 0.02)), 1.2, 3, mat, 3.0);
 }
 // Ermita de monte (con su espadaña y la campana) o, sin campana, la borda o la casa del bosque: nave de mampostería con
 // tejado de dos aguas, puerta en arco y un poyo a la entrada
@@ -181,6 +227,13 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   for (const s of [-1, 1]) for (let i = 0; i < nb; i++) {
     const zz = -L / 2 + 3 + i * (L - 6) / (nb - 1);
     if (style !== 'romanesque') B.add(mat, box(1.3, Hh - 1.5, 1.4, 2), MM(T, M(s * (W / 2 + 0.6), (Hh - 1.5) / 2, zz)));
+    // (en las góticas y la catedral, cada contrafuerte con su pináculo y una gárgola que asoma bajo el alero)
+    if (style === 'gothic' || style === 'cathedral') {
+      B.add(mat, box(0.9, 0.5, 1.0, 1), MM(T, M(s * (W / 2 + 0.6), Hh - 1.25, zz)));
+      B.add(mat, new THREE.ConeGeometry(0.5, 2.0, 4), MM(T, M(s * (W / 2 + 0.6), Hh - 1.0 + 1.0, zz, Math.PI / 4)));
+      B.add('stoneDark', box(1.1, 0.24, 0.26, 1), MM(T, M(s * (W / 2 + 1.3), Hh - 0.75, zz)));
+      B.add('stoneDark', box(0.26, 0.2, 0.3, 1), MM(T, M(s * (W / 2 + 1.82), Hh - 0.68, zz)));
+    }
     if (i < nb - 1) {
       const wz = zz + (L - 6) / (nb - 1) / 2;
       const wh = style === 'gothic' || style === 'cathedral' ? 3.4 : 1.8;
@@ -208,6 +261,28 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
   B.add(mat, cyl(W / 2 - 0.3, W / 2 - 0.3, Hh - 1, apseSeg, false, 2.2, Math.PI / 2, Math.PI), MM(T, M(0, (Hh - 1) / 2, -L / 2)));
   B.add(roof, uvFit(new THREE.ConeGeometry(W / 2 + 0.2, 3.6, apseSeg, 1, false, Math.PI / 2, Math.PI), W * 0.8 / 2, 2), MM(T, M(0, Hh - 1 + 1.8, -L / 2)));
   eaveCorbels(B, T, W, L, Hh);
+  // (tres ventanas de medio punto en el ábside, con su marco de piedra clara, mirando hacia fuera)
+  { const ra = W / 2 - 0.3 + 0.04, wh = Math.min(2.2, Hh * 0.22), yw = Math.max(2.4, Hh - 1 - 2.6 - wh), mk = mat === 'ashlar' ? 'sandstone' : 'ashlar';
+    for (const t of [Math.PI - 0.62, Math.PI, Math.PI + 0.62]) {
+      const FA = MM(T, M(ra * Math.sin(t), yw, -L / 2 + ra * Math.cos(t), t));
+      B.add('vidriera', uvHueco(archPanel(0.62, wh, 0.1)), FA);
+      B.add(mk, archRing(0.31, 0.5, 0.14, 8), MM(FA, M(0, wh - 0.31, 0.04)));
+      B.add(mk, box(1.0, 0.14, 0.24, 1), MM(FA, M(0, -0.07, 0.08)));
+    } }
+  // (el reloj de sol, en el muro del lado sin torre, cerca de la fachada: una losa de piedra clara con sus horas y la varilla)
+  if (style !== 'cathedral' && !opts.twin) {
+    const zr = L / 2 - 3 - (L - 6) / (nb - 1) / 2, yr = Math.max(2.2, Math.min(4.2, Hh - 3 - (style === 'gothic' ? 3.4 : 1.8) - 1.3));
+    const FR = MM(T, M(-(W / 2 + 0.02), yr, zr, -Math.PI / 2));
+    B.add('sandstone', box(1.3, 1.3, 0.12, 1), MM(FR, M(0, 0, 0.06)));
+    for (let k = 0; k < 7; k++) { const a = -Math.PI / 2 + k * Math.PI / 6; B.add('iron', box(0.03, 0.42, 0.02), MM(FR, M(Math.sin(a) * 0.36, 0.3 - Math.cos(a) * 0.36 - 0.3, 0.13, 0, 0, -a))); }
+    B.add('iron', box(0.035, 0.035, 0.7), MM(FR, M(0, 0.02, 0.4, 0, -0.55, 0)));
+  }
+  // (un óculo en el piñón de la fachada de las románicas y barrocas: la gótica ya lleva su rosetón)
+  if (style === 'romanesque' || style === 'baroque') {
+    const ro = Math.max(0.45, Math.min(1.0, rise * 0.3)), FO = MM(T, M(0, Hh + rise * 0.36, L / 2 + 0.02));
+    B.add('ashlar', new THREE.TorusGeometry(ro, 0.16, 6, 18), MM(FO, M(0, 0, 0.08)));
+    B.add('roseton', new THREE.CircleGeometry(ro * 0.95, 18), MM(FO, M(0, 0, 0.02)));
+  }
   const F = MM(T, M(0, 0, L / 2));
   if (style === 'cathedral') {
     // fachada con pórtico de columnas y dos torres
@@ -217,6 +292,12 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     B.add('ashlar', box(W, 1.2, 3.6), MM(F, M(0, 9.6, 2)));
     B.add('ashlar', gable(W, 3.4, 3.6), MM(F, M(0, 10.2, 2)));
     portal(B, MM(F, M(0, 0.3, 0)), 1.8, 3, mat, 4.4);
+    // (y el gran rosetón con su tracería sobre el frontón del pórtico)
+    { const RF = MM(F, M(0, Hh - 2.6, 0)), rr = 1.7;
+      B.add('ashlar', new THREE.TorusGeometry(rr, 0.3, 6, 24), MM(RF, M(0, 0, 0.16)));
+      B.add('roseton', new THREE.CircleGeometry(rr * 0.97, 28), MM(RF, M(0, 0, 0.06)));
+      B.add('ashlar', new THREE.TorusGeometry(rr * 0.3, 0.1, 5, 14), MM(RF, M(0, 0, 0.13)));
+      for (let k = 0; k < 12; k++) { const a = k * Math.PI / 6; B.add('ashlar', box(0.1, rr * 0.66, 0.1), MM(RF, M(Math.sin(a) * rr * 0.63, Math.cos(a) * rr * 0.63, 0.13, 0, 0, -a))); } }
     for (const s of [-1, 1]) spireTower(B, MM(F, M(s * (W / 2 - 3), 0, -2)), 6, Hh + 14, 'slate', mat, 'baroque', s < 0);
     // cimborrio
     B.add(mat, new THREE.CylinderGeometry(5, 5, 6, 8), MM(T, M(0, Hh + 3, -L * 0.2)));
