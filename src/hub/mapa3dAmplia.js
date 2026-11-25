@@ -49,7 +49,10 @@ function desenreda(Q) {
  *  Devuelve { amplia, P: el contorno de la isla, alto(x, z): su relieve, fuente(x, z) → [x, z, k]: de dónde sale lo
  *  demás de un punto añadido (el bosque) y cuánto queda de ello; fino(x, z), lo mismo para el relieve fino, amp(x, z): 0 en la comarca y 1 donde el
  *  relieve ya no es el del mapa (allí la luz sale de la propia malla) }. */
-export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {}) {
+export function islaAmpliada(P, alto, o) { const it = islaAmpliadaPasos(P, alto, o); let r; while (!(r = it.next()).done); return r.value; }
+// (islaAmpliadaPasos: la misma, por pasos: un generador que cede cada pocas filas, para repartirla entre varias imágenes.
+// 25 de noviembre de 2026: en el Pirineo y Tierra Estella, de 0,1 a 0,15 s de una vez al tocar la comarca)
+export function* islaAmpliadaPasos(P, alto, { navarra = () => true, evita = [] } = {}) {
   const B = muestras(P, PASO), n = B.length;
   let cx = 0, cz = 0; for (const [x, z] of B) { cx += x / n; cz += z / n; }
   let rMed = 0; for (const [x, z] of B) rMed += Math.hypot(x - cx, z - cz) / n;
@@ -62,7 +65,7 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
   x0 -= M + 0.6; z0 -= M + 0.6; x1 += M + 0.6; z1 += M + 0.6;
   const h = 0.1, gw = Math.ceil((x1 - x0) / h) + 1, gh = Math.ceil((z1 - z0) / h) + 1, IN = new Uint8Array(gw * gh), cortes = [];
-  for (let j = 0; j < gh; j++) { const z = z0 + (j + 0.5) * h; cortes.length = 0;
+  for (let j = 0; j < gh; j++) { const z = z0 + (j + 0.5) * h; cortes.length = 0; if (j % 64 === 63) yield;
     for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const pa = P[a], pb = P[b]; if ((pa[1] > z) !== (pb[1] > z)) cortes.push(pa[0] + (pb[0] - pa[0]) * (z - pa[1]) / (pb[1] - pa[1])); }
     cortes.sort((u, w) => u - w);
     for (let k = 0; k + 1 < cortes.length; k += 2) for (let i = Math.max(0, Math.ceil((cortes[k] - x0) / h - 0.5)), i1 = Math.min(gw - 1, Math.floor((cortes[k + 1] - x0) / h - 0.5)); i <= i1; i++) IN[j * gw + i] = 1; }
@@ -80,7 +83,8 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   // de los valles; de punto a punto, suave. Con menos, en los macizos del Pirineo el pie quedaba a media ladera y la muga
   // con Francia no crecía)
   const BASE = new Float32Array(n);
-  for (let i = 0; i < n; i += 2) { const [qx, qz] = B[i], hs = [];
+  yield;
+  for (let i = 0; i < n; i += 2) { const [qx, qz] = B[i], hs = []; if (i % 40 === 38) yield;
     for (let dx = -3; dx <= 3.001; dx += 0.4) for (let dz = -3; dz <= 3.001; dz += 0.4) { if (dx * dx + dz * dz > 9) continue; hs.push(alto(qx + dx, qz + dz)); }
     hs.sort((a, b) => a - b); BASE[i] = hs.length ? hs[Math.floor(hs.length * 0.12)] : alto(qx, qz); }
   for (let i = 1; i < n; i += 2) BASE[i] = (BASE[i - 1] + BASE[(i + 1) % n]) / 2;
@@ -92,7 +96,8 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   // (por cada punto, hacia fuera, sobre el relieve de verdad: mientras el monte siga por encima de su pie, la isla crece,
   // hasta casi el fondo del valle; para antes si vuelve a entrar en la comarca. tapa: si llegó al tope sin bajar)
   const ext0 = new Float32Array(n), tope = new Float32Array(n).fill(M), tapa = new Float32Array(n);
-  for (let i = 0; i < n; i++) {
+  yield;
+  for (let i = 0; i < n; i++) { if (i % 80 === 79) yield;
     const [qx, qz] = B[i], [nx, nz] = NO[i], rel = HQ[i] - base[i];
     for (let d = 0.2; d <= M + 0.01; d += 0.1) if (dentro(qx + nx * d, qz + nz * d)) { tope[i] = d * 0.45; break; }
     if (rel < RELMIN) continue;
@@ -128,10 +133,12 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   const prueba = (k, a, b, s) => { if (s < 0) return; const ex = x0 + (a + 0.5) * h - B[s][0], ez = z0 + (b + 0.5) * h - B[s][1], d = ex * ex + ez * ez; if (d < DD[k]) { DD[k] = d; SEM[k] = s; } };
   B.forEach(([x, z], i) => { const a = Math.floor((x - x0) / h), b = Math.floor((z - z0) / h); if (a >= 0 && b >= 0 && a < gw && b < gh) prueba(b * gw + a, a, b, i); });
   for (let vuelta = 0; vuelta < 2; vuelta++) {
-    for (let b = 0; b < gh; b++) for (let a = 0; a < gw; a++) { const k = b * gw + a;
-      if (a > 0) prueba(k, a, b, SEM[k - 1]); if (b > 0) { prueba(k, a, b, SEM[k - gw]); if (a > 0) prueba(k, a, b, SEM[k - gw - 1]); if (a + 1 < gw) prueba(k, a, b, SEM[k - gw + 1]); } }
-    for (let b = gh - 1; b >= 0; b--) for (let a = gw - 1; a >= 0; a--) { const k = b * gw + a;
-      if (a + 1 < gw) prueba(k, a, b, SEM[k + 1]); if (b + 1 < gh) { prueba(k, a, b, SEM[k + gw]); if (a + 1 < gw) prueba(k, a, b, SEM[k + gw + 1]); if (a > 0) prueba(k, a, b, SEM[k + gw - 1]); } }
+    yield;
+    for (let b = 0; b < gh; b++) { if (b % 48 === 47) yield; for (let a = 0; a < gw; a++) { const k = b * gw + a;
+      if (a > 0) prueba(k, a, b, SEM[k - 1]); if (b > 0) { prueba(k, a, b, SEM[k - gw]); if (a > 0) prueba(k, a, b, SEM[k - gw - 1]); if (a + 1 < gw) prueba(k, a, b, SEM[k - gw + 1]); } } }
+    yield;
+    for (let b = gh - 1; b >= 0; b--) { if (b % 48 === 47) yield; for (let a = gw - 1; a >= 0; a--) { const k = b * gw + a;
+      if (a + 1 < gw) prueba(k, a, b, SEM[k + 1]); if (b + 1 < gh) { prueba(k, a, b, SEM[k + gw]); if (a + 1 < gw) prueba(k, a, b, SEM[k + gw + 1]); if (a > 0) prueba(k, a, b, SEM[k + gw - 1]); } } }
   }
   // (el punto del lado más cercano del borde: su índice, la distancia y dónde cae a lo largo del lado, para mezclar el pie.
   // El de su cuadro y los de los ocho de alrededor, y de cada uno, sus vecinos en el borde: el más cercano de verdad)

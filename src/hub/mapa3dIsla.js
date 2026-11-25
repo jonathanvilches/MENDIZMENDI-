@@ -200,7 +200,12 @@ function reparte(P, N) {
  *  hueco: el contorno de lo que se arranca del mapa, si no es P (con la isla crecida para que sus montes salgan enteros,
  *  mapa3dAmplia.js, P es el de la isla y hueco el de la comarca);
  *  geos y mats, para soltarlo todo. */
-export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran = [], fuera = () => 0, orto = null, tex, geos, mats, scene }) {
+export function hazIsla(o) { const it = hazIslaPasos(o); let r; while (!(r = it.next()).done); return r.value; }
+// (hazIslaPasos: la misma, por pasos: un generador que cede entre trozo y trozo, para repartirla entre varias imágenes. Lo que
+// crea no entra en la escena ni en geos y mats hasta el final: si se deja a medias, no queda nada colgado. 25 de noviembre
+// de 2026: en el vídeo del iPhone del autor, la roca de la isla paraba la imagen de 0,12 a 0,16 s al tocar una comarca)
+export function* hazIslaPasos({ id, P, hueco = null, grosor, alto, salen = [], entran = [], fuera = () => 0, orto = null, tex, geos: geosF, mats: matsF, scene: escena }) {
+  const pon = [], geos = [], mats = [], scene = { add: (...x) => { pon.push(...x); return scene; }, remove: (...x) => { escena.remove(...x); return scene; } };
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
   // (un punto del borde cada cuarto de unidad, entre 300 y 560: con 300 fijos, en las comarcas grandes el canto iba a
   // tramos rectos de media unidad, y de cerca se veían)
@@ -245,6 +250,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
     hs.sort((a, b) => a - b); }
   const relieve = hs.length > 10 ? hs[Math.floor(hs.length * 0.98)] - hs[Math.floor(hs.length * 0.02)] : rMed * 0.3;
   const D = Math.min(0.9 * rMed, Math.max(0.62 * rMed, 2.4 * relieve));
+  yield;
   // (unas pocas puntas: la roca cuelga más donde caen, y la de abajo del todo no queda en el centro sino corrida a un lado)
   const puntas = Array.from({ length: 3 + ((R() * 2) | 0) }, () => ({ a: R() * Math.PI * 2, w: 0.3 + R() * 0.35, h: 0.1 + R() * 0.2 }));
   const ladoA = R() * Math.PI * 2, ladoD = rMed * (0.06 + R() * 0.1), ladoX = Math.cos(ladoA) * ladoD, ladoZ = Math.sin(ladoA) * ladoD;
@@ -297,7 +303,8 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); geos.push(g);
   return { pos, g }; };
-  const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro, SAL), MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g;
+  const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro, SAL); yield;
+  const MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g; yield;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
   const sc0 = Math.min(1.3, Math.max(0.6, rMed / 7));
   const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = 0; rocaM.uniforms.uHumus.value = 0.6 * sc0; conMusgo(rocaM, tex); mats.push(rocaM);   // (desde el 17 de noviembre de 2026, nada de musgo pintado en la roca: el autor lo seguía viendo «apegado», «no es 3D»; el verde que cuelga es de matas y terrones con volumen)   // (desde el 16 de noviembre de 2026, casi sin musgo pintado: el autor lo veía «apegado», no 3D; el musgo, en matas que cuelgan del borde)   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
@@ -344,7 +351,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   const RIM = H0.map((h, i) => Math.min(h, Math.max(B + grosor * 0.35 + 0.03 * Math.max(0, HS[i] - B), amplia ? VAL[i] - grosor * 0.15 : 0)));
   const WI = H0.map((h, i) => Math.min(rMed * 0.7, Math.max(0.5, 0.4 + (h - RIM[i]) * 1.5)));   // (larga: con una ladera corta, en el Pirineo quedaban paredes)
   const WO = H0h.map((h) => Math.min(rMedH * 0.3, Math.max(0.45, 0.3 + (h - B) * 0.85)));   // (la de fuera, alrededor del hueco)
-  const orT = (() => {
+  const orT = yield* (function* () {
     let WM = 0; for (let i = 0; i < N; i++) WM = Math.max(WM, WI[i], WO[i]); WM += 0.3;
     let qx0 = 1e9, qx1 = -1e9, qz0 = 1e9, qz1 = -1e9; for (const [x, z] of [...Q, ...(amplia ? Qh : [])]) { qx0 = Math.min(qx0, x); qx1 = Math.max(qx1, x); qz0 = Math.min(qz0, z); qz1 = Math.max(qz1, z); }
     const ox = qx0 - WM, oz = qz0 - WM, ow = qx1 - qx0 + 2 * WM, oh = qz1 - qz0 + 2 * WM, ppu = 168 / Math.max(ow, oh), tw = Math.ceil(ow * ppu) + 2, th = Math.ceil(oh * ppu) + 2, px = Math.max(ow / tw, oh / th);
@@ -365,7 +372,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
             for (const q of G[b2 * GW + a]) { const dx = QQ[q][0] - x, dz = QQ[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2 || (d2 === m2 && q < k)) { m2 = d2; k = q; } } } }
         if (m2 < 1e9 && Math.sqrt(m2) < r * CS) break; }
       cerca.m2 = m2; cerca.k = k; };
-    for (let j = 1; j < th - 1; j++) {
+    for (let j = 1; j < th - 1; j++) { if (j % 10 === 0) yield;
       const z = oz + (j + 0.5) * oh / th, xs = crucesDe(Q, z), xsH = amplia ? crucesDe(Qh, z) : xs; let p = 0, pH = 0;
       for (let i = 1; i < tw - 1; i++) {
       const x = ox + (i + 0.5) * ow / tw; masCerca(Q, GQ, x, z); const m2 = cerca.m2, k = cerca.k; let m2h = m2, kh = k;
@@ -408,6 +415,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
       for (let m = 0; m < n; m++) { const u = m / n, x = a[0] + (b[0] - a[0]) * u, z = a[1] + (b[1] - a[1]) * u, f = (Ls[j] + L * u) / paso, i = Math.min(N - 1, Math.floor(f)), t = f - i;
         const d = orillaEn(x, z, grosor + alto(x, z), 1, 0) - (YB[i] * (1 - t) + YB[(i + 1) % N] * t); if (d > sube[i]) sube[i] = d; } }
     for (let i = 0; i < N; i++) YB[i] += Math.max(sube[i], sube[(i + N - 1) % N]) + 0.004; }
+  yield;
   let KI = 0;   // (cuánto ha bajado ya la orilla: con la isla en el aire, todo)
   // (la roca empieza justo bajo el césped en cada punto del borde, no en la altura más baja de toda la orilla: en el monte
   // alto quedaba entre los dos una pared lisa, el «corte transversal» que veía el autor. ROCA_VS la sube, menguando hacia
@@ -474,6 +482,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   // labio que has puesto en el contorno no tiene nada que ver con el verde del césped» y pidió que no hubiera «cambios de
   // colores bruscos que se note que son elementos pegados». De las fotos del fleco y de la tierra solo se toma la luz (sus
   // hojas, sus sombras, su transparencia); el color lo pone el suelo de encima.
+  yield;
   const cantoM = new THREE.ShaderMaterial({ side: THREE.DoubleSide, transparent: true, fog: true, uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uRoca: { value: null }, uColg: { value: null }, uTierra: { value: null }, uHierba: { value: null } }]),
     vertexShader: `attribute float aZona, aLuz, aA, aH; attribute vec2 aS; varying vec2 vUv, vS; varying float vZ, vL, vA, vRv, vH;
 #include <fog_pars_vertex>
@@ -556,6 +565,7 @@ void main() {
       cantoPos[v] = q[0] + nx * oo; cantoPos[v + 1] = dy == null ? B * sy - 0.04 : Math.max(B * sy, hk * sy + dy - cu * CUELGA[k]); cantoPos[v + 2] = q[1] + nz * oo; } });
     cantoG.attributes.position.needsUpdate = true; ponColgantes(sy); };
 
+  yield;
   // ---------- lo que cuelga del borde: raíces y matas de musgo, en 3D, que se mecen con el aire ----------
   // (16 de noviembre de 2026, el autor: «en la parte de la tierra que has puesto como una especie de musgo, se nota que está
   // apegado, se nota que no es 3D. No cuelgan raíces tampoco con movimiento». El musgo de la panza era una foto pintada sobre
@@ -674,6 +684,7 @@ void main() { vec3 n = normalize(vNw);
     terrones.instanceMatrix.needsUpdate = true;
   }
 
+  yield;
   // ---------- el hueco: el molde de la tierra arrancada ----------
   // La tierra que sube es la que falta: el hueco tiene justo la forma de la panza (las mismas posiciones: molde y pieza, el
   // mismo volumen), y empieza bajo lo más bajo de la comarca (CORTE), donde empieza la panza. Al principio la isla está
@@ -733,6 +744,7 @@ void main() { vec3 n = normalize(vNw);
     const lago = new THREE.Mesh(gl, lm); lago.renderOrder = -0.78; molde.add(lago); }
 
 
+  yield;
   // ---------- el agua que cae al vacío ----------
   // Donde un río sale de la comarca, cae por el borde de la isla; donde un río de Navarra entraba en ella, ahora se tira por
   // el borde del hueco al cielo de abajo. Columnas de agua (un corte de ocho lados, para que se vean desde cualquier lado, y
@@ -790,6 +802,7 @@ void main() { vec3 n = normalize(vNw);
   let polvoN = 0, humo = 0; const VIDA_POLVO = 4.2;
   const echaPolvo = (x, y, z, s) => { const p = polvo[polvoN++ % NP]; Object.assign(p, { t: 0, x, y, z, s, vy: 0.15 + R() * 0.25 }); };
 
+  yield;
   // ---------- piedras: las que flotan alrededor y las que se desprenden, de la isla y del borde del hueco ----------
   // (cada piedra, un canto roto de verdad y no un dodecaedro de doce caras planas: una bola de 80 caras con los vértices
   // compartidos, deformada con ruido en tres tamaños y con una cara más llana, de caliza clara con vetas y tierra pegada por
@@ -813,6 +826,7 @@ void main() { vec3 n = normalize(vNw);
   // (de dónde se desprende una piedra: de la panza de la isla, de un anillo cualquiera, o del borde del hueco, por dentro)
   const deLaIsla = (py, k) => { const kk = 2 + ((R() * 6) | 0), i = (R() * N) | 0, v = (kk * N1 + i) * 3; return [pos[v], py + pos[v + 1], pos[v + 2], NOR[i]]; };
   let antes = 0, reloj = 0;
+  for (const x of pon) escena.add(x); geosF.push(...geos); matsF.push(...mats);
 
   return {
     /** si un punto cae dentro del cuerpo de la isla: x, z en el mapa; h, lo que queda por debajo de la base, en partes de

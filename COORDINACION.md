@@ -18,7 +18,9 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `84ee516c`.)
+- 25 nov, Auditoría: isla del mapa sin parones al tocar una comarca (vídeo del iPhone de las 09:43). Las texturas de
+  detalle se leen en otro hilo y se suben a trozos; el contorno ampliado, la losa, la roca y el relieve fino se hacen
+  por pasos, unos milisegundos en cada imagen. El peor parón baja de 0,38 s a 0,06 s (Pirineo y Tierra Estella).
 
 
 ## Peticiones entre ventanas

@@ -115,7 +115,10 @@ function recorte(P, x0, z0, x1, z1) {
 // contorno) con la altura de cada punto, que comparten vértices para que la luz caiga suave sobre los montes; y las
 // paredes, del suelo a esa altura. Grupos: 0 arriba, 1 paredes. org: {x0, z0}, para que la rejilla case con la de otra
 // losa (la de una isla crecida con la de su comarca: así sus ríos y sus árboles quedan a la misma altura en las dos)
-export function losa(P, alto, paso, org = null) {
+// (losaPasos: la misma, por pasos (un generador que cede cada pocas filas): quien la llama la reparte entre varias imágenes y
+// no para la pantalla; la del relieve fino del Pirineo eran 300 ms seguidos y la de Tierra Estella, 500. losa: de una vez)
+export function losa(P, alto, paso, org = null) { const it = losaPasos(P, alto, paso, org); let r; while (!(r = it.next()).done); return r.value; }
+export function* losaPasos(P, alto, paso, org = null) {
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
   if (org) { x0 = org.x0 + Math.floor((x0 - org.x0) / paso + 1e-9) * paso; z0 = org.z0 + Math.floor((z0 - org.z0) / paso + 1e-9) * paso; }
   const nx = Math.ceil((x1 - x0) / paso), nz = Math.ceil((z1 - z0) / paso), fila = nx + 1;
@@ -126,6 +129,7 @@ export function losa(P, alto, paso, org = null) {
     for (let a = 0, b = P.length - 1; a < P.length; b = a++) { const pa = P[a], pb = P[b]; if ((pa[1] > z) !== (pb[1] > z)) cortes.push(pa[0] + (pb[0] - pa[0]) * (z - pa[1]) / (pb[1] - pa[1])); }
     cortes.sort((u, w) => u - w);
     for (let k = 0; k + 1 < cortes.length; k += 2) for (let i = Math.max(0, Math.ceil((cortes[k] - x0) / paso)), i1 = Math.min(nx, Math.floor((cortes[k + 1] - x0) / paso)); i <= i1; i++) inn[j * fila + i] = 1;
+    if ((j & 63) === 63) yield;
   }
   // (los vértices: los de la rejilla, por su número; los del borde recortado, por su sitio; así los comparten los cuadrados)
   const pos = [], nodo = new Int32Array(fila * (nz + 1)).fill(-1), clave = new Map(), idx = [];
@@ -139,7 +143,7 @@ export function losa(P, alto, paso, org = null) {
   // (los cuadrados que tienen algún vértice del contorno dentro: esos se recortan aunque sus esquinas caigan dentro)
   const conBorde = new Set(P.map(([x, z]) => Math.floor((x - x0) / paso) + Math.floor((z - z0) / paso) * fila));
   const tri = (a, b, c) => { const ux = b[0] - a[0], uz = b[1] - a[1], wx = c[0] - a[0], wz = c[1] - a[1], cr = uz * wx - ux * wz; if (Math.abs(cr) < 1e-7) return; cr > 0 ? idx.push(vid(a), vid(b), vid(c)) : idx.push(vid(a), vid(c), vid(b)); };
-  for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+  for (let j = 0; j < nz; j++, (j & 7) || (yield)) for (let i = 0; i < nx; i++) {
     const n = j * fila + i, dentro = inn[n] + inn[n + 1] + inn[n + fila + 1] + inn[n + fila], borde = conBorde.has(n);
     if (dentro === 4 && !borde) { const a = nd(i, j), b = nd(i + 1, j), c = nd(i + 1, j + 1), d = nd(i, j + 1); idx.push(a, c, b, a, d, c); continue; }
     if (!dentro && !borde) continue;
@@ -147,7 +151,7 @@ export function losa(P, alto, paso, org = null) {
     for (const t of THREE.ShapeUtils.triangulateShape(R.map(([x, z]) => new THREE.Vector2(x, z)), [])) tri(R[t[0]], R[t[1]], R[t[2]]);
   }
   let hmax = 0; const nV = pos.length / 3;
-  for (let v = 0; v < pos.length; v += 3) { const h = alto(pos[v], pos[v + 2]); hmax = Math.max(hmax, h); pos[v + 1] = GROSOR + h; }
+  for (let v = 0; v < pos.length; v += 3) { const h = alto(pos[v], pos[v + 2]); hmax = Math.max(hmax, h); pos[v + 1] = GROSOR + h; if (v % 12000 === 11997) yield; }
   const nTop = idx.length, tope = [];   // (en las paredes, la altura de arriba en cada punto: de ahí sale cuánto se apagan hacia abajo)
   for (let v = 0; v < nV; v++) tope.push(pos[v * 3 + 1]);
   for (let i = 0; i < P.length; i++) {
@@ -170,9 +174,9 @@ export function losa(P, alto, paso, org = null) {
   // propia, del mismo tamaño sea cual sea la malla, para que no cambie al pasar a la fina. 20 de noviembre de 2026, el
   // autor: «las montañas no suelen estar llenas del todo de verde»)
   { const cs = 0.12, k = 3, gx0 = x0 - k * cs, gz0 = z0 - k * cs, gnx = Math.ceil((x1 - x0) / cs) + 2 * k + 2, gnz = Math.ceil((z1 - z0) / cs) + 2 * k + 2, Hg = new Float32Array(gnx * gnz);
-    for (let j = 0; j < gnz; j++) for (let i = 0; i < gnx; i++) Hg[j * gnx + i] = alto(gx0 + i * cs, gz0 + j * cs);
+    for (let j = 0; j < gnz; j++) { for (let i = 0; i < gnx; i++) Hg[j * gnx + i] = alto(gx0 + i * cs, gz0 + j * cs); if ((j & 7) === 7) yield; }
     const cv = (i, j) => { i = Math.max(k, Math.min(gnx - 1 - k, i)); j = Math.max(k, Math.min(gnz - 1 - k, j)); const o = j * gnx + i; return (Hg[o - k] + Hg[o + k] + Hg[o - k * gnx] + Hg[o + k * gnx]) * 0.25 - Hg[o]; };
-    for (let v = 0; v < nV; v++) { const fx = (pos[v * 3] - gx0) / cs, fz = (pos[v * 3 + 2] - gz0) / cs, i = Math.floor(fx), j = Math.floor(fz), u = fx - i, w = fz - j;
+    for (let v = 0; v < nV; v++) { if (v % 8000 === 7999) yield; const fx = (pos[v * 3] - gx0) / cs, fz = (pos[v * 3 + 2] - gz0) / cs, i = Math.floor(fx), j = Math.floor(fz), u = fx - i, w = fz - j;
       col[v * 3 + 1] = (cv(i, j) * (1 - u) + cv(i + 1, j) * u) * (1 - w) + (cv(i, j + 1) * (1 - u) + cv(i + 1, j + 1) * u) * w; } }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return { g, hmax, malla: { x0, z0, paso } };

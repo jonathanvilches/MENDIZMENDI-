@@ -9,8 +9,8 @@
 // caja sale de la página o deja de verse. Los nombres van en HTML encima del lienzo, nítidos a cualquier tamaño.
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
-import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
-import { islaAmpliada } from './mapa3dAmplia.js';
+import { hazIsla, hazIslaPasos, texturasIsla, cieloShader } from './mapa3dIsla.js';
+import { islaAmpliada, islaAmpliadaPasos } from './mapa3dAmplia.js';
 import { hazNubes } from './mapa3dNubes.js';
 import { VIDEOS_ISLA } from '../data/videos-isla.js';
 import { puedenVideos } from '../ui/videos.js';
@@ -39,7 +39,7 @@ import { compilarAsync } from '../util/compilar.js';
 import { hacePajaros } from './pajaros.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
-import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
+import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, losaPasos, panza, enComarca, enPoligono } from './mapa3dFormas.js';
 import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, TONO_ORTO, ORILLA } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
@@ -62,6 +62,25 @@ const hazTex = () => lienzo(4, 128, (g) => { const gr = g.createLinearGradient(0
 // la web publicada, si se llega a ella: src/web/hd.js)
 const porId = (g) => Object.fromEntries(Object.entries(g).map(([p, f]) => [p.split('/').pop().replace('.webp', ''), f]));
 const DET_FULL = porId(import.meta.glob('@relieve-full/*.webp', { query: '?url', import: 'default' })), DET_MEDIO = porId(import.meta.glob('@relieve-medio/*.webp', { query: '?url', import: 'default' }));
+// (una imagen de la web descomprimida a píxeles RGBA en otro hilo, para subirla a la tarjeta a trozos sin parar la imagen;
+// { w, h, buf }. Si el navegador no tiene OffscreenCanvas en los hilos, falla y se carga como antes)
+let hiloPix = null, idPix = 0; const esperaPix = new Map();
+const pixeles = (u) => new Promise((ok, mal) => {
+  if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function') return mal(new Error('sin hilo'));
+  if (hiloPix === null) { try {
+    const src = `onmessage = async (e) => { const { id, url } = e.data; try { const x = await fetch(url, { credentials: 'omit' }); if (!x.ok) throw 0;
+      const bm = await createImageBitmap(await x.blob(), { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' });
+      const c = new OffscreenCanvas(bm.width, bm.height), g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(bm, 0, 0);
+      const d = g.getImageData(0, 0, bm.width, bm.height); bm.close(); postMessage({ id, w: d.width, h: d.height, buf: d.data.buffer }, [d.data.buffer]);
+    } catch (err) { postMessage({ id, fallo: true }); } };`;
+    hiloPix = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    hiloPix.onmessage = (e) => { const f = esperaPix.get(e.data.id); esperaPix.delete(e.data.id); if (f) f(e.data); };
+    hiloPix.onerror = () => { for (const f of esperaPix.values()) f({ fallo: true }); esperaPix.clear(); hiloPix = false; };
+  } catch (e) { hiloPix = false; } }
+  if (!hiloPix) return mal(new Error('sin hilo'));
+  const id = ++idPix; esperaPix.set(id, (d) => d.fallo ? mal(new Error('fallo')) : ok({ w: d.w, h: d.h, buf: d.buf }));
+  hiloPix.postMessage({ id, url: new URL(u, location.href).href });
+});
 const urlDetalle = async (id, fino) => { const f = (fino ? DET_FULL[id] : DET_MEDIO[id]) || DET_FULL[id] || DET_MEDIO[id]; return f ? f() : webUrl('relieve', id, fino ? 2 : 1); };
 // (y su ortofoto, en la misma rejilla: tools/relieve/ortofoto.py)
 const ORTO_FULL = porId(import.meta.glob('@orto-full/*.webp', { query: '?url', import: 'default' })), ORTO_MEDIO = porId(import.meta.glob('@orto-medio/*.webp', { query: '?url', import: 'default' }));
@@ -316,17 +335,30 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (la isla con sus montes enteros, mapa3dAmplia.js: donde la muga pasa por un monte, la isla crece hasta su pie, con el
   // relieve de verdad, el de la vecina o el de fuera de Navarra. Su contorno y su relieve, una vez por comarca; su
   // losa, gIsla, con la rejilla de la de siempre, sale en lugar de esa mientras la isla está en el aire)
-  const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, { navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] }));
+  const ampOpc = (c) => ({ navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] });
+  const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, ampOpc(c)));
+  function* ampDePasos(c) { if (!c.amp) { const A = yield* islaAmpliadaPasos(c.Pw, alto, ampOpc(c)); c.amp ||= A; } return c.amp; }
   const ampAttr = (g, A) => { const n = g.attributes.position.count, pa = g.attributes.position.array, am = new Float32Array(n); if (A.amplia) for (let v = 0; v < n; v++) am[v] = A.amp(pa[v * 3], pa[v * 3 + 2]); g.setAttribute('aAmp', new THREE.BufferAttribute(am, 1)); };
-  const losaDe = (c) => { const A = ampDe(c);
-    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; A.olvida?.(); }
-    return A; };
-  const islaDe = (c) => {
+  // (corre: un trabajo por pasos, de una vez. losaDePasos y hazFinoPasos ceden a menudo: quien los lleva por pasos, sigueObra
+  // y sigueTarea, los reparte entre varias imágenes con un tope de tiempo en cada una; lo hecho solo se guarda al final, así
+  // que dejarlos a medias no rompe nada. 25 de noviembre de 2026: en el vídeo del autor, 0,4 s parados al tocar el Pirineo)
+  const corre = (it) => { let r; while (!(r = it.next()).done); return r.value; };
+  function* losaDePasos(c) { const A = yield* ampDePasos(c);
+    if (A.amplia && !c.gIsla) { const { g } = yield* losaPasos(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); if (c.gIsla) { g.dispose(); return A; }
+      g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; A.olvida?.(); }
+    return A; }
+  const losaDe = (c) => corre(losaDePasos(c));
+  // (la isla, por pasos como la losa: la roca, la orilla, el canto, lo que cuelga, el hueco, el agua y las piedras, cada uno
+  // en su trozo. Si otro la ha hecho mientras tanto, la suya se suelta)
+  function* islaDePasos(c) {
     if (c.isla) return c.isla;
-    const A = losaDe(c);
-    return (c.isla = hazIsla({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
-      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }), c.amp?.olvida?.(), c.isla);
-  };
+    const A = yield* losaDePasos(c);
+    const I = yield* hazIslaPasos({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
+      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } });
+    if (c.isla) { I.dispose?.(); return c.isla; }
+    c.isla = I; c.amp?.olvida?.(); return I;
+  }
+  const islaDe = (c) => c.isla || corre(islaDePasos(c));
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
   const sobre = (c, x, z) => {
@@ -1467,6 +1499,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (!c) { obra = null; return; }
     c.tSel = performance.now(); if (fly) c.vistaAlta = false;
     if (obra?.c === c && !fly) return;   // (la ficha vuelve a llamar sin vuelo mientras se hace: que siga)
+    if (tarea?.c === c) tarea = null;   // (lo que se hacía de ella en reposo, a medias, lo sigue la obra)
     const L = pasosObra(c, fly);
     if (L.length) { obra = { c, fly, pasos: L, espera: 1 }; return; }
     obra = null; vuelaIsla(c, fly);
@@ -1489,14 +1522,26 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // comarcas grandes, de 0,6 a 2,5 s con la pantalla parada y sin dar señal. El autor: «donde más fallos he visto es en la
   // elección de cada comarca… va muy lento a veces y se entrecorta». Con el dedo en el mapa o mientras se desliza, espera
   // (al arrastrar de una comarca a otra también se elige, sin vuelo, y paraba el arrastre)
+  // (lo que se trabaja por trozos en cada imagen: al elegir, 7 ms en el móvil; en reposo, 5 ms. tarea: el trabajo por pasos
+  // que hacen en reposo el relieve fino de la elegida (finos) y las islas de antemano (preIslas), uno cada vez)
+  const PRESUP = BAJA ? 7 : 9, PRESUP_REPOSO = 5; let tarea = null;
+  const sigueTarea = (presup) => { const t0 = performance.now(); let fin = false;
+    try { do fin = tarea.it.next().done; while (!fin && performance.now() - t0 < presup); } catch (e) { fin = true; console.warn('isla', e); }
+    if (fin) tarea = null; };
   function pasosObra(c, fly) { const L = [];
-    if (!c.isla) { if (!c.amp) L.push(() => ampDe(c)); if (!c.amp || (c.amp.amplia && !c.gIsla)) L.push(() => losaDe(c)); L.push(() => islaDe(c)); }
-    if (fly && finoD && !c.finoListo) { if (!c.bordeF) L.push(() => bordeDe(c)); if (!c.gFino) L.push(() => { if (!c.gFino) hazFino(c); }); L.push(() => { if (!c.finoListo) hazFino(c); }); }
+    if (!c.isla) { if (!c.amp) L.push(() => ampDePasos(c)); if (!c.amp || (c.amp.amplia && !c.gIsla)) L.push(() => losaDePasos(c)); L.push(() => islaDePasos(c)); }
+    if (fly && finoD && !c.finoListo) { if (!c.bordeF) L.push(() => bordeDe(c)); if (!c.gFino) L.push(() => !c.gFino ? hazFinoPasos(c) : null); L.push(() => { if (!c.finoListo) hazFino(c); }); }
     return L; }
   function sigueObra() {
     const ob = obra; if (sel !== ob.c.id) { obra = null; return; }
     if (ptrs.size || inercia || keys.size || ob.espera-- > 0) return;   // (la primera imagen, sin nada: que se vea ya la comarca marcada y su ficha)
-    const t0 = performance.now(); ob.pasos.shift()(); (ob.c.obraMs ||= []).push(Math.round(performance.now() - t0));
+    // (un paso que es un generador se lleva por trozos, PRESUP ms en cada imagen, hasta acabarlo)
+    const t0 = performance.now();
+    if (!ob.it) { const x = ob.pasos[0](); if (x && typeof x.next === 'function') ob.it = x; }
+    if (ob.it) { let fin = false; try { do fin = ob.it.next().done; while (!fin && performance.now() - t0 < PRESUP); } catch (e) { fin = true; console.warn('isla', e); }
+      ob.ms = (ob.ms || 0) + performance.now() - t0; if (!fin) return; ob.it = null; }
+    else ob.ms = performance.now() - t0;
+    ob.pasos.shift(); (ob.c.obraMs ||= []).push(Math.round(ob.ms)); ob.ms = 0;
     if (!ob.pasos.length) { obra = null; ob.c.tSel = performance.now(); vuelaIsla(ob.c, ob.fly); }
   }
 
@@ -1507,10 +1552,34 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // piden de una en una y solo con la cámara quieta, y la imagen se descomprime aparte (createImageBitmap): al moverse
   // por el mapa no hay tirones
   const MAXD = BAJA ? 2 : 4, carga = new THREE.TextureLoader().setCrossOrigin('anonymous'), det = new Map(), aniso = Math.min(8, r.capabilities.getMaxAnisotropy());
-  const textura = (u) => (typeof createImageBitmap === 'function' ? fetch(u, { credentials: 'omit' }).then(x => x.ok ? x.blob() : Promise.reject())
-    .then(b => createImageBitmap(b, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(im => new THREE.Texture(im)) : Promise.reject())
+  // (las de cerca, a trozos: se descomprimen a píxeles en otro hilo (pixeles) y se suben a la tarjeta una franja en cada
+  // imagen, en una textura propia que three.js usa tal cual (ExternalTexture). Subida de una vez, la del Pirineo, de
+  // 2289×1776, eran unos 250 ms parados en el iPhone, dos veces (el relieve y la ortofoto), justo al quedarse la isla
+  // arriba: en el vídeo del autor del 25 de noviembre de 2026, los dos parones de después de subir. Si el navegador no
+  // sabe descomprimir aparte, como antes)
+  const textura = (u) => pixeles(u).then(cr => { const t = new THREE.ExternalTexture(null); t.userData.crudo = cr; return t; })
+    .catch(() => (typeof createImageBitmap === 'function' ? fetch(u, { credentials: 'omit' }).then(x => x.ok ? x.blob() : Promise.reject())
+      .then(b => createImageBitmap(b, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(im => new THREE.Texture(im)) : Promise.reject()))
     .catch(() => new Promise((ok, mal) => carga.load(u, ok, undefined, mal)));
-  const suelta = (tx) => { tx.dispose(); tx.image?.close?.(); };
+  const suelta = (tx) => { if (tx.isExternalTexture) { if (tx.sourceTexture) r.getContext().deleteTexture(tx.sourceTexture); tx.sourceTexture = null; tx.userData.crudo = null; } tx.dispose(); tx.image?.close?.(); };
+  // (sube una franja, de unas 128 KB, de una textura a trozos; al acabar, sus mipmaps y lista. true: hecha)
+  const franja = (tx) => {
+    const gl = r.getContext(), cr = tx.userData.crudo; if (!cr) return true;
+    if (!tx.sourceTexture) {
+      const t = tx.sourceTexture = gl.createTexture(); r.state.bindTexture(gl.TEXTURE_2D, t);
+      gl.texStorage2D(gl.TEXTURE_2D, Math.floor(Math.log2(Math.max(cr.w, cr.h))) + 1, gl.RGBA8, cr.w, cr.h);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      const an = r.extensions.get('EXT_texture_filter_anisotropic'); if (an && aniso > 1) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, aniso);
+      cr.y = 0; return false;
+    }
+    r.state.bindTexture(gl.TEXTURE_2D, tx.sourceTexture);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false); gl.pixelStorei(gl.UNPACK_ALIGNMENT, 4);
+    const n = Math.min(cr.h - cr.y, Math.max(8, Math.floor(32768 / cr.w)));
+    gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, cr.y, cr.w, n, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array(cr.buf, cr.y * cr.w * 4, n * cr.w * 4));
+    if ((cr.y += n) < cr.h) return false;
+    gl.generateMipmap(gl.TEXTURE_2D); tx.userData.crudo = null; return true;
+  };
   let detT = -1e9, pidiendo = 0;
   // (la ortofoto de cerca de una comarca, en la rejilla de su relieve: la de la elegida, a 28 m; en el ordenador, también la
   // de las de alrededor, a 56 m. Si no llega, se queda la de toda Navarra)
@@ -1528,8 +1597,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (y tampoco en pleno vuelo de la cámara: el 24 de noviembre de 2026 la de cerca de la comarca elegida llegaba a mitad del
   // vuelo de llegada y lo cortaba; ahora se sube con la isla ya arriba, en la pausa quieta antes del dron, PAUSA_ISLA)
   const ocupada = () => !!vuelo || C.some(islaMueve);
-  const sube = (tx, pon) => { if (ocupada()) { pendD.push([tx, pon]); return; } try { r.initTexture(tx); } catch (e) { } pon(); };
-  const subePend = () => { if (!pendD.length || ocupada()) return; const [tx, pon] = pendD.shift(); if (pon() === false) return; try { r.initTexture(tx); } catch (e) { } };
+  const sube = (tx, pon) => { if (tx.userData.crudo || ocupada()) { pendD.push([tx, pon]); return; } try { r.initTexture(tx); } catch (e) { } pon(); };
+  const subePend = () => { if (!pendD.length || ocupada()) return;
+    const [tx, pon] = pendD[0];
+    // (a trozos: franjas mientras quepan en 3 ms de esta imagen; lista, se pone)
+    if (tx.isExternalTexture) { const t0 = performance.now(); let hecha = false; try { do hecha = franja(tx); while (!hecha && performance.now() - t0 < 3); } catch (e) { hecha = true; tx.userData.crudo = null; }
+      if (!hecha) return; pendD.shift(); if (!tx.sourceTexture || pon() === false) suelta(tx); return; }
+    pendD.shift(); if (pon() === false) return; try { r.initTexture(tx); } catch (e) { } };
   const lejosDe = (c) => Math.hypot(c.mid.x - v.x, c.mid.z - v.z);
   function detalles(now, quieto) {
     subePend();
@@ -1583,12 +1657,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     return (c.bordeF = (x, z) => { const gx = Math.max(0, Math.min(nx - 1.001, (x - x0) / st)), gz = Math.max(0, Math.min(nz - 1.001, (z - z0) / st)), i = gx | 0, j = gz | 0, fx = gx - i, fz = gz - j, k = j * nx + i;
       return suave(0.12, 0.75, (D[k] * (1 - fx) + D[k + 1] * fx) * (1 - fz) + (D[k + nx] * (1 - fx) + D[k + nx + 1] * fx) * fz); });
   };
-  function hazFino(c) {
+  function hazFino(c) { corre(hazFinoPasos(c)); }
+  function* hazFinoPasos(c) {
     // (con la isla crecida, la malla densa es la de la isla, y lo que crece toma el relieve fino de donde sale el suyo)
     const f = bordeDe(c), A = ampDe(c), dh = c.dhF = A.amplia ? (x, z) => { const [sx, sz, k] = A.fino(x, z); return finoEn(sx, sz) * f(x, z) * k; } : (x, z) => finoEn(x, z) * f(x, z);
     if (!c.gFino) {
-      const { g } = A.amplia ? losa(A.P, A.alto, DENSO, c.malla) : losa(c.Pw, alto, DENSO), pa = g.attributes.position.array, a = new Float32Array(pa.length / 3);
-      for (let v = 0; v < a.length; v++) if (pa[v * 3 + 1] > 0.01) a[v] = dh(pa[v * 3], pa[v * 3 + 2]);
+      const { g } = A.amplia ? yield* losaPasos(A.P, A.alto, DENSO, c.malla) : yield* losaPasos(c.Pw, alto, DENSO), pa = g.attributes.position.array, a = new Float32Array(pa.length / 3);
+      for (let v = 0; v < a.length; v++) { if (pa[v * 3 + 1] > 0.01) a[v] = dh(pa[v * 3], pa[v * 3 + 2]); if (v % 6000 === 5999) yield; }
+      if (c.gFino) { g.dispose(); return; }   // (otro la hizo mientras tanto)
       g.setAttribute('aFino', new THREE.BufferAttribute(a, 1)); ampAttr(g, A); c.gFino = g;
       finosHechos.push(c);
       while (finosHechos.length > (BAJA ? 4 : 6)) { const i = finosHechos.findIndex(o2 => o2 !== c && o2.mesh.geometry !== o2.gFino); if (i < 0) break; const o2 = finosHechos.splice(i, 1)[0]; o2.gFino.dispose(); o2.gFino = null; }
@@ -1648,7 +1724,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (y no mientras la isla se despega, se queda arriba esperando o el dron llega a su sitio: sus tres pasos paraban la imagen
     // justo en lo que más se mira; 16 de noviembre de 2026)
     const subiendo = quiere?.isla && (islaMueve(quiere) || ((quiere.isla.k || 0) > 0.5 && !quiere.vistaAlta) || (islaDron?.c === quiere && islaDron.t < LLEGA_ISLA + 0.4));
-    if (quiere && !quiere.finoListo && quieto && !subiendo && !obra && now - finoT > 250) { const t0 = performance.now(); if (!quiere.bordeF) bordeDe(quiere); else hazFino(quiere); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
+    if (quiere && !quiere.finoListo && quieto && !subiendo && !obra && (tarea?.c === quiere || now - finoT > 250)) { const t0 = performance.now();
+      if (tarea && tarea.c !== quiere) tarea = null;   // (la elegida, antes que las de antemano)
+      if (!tarea) { if (!quiere.bordeF) bordeDe(quiere); else tarea = { c: quiere, it: hazFinoPasos(quiere) }; }
+      if (tarea) sigueTarea(PRESUP); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
     for (const c of C) {
       // (con la isla crecida: en el aire, su losa, y la densa, que es la de la isla; en el mapa, la de siempre)
       const up = !!c.gIsla && (c.isla?.k || 0) > 0.002, base = up ? c.gIsla : c.gGrueso;
@@ -1896,12 +1975,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // cuando más se mira: allí daba tirones. Se guardan las seis últimas, cuatro en calidad baja: unos 6 MB cada una)
   function preIslas(dt, quieto) {
     if (!islaLista || !calentado || tv || elegido || vuelo || obra || ptrs.size || keys.size || inercia || (intro && !intro.hecho) || islaDron || C.some(islaMueve)) { preT = 0; return; }
+    if (tarea) { if (tarea.de === 'pre') sigueTarea(PRESUP_REPOSO); return; }   // (lo empezado, a trozos en cada imagen)
     if ((preT += dt) < (quieto && !paseo ? 1.2 : 3)) return;
     preT = 0;
     const i0 = sel ? C.findIndex(c => c.id === sel) : C.length >> 1;
     for (const [d, x] of C.map((c, i) => [Math.abs(i - i0), c]).sort((a, b) => a[0] - b[0])) {
-      if (!x.isla) { if (!x.amp || (x.amp.amplia && !x.gIsla)) losaDe(x); else islaDe(x); return; }
-      if (d <= (BAJA ? 1 : 2) && finoD && !x.finoListo) { if (!x.bordeF) bordeDe(x); else hazFino(x); return; }
+      if (!x.isla) { if (!x.amp) tarea = { c: x, de: 'pre', it: ampDePasos(x) }; else if (x.amp.amplia && !x.gIsla) tarea = { c: x, de: 'pre', it: losaDePasos(x) }; else tarea = { c: x, de: 'pre', it: islaDePasos(x) }; return; }
+      if (d <= (BAJA ? 1 : 2) && finoD && !x.finoListo) { if (!x.bordeF) bordeDe(x); else tarea = { c: x, de: 'pre', it: hazFinoPasos(x) }; return; }
     }
   }
   let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
