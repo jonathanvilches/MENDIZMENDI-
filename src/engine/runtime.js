@@ -59,7 +59,7 @@ function fijaQuieto(o, hijos = false) { if (!o?.isObject3D) return; for (const x
 // y animales que no son el jugador, otros. Solo las de imagen: las de lienzo se redibujan y los datos los hace el juego a su
 // medida. Lo ya mirado no se vuelve a mirar (vistas: texturas y materiales con su versión), así que se puede repetir para
 // lo que llega después de cargar. Si ya estaba en la tarjeta, se suelta y se sube otra vez, pequeña)
-function topeTexturas(raiz, max, { otros = max, jugador = null, vistas = { t: new WeakMap() } } = {}) {
+function topeTexturas(raiz, max, { otros = max, resto = max, jugador = null, vistas = { t: new WeakMap() } } = {}) {
   // (cada material se mira entero cada vez: un personaje que termina de cargar después pone su imagen en un material ya
   // mirado, sin cambiarle la versión, y se quedaba grande; en Pamplona, uno de 768 px. Lo ya mirado es cada textura con su imagen)
   // (las de los vecinos con huesos, también si son un lienzo, que así las deja glbChar al reducirlas. Menos las que comparte
@@ -75,7 +75,7 @@ function topeTexturas(raiz, max, { otros = max, jugador = null, vistas = { t: ne
       const s = lim / Math.max(w, h), c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
       try { c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); t.dispose(); t.image = c; t.needsUpdate = true; vistas.t.set(t, c); } catch (e) { } } } };
   jugador?.traverse((o) => mira(o, max, true));
-  raiz.traverse((o) => mira(o, o.isSkinnedMesh ? otros : max, false));
+  raiz.traverse((o) => mira(o, o.isSkinnedMesh ? otros : resto, false));
   return vistas;
 }
 
@@ -244,7 +244,9 @@ export class Runtime {
     // 24 nov, medido con tools/presupuesto-pueblo.mjs)
     // Los vecinos, los animales y los demás personajes, 512 (ya lo eran casi todos; los animales de Meshy y algún personaje
     // traían 1024 o 768: 5 MB cada uno). Y se repite de vez en cuando para lo que llega después (topeNuevas)
-    this.topeVistas = q === 'low' ? topeTexturas(scene, 1024, { otros: 512, jugador: rig.obj }) : null;
+    // (en un campeonato, lo que no es un personaje con huesos también a 512: el público de cerca traía tres imágenes de 768
+    // y el partido del Labrit se iba a 69 MB de los 65 del partido; lo del jugador sigue a 1024. 25 nov)
+    this.topeVistas = q === 'low' ? topeTexturas(scene, 1024, { otros: 512, resto: solo ? 512 : 1024, jugador: rig.obj }) : null;
     // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
     // para que el primer fotograma del pueblo no se quede congelado
     try { await Promise.race([compilarAsync(this.renderer, scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
@@ -448,7 +450,7 @@ export class Runtime {
     input.endFrame();
     this.frames++; this.frameNo++; this.fpsT += dt;
     // (cada 2 s de reloj, no cada tantas imágenes: con pocas imágenes por segundo, el vecino que acaba de cargar seguía grande)
-    if (this.topeVistas && !alt && t0 - (this.topeT || 0) > 2000) { this.topeT = t0; try { topeTexturas(this.scene, 1024, { otros: 512, jugador: this.player?.obj, vistas: this.topeVistas }); } catch (e) { this.reportError(e); } }
+    if (this.topeVistas && !alt && t0 - (this.topeT || 0) > 2000) { this.topeT = t0; try { topeTexturas(this.scene, 1024, { otros: 512, resto: this.soloFronton ? 512 : 1024, jugador: this.player?.obj, vistas: this.topeVistas }); } catch (e) { this.reportError(e); } }
     // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
     if (this.covered || quieto) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {
