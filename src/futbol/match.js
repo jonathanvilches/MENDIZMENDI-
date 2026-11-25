@@ -144,7 +144,10 @@ export class FutbolMatch {
     // (al irse la ventana, las teclas sueltas: si no, la que estaba pulsada se quedaba dentro y el jugador seguía corriendo)
     this.onBlur = () => { for (const k of this.keys) { const act = { j: 'pass', ' ': 'pass', k: 'shoot', e: 'shoot' }[k]; if (act) this.release(act); } this.keys.clear(); };
     addEventListener('blur', this.onBlur);
-    this.onResize = () => { this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); };
+    // (el alto de la pantalla, guardado: leer innerHeight en cada imagen obliga al navegador a recolocar la página entera
+    // si el marcador ha cambiado, y la cámara de la tele lo leía en cada imagen; era su coste casi entero. 25 nov)
+    this.vh = innerHeight; this.vw = innerWidth;
+    this.onResize = () => { this.vh = innerHeight; this.vw = innerWidth; this.camera.aspect = innerWidth / innerHeight; this.camera.updateProjectionMatrix(); };
     addEventListener('resize', this.onResize);
     // al cambiar de aplicación en el móvil, el partido se para
     this.onHide = () => { if (document.hidden && !this.ended && this.intro <= 0) this.pauseMenu(); };
@@ -750,7 +753,7 @@ export class FutbolMatch {
     const g = this.game, B = g.ball.p, own = g.owner, sala = !!F.areaD;
     const lead = clamp(g.ball.v.x * 0.35 + (own ? g.dir[own.team] * (sala ? 3 : 4) : 0), sala ? -4 : -9, sala ? 4 : 9);
     if (!still) this.lead = (this.lead ?? 0) + (lead - (this.lead ?? 0)) * Math.min(1, dt * 1.5);
-    const ld = still ? 0 : this.lead, phone = innerHeight < 520 && this.camera.aspect >= 1.2;
+    const ld = still ? 0 : this.lead, phone = (this.vh ?? innerHeight) < 520 && this.camera.aspect >= 1.2;
     const x = sala ? clamp(B.x * 0.8 + ld, -F.HL + 6, F.HL - 6) : clamp(B.x * 0.94 + ld, -F.HL + 10, F.HL - 10);
     const lz = B.z * (sala ? 0.6 : 0.85) - (sala ? 1 : 2), cz = F.HW + (sala ? 18 : 22), cy = sala ? 14 : 21;
     const dist = Math.hypot(cz - lz, cy);
@@ -782,7 +785,7 @@ export class FutbolMatch {
     if (v.z < 1 && Math.abs(v.x) < 0.95 && Math.abs(v.y) < 0.92) { H.arrow(null); return; }
     let x = v.x, y = v.y; if (v.z >= 1) { x = -x; y = -y; }
     const m = Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.85, 1e-3); x /= m; y /= m;
-    H.arrow((x + 1) / 2 * innerWidth, (1 - y) / 2 * innerHeight, Math.atan2(x, y));
+    H.arrow((x + 1) / 2 * (this.vw ?? innerWidth), (1 - y) / 2 * (this.vh ?? innerHeight), Math.atan2(x, y));
   }
   dispose() {
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKeyUp, true); removeEventListener('blur', this.onBlur); removeEventListener('resize', this.onResize); document.removeEventListener('visibilitychange', this.onHide);

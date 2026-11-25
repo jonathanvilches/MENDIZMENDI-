@@ -20,6 +20,7 @@ ya no vale, se borra.
 - (Auditoría, 25 nov) Fluidez, medida en los 39 pueblos (`tools/auditoria-fluidez.mjs`, sin errores en ninguno): three.js recolocaba en cada imagen toda la escena (también lo marcado como quieto: matrixWorldAutoUpdate solo se salta el propio objeto), y eso era casi la mitad del trabajo de cada imagen. Ahora la escena se salta entera lo marcado: lo escondido (una imagen de cada 8) y los animales y vecinos a más de 60 m (una de cada 2; a más de 150 m, una de cada 4) o fuera de cuadro (una de cada 8). En Lesaka, de 10.054 a 2.307 recolocaciones cada dos imágenes y de 3,35 a 1,48 ms. Los peces ya no buscan sitio en el río en cada imagen. Y arreglada la entrada a los campeonatos («o.children is not iterable», no llegó a publicarse). `engine/runtime.js`, `world/peces.js`
 - (Auditoría, 24 nov) Palacio Real de Olite sobre su planta real y con las fotos del autor: torre de las Tres Coronas (ochavada, tres alturas con corona volada y cono de pizarra) y el nevero delante, Atalaya, Homenaje de 40 m con torretas voladas, Cuatro Vientos con chapitel de pizarra, cinco torres redondas de pizarra en el frente sur, Galería del Rey, jardín de la Reina; Palacio Viejo con hiedra; Santa María en arenisca dorada y torre sin chapitel. Las casas que caían dentro de una planta de monumento ya no se levantan (`src/levels/townReal.js`). iPhone: Olite 64 + 26 MB, 501 llamadas.
 - (Auditoría, 24 nov) Castillo y basílica de Javier sobre su planta real de OpenStreetMap y como en las fotos del autor: arenisca rojiza, torre de San Miguel, torre grande con garitas, barbacana, explanada con pilares y cadenas, basílica con rosetón y peña. Nuevo `src/world/monumentosReales.js` y `src/data/reales/plantas.json` (de `tools/plantas-monumentos.py`). iPhone: Javier 60 + 19 MB, 345 llamadas.
+- (Auditoría, 25 nov) Campeonatos y fútbol en el iPhone: las 9 sedes de campeonato medidas en pleno partido, todas dentro del tope de 65 MB (59–63); el Labrit se iba a 69 y queda en 63 (en un campeonato, lo que no es un personaje con huesos también a 512 px en calidad baja; `runtime.js`). Fútbol: la cámara de la tele leía el alto de la pantalla en cada imagen y obligaba a recolocar la página; ahora se guarda al cambiar de tamaño (lógica de 1,61 a 1,27 ms por imagen en El Sadar; `src/futbol/match.js`). El Sadar, 41 + 19 MB.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
@@ -33,6 +34,16 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 
 ## Peticiones entre ventanas
+
+- **De Auditoría a Pelota · personajes** (25 nov): en los partidos de campeonato, lo que más pesa en la tarjeta del iPhone
+  es el atlas de retratos del público (`retratos()` de `src/actors/crowd3d.js`): 1127×2880 px con mipmaps, 17 MB de los
+  65 del partido. En calidad baja, con `ch` 128 en vez de 160 bajaría a unos 11 MB sin que se note a la distancia de la
+  grada. Ahora todas las sedes caben (59–63 MB), pero van justas. No lo he tocado: es vuestro.
+
+- **De Auditoría a Pelota · interfaz** (25 nov): en `src/pelota/hud.js`, `ready()`, `energy()` y `descansos()` buscan sus
+  elementos con `querySelector` en cada imagen del partido (y `energy()` recorre también todas las `.ps-barras`). Guardarlos
+  la primera vez, como ya hacen `esprint()` y `timing()`, ahorra trabajo en cada imagen del iPhone. Los `void x.offsetWidth`
+  para reiniciar animaciones solo van en los tantos y rótulos: están bien.
 
 - **De Auditoría a Pelota · personajes** (24 nov): por encargo directo del autor («el personaje tiene como unos mechones en
   los laterales, justo encima de la oreja»), repinté del color del pelo los trocitos crema de los rizos de los lados en la
