@@ -35,11 +35,14 @@ function normalFromHeight(hc, strength = 2) {
   return out;
 }
 
+// (el filtrado de las texturas vistas de lado: en el ordenador, 16, lo más que da la tarjeta; tejados, paredes largas y
+// calles empedradas se ven nítidos hasta lejos en vez de emborronarse. En el móvil, 8, como siempre)
+let ANISO = 8;
 function toTex(c, srgb = true, repeat = 1) {
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(repeat, repeat);
-  t.anisotropy = 8;
+  t.anisotropy = ANISO;
   if (srgb) t.colorSpace = THREE.SRGBColorSpace;
   t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter;
   return t;
@@ -618,7 +621,7 @@ export const TEX = {};
 export function buildTextures(quality = 'high') {
   const S = quality === 'low' ? 256 : 512, key = quality === 'high' ? 'h' : S;
   if (TEX._S === key) return TEX;
-  TEX._S = key;
+  TEX._S = key; ANISO = quality === 'high' ? 16 : 8;
   // (la piedra gris y la sillería clara, las de siempre: con más color salían pardas y el pueblo, marrón)
   TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#8d8375', hue: 36, hueVar: 16, sat: 14, light: 62, lightVar: 18, moss: 0.12 });
   TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#6f685f', hue: 30, hueVar: 14, sat: 9, light: 50, lightVar: 16, moss: 0.18 });

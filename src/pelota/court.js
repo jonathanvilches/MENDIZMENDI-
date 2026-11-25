@@ -470,8 +470,17 @@ export class PelotaCourt {
       this.rebRaya = new T.LineSegments(geo, new T.LineBasicMaterial({ color: '#fff3dc', transparent: true, opacity: 0, depthWrite: false }));
       this.rebRaya.visible = false; this.rebRaya.renderOrder = 2; g.add(this.rebRaya); }
     if (PLZ) { for (const o of this.rebMeshes) o.visible = false; this.rebMeshes = []; this.rebRaya.visible = false; this.rebRaya = null; }   // (la plaza libre no tiene rebote: lo largo, a la plaza)
+    // (los escalones de la grada, de hormigón con su grano, poros y las juntas del encofrado: lisos parecían de cartón. El
+    // lienzo es una losa de 2 × 2 m que se repite; las uv de cada cara, en metros)
+    const standTex = (!opts.labrit && !HALL && !CALLE) ? canvasTex(T, 256, 256, (c, w, h) => {
+      c.fillStyle = '#ece8e1'; c.fillRect(0, 0, w, h); grain(c, w, h, 4000, 0.035); grain(c, w, h, 1500, 0.03, false);
+      c.fillStyle = 'rgba(0,0,0,.1)'; for (let k = 0; k < 40; k++) { const r = 0.6 + Math.random() * 1.1; c.beginPath(); c.arc(Math.random() * w, Math.random() * h, r, 0, 7); c.fill(); }
+      c.strokeStyle = 'rgba(0,0,0,.12)'; c.lineWidth = 1.5; for (const x of [1, w / 2]) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
+      c.beginPath(); c.moveTo(0, h / 2); c.lineTo(w, h / 2); c.stroke();
+    }, [1, 1]) : null;
+    const enMetros = (geo, wx, hy, dz) => { const uv = geo.attributes.uv, n = geo.attributes.normal; for (let i = 0; i < uv.count; i++) { const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), su = ax > 0.5 ? dz : wx, sv = ay > 0.5 ? dz : hy; uv.setXY(i, uv.getX(i) * su / 2, uv.getY(i) * sv / 2); } return geo; };
     if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
-      const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
+      const st = new T.Mesh(enMetros(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), 1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, map: standTex, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
     // un banco corrido de tablas de madera en cada escalón (como en las gradas de los frontones de pueblo) y los sitios del

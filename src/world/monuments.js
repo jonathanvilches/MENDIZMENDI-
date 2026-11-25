@@ -184,7 +184,14 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     if (i < nb - 1) {
       const wz = zz + (L - 6) / (nb - 1) / 2;
       const wh = style === 'gothic' || style === 'cathedral' ? 3.4 : 1.8;
-      B.add('vidriera', uvHueco(archPanel(style === 'romanesque' ? 0.6 : 1.1, wh, 0.1)), MM(T, M(s * (W / 2 + 0.02), Hh - 3 - wh, wz, s * Math.PI / 2)));
+      const ww = style === 'romanesque' ? 0.6 : 1.1, r = ww / 2, F = MM(T, M(s * (W / 2 + 0.02), Hh - 3 - wh, wz, s * Math.PI / 2));
+      B.add('vidriera', uvHueco(archPanel(ww, wh, 0.1)), F);
+      // su marco de sillar claro: el arco, las jambas y el alféizar (sin él la vidriera parecía pegada al muro; del mismo
+      // sillar que el muro no se distinguía)
+      const mk = mat === 'ashlar' ? 'sandstone' : 'ashlar';
+      B.add(mk, archRing(r, r + 0.2, 0.16, 8), MM(F, M(0, wh - r, 0.04)));
+      for (const k of [-1, 1]) B.add(mk, box(0.2, wh - r, 0.16, 1), MM(F, M(k * (r + 0.1), (wh - r) / 2, 0.04)));
+      B.add(mk, box(ww + 0.6, 0.16, 0.3, 1), MM(F, M(0, -0.08, 0.1)));
     }
   }
   if (style === 'fortress') merlons(B, T, W, L, Hh);

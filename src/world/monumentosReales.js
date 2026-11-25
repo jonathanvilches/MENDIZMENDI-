@@ -324,11 +324,22 @@ function torreCuadrada(B, mat, t, y0, y, h, { canesCorona = false, ventana = tru
   addBox(t.x, t.z, t.w + 0.3, (t.d || t.w) + 0.3, t.ry || 0, { solidView: true });
   return P;
 }
-// ventana gótica: hueco oscuro de arco apuntado con su parteluz
+// ventana gótica de castillo o palacio: hueco oscuro de arco apuntado con su parteluz, su marco de sillar y el alféizar
+// (con la vidriera de colores de las iglesias, el castillo parecía una iglesia)
 function ventanaGotica(B, l, t, y, w = 1.2, h = 2.4) {
-  const [x, z] = sobre(l, t, 0.03), T = M(x, y, z, l.ry);
-  B.add('vidriera', uvHueco(pointedPanel(w, h + w * 0.7, 0.06)), MM(T, M(0, -h / 2, 0)));
+  const [x, z] = sobre(l, t, 0.03), T = M(x, y, z, l.ry), hs = h - w * 0.166, b = -h / 2;
+  B.add('glass', pointedPanel(w, h + w * 0.7, 0.06), MM(T, M(0, b, 0)));
   B.add(SO, box(0.12, h, 0.12), MM(T, M(0, 0, 0.06)));
+  B.add(SO, anilloApuntado(w, 0.18, 0.16), MM(T, M(0, b + hs, 0.05)));
+  for (const k of [-1, 1]) B.add(SO, box(0.18, hs, 0.16), MM(T, M(k * (w / 2 + 0.09), b + hs / 2, 0.05)));
+  B.add(SO, box(w + 0.55, 0.16, 0.3), MM(T, M(0, b - 0.08, 0.1)));
+}
+// el arco apuntado del marco: de ancho wi por dentro y t de grueso, con la línea de arranque en y = 0
+function anilloApuntado(wi, t, depth) {
+  const wo = wi + 2 * t, s = new THREE.Shape();
+  s.moveTo(-wo / 2, 0); s.absarc(wo / 2, 0, wo, Math.PI, Math.PI * 2 / 3, true); s.absarc(-wo / 2, 0, wo, Math.PI / 3, 0, true);
+  s.lineTo(wi / 2, 0); s.absarc(-wi / 2, 0, wi, 0, Math.PI / 3, false); s.absarc(wi / 2, 0, wi, Math.PI * 2 / 3, Math.PI, false); s.lineTo(-wo / 2, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: 5 }); g.translate(0, 0, -depth / 2); return g;
 }
 // torre redonda u ochavada (lados: 8 para la ochavada), almenada por su borde
 function torreRedonda(B, mat, x, z, r, y0, y1, lados8 = 14) {

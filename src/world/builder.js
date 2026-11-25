@@ -183,7 +183,7 @@ function railingTexture() {
   g.lineWidth = 4;
   for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(i * 32 + 16, 100, 9, 0, Math.PI * 2); g.stroke(); }
   for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(i * 32 + 8, 30); g.quadraticCurveTo(i * 32 + 16, 18, i * 32 + 24, 30); g.stroke(); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = THREE.RepeatWrapping; t.anisotropy = 8; return t;
 }
 
 // (vidrio emplomado: mate, con la textura también como brillo propio, de día flojo y de noche más, fx.js)
@@ -223,7 +223,7 @@ function vidrieraTexture() {
   // luz: más clara en el centro, más oscura en los bordes
   const gr = g.createRadialGradient(W / 2, H * 0.5, 10, W / 2, H * 0.5, H * 0.62);
   gr.addColorStop(0, 'rgba(255,240,210,0.18)'); gr.addColorStop(1, 'rgba(0,0,0,0.25)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 // el rosetón: óculo dorado, doce pétalos alternos azules y rojos, una corona de veinticuatro vidrios y el plomo
 function rosetonTexture() {
@@ -244,7 +244,7 @@ function rosetonTexture() {
   for (const r of [0.12, 0.26, 0.3, 0.75, 0.78, 0.98]) { g.beginPath(); g.arc(R, R, R * r, 0, 7); g.stroke(); }
   for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283; g.beginPath(); g.moveTo(R + Math.cos(a) * R * 0.26, R + Math.sin(a) * R * 0.26); g.lineTo(R + Math.cos(a) * R * 0.98, R + Math.sin(a) * R * 0.98); g.stroke(); }
   const gr = g.createRadialGradient(R, R, 8, R, R, R); gr.addColorStop(0, 'rgba(255,240,210,0.2)'); gr.addColorStop(1, 'rgba(0,0,0,0.2)'); g.fillStyle = gr; g.fillRect(0, 0, S, S);
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 // la puerta: dos hojas de tablas verticales de roble oscuro, con su veta, cuarterones arriba y abajo, dos bisagras largas
 // de forja por hoja y filas de clavos de cabeza gruesa; el arco de arriba sigue la madera
@@ -274,7 +274,7 @@ function puertaTexture() {
   for (let y = 18; y < H - 8; y += 22) for (let x = 8; x < W; x += 16) { g.fillStyle = '#18171a'; g.beginPath(); g.arc(x, y, 2.4, 0, 7); g.fill(); g.fillStyle = 'rgba(160,150,140,0.5)'; g.fillRect(x - 1.5, y - 1.5, 1.2, 1.2); }
   // aldabas de anilla
   g.strokeStyle = '#1e1d20'; g.lineWidth = 2.5; for (const s of [-1, 1]) { g.beginPath(); g.arc(W / 2 + s * 14, H * 0.5, 6, 0, 7); g.stroke(); }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t;
 }
 // UV de 0 a 1 en todo el hueco (por su caja en x e y): la vidriera, el rosetón o la puerta llenan su ventana una vez, sin
 // repetirse

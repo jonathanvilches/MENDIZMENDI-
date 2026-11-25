@@ -29,6 +29,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   en todas las casas sencillas (la lisa se veía negra, como un hueco), escalera al kiosco de Tudela, pórtico de la catedral
   de Tudela con el paso libre, puerta en el molino de Amaiur y en el Palacio Viejo de Olite, y capilla y molino con la
   entrada hacia la plaza.
+- (Auditoría, 25 nov) Revisión general de casas, iglesias, castillos y frontones: en el ordenador las texturas se ven
+  nítidas hasta lejos (filtrado 16 en tejados, muros y empedrado; el móvil sigue en 8), las ventanas de las iglesias
+  llevan su marco de sillar claro con alféizar, las de los castillos y palacios (Olite) son huecos góticos oscuros con
+  parteluz en vez de vidrieras de iglesia, las gradas de los frontones de pueblo son de hormigón con su textura (lisas
+  parecían de cartón) y el anexo del trinquete de Lekunberri es de chapa grecada.
 
 
 ## Peticiones entre ventanas

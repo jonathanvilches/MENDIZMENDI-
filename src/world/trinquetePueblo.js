@@ -124,6 +124,23 @@ function plano(w, h, x0, y0, pw, ph, CW, CH) {
   return p;
 }
 
+// la chapa grecada del anexo: un pliegue cada 20 cm (luz, canto en sombra, valle) y algún chorreón de óxido; el lienzo
+// es un metro de chapa y se repite (la caja lleva las uv en metros). Una sola para todo el juego.
+let _chapa = null;
+function chapaGris() {
+  if (_chapa) return _chapa;
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 128; const g = cv.getContext('2d');
+  g.fillStyle = '#8e959c'; g.fillRect(0, 0, 128, 128);
+  for (let x = 0; x < 128; x += 25.6) {
+    const gr = g.createLinearGradient(x, 0, x + 25.6, 0);
+    gr.addColorStop(0, '#a3aab1'); gr.addColorStop(0.35, '#b4bbc2'); gr.addColorStop(0.5, '#7d848b'); gr.addColorStop(0.62, '#6c737a'); gr.addColorStop(1, '#949ba2');
+    g.fillStyle = gr; g.fillRect(x, 0, 25.6, 128);
+  }
+  for (let k = 0; k < 5; k++) { const x = 8 + k * 25.6 + (k * 37 % 11); const gr = g.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, 'rgba(120,80,50,0.18)'); gr.addColorStop(1, 'rgba(120,80,50,0)'); g.fillStyle = gr; g.fillRect(x, 0, 3 + (k % 2) * 2, 60 + k * 13); }
+  const t = freeCanvasOnUpload(new THREE.CanvasTexture(cv)); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+  return (_chapa = new THREE.MeshStandardMaterial({ map: t, roughness: 0.55, metalness: 0.25 }));
+}
+
 /** Levanta el trinquete del monumento lm (con su traza, lm.tq). Devuelve el sitio de delante de la fachada. */
 export function trinqueteEdificio(B, group, mats, lm, def) {
   const t = lm.tq || trinqueteTraza(lm, null, { x: 0, z: 0 });
@@ -164,7 +181,8 @@ export function trinqueteEdificio(B, group, mats, lm, def) {
   // el anexo de chapa gris, bajo y a un costado, hacia atrás
   if (t.anexo) {
     const A = t.anexo, Da = Math.round(D * 0.62), hA = 6.5, xa = W / 2 + A / 2, za = -D / 2 + Da / 2;
-    B.add('paint', colored(box(A, hA + 2, Da), '#949aa1'), at(xa, (hA - 2) / 2, za));
+    const chapa = new THREE.Mesh(box(A, hA + 2, Da, 1).applyMatrix4(at(xa, (hA - 2) / 2, za)), chapaGris());
+    chapa.castShadow = chapa.receiveShadow = true; chapa.matrixAutoUpdate = false; chapa.name = 'trinquete-anexo'; group.add(chapa);
     B.add('zinc', box(A + 0.6, 0.2, Da + 0.6), at(xa, hA + 0.1, za, 0, 0, 0.04));
     B.add('paint', colored(box(0.1, 0.16, Da), HIERRO), at(W / 2 + A + 0.05, hA - 0.5, za));
     B.add('glass', box(0.08, 1.0, Da - 3), at(W / 2 + A + 0.03, hA - 1.6, za));
