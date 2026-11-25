@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 25 nov hasta `3344ef75`.)
+(Nada por ahora: publicado el 25 nov hasta `670c49f3`.)
 
 
 ## Peticiones entre ventanas
@@ -256,6 +256,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 25 nov, noche (6.ª), la hizo la ventana de Auditoría (el autor: «Añade más detalles a las casas, las iglesias, los monasterios, las catedrales… más texturas», con permiso de «Vete subiendo todo a la web»): `master` hasta `670c49f3`. Iglesias y conventos de los pueblos reales con contrafuertes, cornisa con canecillos, óculos y portada de arquivoltas; iglesias con pináculos y gárgolas (góticas), ventanas del ábside, reloj de sol y óculo; la catedral de Tudela con rosetón y un claustro de arquería (antes, ocho columnas sueltas en la hierba); casas con rejas de forja y farol de pared (no en iPhone). Presupuesto: Estella 584 mil triángulos y 401 llamadas, Olite 649 mil y 496, Tudela 576 mil y 409. Visto a 1280×720 y 844×390; prueba de humo de `docs/` sin errores.
 - 25 nov, noche (5.ª), la hizo la ventana de Auditoría (el autor: «Seguimos mejorando», con permiso de «Vete subiendo todo a la web»): `master` hasta `3344ef75`. Pueblos reales: las iglesias y conventos que en los datos van como nave (San Juan Bautista en la plaza de los Fueros de Estella, conventos de Estella, Olite, Sangüesa, Tafalla, Viana, Javier y Marcilla) llevan campanario con campanas y reloj; antes parecían almacenes. Visto a 1280×720 y 844×390; prueba de humo de `docs/` sin errores.
 - 25 nov, noche (4.ª), la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `d11e7890`. Pelota: si ganas el partido, tras el «¡Tanto y partido!» un plano cercano de tu pelotari bailando (unos 5 s, de tres cuartos, con el rival al fondo y sin botones; solo el marcador) y luego los highlights. Visto a 1280×720 y 844×390; prueba de humo de `docs/` sin errores.
 - 25 nov, noche (3.ª), la hizo la ventana de Auditoría (el autor: «Vete subiendo todo a la web»): `master` hasta `9334a0d8`. Rocas bien asentadas en las laderas de todos los pueblos y parajes (tumbadas con la pendiente, sin hueco por el lado de abajo) y, en la pelota, la elección de material sin la escena 3D de la caja (queda la tarjeta). Probada en el móvil tumbado (844×390): el mapa carga sin errores.
