@@ -917,12 +917,19 @@ export class Nature {
     }
     const m = rockMaterial(this.quality);
     const q = new THREE.Quaternion(), e = new THREE.Euler(), at = new THREE.Vector3(), sc = new THREE.Vector3();
+    const qa = new THREE.Quaternion(), qi = new THREE.Quaternion(), nrm = new THREE.Vector3(), up = new THREE.Vector3();
     for (let v = 0; v < parts.length; v++) {
       const list = spots.filter(s => s.v === v);
       if (!list.length) continue;
       for (const s of list) {
         e.set((rnd() - 0.5) * 0.35, rnd() * 6.28, (rnd() - 0.5) * 0.35); q.setFromEuler(e);
-        s.m = new THREE.Matrix4().compose(at.set(s.x, terrainHeight(s.x, s.z) - s.s * s.sink, s.z), q, sc.set(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
+        // bien asentada en la ladera (el autor: «que esté bien integrado todo con el suelo»): antes se hundía desde la
+        // altura del centro y en las laderas, por el lado de abajo, quedaba un hueco con su sombra despegada. Ahora se
+        // tumba casi con la pendiente y se hunde desde lo más bajo del suelo bajo su planta
+        const r0 = s.s * 0.6, h0 = terrainHeight(s.x, s.z), gx = terrainHeight(s.x + r0, s.z) - terrainHeight(s.x - r0, s.z), gz = terrainHeight(s.x, s.z + r0) - terrainHeight(s.x, s.z - r0);
+        let gmin = h0; for (const [dx, dz] of [[r0, 0], [-r0, 0], [0, r0], [0, -r0], [r0 * 0.7, r0 * 0.7], [-r0 * 0.7, r0 * 0.7], [r0 * 0.7, -r0 * 0.7], [-r0 * 0.7, -r0 * 0.7]]) gmin = Math.min(gmin, terrainHeight(s.x + dx, s.z + dz));
+        nrm.set(-gx / (2 * r0), 1, -gz / (2 * r0)).normalize(); up.set(0, 1, 0); qa.setFromUnitVectors(up, nrm); qa.slerp(qi, 0.25); q.premultiply(qa);
+        s.m = new THREE.Matrix4().compose(at.set(s.x, Math.min(h0 - s.s * s.sink, gmin - s.s * s.sink * 0.55), s.z), q, sc.set(s.s * (0.8 + rnd() * 0.5), s.s * (0.7 + rnd() * 0.4), s.s * (0.8 + rnd() * 0.5)));
         if (s.s > 1.1) addCircle(s.x, s.z, s.s * 0.75);
       }
       // rocas por trozos: detalladas y con sombra de cerca (cinco formas)…
