@@ -7,7 +7,7 @@ import { terrainHeight, deckY, addPlatform } from './heightfield.js';
 import { addBox, addCircle, rectFree } from './colliders.js';
 import { PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
-import { archedWall } from './civic.js';
+import { archedWall, pointedPanel, pointedRing, statue } from './civic.js';
 
 function boxCol(x, z, ry, lx, lz, w, d, meta) { const p = toW(x, z, ry, lx, lz); return addBox(p.x, p.z, w, d, ry, meta); }
 // (el suelo más bajo y el más alto bajo una planta rectangular, de w × d centrada en x, z: los muros bajan hasta el más bajo y
@@ -171,6 +171,75 @@ function solapan(a, b, m = 0) {
   const radio = (r, [ux, uz]) => { const [[ax, az], [bx, bz]] = ejes(r); return r.hw * Math.abs(ax * ux + az * uz) + r.hd * Math.abs(bx * ux + bz * uz); };
   for (const u of [...ejes(a), ...ejes(b)]) if (Math.abs((b.x - a.x) * u[0] + (b.z - a.z) * u[1]) >= radio(a, u) + radio(b, u) - m) return false;
   return true;
+}
+// Portada gótica de fachada: abocinada, con arquivoltas apuntadas sobre columnillas y su friso de capiteles, el tímpano
+// con la mandorla sobre el dintel, el parteluz con su imagen, estatuas en las jambas bajo doseletes, el gablete con su
+// florón entre dos pináculos, una arquería ciega encima y el rosetón, todo a la medida de la fachada. Antes, en las
+// góticas grandes (Santa María la Real de Olite, 22 m de fachada), una puerta de medio punto de 3 m y un rosetón de 2,5 m
+// en un muro liso (el autor, 25 nov: «más detalles a las iglesias… las catedrales»). F: el pie de la fachada, z hacia
+// fuera; W, Hh y rise: ancho, altura y piñón de la nave; mat y mk: la piedra del muro y la clara
+function portadaGotica(B, F, W, Hh, rise, mat, mk) {
+  const k = clamp(W / 12, 1, 1.75), dw = 2.6 + (k - 1) * 1.6, dh = 3.2 + (k - 1) * 1.4, n = 5 + Math.round((k - 1) * 1.4), st = 0.24;
+  const P = MM(F, M(0, 0.3, 0)), zf = (i) => 0.38 + i * 0.1, Wo = dw + 2 * n * st, zo = zf(n - 1), hj = dh - 0.36;
+  // la puerta de dos hojas bajo el dintel, el parteluz con su imagen y el tímpano con la mandorla
+  B.add('puerta', uvHueco(box(dw, dh - 0.4, 0.12)), MM(P, M(0, (dh - 0.4) / 2, 0.06)));
+  for (const y of [0.7, dh - 1.0]) for (const s of [-1, 1]) B.add('iron', box(dw * 0.4, 0.08, 0.03), MM(P, M(s * dw * 0.26, y, 0.13)));
+  B.add(mk, box(dw + 0.12, 0.4, 0.34), MM(P, M(0, dh - 0.2, 0.17)));
+  B.add(mk, pointedPanel(dw, dw * 0.866 + 0.001, 0.12), MM(P, M(0, dh, 0.07)));
+  B.add(mat, new THREE.CircleGeometry(1, 20), MM(P, M(0, dh + dw * 0.3, 0.135, 0, 0, 0, dw * 0.2, dw * 0.27, 1)));
+  statue(B, MM(P, M(0, dh + dw * 0.08, 0.16)), dw * 0.36, mk);
+  B.add(mk, box(0.34, dh - 0.4, 0.38), MM(P, M(0, (dh - 0.4) / 2, 0.19)));
+  const hs = clamp(dh - 1.5, 1.5, 2.1), imagen = (T, arm) => {
+    B.add(mk, box(0.44, 0.16, 0.36), MM(T, M(0, 0.82, -0.06)));
+    statue(B, MM(T, M(0, 0.9, 0)), hs, mat, arm);
+    B.add(mk, box(0.5, 0.22, 0.42), MM(T, M(0, 0.9 + hs + 0.2, -0.04)));
+    B.add(mk, new THREE.ConeGeometry(0.3, 0.6, 4), MM(T, M(0, 0.9 + hs + 0.6, -0.04, Math.PI / 4)));
+  };
+  imagen(MM(P, M(0, 0, 0.5)), 1);
+  // las arquivoltas, cada una sobre su jamba con zócalo y columnilla, y el friso de capiteles a los dos lados
+  for (let i = 0; i < n; i++) {
+    const wi = dw + 2 * i * st, m = i % 2 ? mk : mat, z = zf(i);
+    B.add(m, pointedRing(wi, st, z), MM(P, M(0, dh, z / 2)));
+    for (const s of [-1, 1]) {
+      const x = s * (wi / 2 + st / 2);
+      B.add(mat, box(st, hj, z - 0.08, 1), MM(P, M(x, hj / 2, (z - 0.08) / 2)));
+      B.add(mk, box(st + 0.02, 0.8, z + 0.06, 1), MM(P, M(x, 0.4, (z + 0.06) / 2)));
+      B.add(mk, new THREE.CylinderGeometry(0.085, 0.095, hj - 0.8, 8), MM(P, M(x, 0.8 + (hj - 0.8) / 2, z - 0.04)));
+      if (i % 2 && i < n - 1) imagen(MM(P, M(x, 0, z + 0.2)), s);
+    }
+  }
+  for (const s of [-1, 1]) B.add(mk, box(n * st + 0.06, 0.36, zo + 0.1, 1), MM(P, M(s * (dw / 2 + n * st / 2), dh - 0.18, (zo + 0.1) / 2)));
+  // el gablete: el frontón de piedra sobre la portada, con sus molduras, el florón y un pináculo a cada lado
+  const y0 = dh + 0.2, yA = dh + Wo * 0.866 + 1.0, hx = Wo / 2 + 0.3, a = Math.atan2(yA - y0, hx), Ls = Math.hypot(hx, yA - y0);
+  B.add(mk, gable(Wo + 0.6, yA - y0, 0.1), MM(P, M(0, y0, 0.05)));
+  for (const s of [-1, 1]) B.add(mk, box(Ls + 0.3, 0.26, 0.36, 1), MM(P, M(s * hx / 2, (y0 + yA) / 2, 0.2, 0, 0, -s * a)));
+  B.add(mk, new THREE.ConeGeometry(0.28, 1.1, 4), MM(P, M(0, yA + 0.6, 0.2, Math.PI / 4)));
+  for (const s of [-1, 1]) { const x = s * (Wo / 2 + 0.75), hp = yA - 0.6;
+    B.add(mat, box(0.72, hp, 0.8, 1), MM(P, M(x, hp / 2, 0.4)));
+    B.add(mk, box(0.52, 0.9, 0.56, 1), MM(P, M(x, hp + 0.45, 0.4)));
+    B.add(mk, new THREE.ConeGeometry(0.38, 1.7, 4), MM(P, M(x, hp + 1.75, 0.4, Math.PI / 4))); }
+  // arquería ciega a lo ancho de la fachada, si cabe con el rosetón encima
+  const rr = clamp(W * 0.09, 1.25, 2.1), yf = yA + 1.0, pitch = (W - 2.4) / Math.max(1, Math.floor((W - 2.4) / 1.25)), nf = Math.round((W - 2.4) / pitch);
+  const friso = nf >= 4 && yf + 1.7 + 2 * rr + 0.4 < Hh + rise * 0.55;
+  if (friso) {
+    const wa = pitch - 0.35, ha = 1.3, ys = ha - wa * 0.866;
+    B.add(mk, box(W - 1.6, 0.2, 0.36, 1), MM(P, M(0, yf, 0.18)));
+    B.add(mk, box(W - 1.6, 0.18, 0.3, 1), MM(P, M(0, yf + 0.1 + ha + 0.12, 0.15)));
+    for (let j = 0; j < nf; j++) {
+      const x = (j - (nf - 1) / 2) * pitch;
+      B.add('stoneDark', pointedPanel(wa, ha, 0.04), MM(P, M(x, yf + 0.1, 0.02)));
+      B.add(mk, pointedRing(wa, 0.1, 0.16), MM(P, M(x, yf + 0.1 + ys, 0.08)));
+      for (const s of [-1, 1]) B.add(mk, box(0.1, ys, 0.14, 1), MM(P, M(x + s * (wa / 2 + 0.05), yf + 0.1 + ys / 2, 0.08)));
+    }
+  }
+  // el rosetón, con su tracería: anillo, óculo, doce radios y un lóbulo entre cada dos
+  const yr = Math.max(Hh - 4.6, (friso ? yf + 1.8 : yA + 0.8) + rr + 0.3), RF = MM(F, M(0, yr, 0)), gr = 0.16 + 0.06 * k;
+  B.add(mk, new THREE.TorusGeometry(rr, gr, 6, 28), MM(RF, M(0, 0, 0.15)));
+  B.add('roseton', new THREE.CircleGeometry(rr * 0.97, 28), MM(RF, M(0, 0, 0.06)));
+  B.add(mk, new THREE.TorusGeometry(rr * 0.28, 0.08, 5, 14), MM(RF, M(0, 0, 0.12)));
+  for (let j = 0; j < 12; j++) { const t = j * Math.PI / 6;
+    B.add(mk, box(0.08, rr * 0.66, 0.1), MM(RF, M(Math.sin(t) * rr * 0.62, Math.cos(t) * rr * 0.62, 0.12, 0, 0, -t)));
+    const u = t + Math.PI / 12; B.add(mk, new THREE.TorusGeometry(rr * 0.13, 0.035, 4, 10), MM(RF, M(Math.sin(u) * rr * 0.8, Math.cos(u) * rr * 0.8, 0.11))); }
 }
 // Panda de claustro contra un muro: el muro en x = x0 (local de T), la arquería a gd metros de él, n tramos de s metros
 // centrados en z = zc. suelo: el más bajo y el más alto bajo la panda (lo, hi: antepecho y andén bajan hasta el más bajo);
@@ -347,16 +416,8 @@ export function church(B, x, z, ry, style, fam, opts = {}) {
     boxCol(x, z, ry, W / 2 + 3.6, -L / 2 + 10.5, 0.9, 15.6, { solidView: true });
   } else {
     // (la portada, con el umbral a la altura del peldaño de arriba de la escalinata, 30 cm sobre el suelo de la iglesia)
-    portal(B, MM(F, M(0, 0.3, 0)), style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
-    if (style === 'gothic') {
-      // rosetón con tracería: anillo, óculo central y ocho radios de piedra sobre la vidriera
-      const RF = MM(F, M(0, Hh - 4.6, 0));
-      B.add('ashlar', new THREE.TorusGeometry(1.25, 0.25, 6, 20), MM(RF, M(0, 0, 0.15)));
-      B.add('roseton', new THREE.CircleGeometry(1.2, 24), MM(RF, M(0, 0, 0.06)));
-      B.add('ashlar', new THREE.TorusGeometry(0.34, 0.08, 5, 14), MM(RF, M(0, 0, 0.12)));
-      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; B.add('ashlar', box(0.09, 0.82, 0.1), MM(RF, M(Math.sin(a) * 0.76, Math.cos(a) * 0.76, 0.12, 0, 0, -a))); }
-      for (let k = 0; k < 8; k++) { const a = (k + 0.5) * Math.PI / 4; B.add('ashlar', new THREE.TorusGeometry(0.2, 0.04, 4, 10), MM(RF, M(Math.sin(a) * 0.82, Math.cos(a) * 0.82, 0.11))); }
-    }
+    if (style === 'gothic') portadaGotica(B, F, W, Hh, rise, mat, mat === 'ashlar' ? 'sandstone' : 'ashlar');
+    else portal(B, MM(F, M(0, 0.3, 0)), style === 'romanesque' ? 1.2 : 1.5, style === 'romanesque' ? 4 : 3, mat, 3.4);
     if (style === 'baroque') { for (const s of [-1, 1]) B.add(mat, box(0.7, Hh, 0.5), MM(F, M(s * 3.2, Hh / 2, 0.2))); B.add(mat, box(W, 0.6, 0.6), MM(F, M(0, Hh * 0.62, 0.2))); }
     // torre en un lateral de la cabecera (la barroca, junto a la fachada); con «twin», dos torres gemelas flanquean
     // la fachada, como en Santiago de Elizondo

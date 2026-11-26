@@ -26,7 +26,7 @@ function centro(P) {
   for (let i = 0; i < P.length; i++) { const [x0, z0] = P[i], [x1, z1] = P[(i + 1) % P.length], c = x0 * z1 - x1 * z0; a += c; cx += (x0 + x1) * c; cz += (z0 + z1) * c; }
   return { x: cx / (3 * a), z: cz / (3 * a) };
 }
-function dentro(P, x, z) {
+export function dentro(P, x, z) {
   let s = false;
   for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, zi] = P[i], [xj, zj] = P[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) s = !s; }
   return s;
@@ -96,12 +96,13 @@ function ladronera(B, mat, l, t, y, w = 2.4) {
   B.add(mat, box(w, 0.8, 0.4), MM(M(x, y + 0.4, z, l.ry), M(0, 0, 0.3)));
 }
 // ventana con reja (hueco oscuro y barrotes) en la cara de un lado
-function ventanaReja(B, l, t, y, w = 1.0, h = 1.4) {
+function ventanaReja(B, l, t, y, w = 1.0, h = 1.4, mk = 'sandstoneRed') {
   const [x, z] = sobre(l, t, 0.03), T = M(x, y, z, l.ry);
   B.add('dark', box(w, h, 0.06), T);
   for (let k = 1; k < 4; k++) B.add('iron', box(0.05, h, 0.05), MM(T, M(-w / 2 + k * w / 4, 0, 0.06)));
   for (const v of [-h / 3, h / 3]) B.add('iron', box(w, 0.05, 0.05), MM(T, M(0, v, 0.06)));
-  B.add('sandstoneRed', box(w + 0.5, 0.22, 0.25), MM(T, M(0, -h / 2 - 0.11, 0.1)));
+  B.add(mk, box(w + 0.5, 0.22, 0.25), MM(T, M(0, -h / 2 - 0.11, 0.1)));
+  B.add(mk, box(w + 0.3, 0.18, 0.16), MM(T, M(0, h / 2 + 0.09, 0.06)));
 }
 const saetera = (B, l, t, y, h = 1.3) => { const [x, z] = sobre(l, t, 0.03); B.add('dark', box(0.2, h, 0.06), M(x, y, z, l.ry)); };
 // rectángulo (w a lo largo de ry, d de fondo) como planta
@@ -360,7 +361,7 @@ function coronaRedonda(B, mat, x, z, r, y, n = 12) {
 // cono de pizarra con su remate de hierro (torres redondas y la ochavada, como en las fotos)
 function conoPizarra(B, x, z, r, y, h, n = 12) {
   B.add('slate', new THREE.ConeGeometry(r, h, n), M(x, y + h / 2, z, Math.PI / n));
-  B.add(SO, box(r * 2 + 0.3, 0.3, r * 2 + 0.3), M(x, y + 0.1, z));
+  B.add(SO, new THREE.CylinderGeometry(r - 0.05, r - 0.3, 0.32, n), M(x, y + 0.1, z, Math.PI / n));   // (el alero de piedra, redondo como la torre: era una losa cuadrada)
   B.add('iron', box(0.1, 1.5, 0.1), M(x, y + h + 0.7, z)); B.add('iron', new THREE.SphereGeometry(0.16, 6, 4), M(x, y + h + 0.4, z));
   B.add('iron', box(0.62, 0.34, 0.03), M(x + 0.3, y + h + 1.2, z));   // (la veleta)
 }
@@ -389,6 +390,19 @@ export function palacioOlite(B, P) {
   almenas(B, SO, PA, y + hc);
   colisionesPlanta(PA);
   for (const l of lados(PA)) if (l.L > 9) { ventanaGotica(B, l, l.L * 0.3, y + 9.5); ventanaGotica(B, l, l.L * 0.7, y + 9.5); if (l.L > 15) ladronera(B, SO, l, l.L * 0.5, y + hc - 0.2); }
+  // los lienzos, que eran paños lisos de 15 m: la zarpa escalonada del pie, una imposta a media altura, la cornisa bajo el
+  // antepecho y, abajo, ventanas con reja (salvo junto a la puerta) y, en los muy largos, otra ventana gótica en medio
+  // (el autor, 25 nov: «más detalles… más texturas»)
+  { const pa = OLITE.puerta, gm = [(pa.a[0] + pa.b[0]) / 2, (pa.a[1] + pa.b[1]) / 2], lejos = (x, z) => Math.hypot(x - gm[0], z - gm[1]) > 4.5;
+    for (const l of lados(PA)) {
+      if (l.L < 1.5) continue;
+      for (const [d, yt] of [[0.85, y + 0.5], [0.55, y + 1.1], [0.28, y + 1.6]]) { const [x, z] = sobre(l, l.L / 2, d / 2 - 0.02); B.add(SO, box(l.L + d * 2, yt - yb, d, 2.4), M(x, (yb + yt) / 2, z, l.ry)); }
+      { const [x, z] = sobre(l, l.L / 2, 0.14); B.add(SO, box(l.L + 0.3, 0.24, 0.32, 1), M(x, y + 7.2, z, l.ry)); }
+      { const [x, z] = sobre(l, l.L / 2, 0.2); B.add(SO, box(l.L + 0.45, 0.3, 0.44, 1), M(x, y + hc - 0.12, z, l.ry)); }
+      if (l.L > 9) for (const f of [0.3, 0.7]) { const [x, z] = sobre(l, l.L * f, 0); if (lejos(x, z)) ventanaReja(B, l, l.L * f, y + 4.3, 0.9, 1.3, SO); }
+      else if (l.L > 5) saetera(B, l, l.L / 2, y + 5);
+      if (l.L > 22) ventanaGotica(B, l, l.L * 0.5, y + 9.5);
+    } }
   // la Gran Torre, en medio, más alta, con la torre Nueva a su lado sur
   torreCuadrada(B, SO, OLITE.gran, y + hc - 1, y, 22, { canesCorona: true, ventana: false });
   { const g = OLITE.gran, tn = { x: g.x + Math.sin(g.ry) * 0 + 6, z: g.z + 9.5, ry: g.ry, w: 7, d: 6 }; torreCuadrada(B, SO, tn, y + hc - 1, y, 25.5); }
@@ -396,6 +410,10 @@ export function palacioOlite(B, P) {
   for (const t of OLITE.sur) {
     B.add(SO, prisma(redondo(t.x, t.z, t.r, 16), yb, y + t.h)); conoPizarra(B, t.x, t.z, t.r + 0.45, y + t.h, t.r * 2.5, 16);
     for (const l of lados(redondo(t.x, t.z, t.r, 16))) if (l.nz > 0.6) saetera(B, l, l.L / 2, y + t.h * 0.55);
+    // (el talud del pie, un bocel a dos tercios y una ventana gótica alta mirando afuera)
+    B.add(SO, new THREE.CylinderGeometry(t.r + 0.05, t.r + 0.65, y + 1.8 - yb, 16), M(t.x, (yb + y + 1.8) / 2, t.z));
+    B.add(SO, new THREE.CylinderGeometry(t.r + 0.13, t.r + 0.13, 0.26, 16), M(t.x, y + t.h * 0.64, t.z));
+    { const l = lados(redondo(t.x, t.z, t.r, 16)).reduce((a, b) => (b.nz > a.nz ? b : a)); ventanaGotica(B, l, l.L / 2, y + t.h * 0.8, 0.7, 1.5); }
     addBox(t.x, t.z, t.r * 2, t.r * 2, 0, { solidView: true });
   }
   // la Galería del Rey: arcos apuntados calados con columnillas, bajo un tejadillo de pizarra, asomando por encima del

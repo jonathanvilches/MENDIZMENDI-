@@ -140,6 +140,14 @@ export function pointedPanel(w, h, depth) {
   g.translate(0, 0, -depth / 2);
   return g;
 }
+// arco apuntado de piedra (arquivoltas, marcos de ventana): de ancho wi por dentro y t de grueso, con la línea de
+// arranque en y = 0 y el grueso de depth, centrado en z
+export function pointedRing(wi, t, depth) {
+  const wo = wi + 2 * t, s = new THREE.Shape();
+  s.moveTo(-wo / 2, 0); s.absarc(wo / 2, 0, wo, Math.PI, Math.PI * 2 / 3, true); s.absarc(-wo / 2, 0, wo, Math.PI / 3, 0, true);
+  s.lineTo(wi / 2, 0); s.absarc(-wi / 2, 0, wi, 0, Math.PI / 3, false); s.absarc(wi / 2, 0, wi, Math.PI * 2 / 3, Math.PI, false); s.lineTo(-wo / 2, 0);
+  const g = new THREE.ExtrudeGeometry(s, { depth, bevelEnabled: false, curveSegments: curva(5) }); g.translate(0, 0, -depth / 2); return g;
+}
 // muro con un hueco en arco (apuntado o de medio punto) que llega al suelo: puertas de claustros, murallas, plazas
 export function archedWall(w, h, ow, oh, depth, pointed = false) {
   const s = new THREE.Shape();
