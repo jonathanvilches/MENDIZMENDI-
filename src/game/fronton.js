@@ -81,7 +81,7 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
 // manos (el autor los quiere así; antes iban de blanco con boina, moño y pañuelo), a la altura de la chapa, del 4 y del
 // 7, de cara a la cancha. En cada
 // falta (chapa, fuera, alta, pasa…) levanta la mano el que la ve: el de la chapa lo del frontis; si no, el más cercano
-const _jv = new THREE.Vector3();
+const _jv = new THREE.Vector3(), _bolaW = new THREE.Vector3();
 function makeJueces(G, C) {
   const g = C.group; g.updateMatrixWorld(true);
   const yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y, x = COURT.W / 2 + (C.contra || 2.6) * 0.62;
@@ -127,7 +127,37 @@ async function sentadoBotillero(persona) {
   for (let i = 0; i < A.count; i++) { const y = A.getY(i) - suelo; if (y > ASIENTO_Y + 0.19 && y < ASIENTO_Y + 0.39 && Math.abs(A.getX(i)) < 0.2) espalda = Math.min(espalda, A.getZ(i)); }
   const mat = conPiel(new THREE.MeshStandardMaterial({ map: q.map, roughness: 0.82, emissive: 0xffffff, emissiveMap: q.map, emissiveIntensity: LUZ_PROPIA })); sharpMap(mat);
   const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.userData.suelo = suelo; m.userData.espalda = Number.isFinite(espalda) ? espalda : -0.15;
+  try { cabezaQueMira(geo, mat, m, suelo); } catch (e) { console.warn('botillero cabeza', e); }
   return m;
+}
+// (y la cabeza, que sigue el juego: el autor, 26 nov, «me gustaría que los botilleros siguieran el juego con la cabeza»,
+// después de «las cabezas van girando… tienen que tener una posición normal y mirar el juego» y «movimientos humanos,
+// coherentes y lógicos». Solo gira la cabeza sobre el cuello, como lo haría su hueso: lo que queda por encima del cuello
+// (la parte más estrecha entre los hombros y la cabeza) gira entero y el cuello, en 6 cm, de poco a nada, para que la
+// piel siga unida. El cuerpo, quieto. Cuánto gira y cómo, en mueveBotillero)
+function cabezaQueMira(geo, mat, m, suelo) {
+  const A = geo.attributes.position, n = A.count; let top = -Infinity;
+  for (let i = 0; i < n; i++) top = Math.max(top, A.getY(i));
+  const H = top - suelo; let cuello = null, ancho = Infinity;
+  for (let y = suelo + 0.55 * H; y < suelo + 0.85 * H; y += 0.005) {   // (el cuello: el corte más estrecho de lado a lado)
+    let lo = Infinity, hi = -Infinity, sx = 0, sz = 0, k = 0;
+    for (let i = 0; i < n; i++) { const vy = A.getY(i); if (Math.abs(vy - y) > 0.006) continue; const x = A.getX(i); lo = Math.min(lo, x); hi = Math.max(hi, x); sx += x; sz += A.getZ(i); k++; }
+    if (k > 6 && hi - lo < ancho) { ancho = hi - lo; cuello = new THREE.Vector3(sx / k, y, sz / k); }
+  }
+  if (!cuello) return;
+  const w = new Float32Array(n); for (let i = 0; i < n; i++) w[i] = THREE.MathUtils.smoothstep(A.getY(i), cuello.y - 0.03, cuello.y + 0.03);
+  geo.setAttribute('aCab', new THREE.BufferAttribute(w, 1));
+  const U = { uCabG: { value: new THREE.Vector2() }, uCabP: { value: cuello } }, antes = mat.onBeforeCompile;
+  mat.onBeforeCompile = function (sh, r) { antes?.call(this, sh, r); Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
+attribute float aCab; uniform vec2 uCabG; uniform vec3 uCabP;
+mat3 cabRot(vec2 g) { float cy = cos(g.x), sy = sin(g.x), cp = cos(g.y), sp = sin(g.y);
+  return mat3(cy, 0., -sy, 0., 1., 0., sy, 0., cy) * mat3(1., 0., 0., 0., cp, -sp, 0., sp, cp); }`)
+      .replace('#include <beginnormal_vertex>', '#include <beginnormal_vertex>\nmat3 cabR = cabRot(uCabG * aCab); objectNormal = cabR * objectNormal;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed = uCabP + cabR * (transformed - uCabP);');
+  };
+  const clave = mat.customProgramCacheKey?.bind(mat); mat.customProgramCacheKey = () => (clave ? clave() : '') + '|cabeza';
+  m.userData.cabeza = { U, cuello, yaw: 0, pitch: 0 };
 }
 async function makeBotilleros(G, C, pairs) {
   const g = C.group; g.updateMatrixWorld(true);
@@ -157,12 +187,25 @@ async function makeBotilleros(G, C, pairs) {
 }
 const quitaBotillero = (r) => { r.obj.parent?.remove(r.obj); r.dispose?.(); const m = r.sentado; if (m) { m.parent?.remove(m); m.geometry.dispose(); m.material.dispose(); } };
 const giroCorto = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+// (sentado, la cabeza tras la pelota, como quien sigue el partido: de lado, hasta unos 60°, y de arriba abajo, poco, que el
+// resto lo hacen los ojos; con un poco de retraso y nunca más deprisa que una cabeza de verdad, sin tirones. Sin pelota,
+// vuelve despacio al frente)
+const _bl = new THREE.Vector3();
+function sigueBola(m, bola, dt) {
+  const C = m.userData.cabeza; if (!C) return;
+  let yaw = 0, pitch = 0;
+  if (bola) { m.updateMatrixWorld(); const d = m.worldToLocal(_bl.copy(bola)).sub(C.cuello), h = Math.hypot(d.x, d.z);
+    if (h > 0.3) { yaw = THREE.MathUtils.clamp(Math.atan2(d.x, d.z), -1.05, 1.05); pitch = THREE.MathUtils.clamp(Math.atan2(d.y, h) * 0.5, -0.18, 0.12); } }
+  const k = 1 - Math.exp(-dt * (bola ? 3.2 : 1.2)), max = 2.4 * dt;
+  C.yaw += THREE.MathUtils.clamp((yaw - C.yaw) * k, -max, max); C.pitch += THREE.MathUtils.clamp((pitch - C.pitch) * k, -max, max);
+  C.U.uCabG.value.set(C.yaw, C.pitch);
+}
 // (un botillero, en cada fotograma. Mientras se juega, sentado. En el descanso, con su pelotari ya sentado, de pie: espera
 // al lado de su silla lo que dura el negro y va andando hasta delante de él, mirando adonde va; al llegar se para y se
 // vuelve hacia él, sin saltos. Solo andar y estar quieto, las animaciones de la figura: nada encima)
-function mueveBotillero(a, D, dt) {
+function mueveBotillero(a, D, dt, bola) {
   const o = a.obj, u = o.userData, aqui = !!(D && D.dentro && !D.fuera);
-  if (a.sentado) a.sentado.visible = !aqui;
+  if (a.sentado) { a.sentado.visible = !aqui; if (!aqui) sigueBola(a.sentado, bola, dt); }
   if (!aqui) { a.viene = false; u.llegado = false; o.visible = false; return; }
   if (!a.viene) { a.viene = true; a.espera = DESC.fundido.negro; u.llegado = false; o.position.copy(a.sale); o.rotation.y = Math.atan2(a.pie.x - a.sale.x, a.pie.z - a.sale.z); o.visible = true; }
   if (a.espera > 0) { a.espera -= dt; a.update(dt, 0, true, 0); return; }
@@ -838,7 +881,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
       // (los botilleros: sentados en su silla; en el descanso, con su pelotari ya sentado, llegan andando hasta delante de él)
-      try { if (botis.length) { const D = match.desc; for (const a of botis) mueveBotillero(a, D, dt); } } catch (e) { console.warn('botilleros', e); botis = []; }
+      try { if (botis.length) { const D = match.desc, b = fronton.court?.ball, bola = b && b.visible !== false ? b.getWorldPosition(_bolaW) : null; for (const a of botis) mueveBotillero(a, D, dt, bola); } } catch (e) { console.warn('botilleros', e); botis = []; }
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); brazoJuez(j, dt); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);

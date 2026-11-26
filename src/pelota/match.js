@@ -33,7 +33,7 @@ import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
 const BAILE_T0 = 1.0, BAILE_S = 5.0;   // (el plano del baile del que gana: empieza al segundo del último tanto y acaba con el baile, que dura 6 s)
 const ESCENA_CESTANO = false;
-const CHARLA_FOV = 26;   // (el campo de la cámara en la charla del botillero: teleobjetivo, planoCharla)   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
+const CHARLA_FOV = 44;   // (el campo de la cámara en la charla del botillero, planoCharla: algo abierto, para encuadrar a los dos de más lejos sin que la cámara se aleje hasta la grada; con 26, a 5 m, se metía entre el público y salía una mano enorme)   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 // vuelta a su sitio entre tanto y tanto (la figura; la lógica ya los ha puesto allí): a paso de carrera, con su arranque y
 // su frenada, en m/s y m/s²
@@ -2127,7 +2127,7 @@ export class PelotaMatch {
       // hablando, parece que el botillero está mucho más lejos». Por parejas, el plano de antes)
       this.charlaFov = 0; if (!charla) this.charlaCam = null;
       const CC = charla && !g.pairs && S.pie?.you ? (this.charlaCam ||= this.planoCharla(S, grp)) : null;
-      if (CC) { const t = Math.tan(CHARLA_FOV * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78), H = Math.max(1.35, Math.min(1.6, 2.85 / asp)), D = H / (2 * t);
+      if (CC) { const t = Math.tan(CHARLA_FOV * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78), H = Math.max(2.5, Math.min(2.9, 5.2 / asp)), D = H / (2 * t);   // (de alto, unos 2,5-3 m: los dos de cuerpo entero, con aire alrededor, sin acercarse tanto; el autor, 26 nov, «no hace falta que se arrime tanto la cámara… se ve toda la imperfección de la malla»)
         const ly = CC.top + 0.12 * H - H / 2;
         lp[0] = CC.mx + CC.dx * D; lp[1] = ly + 0.08; lp[2] = CC.mz + CC.dz * D; ll[0] = CC.mx; ll[1] = ly; ll[2] = CC.mz; this.charlaFov = CHARLA_FOV; }
       else if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.45, tx = S.x - 0.3;
