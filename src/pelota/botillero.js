@@ -46,9 +46,10 @@ export function sillasDe(contra = 2.6, pairs = false) {
     let d = 0.7; S[lado] = { x, z: zc + s * d };   // (a 17 cm de la nevera: con 0,6 el codo del pelotari sentado se metía en ella)
     if (pairs) { d += 0.54; S[lado + 'Mate'] = { x, z: zc + s * d }; }
     d += 0.54; bot[lado] = { x, z: zc + s * d };
-    // (el tuyo, delante de tu pelotari y un poco a un lado, echado hacia él, como en la primera foto; el del rival, de pie
-    // detrás de la silla del suyo, a su lado: la cámara del descanso mira desde la cancha y, delante, lo tapaba todo)
-    pie[lado] = lado === 'rival' ? { x: x + 0.62, z: S[lado].z + s * (pairs ? 0.27 : 0.45) } : pairs ? { x: x - 0.86, z: S[lado].z + s * 0.27 } : { x: x - 0.64, z: S[lado].z + s * 0.5 };
+    // (cada uno, delante de su pelotari y un poco a un lado, echado hacia él, como en la primera foto; los dos igual, uno
+    // reflejo del otro a cada lado de la nevera: el autor, 26 nov, «el botillero del rival tiene que estar en la misma
+    // posición que nuestro botillero… todo tiene que ser coherente»)
+    pie[lado] = pairs ? { x: x - 0.86, z: S[lado].z + s * 0.27 } : { x: x - 0.64, z: S[lado].z + s * 0.5 };
   }
   return { ...S, sillas: [...Object.values(S), bot.you, bot.rival], nevera: { x, z: zc }, bot, pie, x };
 }

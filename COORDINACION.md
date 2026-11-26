@@ -18,7 +18,8 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `46976aca`.)
+- Descanso: el botillero del rival, delante de su pelotari como el tuyo (en espejo), y el plano de frente a la nevera,
+  con los cuatro enteros debajo del rótulo «Descanso» (Auditoría).
 
 
 ## Peticiones entre ventanas

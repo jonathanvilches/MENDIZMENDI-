@@ -2064,12 +2064,18 @@ export class PelotaMatch {
       if (on !== !!this.bailaOn) { this.bailaOn = on; this.camInit = false; if (on) { this.hud?.root?.classList.add('repe'); this.hud?.controls?.(false); } else if (!this.replay) this.hud?.root?.classList.remove('repe'); }   // (sin botones de juego: solo el baile y el marcador; vuelven al empezar el siguiente partido)
       if (on) { const [p, l] = this.camBaile(this.t - B.t0); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
       if (B?.sigue && this.t >= B.t1) { const n = B.sigue; B.sigue = null; setTimeout(n, 0); } }
-    // (el descanso: tu pelotari en su silla, desde la cancha y del lado de la nevera, como en la foto del autor: tu botillero
-    // de pie a la izquierda, tu pelotari en medio, la nevera y, detrás, el rincón del rival; con un corte al entrar y al
-    // salir. Las sillas miran siempre a la cancha, hacia -x, también en el trinquete, dentro junto a su pared derecha)
-    { const D = this.desc, ch = D && this.sillas?.you, on = !!ch && D.dentro && !D.fuera && !this.replay;
+    // (el descanso, desde la cancha y de frente a la nevera: a la izquierda tu botillero de pie y tu pelotari en su silla;
+    // en medio la nevera; a la derecha el pelotari rival y su botillero, igual que los tuyos, como en un espejo (el autor,
+    // 26 nov: «el botillero del rival tiene que estar en la misma posición que nuestro botillero… todo tiene que ser
+    // coherente»). Con un corte al entrar y al salir. Las sillas miran siempre a la cancha, hacia -x, también en el
+    // trinquete, dentro junto a su pared derecha)
+    { const D = this.desc, S = this.sillas, on = !!S?.you && D && D.dentro && !D.fuera && !this.replay;
       if (on !== !!this.descOn) { this.descOn = on; this.camInit = false; }
-      if (on) { lp[0] = ch.x - 3.2; lp[1] = 1.5; lp[2] = ch.z + 1.2; ll[0] = ch.x; ll[1] = 0.85; ll[2] = ch.z - 0.3; } }
+      // (a la distancia justa para que quepan los cuatro de lado a lado y, de alto, entre el suelo y la mitad de la pantalla:
+      // arriba va el rótulo «Descanso», y en el móvil tumbado tapaba las caras)
+      if (on) { const nz = S.nevera.z, t = Math.tan(this.cam.fov * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78);
+        const d = Math.max(1.5625 / t, (g.pairs ? 2.3 : 1.75) / (t * asp)), y = 1.34;   // (medido en los botilleros, de pie delante)
+        lp[0] = S.x - 0.64 - d; lp[1] = y; lp[2] = nz; ll[0] = S.x; ll[1] = y; ll[2] = nz; } }
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
     { const pl = this.entra?.go ? (this.entra.salu ? 2 : 1) : 0; if (pl !== (this.entraPl || 0)) { this.entraPl = pl; this.camInit = false; }
       if (pl) { const [p, l] = this.camEntrada(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; } }
