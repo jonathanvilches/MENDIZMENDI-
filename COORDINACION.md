@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `b38f89d2`.)
+(Nada por ahora: publicado el 26 nov hasta `04a77c1c`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, tarde (15.ª), la hizo la ventana de Auditoría (el autor: «Si», a quitar el recuadro de las tarjetas del Perfil como en el resto del juego): hasta `04a77c1c`. Perfil y ajustes sin cajas: tarjetas, ficha del jugador, lo que llevas y desplegables sueltos sobre el fondo oscuro (sección 14 de `src/ui/sinCajas.css`).
 - 26 nov, tarde (14.ª), la hizo la ventana de Auditoría (el autor: «la iconografía de selección de juego, de modo y ajustes que sea de la misma identidad… para selección de ajustes y demás me gustan planos, para lo demás 3D», con permiso de «Vete subiendo todo a la web»): hasta `b38f89d2`. Iconos de ajustes y de selección de modo en línea blanca, como los de la pausa (`src/ui/iconosLinea.js`, mío): Perfil y ajustes, «Cómo jugar» y «Mando del móvil» del menú y las etiquetas de modo de Torneos. Lo demás (sellos, cartas, contadores, carrusel del menú) sigue en 3D; el carrusel del menú, en 3D por decisión del autor («Opción A sin duda»).
 - 26 nov, tarde (13.ª), la hizo la ventana de Auditoría (el autor: «no delimites por cuadrícula… oscurezcas el fondo y liberes la información… aprovecha más los espacios… elimina barras separadoras… reordena… menos es más», con permiso de «Vete subiendo todo a la web»): hasta `8c69766f`. Las ventanas que se abren encima (presentación, material, final, pausa, ficha del pelotari, torneo, liga, avisos) sin caja ni sombra sobre el fondo oscurecido, con más aire, en mejor orden y sin rayas ni iconos que repiten (`src/ui/sinCajas.css`).
 - 26 nov (12.ª), la hizo la ventana de Auditoría (el autor: «que las conversaciones tengan sentido. Que vaya con el juego… el botillero del rival choca con la cabeza del pelotari», con permiso de «Vete subiendo todo a la web»): hasta `e55569fd`.
