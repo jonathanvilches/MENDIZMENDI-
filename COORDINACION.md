@@ -21,6 +21,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - Descanso: lo que dice el botillero sale del partido (con qué te gana tantos el rival, dónde fallas tú, qué le hace
   daño); el zurdo, de verdad en el juego (le cuesta el ancho); sin botones ni rótulo durante la charla y plano de tu
   botillero y tu pelotari por encima de la ventana (Auditoría).
+- Descanso: cada botillero, a un lado de su pelotari y apenas echado; ya no le mete la cabeza en la suya (Auditoría).
 
 
 ## Peticiones entre ventanas

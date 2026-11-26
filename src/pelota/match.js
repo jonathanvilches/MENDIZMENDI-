@@ -2083,7 +2083,7 @@ export class PelotaMatch {
         if (charla && this.hud) { this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); if (!(this.hud.autorT > 0)) this.hud.root?.classList.remove('calling'); } }
       // (medido: así el rival, sentado a metro y medio, queda fuera por la derecha, y la nevera en el borde; las cabezas,
       // grandes, enteras por debajo del marcador; de cintura para abajo, detrás de la ventana)
-      if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.5, tx = S.x - 0.3;
+      if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.45, tx = S.x - 0.3;
         lp[0] = tx - 0.6 * R; lp[1] = 1.02; lp[2] = cz + 0.8 * R; ll[0] = tx; ll[1] = 1.02; ll[2] = cz; }
       // (a la distancia justa para que quepan los cuatro de lado a lado y, de alto, entre el suelo y la mitad de la pantalla:
       // arriba va el rótulo «Descanso», y en el móvil tumbado tapaba las caras)

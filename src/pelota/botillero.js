@@ -46,10 +46,11 @@ export function sillasDe(contra = 2.6, pairs = false) {
     let d = 0.7; S[lado] = { x, z: zc + s * d };   // (a 17 cm de la nevera: con 0,6 el codo del pelotari sentado se metía en ella)
     if (pairs) { d += 0.54; S[lado + 'Mate'] = { x, z: zc + s * d }; }
     d += 0.54; bot[lado] = { x, z: zc + s * d };
-    // (cada uno, delante de su pelotari y un poco a un lado, echado hacia él, como en la primera foto; los dos igual, uno
+    // (cada uno, a un lado de su pelotari, un poco por delante y mirándole, como en la primera foto; los dos igual, uno
     // reflejo del otro a cada lado de la nevera: el autor, 26 nov, «el botillero del rival tiene que estar en la misma
-    // posición que nuestro botillero… todo tiene que ser coherente»)
-    pie[lado] = pairs ? { x: x - 0.86, z: S[lado].z + s * 0.27 } : { x: x - 0.64, z: S[lado].z + s * 0.5 };
+    // posición que nuestro botillero… todo tiene que ser coherente». A 0,8 de lado y no a medio metro: las cabezas de los
+    // muñecos son grandes y, echado hacia él, la suya se metía en la del pelotari sentado: «choca con la cabeza»)
+    pie[lado] = pairs ? { x: x - 1.0, z: S[lado].z + s * 0.27 } : { x: x - 0.6, z: S[lado].z + s * 0.85 };
   }
   return { ...S, sillas: [...Object.values(S), bot.you, bot.rival], nevera: { x, z: zc }, bot, pie, x };
 }
@@ -306,13 +307,14 @@ function mira(T, obj, B, punto, f, w, dt) {
   gira(B.Head, M.pitch - Math.asin(Math.max(-1, Math.min(1, c1.y))), eje);
 }
 /** El botillero de pie delante de su pelotari sentado (las fotos del autor): con peso w (0 a 1), un poco echado hacia él y
- *  con la cabeza baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */
+ *  la cabeza algo baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */
 export function posturaDePie(T, obj, w, fx, fz) {
   const B = huesos(obj); if (!B || w <= 0.001) return;
   obj.updateMatrixWorld(true);
   const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize();
-  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.3).normalize(), w);
-  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.45).normalize(), w);
+  // (apenas echado: inclinado como antes, su cabeza bajaba hasta la altura de la del pelotari sentado)
+  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);
+  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.3).normalize(), w);
 }
 
 // ---- el consejo del botillero ----
