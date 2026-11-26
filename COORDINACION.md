@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `d19c66fc`.)
+(Nada por ahora: publicado el 26 nov hasta `5435e79c`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, noche (24.ª), la hizo la ventana de Auditoría (el autor: botilleros, «Elige tu material», encuadres; «el botillero delante del pelotari», «las manos no son normales», «no quiero amarillo con verde», «pantallas de las que no puedo salir», «más visual… barras, aros», «el rótulo de último tanto estaba cortado»): hasta `5435e79c`. Charla del descanso frente a frente y sin la otra pareja detrás (`match.js`, `planoCharla`, `ocultaRival`; `botillero.js`, `sillasDe`, `posturaDePie`, `pulgar`); manos del botillero del color de su brazo (`fronton.js`, `pielDelBrazo`) y ropa pintada sin escalones (`vistePaisano`); final con aros y barras (`match.js`, `aros`, `estBloque`, `xpBloque`; sección 29 de `ui/sinCajas.css`); X en la elección de material y Esc como salida de las ventanas del partido. Desde `ui/sinCajas.css` se tapan cosas de `pelota/hud.js` (rótulo `.pel-call h3`, presentación) y de `ui/pausa.css` (colores de `.pz-res`). Prueba de humo sin errores.
 - 26 nov, noche (23.ª), la hizo la ventana de Auditoría (el autor: «no puedo entrar en el juego»): hasta `d19c66fc`. Si al entrar en un pueblo falla la descarga de una parte del juego (archivos de la versión anterior, con la página abierta desde antes de publicar), se carga la nueva y se entra en el mismo pueblo (`src/web/update.js`, `recargaPorModulo`; en `src/main.js`, en el `catch` de `play`). Prueba de humo y entrada desde la ficha sin errores.
 - 26 nov, noche (22.ª), la hizo la ventana de Auditoría (el autor: «No me gusta lo del consejo»; de tres propuestas eligió quitarlo): hasta `034d1270`. La carga de un pueblo, sin consejo ni nombre del sitio de la lámina (`src/main.js`); en la pelota y la pasaka sigue el «¿Sabías que…?». Prueba de humo sin errores.
 - 26 nov, noche (21.ª), la hizo la ventana de Auditoría (el autor: «El consejo y la otra parte que se vea mejor o unifícalo y mejora el diseño»; «Las misiones en las cards no se ven bien. Están cortadas»): hasta `35307acd`. Galería de pueblos: el nombre y Jugar en la misma fila y las misiones debajo a todo el ancho (`galeria.css`; ninguna de las 39 cartas cortada a 844×390, 740×360, 390×844, 1280×720 y 1920×1080, iconos de 20 a 26 px). Pantalla de carga: el consejo y el sitio de la lámina en un solo bloque arriba a la derecha (`src/ui.js`, `src/style.css`). Prueba de humo sin errores.
