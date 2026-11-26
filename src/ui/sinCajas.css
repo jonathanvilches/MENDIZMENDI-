@@ -480,3 +480,12 @@ html:root body:not(#sc#sc) :is(.vt-com ul > li:first-child, .yac-lista > li:firs
   html:root body:not(#sc#sc) .pfx-body { padding-top: 6px !important; }
   html:root body:not(#sc#sc) :is(.pel-card, .pz-panel, .mg-card:not(.fc), .mnd-card) { padding: var(--sp-b) var(--sp-g) !important; }
 }
+/* (en los móviles más bajos, 667 × 375, la ficha aún algo más junta: la barra de cada cualidad y los apartados de la
+   derecha, sin quitar nada) */
+@media (max-height: 380px) {
+  html:root body:not(#sc#sc) .pfx-card { padding: 8px var(--sp-b) !important; gap: 4px !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-bar { margin-bottom: 2px !important; min-height: 16px !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-sk h4:not(:first-child) { padding-top: 2px !important; margin-top: 2px !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-data { row-gap: 6px !important; padding-top: 6px !important; }
+  html:root body:not(#sc#sc) .pfx-body { padding-top: 4px !important; }
+}

@@ -425,7 +425,11 @@ export class Hub {
     // Q y E. Antes no tenía: para ver otra había que volver al mapa)
     if (screen === 'comarca') { const L = COMARCAS.filter(c => c.path && comarcaTowns(c.id).length), i = L.findIndex(c => c.id === this.arg); if (i < 0 || L.length < 2) return null;
       const a = L[(i - 1 + L.length) % L.length], b = L[(i + 1) % L.length]; return [['comarca:' + a.id, a.name.replace(/^Comarca de /, '')], ['comarca:' + b.id, b.name.replace(/^Comarca de /, '')]]; }
-    const L = this.nav.filter(x => x[0] !== 'home'), i = L.findIndex(x => x[0] === screen);
+    let L = this.nav.filter(x => x[0] !== 'home'), i = L.findIndex(x => x[0] === screen);
+    // (Productos, Historia y Euskera no están en el menú del juego, pero se llega a ellas desde otras páginas: también con
+    // sus flechas, detrás de Oficios, sin cambiar las de las demás páginas)
+    if (i < 0) { const X = [['productos', 'Productos'], ['historia', 'Historia'], ['euskera', 'Euskera']].filter(x => !L.some(y => y[0] === x[0])), k = L.findIndex(x => x[0] === 'oficios');
+      if (k >= 0 && X.some(x => x[0] === screen)) { L = [...L.slice(0, k + 1), ...X, ...L.slice(k + 1)]; i = L.findIndex(x => x[0] === screen); } }
     return i < 0 || L.length < 3 ? null : [L[(i - 1 + L.length) % L.length], L[(i + 1) % L.length]];
   }
   // La pastilla de las pestañas (.filters), jugando: una sola pieza que se desliza hasta la elegida con el borde de delante
