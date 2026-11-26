@@ -18,8 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Descanso: el botillero del rival, delante de su pelotari como el tuyo (en espejo), y el plano de frente a la nevera,
-  con los cuatro enteros debajo del rótulo «Descanso» (Auditoría).
+(Nada por ahora: publicado el 26 nov hasta `50e41468`.)
 
 
 ## Peticiones entre ventanas
@@ -287,6 +286,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov (11.ª), la hizo la ventana de Auditoría (el autor: «el botillero del rival tiene que estar en la misma posición que nuestro botillero… todo tiene que ser coherente», con permiso de «Vete subiendo todo a la web»): hasta `50e41468`.
 - 26 nov, madrugada (10.ª), la hizo la ventana de Auditoría (el autor: «que metieras alguna mujer también, botillera… los botilleros traspasan mobiliarios… durante el partido los botilleros siguen el partido con atención», con permiso de «Vete subiendo todo a la web»): hasta `46976aca`.
 - 25 nov, noche (9.ª), la hizo la ventana de Auditoría (el autor, sobre la pelota: elegir botillero, descanso, cortada y fondos de las tarjetas, con permiso de «Vete subiendo todo a la web»): `master` hasta `0b6783d6`. En «Elige tu pelotari», el botón de tu botillero junto a «Jugar» abre el anillo de los ocho botilleros (cartas con txapelas, escudo de su pueblo, finales y desde cuándo; camisetas de colores, nunca rojas ni azules); el descanso, con fundido a negro y ya sentados, sin beber, toalla ni termo; tras tres tantos perdidos seguidos tu botillero te dice unas palabras; la cortada y el gancho bajan hasta rozar la chapa. Fondos de las tarjetas de la pelota revisados con «Alto contraste» (menú, elegir pelotari y botillero, VS, partido, pausa): todos con su morado. Visto a 1280×720 y 844×390; prueba de humo de `docs/` sin errores.
 - 25 nov, noche (8.ª), la hizo la ventana de Auditoría (el autor, sobre el descanso de la pelota, con dos fotos de partidos de verdad, con permiso de «Vete subiendo todo a la web»): `master` hasta `418c33a7`. En el descanso, una sola nevera verde en la contracancha con las sillas plegables negras de cada equipo a los lados; el pelotari se sienta de verdad, bebe y se seca la cara con la toalla; su botillero (un pelotari distinto de los que juegan, con camiseta blanca o negra, vaqueros y sin tacos) se levanta, le habla de pie con el termo y su consejo sale en la ventana de charla, con ánimos y, en la final, «¡Mucho ánimo, que es la final!». Arreglada la búsqueda de huesos que dejaba sin efecto la postura sentada y el apartado de las manos de la cabeza. Lo de Olite que aún no está revisado se quedó fuera. Visto a 1280×720 y 844×390; prueba de humo de `docs/` sin errores.
