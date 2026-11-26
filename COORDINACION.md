@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `8d113000`.)
+(Nada por ahora: publicado el 26 nov hasta `919350f5`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, noche (20.ª), la hizo la ventana de Auditoría (el autor, con capturas: «Hay que corregir estos diseños. Bloques ajustados textos y imágenes»; «No me gusta la línea horizontal del nombre de comarca. Es un juego no una web»): hasta `919350f5`. Perfil: la figura a la altura exacta del bloque de tu nombre (`ENCUADRE_HERO` en `src/hub/hub.js`, `ajustes.css`); galería de pueblos: nombre y misiones juntos y el botón Jugar centrado a su lado (`galeria.css`); torneo de pelota: la comarca solo si no se llama como el pueblo (`frontonBox`); ficha del pueblo con el móvil tumbado: la portada del alto que queda, con las pastillas enteras (`fichas.css`, personaje entero en 8 pueblos a 844×390 y 740×360); fuera la raya delante del nombre de comarca (`fichas.css` y la pantalla de carga en `src/style.css`). Vistas a 1280×720, 844×390 y 390×844; prueba de humo sin errores.
 - 26 nov, noche (19.ª), la hizo la ventana de Auditoría (el autor: «Quiero calidad en las figuras de pantalla. Y soluciona lo demás menos lo de las voces»): hasta `8d113000`. Las 44 figuras animadas de los pelotaris también al doble (640 × 960, `public/videos/figuras/hd/`, ampliadas con Real-ESRGAN sin generar nada nuevo; `tools/auditoria-figuras-hd/`): `src/ui/videos.js` elige la de 320, la del doble o la fija nítida, sin estirar nunca, y si una no carga pone la fija. En la pantalla VS del móvil, animadas y nítidas. Productos, Historia y Euskera, en el anillo del menú del juego, detrás de Oficios (`src/hub/hub.js`).
 - 26 nov, noche (18.ª), la hizo la ventana de Auditoría (el autor: «Haz todo lo que esté en tu mano»): hasta `336f0d1f`. Olite: Palacio Real con escalinatas, impostas y torre nueva, y Santa María orientada a la plaza con portada gótica de arquivoltas, estatuas, gablete y rosetón; esa portada sale también en las demás iglesias góticas (vista en Lesaka). Archivos de `src/world/` (civic, monuments, monumentosReales, townBuilder).
 - 26 nov, noche (17.ª), la hizo la ventana de Auditoría (el autor, con capturas: «Y faltan los fondos», «Aquí faltan espacios»; «Haz todo lo que esté en tu mano»): hasta `a52eea95`. Las cajas con su fondo morado de carta y filo sutil, y el frontón a la vista detrás de las ventanas del partido; aire dentro de los bloques del Perfil; flechas en Productos, Historia y Euskera; ficha del pelotari entera también en 667 × 375 (secciones 23 y 24 de `src/ui/sinCajas.css`).
