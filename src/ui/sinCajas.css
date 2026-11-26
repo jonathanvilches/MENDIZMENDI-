@@ -564,3 +564,99 @@ html:root body:not(#sc#sc) .pel-card .pel-mas .pel-chip:hover { color: #fff !imp
 html:root body:not(#sc#sc) .pel-card:has(.pel-fin-b:empty) { width: min(680px, 100%) !important; }
 html:root body:not(#sc#sc) .pel-card .pel-fin:has(> .pel-fin-b:empty) { grid-template-columns: minmax(0, 1fr) !important; }
 html:root body:not(#sc#sc) .pel-card .pel-fin > .pel-fin-b:empty { display: none !important; }
+
+/* ---------- 28) colores del resultado con sentido (el autor, 26 nov: «para este tipo de iconos no quiero amarillo con
+   verde; que los colores y sus contrastes tengan sentido, coherentes y dentro del círculo cromático»). El juego vive en
+   morados y magentas: ganar, el disco con el degradado de la casa (magenta a violeta, vecinos en el círculo) y el check
+   blanco; perder, un aro lila apagado con la equis lila, de la misma familia y sin celebrar. En lo que has ganado, la
+   subida de nivel en oro (el complementario del violeta de fondo, el de la txapela) y las cifras que suben en rosa, como
+   la experiencia; fuera el verde. Y sin el valor nuevo en pequeño debajo de cada subida, que repetía la ficha ---------- */
+html:root body:not(#sc#sc) .pz-res.si { background: linear-gradient(135deg, #ff4fc8, #8a3cff) !important; color: #fff !important; box-shadow: 0 0 16px -3px rgba(255, 79, 200, .6) !important; }
+html:root body:not(#sc#sc) .pz-res.no { background: none !important; color: #b9a8e6 !important; box-shadow: inset 0 0 0 .09em #b9a8e6 !important; }
+html:root body:not(#sc#sc) .pel-xp li span { color: #ff9ad8 !important; }
+html:root body:not(#sc#sc) .pel-xp li small { display: none !important; }
+
+/* ---------- 29) el final de un vistazo y una salida en cada ventana (el autor, 26 nov 2026: «hay algunas pantallas de las
+   que no puedo salir… hay como demasiado texto, tiene que ser todo más visual, más dinámico, barras de progreso, aros de
+   progreso, circunferencias, resumen de partido mucho más visual»; y «el rótulo de último tanto estaba cortado… revisa
+   que en todos los bloques no se corte el texto»).
+   - La X de cerrar (match.js, CERRAR), arriba a la derecha de la ventana, redonda como el botón de volver de los menús.
+   - Aros (match.js, aro): se llenan al abrirse; la cifra dentro, el rótulo debajo en versalitas lila.
+   - Las cifras del partido (estBloque): tu número y el del rival a los lados de una barra partida, cada uno con su color
+     (el azul de la casa es lila #8f83ff y el colorado, rosa #ff5fae: los de la cancha y el mapa de golpes).
+   - Lo que has ganado (xpBloque): el aro del nivel y una barra fina por cualidad, con lo que ha subido en rosa.
+   - El rótulo grande del partido («Último tanto», «Tanto de partido»): la cursiva y la tilde de la Ú se salían de su caja,
+     que recorta (overflow:hidden por el brillo que la cruza) y está ajustada a la altura de las mayúsculas (text-box), y
+     se veían cortadas; la caja crece por dentro lo justo sin mover nada ---------- */
+html:root body:not(#sc#sc) .pel-call h3 { padding: .24em .16em .08em !important; margin: -.24em -.16em -.08em !important; }
+html:root body:not(#sc#sc) .pel-card { position: relative; }
+html:root body:not(#sc#sc) .pel-card > .pel-cerrar { position: absolute; top: var(--sp-b, 12px); right: var(--sp-b, 12px); z-index: 3; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%;
+  display: grid; place-items: center; background: rgba(255, 255, 255, .08) !important; color: #fff; cursor: pointer; box-shadow: none !important; }
+html:root body:not(#sc#sc) .pel-card > .pel-cerrar:hover { background: rgba(255, 255, 255, .16) !important; }
+html:root body:not(#sc#sc) .pel-card > .pel-cerrar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+html:root body:not(#sc#sc) .pel-card.pel-matcard .mt-cab { padding-right: 52px; }
+
+html:root body:not(#sc#sc) .pz-aros { display: flex; justify-content: space-between; gap: var(--sp-b, 12px); margin: 0 0 var(--sp-b, 12px); }
+html:root body:not(#sc#sc) .pz-aro { position: relative; margin: 0; display: grid; justify-items: center; gap: 8px; flex: 1 1 0; min-width: 0; }
+html:root body:not(#sc#sc) .pz-aro svg { width: 76px; height: 76px; transform: rotate(-90deg); overflow: visible; }
+html:root body:not(#sc#sc) .pz-aro circle { fill: none; stroke-width: 4.2; }
+html:root body:not(#sc#sc) .pz-aro .f { stroke: rgba(255, 255, 255, .1); }
+html:root body:not(#sc#sc) .pz-aro .v { stroke: #ff4fc8; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(255, 79, 200, .55)); animation: pzAro 1.1s var(--d, .1s) cubic-bezier(.2, .8, .2, 1) both; }
+html:root body:not(#sc#sc) .pz-aro.azul .v { stroke: #8f83ff; filter: drop-shadow(0 0 4px rgba(143, 131, 255, .55)); }
+html:root body:not(#sc#sc) .pz-aro.rojo .v { stroke: #ff5fae; }
+@keyframes pzAro { from { stroke-dashoffset: 100; } }
+html:root body:not(#sc#sc) .pz-aro > b { position: absolute; top: 0; left: 0; right: 0; height: 76px; display: grid; place-items: center; grid-auto-flow: column; justify-content: center; align-items: center;
+  font: italic 400 26px/1 var(--pel-display, 'MZ Display', 'MZ Texto', sans-serif); color: #fff; }
+html:root body:not(#sc#sc) .pz-aro > b small { font-size: .55em; margin-left: 1px; color: #d9ccff; }
+html:root body:not(#sc#sc) .pz-aro figcaption { font: 800 11px/1.15 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #b9a8e6; text-align: center; }
+
+html:root body:not(#sc#sc) .pz-est { list-style: none; margin: 0 0 var(--sp-b, 12px); padding: 0; display: grid; gap: 6px; }
+html:root body:not(#sc#sc) .pz-est li { display: grid; grid-template-columns: 3ch minmax(0, 1fr) 3ch; column-gap: 12px; row-gap: 3px; align-items: center; animation: pzSube .5s var(--d, .2s) ease-out both; }
+html:root body:not(#sc#sc) .pz-est li small { grid-column: 1 / -1; grid-row: 1; text-align: center; font: 800 11px/1.15 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #b9a8e6; }
+html:root body:not(#sc#sc) .pz-est li > b { grid-row: 2; font: italic 400 22px/1 var(--pel-display, 'MZ Display', 'MZ Texto', sans-serif); }
+html:root body:not(#sc#sc) .pz-est li > b:first-of-type { text-align: left; }
+html:root body:not(#sc#sc) .pz-est li > b:last-of-type { text-align: right; }
+html:root body:not(#sc#sc) .pz-est li > b.azul { color: #a99fff; } html:root body:not(#sc#sc) .pz-est li > b.rojo { color: #ff7fc0; }
+html:root body:not(#sc#sc) .pz-duelo { grid-row: 2; display: flex; gap: 3px; height: 8px; }
+html:root body:not(#sc#sc) .pz-duelo i { display: block; height: 100%; border-radius: 4px; }
+html:root body:not(#sc#sc) .pz-duelo i:first-child { flex: 0 0 max(0px, calc(var(--a) - 1.5px)); transform-origin: left; animation: pzBarra .8s var(--d, .2s) cubic-bezier(.2, .8, .2, 1) both; }
+html:root body:not(#sc#sc) .pz-duelo i:last-child { flex: 1 1 0; transform-origin: right; animation: pzBarra .8s var(--d, .2s) cubic-bezier(.2, .8, .2, 1) both; }
+html:root body:not(#sc#sc) .pz-duelo i.azul { background: #8f83ff; } html:root body:not(#sc#sc) .pz-duelo i.rojo { background: #ff5fae; }
+@keyframes pzBarra { from { transform: scaleX(0); } }
+@keyframes pzSube { from { opacity: 0; transform: translateY(6px); } }
+html:root body:not(#sc#sc) .pz-clave { margin: 0; font-size: var(--fs-sm, 14px); line-height: 1.35; color: #d9ccff; font-style: italic; }
+
+html:root body:not(#sc#sc) .pz-xp { display: flex; align-items: center; gap: var(--sp-g, 20px); margin: 0 0 var(--sp-g, 20px); }
+html:root body:not(#sc#sc) .pz-xp > .pz-aro { flex: 0 0 auto; }
+html:root body:not(#sc#sc) .pz-xp > .pz-aro svg { width: 96px; height: 96px; }
+html:root body:not(#sc#sc) .pz-xp > .pz-aro > b { height: 96px; font-size: 38px; }
+html:root body:not(#sc#sc) .pz-xp-d { flex: 1 1 auto; min-width: 0; display: grid; gap: 10px; }
+html:root body:not(#sc#sc) .pz-xp-k { margin: 0; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+html:root body:not(#sc#sc) .pz-xp-k b { font: italic 400 var(--fs-md, 18px)/1.1 var(--pel-display, 'MZ Display', 'MZ Texto', sans-serif); color: #ff9ad8; }
+html:root body:not(#sc#sc) .pz-xp.sube .pz-xp-k b { color: #ffd36a; }
+html:root body:not(#sc#sc) .pz-xp-k small { font: 800 12px/1.2 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .04em; color: #ff9ad8; }
+html:root body:not(#sc#sc) .pz-xp ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+html:root body:not(#sc#sc) .pz-xp li { display: grid; grid-template-columns: 9ch minmax(0, 1fr) 5ch; align-items: center; column-gap: 10px; animation: pzSube .5s var(--d, .3s) ease-out both; }
+html:root body:not(#sc#sc) .pz-xp li span { font: 800 11px/1.15 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #b9a8e6; }
+html:root body:not(#sc#sc) .pz-xp li b { text-align: right; font: 800 12px/1 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; color: #ff9ad8; }
+html:root body:not(#sc#sc) .pz-barra { display: block; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+html:root body:not(#sc#sc) .pz-barra u { display: block; height: 100%; width: var(--v); border-radius: 3px; background: linear-gradient(90deg, #8a3cff, #ff4fc8); transform-origin: left; animation: pzBarra .9s var(--d, .3s) cubic-bezier(.2, .8, .2, 1) both; }
+html:root body:not(#sc#sc) .pz-barra.sube u { box-shadow: 2px 0 8px rgba(255, 79, 200, .8); }
+
+/* el móvil tumbado: los aros y las barras más bajos, y sin la línea del momento clave, que no cabe sin desplazar */
+@media (max-height: 500px) {
+  html:root body:not(#sc#sc) .pz-aro svg { width: 56px; height: 56px; }
+  html:root body:not(#sc#sc) .pz-aro > b { height: 56px; font-size: 20px; }
+  html:root body:not(#sc#sc) .pz-aros { margin-bottom: 12px; }
+  html:root body:not(#sc#sc) .pz-est { gap: 8px; margin-bottom: 0; }
+  html:root body:not(#sc#sc) .pz-est li { row-gap: 4px; }
+  html:root body:not(#sc#sc) .pz-est li > b { font-size: 18px; }
+  html:root body:not(#sc#sc) .pz-clave { display: none; }
+  html:root body:not(#sc#sc) .pz-est li:nth-child(n+4) { display: none; }   /* (tres cifras: las que más dicen) */
+  html:root body:not(#sc#sc) .pel-card:has(.pz-est) .pel-fin .pel-mapa { display: none !important; }   /* (el mapa, solo en pantallas altas) */
+  html:root body:not(#sc#sc) .pz-xp > .pz-aro svg { width: 64px; height: 64px; }
+  html:root body:not(#sc#sc) .pz-xp > .pz-aro > b { height: 64px; font-size: 26px; }
+  html:root body:not(#sc#sc) .pz-xp { gap: 14px; margin-bottom: 12px; }
+  html:root body:not(#sc#sc) .pz-xp ul { gap: 6px; }
+  html:root body:not(#sc#sc) .pel-card > .pel-cerrar { width: 38px; height: 38px; top: 8px; right: 8px; }
+}

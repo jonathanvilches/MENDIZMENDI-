@@ -17,6 +17,11 @@ import { bolaSVG } from './bola.js';
 // (quién va cansado, para las frases de los comentaristas con su género: comenta.js, deQuien)
 const cansadoDe = (P) => { const c = ['you', 'rival'].filter(w => (P[w]?.en ?? 1) < 0.3); return c.length === 2 ? 'ambos' : c[0] || null; };
 // (la estrella de los retos: rellena de amarillo si se ha ganado, solo el filo lila si no)
+// (la X de cerrar: arriba a la derecha de las ventanas que no tienen otra salida; el autor, 26 nov 2026: «hay algunas
+// pantallas de las que no puedo salir… que puedas salir de todas las pantallas»)
+const CERRAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg>';
+// (un aro de progreso: p de 100, lo de dentro y su rótulo debajo; se llena al abrirse, ui/sinCajas.css)
+const aro = (p, dentro, rotulo, cls = '', i = 0) => `<figure class="pz-aro ${cls}" style="--d:${(0.1 + i * 0.12).toFixed(2)}s"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="f" cx="22" cy="22" r="19" pathLength="100"/><circle class="v" cx="22" cy="22" r="19" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${(100 - Math.max(0, Math.min(100, p))).toFixed(1)}"/></svg><b>${dentro}</b><figcaption>${esc(rotulo)}</figcaption></figure>`;
 const ESTRELLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z" stroke-linejoin="round"/></svg>';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
@@ -280,7 +285,7 @@ export class PelotaMatch {
       // cuando pone elige tu material que no está bien jerarquizado»; antes «Tus pelotas» encabezaba los tres botones, y
       // las tuyas y las del rival iban sueltas, en letra pequeña, cada una en una columna)
       const chip = (b, peq) => `<span class="pel-mchip${peq ? ' peq' : ''}">${icono(b)}<span><b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span></span>`;
-      const p = this.hud.panel(`<div class="mt-izq"><div class="mt-cab"><p class="mt-k">${tuPrimero ? t.first : t.second(rn)}</p><h2>${t.title}</h2><p class="mt-lead">${t.sub(n)}</p></div>
+      const p = this.hud.panel(`<button class="pel-cerrar" data-mat-x aria-label="${esc(this.txt.exit || TEXT.es.exit)}">${CERRAR}</button><div class="mt-izq"><div class="mt-cab"><p class="mt-k">${tuPrimero ? t.first : t.second(rn)}</p><h2>${t.title}</h2><p class="mt-lead">${t.sub(n)}</p></div>
         <div class="mt-cesta"><div class="mt-lado"><span class="mt-l">${t.tuyas}</span><div class="pel-mchips" data-mat-tuyas></div></div>
           <div class="mt-lado mt-rv"><span class="mt-l">${t.rival}</span><div class="pel-mchips" data-mat-rv></div></div></div></div>
         <div class="mt-elige"><span class="mt-l">${t.como || TEXT.es.mat.como}</span><div class="pel-mseg" role="radiogroup">${['mixto', 'pegador', 'manos'].map(k => `<button type="button" role="radio" data-mat-k="${k}" aria-checked="${k === 'mixto'}">${esc((t.cortos || TEXT.es.mat.cortos)[k])}</button>`).join('')}</div>
@@ -315,6 +320,7 @@ export class PelotaMatch {
       tap(p, (b) => {
         if (b.dataset.matK) { mio = b.dataset.matK; for (const x of p.querySelectorAll('[data-mat-k]')) x.setAttribute('aria-checked', String(x === b)); pinta(); this.audio.ui?.('tick'); return; }
         if (b.hasAttribute('data-mat-go')) vale();
+        if (b.hasAttribute('data-mat-x') && !hecho) { hecho = true; this.quitaCestano(); this.exit(true, true); }   // (un paso atrás, como «Ahora no»)
       });
       // (y por si el toque no llega entero al botón, también con su clic; pero no el que el móvil manda justo después del
       // toque de «¡A jugar!», que caía aquí mismo y se saltaba la elección)
@@ -972,7 +978,6 @@ export class PelotaMatch {
     this.bailePl = null;
     const t = this.txt, g = this.game;
     this.hud.controls(false); this.hud.tip('');
-    const fact = t.facts[(this.o.factIndex ?? Math.floor(Math.random() * t.facts.length)) % t.facts.length];
     const big = g.mode === 'rally' ? `${e.best}/${g.target}` : t.result(e.score.you, e.score.rival);
     // el botón dice a dónde se vuelve: al pueblo, al menú del campeonato o al cuadro del torneo (en el torneo, el
     // resultado cuenta: sin «otra partida» para repetirlo)
@@ -990,7 +995,7 @@ export class PelotaMatch {
     const titulo = RE ? (e.win ? RT.win : RT.lose) : e.win ? (reto ? t.rallyWin : t.win) : t.lose;
     const sub = RE ? `<p class="pel-sub">${RT.name[RE.kind]}</p>` : `<p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>`;
     const p = this.hud.panel(`<h2>${pzResultado(!!e.win)}${titulo}</h2>${sub}
-      <div class="pel-fin"><div class="pel-fin-a">${RE ? retoA : reto ? `<div class="pel-big">${big}</div>` : ''}${RE ? '' : this.claveBloque(g)}${xpHtml || (RE ? '' : `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`)}</div><div class="pel-fin-b">${this.estBloque(g)}${RE ? '' : this.mapaBloque(g)}</div></div>
+      <div class="pel-fin"><div class="pel-fin-a">${RE ? retoA : reto ? `<div class="pel-big">${big}</div>` : ''}${RE ? '' : this.aros(g, e)}${this.estBloque(g)}${RE ? '' : this.claveBloque(g)}</div><div class="pel-fin-b">${xpHtml}${RE ? '' : this.mapaBloque(g)}</div></div>
       <div class="pel-row">${this.hlTodos?.length ? `<button class="pel-go alt" data-pel-hl>${esc((t.replay || TEXT.es.replay).hlVer || TEXT.es.replay.hlVer)}</button>` : ''}${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${RE ? RT.otra : t.again}</button>`}<button class="pel-go" data-pel-cont>${this.o.back === 'retos' ? RT.cont : cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
@@ -1003,19 +1008,30 @@ export class PelotaMatch {
     });
     this.result = e;
   }
-  /** El resumen del partido en el panel del final: los pelotazos de cada uno, los tantos hechos y los fallos, de qué han
-   *  sido los tantos (saque, dejada, aire, volea, rebote), el tanto más largo y la media. Cada cifra, la tuya y la del rival,
-   *  con el color de cada uno. */
+  /** El resumen del partido en el panel del final, de un vistazo: cada cifra, la tuya y la del rival, a los lados de una
+   *  barra partida con el color de cada uno (los tantos hechos, los fallos y de qué fueron los tantos), solo las que no son
+   *  cero a cero y como mucho cinco. Antes, una lista de ocho filas de texto con su pie. El autor, 26 nov 2026: «hay como
+   *  demasiado texto, tiene que ser todo más visual… barras de progreso, aros… resumen de partido mucho más visual» */
   estBloque(g) {
     const S = g.stats, P = S?.por; if (g.mode !== 'match' || !P || !S.tantos?.length) return '';
-    const E = this.txt.est || TEXT.es.est, cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo';
-    const par = (a, b) => `<span><i class="${cy}">${a}</i><i class="${cr}">${b}</i></span>`;
-    const fila = (k, a, b) => `<li><b>${esc(E[k])}</b>${par(a, b)}</li>`;
-    const filas = [fila('pelotazos', S.hits.you, S.hits.rival), fila('hechos', P.you.hechos, P.rival.hechos), fila('fallos', P.you.fallos, P.rival.fallos), fila('saque', P.you.saque, P.rival.saque),
-      fila('dejada', P.you.dejada, P.rival.dejada), fila('aire', P.you.aire, P.rival.aire), fila('volea', P.you.volea, P.rival.volea), fila('rebote', P.you.rebote, P.rival.rebote)].join('');
-    const largo = Math.max(...S.tantos), media = (S.tantos.reduce((a, b) => a + b, 0) / S.tantos.length).toFixed(1).replace('.', this.lang === 'eu' ? ',' : ',');
-    const pie = [E.largo(largo), E.media(media), S.alAire ? E.vacio(S.alAire) : ''].filter(Boolean).join(' · ');
-    return `<div class="pel-est"><div class="pel-est-top"><b>${esc(E.title)}</b><span><i class="${cy}">${esc(this.names.you)}</i><i class="${cr}">${esc(this.names.rival)}</i></span></div><ul>${filas}</ul><p>${esc(pie)}</p></div>`;
+    const E = this.txt.est || TEXT.es.est, B = E.bar || TEXT.es.est.bar, cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo';
+    const filas = [['hechos', P.you.hechos, P.rival.hechos], ['fallos', P.you.fallos, P.rival.fallos], ['saque', P.you.saque, P.rival.saque], ['dejada', P.you.dejada, P.rival.dejada],
+      ['aire', P.you.aire, P.rival.aire], ['volea', P.you.volea, P.rival.volea], ['rebote', P.you.rebote, P.rival.rebote], ['pelotazos', S.hits.you, S.hits.rival]]
+      .map(([k, a, b]) => [k, a || 0, b || 0]).filter(([, a, b]) => a + b > 0).slice(0, 5);
+    const fila = ([k, a, b], i) => `<li style="--d:${(0.15 + i * 0.08).toFixed(2)}s"><small>${esc(B[k])}</small><b class="${cy}">${a}</b><span class="pz-duelo" style="--a:${Math.round(100 * a / (a + b))}%"><i class="${cy}"></i><i class="${cr}"></i></span><b class="${cr}">${b}</b></li>`;
+    return filas.length ? `<ul class="pz-est">${filas.map(fila).join('')}</ul>` : '';
+  }
+  /** Tres aros: qué parte de los tantos fueron tuyos, cuántos de tus pelotazos fueron buenos y el tanto más largo (de 20
+   *  pelotazos, lleno), con su cifra dentro. */
+  aros(g, e) {
+    const S = g.stats, P = S?.por; if (g.mode !== 'match' || !P) return '';
+    const E = this.txt.est || TEXT.es.est, A = E.aros || TEXT.es.est.aros, sc = e?.score || g.score || {}, cy = this.cols.you === 'rojo' ? 'rojo' : 'azul';
+    const tot = (sc.you || 0) + (sc.rival || 0), hits = S.hits?.you || 0, largo = S.tantos?.length ? Math.max(...S.tantos) : 0;
+    const L = [];
+    if (tot) L.push([100 * (sc.you || 0) / tot, '%', A[0]]);
+    if (hits) L.push([100 * Math.max(0, hits - (P.you.fallos || 0)) / hits, '%', A[1]]);
+    if (largo) L.push([Math.min(100, 100 * largo / 20), largo, A[2]]);
+    return L.length ? `<div class="pz-aros">${L.map(([p, c, l], i) => aro(p, c === '%' ? `${Math.round(p)}<small>%</small>` : c, l, cy, i)).join('')}</div>` : '';
   }
   /** El momento clave del partido, como lo contaría la tele: la remontada, si el que gana iba tres o más por detrás; si no,
    *  el tanto que deshizo el último empate (desde ahí ya no soltó el partido); y si nunca empataron, el tanto más largo. */
@@ -1029,7 +1045,7 @@ export class PelotaMatch {
       return E.desempate(nm(x.w), L[i].you, x.hits, de, E.remate[x.kind] || '', nm(x.w === 'you' ? 'rival' : 'you')); }
     const lg = L.reduce((a, b) => (b.hits > a.hits ? b : a)); return lg.hits > 2 ? E.masLargo(nm(lg.w), lg.hits, lg.you, lg.rival) : '';
   }
-  claveBloque(g) { const c = this.claveDe(g), E = this.txt.est || TEXT.es.est; return c ? `<div class="pel-clave"><b>${esc(E.clave)}</b><p>${esc(c)}</p></div>` : ''; }
+  claveBloque(g) { const c = this.claveDe(g); return c ? `<p class="pz-clave">${esc(c)}</p>` : ''; }   // (una línea, sin rótulo: la cuenta la tele)
   /** El mapa de golpes: la cancha vista desde arriba, del frontis (a la izquierda) al rebote, con un punto del color de cada
    *  uno donde golpeó la pelota. La pared izquierda va arriba; las rayas de la falta y del pasa, en rojo. */
   mapaBloque(g) {
@@ -1044,12 +1060,14 @@ export class PelotaMatch {
       ${rayas}${roja(COURT.FALTA)}${roja(COURT.PASA)}<line x1="0" y1="-2" x2="0" y2="${W * k + 2}" stroke="#fff" stroke-width="3"/><line x1="0" y1="0" x2="${X(Z)}" y2="0" stroke="rgba(255,255,255,.6)" stroke-width="2"/><line x1="${X(Z)}" y1="0" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.45)" stroke-width="2"/><line x1="0" y1="${W * k}" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
       ${puntos(G.rival, cr)}${puntos(G.you, cy)}<text x="-10" y="${W * k / 2}" transform="rotate(-90 -10 ${W * k / 2})" text-anchor="middle">${esc(E.frontis)}</text><text x="${X(Z) * 1 + 10}" y="${W * k / 2}" transform="rotate(90 ${X(Z) * 1 + 10} ${W * k / 2})" text-anchor="middle">${esc(E.rebote2)}</text></svg></div>`;
   }
-  /** El bloque de la experiencia en el panel del final: el nivel con su barra, lo ganado y lo que ha subido cada cualidad. */
+  /** La experiencia en el panel del final: un aro con tu nivel dentro, lleno hasta lo que llevas de él, lo ganado y una
+   *  barra por cualidad (llena, el 5), con lo que ha subido. */
   xpBloque(g) {
     const X = this.txt.xp || TEXT.es.xp, sub = g.ahora.n > g.antes.n, dec = (v) => String(v).replace('.', ',');
-    const q = Object.entries(g.subidas).filter(([, v]) => v > 0).map(([k, v]) => `<li><b>${esc(X.q[k] || k)}</b><span>+${dec(v.toFixed(2))}</span><small>${dec(g.cualidades[k].toFixed(2))}</small></li>`).join('');
-    return `<div class="pel-xp${sub ? ' sube' : ''}"><div class="pel-xp-top"><b>${esc(sub ? X.up(g.ahora.n) : X.level(g.ahora.n))}</b><span>${esc(X.gained(g.xp))}</span></div>
-      <i class="pel-xp-bar" aria-hidden="true"><u style="width:${Math.round(100 * g.ahora.en / g.ahora.falta)}%"></u></i>${q ? `<ul>${q}</ul>` : ''}</div>`;
+    const pct = Math.max(2, Math.round(100 * g.ahora.en / g.ahora.falta));
+    const q = Object.entries(g.cualidades || {}).map(([k, v], i) => { const s = g.subidas?.[k] || 0, f = Math.max(4, Math.min(100, v / 5 * 100));
+      return `<li style="--d:${(0.3 + i * 0.08).toFixed(2)}s"><span>${esc(X.q[k] || k)}</span><i class="pz-barra${s > 0 ? ' sube' : ''}" style="--v:${f.toFixed(1)}%"><u></u></i><b>${s > 0 ? '+' + dec(s.toFixed(2)) : ''}</b></li>`; }).join('');
+    return `<div class="pz-xp${sub ? ' sube' : ''}">${aro(pct, g.ahora.n, this.lang === 'eu' ? 'Maila' : 'Nivel', 'nivel', 0)}<div class="pz-xp-d"><p class="pz-xp-k"><b>${esc(sub ? X.up(g.ahora.n) : X.gained(g.xp))}</b>${sub ? `<small>${esc(X.gained(g.xp))}</small>` : ''}</p>${q ? `<ul>${q}</ul>` : ''}</div></div>`;
   }
   confirmExit() {
     const t = this.txt; const wasPaused = this.paused; this.paused = true;
@@ -1101,7 +1119,11 @@ export class PelotaMatch {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'k') this.chargeStart('drop');   // (Mayúsculas era también la dejada: ahora es el esprint, mientras se mantiene; readInput)
         if (k === 'l') this.chargeStart('cut');
-        if (k === 'escape') { if (hud.panelEl || this.finalOn) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
+        if (k === 'escape') {
+          // (con una ventana abierta, Esc es su salida: cerrar «Más opciones», la X, «Ahora no», «No» o «Volver»; antes no
+          // hacía nada y no se podía salir sin ratón)
+          if (hud.panelEl) { for (const s of ['[data-pel-back]', '[data-mat-x]', '[data-pel-x]', '[data-pel-no]', '[data-pel-cont]']) { const x = hud.panelEl.querySelector(s); if (x && x.offsetParent) { x.click(); break; } } return; }
+          if (this.finalOn) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
       }
       if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'k') this.chargeEnd('drop'); }
       I.keys[k] = down;
@@ -2089,6 +2111,7 @@ export class PelotaMatch {
       // ventana de la charla; el rival queda fuera, que en el borde salía cortado y enorme. El rótulo «Descanso» se va: la
       // ventana ya dice quién habla, y tapaba las caras)
       if (charla !== !!this.charlaOn) { this.charlaOn = charla; this.camInit = false; this.hud?.root?.classList.toggle('charla', charla);   // (mientras hablan, sin marcador ni botones encima: ui/sinCajas.css)
+        this.ocultaRival(charla && !g.pairs);
         if (charla && this.hud) { this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); if (!(this.hud.autorT > 0)) this.hud.root?.classList.remove('calling'); } }
       // (medido: así el rival, sentado a metro y medio, queda fuera por la derecha, y la nevera en el borde; las cabezas,
       // grandes, enteras por debajo del marcador; de cintura para abajo, detrás de la ventana)
@@ -2106,6 +2129,12 @@ export class PelotaMatch {
         lp[0] = tx - 0.6 * R; lp[1] = 1.02; lp[2] = cz + 0.8 * R; ll[0] = tx; ll[1] = 1.02; ll[2] = cz; }
       // (a la distancia justa para que quepan los cuatro de lado a lado y, de alto, entre el suelo y la mitad de la pantalla:
       // arriba va el rótulo «Descanso», y en el móvil tumbado tapaba las caras)
+      // (el plano de los cuatro, sin charla: con cada botillero delante de su pelotari, desde la cancha y algo de lado, para
+      // que el botillero no tape a su pelotari: de izquierda a derecha, tu pelotari, tu botillero, el otro pelotari y su
+      // botillero)
+      else if (on && !g.pairs) { const t = Math.tan(this.cam.fov * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78), cx = S.x - 0.48, cz = S.nevera.z;
+        const d = Math.max(1.0 / t, 1.45 / (t * asp)), an = 0.6, sz = Math.sign((S.you.z - cz) || -1);
+        lp[0] = cx - d * Math.cos(an); lp[1] = 1.45; lp[2] = cz + sz * d * Math.sin(an); ll[0] = cx; ll[1] = 0.85; ll[2] = cz; }
       else if (on) { const nz = S.nevera.z, t = Math.tan(this.cam.fov * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78);
         const d = Math.max(1.5625 / t, (g.pairs ? 2.3 : 1.75) / (t * asp)), y = 1.34;   // (medido en los botilleros, de pie delante)
         lp[0] = S.x - 0.64 - d; lp[1] = y; lp[2] = nz; ll[0] = S.x; ll[1] = y; ll[2] = nz; } }
@@ -2192,12 +2221,20 @@ export class PelotaMatch {
     const a = hd ? grp.worldToLocal(hd.getWorldPosition(new T.Vector3())) : new T.Vector3(S.you.x - 0.1, 0.94, S.you.z);
     const b = hb ? grp.worldToLocal(hb.clone()) : new T.Vector3(S.pie.you.x + 0.05, 1.13, S.pie.you.z + 0.05);
     let ux = a.x - b.x, uz = a.z - b.z; const ul = Math.hypot(ux, uz) || 1; ux /= ul; uz /= ul;
-    let nx = -uz, nz = ux; if (nx > 0) { nx = -nx; nz = -nz; }   // (del lado de la cancha)
-    const g = 0.2, dx = nx * Math.cos(g) + ux * Math.sin(g), dz = nz * Math.cos(g) + uz * Math.sin(g), dl = Math.hypot(dx, dz) || 1;
-    // (el centro, 12 cm hacia el lado del botillero: así el rival, que se sienta más allá de la nevera, se queda fuera del
-    // borde; antes asomaba su mano en la esquina)
-    const ex = dx / dl, ez = dz / dl;
-    return { mx: (a.x + b.x) / 2 - 0.12 * ez, mz: (a.z + b.z) / 2 + 0.12 * ex, dx: ex, dz: ez, top: Math.max(a.y, b.y) + 0.42 };
+    // (de perfil a los dos, desde el lado contrario a la nevera: el botillero está delante de su pelotari, frente a
+    // frente; girada un poco hacia la cara del botillero, que es el que habla. La otra pareja, que se sienta igual al otro
+    // lado de la nevera, quedaba justo detrás, con sus caras pegadas a las suyas: mientras hablan no está, ocultaRival)
+    let nx = -uz, nz = ux; const mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
+    if (nx * (S.nevera.x - mx) + nz * (S.nevera.z - mz) > 0) { nx = -nx; nz = -nz; }
+    const g = 0.3, dx = nx * Math.cos(g) + ux * Math.sin(g), dz = nz * Math.cos(g) + uz * Math.sin(g), dl = Math.hypot(dx, dz) || 1;
+    return { mx, mz, dx: dx / dl, dz: dz / dl, top: Math.max(a.y, b.y) + 0.42 };
+  }
+  // el pelotari rival y su botillero, fuera de la imagen (on) o de vuelta: mientras tu botillero te habla, en el plano de
+  // los dos, quedaban justo detrás de vosotros
+  ocultaRival(on) {
+    const R = this.o.rival; if (R?.obj) R.obj.visible = !on; if (R?.sombra) R.sombra.visible = !on;
+    let r = this.court?.group; while (r?.parent) r = r.parent;
+    const b = r?.getObjectByName?.('botillero-rival'); if (b) b.visible = !on;
   }
   // la cabeza del botillero de cada lado (game/fronton.js los pone en la escena con su nombre), en el mundo; o null
   cabezaBot(lado) {

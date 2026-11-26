@@ -119,7 +119,7 @@ async function makeBotilleros(G, C, pairs) {
     const model = !enCancha.has(B.modelo.slice(9)) && hasMeshy(B.modelo) ? B.modelo : libres(B).find(m => !out.some(r => r.modelo === m)) || B.modelo;
     enCancha.add(model.slice(9));
     nitido(model); const r = new GlbRig(await loadMeshy(model), model);
-    vistePaisano(THREE, r.char.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: lado === 'you' ? '#3b5878' : '#45607e' }); sinTacos(r.char, true);   // (manos de piel: el botillero no lleva tacos)
+    vistePaisano(THREE, r.char.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: lado === 'you' ? '#3b5878' : '#45607e' }); sinTacos(r.char, true); pielDelBrazo(r.char.root);   // (manos de piel: el botillero no lleva tacos)
     const b = S.bot[lado], p = S.pie[lado], pel = S[lado];
     r.silla = g.localToWorld(new THREE.Vector3(b.x - 0.01, 0, b.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
     { const c = g.localToWorld(new THREE.Vector3(b.x, ASIENTO_Y, b.z)), e = g.localToWorld(new THREE.Vector3(b.x + 0.2, ASIENTO_Y, b.z)); r.asiento = { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; }   // (encima del asiento: ahí se apoya, sin hundirse)
@@ -130,6 +130,33 @@ async function makeBotilleros(G, C, pairs) {
     out.push(r);
   }
   return out;
+}
+// (las manos del botillero, del color de la piel de sus brazos: sinTacos (actors/sinTacos.js) saca el de las yemas de los
+// dedos, más claro, y la mano y la muñeca salían blanquecinas al lado del brazo moreno. El autor, 26 de noviembre de 2026:
+// «las manos de los botilleros no están bien, no son manos normales». La mediana de los píxeles de color piel bajo los
+// puntos del brazo y del cuello que no son de la mano)
+function pielDelBrazo(root) {
+  root.traverse(o => {
+    const U = o.material?.userData?.sinTacos, g = o.geometry, img = o.material?.map?.image; if (!U || !o.isSkinnedMesh || !img?.width) return;
+    const uv = g.attributes.uv, A = g.attributes.aTaco, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight; if (!uv || !A || !SI || !SW) return;
+    try {
+      const quiero = new Set(); o.skeleton.bones.forEach((b, i) => { if (/(Arm|Neck)$/.test(b.name)) quiero.add(i); });
+      const cv = document.createElement('canvas'); cv.width = Math.min(512, img.width); cv.height = Math.round(cv.width * img.height / img.width);
+      const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0, cv.width, cv.height);
+      const px = cx.getImageData(0, 0, cv.width, cv.height).data, R = [], G = [], B = [], flip = o.material.map.flipY;
+      for (let i = 0; i < uv.count; i += 2) {
+        if (A.getX(i) > 0.01) continue;
+        let w = 0; for (let k = 0; k < 4; k++) if (quiero.has(SI.getComponent(i, k))) w += SW.getComponent(i, k); if (w < 0.6) continue;
+        let u = uv.getX(i), t = uv.getY(i); if (flip) t = 1 - t;
+        const x = Math.min(cv.width - 1, Math.max(0, Math.floor((u - Math.floor(u)) * cv.width))), y = Math.min(cv.height - 1, Math.max(0, Math.floor((t - Math.floor(t)) * cv.height)));
+        const q = (y * cv.width + x) * 4, r = px[q] / 255, gg = px[q + 1] / 255, b = px[q + 2] / 255;
+        if (r - gg > 0.1 && gg - b > 0.03 && r > 0.45 && r < 0.995) { R.push(r); G.push(gg); B.push(b); }
+      }
+      if (R.length < 30) return;
+      const med = (a) => a.sort((x, y) => x - y)[a.length >> 1];
+      U.uPiel.value = new THREE.Vector3(med(R), med(G), med(B));   // (uno nuevo: el de sinTacos lo comparten todos los de esa textura)
+    } catch (e) { /* textura sin leer: el de sinTacos */ }
+  });
 }
 // (un botillero, en cada fotograma: sentado en su silla o, en el descanso, después del fundido, de pie delante de su pelotari)
 // (sentado, sigue el partido con atención: el cuerpo derecho y la cabeza tras la pelota, mira; el autor, 26 de noviembre de
@@ -142,7 +169,11 @@ function mueveBotillero(a, D, dt, mira) {
   // (de pie, le habla: asiente y acompaña con la mano de fuera, la que queda hacia la cancha; el autor, 26 nov, «no da la
   // sensación de que estén hablando»)
   a.tHabla = dePie ? (a.tHabla || 0) + dt : 0;
-  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira), { habla: dePie ? 0.4 + a.tHabla : 0, manoDcha: a.lado === 'you' });
+  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira), { habla: dePie ? 0.4 + a.tHabla : 0 });
+  // (las manos, algo más pequeñas: son las de un pelotari, con la forma de los tacos pintada de piel, y se veían enormes;
+  // el autor, 26 nov, «las manos de los botilleros no están bien, no son manos normales»)
+  if (!a.manos) { a.manos = []; a.obj.traverse(o => { if (o.isBone && /(^|[^A-Za-z]|mixamorig)(Left|Right)Hand$/.test(o.name)) a.manos.push(o); }); }
+  for (const m of a.manos) m.scale.setScalar(0.8);
 }
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // (la burbuja de tu botillero, arriba a la izquierda bajo los botones: su cara, su nombre y lo que te dice; no para el juego)

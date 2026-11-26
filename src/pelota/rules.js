@@ -348,7 +348,7 @@ export const TEXT = {
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', early: 'Pronto', whiff: '¡Al aire!' },
     force: 'fuerza', volea: 'De volea', costs: 'gasta energía', gains: 'recuperas energía',
     // la elección de material (material.js): el lote de diez pelotas, el cestaño y la pelota de cada saque
-    mat: { title: 'Elección de material', sub: (n) => `Un lote de 10 pelotas, todas de 102 a 107 g. Elige ${n} para el cestaño: sacarás con ellas y podrás cambiarlas en cada saque.`,
+    mat: { title: 'Elección de material', sub: (n) => `Elige ${n} de las 10 pelotas del lote. Podrás cambiarlas en cada saque.`,
       first: 'Eliges tú primero', second: (r) => `${r} ya ha elegido`, go: 'Al cestaño', rival: 'Las del rival', tuyas: 'Tus pelotas', como: 'Cómo las quieres', luego: 'Elige después de ti',
       estilos: { mixto: (n) => n > 2 ? 'De todo: viva, media y pesada' : 'De todo: una viva y una pesada', pegador: (n) => `Las ${n} más vivas`, manos: (n) => `Las ${n} más pesadas` },
       cortos: { mixto: 'De todo', pegador: 'Vivas', manos: 'Pesadas' },
@@ -396,6 +396,9 @@ export const TEXT = {
       largo: (n) => `El tanto más largo: ${n} ${n === 1 ? 'pelotazo' : 'pelotazos'}`, media: (m) => `Media: ${m} por tanto`, vacio: (n) => `Golpes en vacío: ${n}`,
       // (el momento clave y el mapa de golpes: match.js, claveDe y mapaBloque)
       clave: 'Momento clave', mapa: 'Dónde golpeó cada uno', frontis: 'Frontis', rebote2: 'Rebote',
+      // (los rótulos cortos de las barras y de los aros del final: match.js, estBloque y aros)
+      bar: { hechos: 'Tantos hechos', fallos: 'Fallos', saque: 'Saque', dejada: 'Dejada', aire: 'Al aire', volea: 'Volea', rebote: 'Rebote', pelotazos: 'Pelotazos' },
+      aros: ['Tantos tuyos', 'Acierto', 'Más largo'],
       remate: { dejada: 'de dejada', cortada: 'de cortada', dosparedes: 'a dos paredes', volea: 'de volea', gancho: 'de gancho' },
       // (de: 'golpe', 'saque' o 'fallo'; otro, el que falla)
       desempate: (q, n, h, de, remate, otro) => de === 'fallo' ? `Con ${n}-${n}, un fallo de ${otro} dejó por delante a ${q}, que ya no soltó el partido.`
@@ -487,7 +490,7 @@ export const TEXT = {
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', early: 'Goiz', whiff: 'Airera!' },
     force: 'indarra', volea: 'Boleaz', costs: 'energia gastatzen du', gains: 'energia berreskuratzen duzu',
-    mat: { title: 'Materiala aukeratzea', sub: (n) => `10 pilotako sorta, denak 102 eta 107 g artekoak. Aukeratu ${n} saskirako: haiekin aterako duzu eta sake bakoitzean alda ditzakezu.`,
+    mat: { title: 'Materiala aukeratzea', sub: (n) => `Aukeratu sortako 10 pilotetatik ${n}. Sake bakoitzean alda ditzakezu.`,
       first: 'Zuk aukeratzen duzu lehenik', second: (r) => `${r}: aukeratuta`, go: 'Saskira', rival: 'Aurkariarenak', tuyas: 'Zure pilotak', como: 'Nolakoak nahi dituzu', luego: 'Zure ondoren aukeratuko du',
       estilos: { mixto: (n) => n > 2 ? 'Denetik: bizia, erdikoa eta astuna' : 'Denetik: bizi bat eta astun bat', pegador: (n) => `${n} biziena`, manos: (n) => `${n} astunena` },
       cortos: { mixto: 'Denetik', pegador: 'Biziak', manos: 'Astunak' },
@@ -528,6 +531,8 @@ export const TEXT = {
     est: { title: 'Estatistikak', pelotazos: 'Pilotakadak', hechos: 'Egindako tantoak', fallos: 'Hutsak', saque: 'Sakez', dejada: 'Dejadaz', aire: 'Airez', volea: 'Boleaz', rebote: 'Errebotez',
       largo: (n) => `Tantorik luzeena: ${n} pilotakada`, media: (m) => `Batez beste: ${m} tantoko`, vacio: (n) => `Hutsean jotakoak: ${n}`,
       clave: 'Une erabakigarria', mapa: 'Non jo zuen bakoitzak', frontis: 'Frontisa', rebote2: 'Errebotea',
+      bar: { hechos: 'Egindako tantoak', fallos: 'Hutsak', saque: 'Sakea', dejada: 'Dejada', aire: 'Airean', volea: 'Bolea', rebote: 'Errebotea', pelotazos: 'Pilotakadak' },
+      aros: ['Zure tantoak', 'Zehaztasuna', 'Luzeena'],
       remate: { dejada: 'utziz amaitua', cortada: 'cortadaz amaitua', dosparedes: 'bi paretara amaitua', volea: 'boleaz amaitua', gancho: 'ganchoz amaitua' },
       desempate: (q, n, h, de, remate, otro) => de === 'fallo' ? `${n}-${n} zihoazela, tanto erabakigarria ${q}rentzat izan zen, huts baten ondoren. Hortik aurrera ez zuen partida askatu.`
         : de === 'saque' ? `${n}-${n} zihoazela, tanto erabakigarria ${q}rentzat izan zen, sake zuzen batez. Hortik aurrera ez zuen partida askatu.`

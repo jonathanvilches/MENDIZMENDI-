@@ -50,10 +50,10 @@ export function sillasDe(contra = 2.6, pairs = false) {
     // reflejo del otro a cada lado de la nevera: el autor, 26 nov, «el botillero del rival tiene que estar en la misma
     // posición que nuestro botillero… todo tiene que ser coherente». A 0,8 de lado y no a medio metro: las cabezas de los
     // muñecos son grandes y, echado hacia él, la suya se metía en la del pelotari sentado: «choca con la cabeza»)
-    // (y luego más cerca, a 0,74 de su pelotari en vez de a un metro: el autor, 26 nov, «no da la sensación de que estén
-    // hablando, parece que el botillero está mucho más lejos». Delante de su propia silla y sin chocar las cabezas: él,
-    // apenas echado y de pie; el pelotari, sentado derecho y mirándole)
-    pie[lado] = pairs ? { x: x - 1.0, z: S[lado].z + s * 0.27 } : { x: x - 0.5, z: S[lado].z + s * 0.55 };
+    // (y luego delante de él, frente a frente, como se ponen en los frontones: el autor, 26 nov, «el botillero se suele
+    // poner uno delante del otro, el botillero delante del pelotari». A 1,2: a 0,95 las caras casi se tocaban, nariz con
+    // nariz; así, a un palmo largo, como dos que hablan)
+    pie[lado] = pairs ? { x: x - 1.0, z: S[lado].z + s * 0.27 } : { x: x - 1.2, z: S[lado].z };
   }
   return { ...S, sillas: [...Object.values(S), bot.you, bot.rival], nevera: { x, z: zc }, bot, pie, x };
 }
@@ -140,13 +140,20 @@ uniform vec3 uBoCam, uBoHom, uBoVaq, uBoPiel; varying float vBoY, vBoMano;
 ${GL_HSV}
 vec3 boRopa(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = boHsv(cs); float h = q.x, s = q.y, v = q.z, y = vBoY;
-  bool blue = h > 0.48 && h < 0.78 && s > 0.22, white = s < 0.2 && v > 0.42, red = (h < 0.05 || h > 0.93) && s > 0.45 && v > 0.2;
+  // (con pesos suaves y no con cortes de sí o no: los puntos de la textura entre dos colores, en el borde del cuello o
+  // de la manga, se quedaban sin pintar con el color de antes y el borde salía en escalera. El autor, 26 nov 2026: «los
+  // modelos, cuando los miras de cerca, tienen muchos fallos de pintura»)
+  float blue = smoothstep(0.45, 0.49, h) * (1. - smoothstep(0.77, 0.81, h)) * smoothstep(0.17, 0.24, s);
+  float white = (1. - smoothstep(0.17, 0.23, s)) * smoothstep(0.38, 0.45, v);
+  float red = max(1. - smoothstep(0.03, 0.07, h), smoothstep(0.91, 0.95, h)) * smoothstep(0.38, 0.5, s) * smoothstep(0.15, 0.25, v);
+  vec3 top = boTono(mix(uBoCam, uBoHom, smoothstep(0.61, 0.65, y)), v, 0.62);
   vec3 o = cs;
-  if (vBoMano > 0.3 && vBoMano < 0.6 && blue && y > 0.2) return pow(boTono(y > 0.63 ? uBoHom : uBoCam, v, 0.62), vec3(2.2));   // (el borde de la manga, donde ya pesa algo el antebrazo)
-  if (vBoMano > 0.3) { if (white || (h > 0.085 && h < 0.2 && v > 0.38) || vBoMano > 0.6) o = mix(cs, uBoPiel * clamp(pow(v / 0.8, 0.8), 0.55, 1.2), smoothstep(0.3, 0.55, vBoMano)); return pow(o, vec3(2.2)); }
-  if (y > 0.2 && y < 0.72 && blue) o = boTono(y > 0.63 ? uBoHom : uBoCam, v, 0.62);
-  else if (y > 0.3 && y < 0.5 && red) o = boTono(uBoCam, v, 0.62);
-  else if (y > 0.075 && y <= 0.42 && white) o = boTono(uBoVaq, v, 0.86);
+  if (vBoMano > 0.3 && vBoMano < 0.6 && blue > 0.5 && y > 0.2) return pow(mix(cs, top, blue), vec3(2.2));   // (el borde de la manga, donde ya pesa algo el antebrazo)
+  if (vBoMano > 0.3) { float k = max(max(white, step(0.6, vBoMano)), smoothstep(0.07, 0.1, h) * (1. - smoothstep(0.19, 0.22, h)) * smoothstep(0.34, 0.4, v));
+    o = mix(cs, uBoPiel * clamp(pow(v / 0.8, 0.8), 0.55, 1.2), k * smoothstep(0.3, 0.55, vBoMano)); return pow(o, vec3(2.2)); }
+  o = mix(o, top, blue * smoothstep(0.18, 0.22, y) * (1. - smoothstep(0.7, 0.74, y)));
+  o = mix(o, boTono(uBoCam, v, 0.62), red * smoothstep(0.28, 0.32, y) * (1. - smoothstep(0.48, 0.52, y)));
+  o = mix(o, boTono(uBoVaq, v, 0.86), white * smoothstep(0.065, 0.085, y) * (1. - smoothstep(0.4, 0.44, y)));
   return pow(o, vec3(2.2));
 }`).replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = boRopa(diffuseColor.rgb);')
         // (y la luz propia del personaje, que sale de la textura: con el color ya cambiado; si no, asomaba la ropa de antes)
@@ -323,16 +330,40 @@ export function posturaDePie(T, obj, w, fx, fz, o = {}) {
   if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);
   // (hablando, asiente un poco con la cabeza, despacio)
   if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.3 + (t ? 0.07 * Math.sin(t * 4.2) : 0)).normalize(), w);
-  // (los brazos, abajo y sueltos: con los de su animación de reposo, abiertos y con las palmas arriba, parecía que se
-  // encogía de hombros. Mientras habla, la mano de fuera acompaña lo que dice, a la altura de la cintura, hacia él)
+  // (los brazos, abajo y sueltos, a los lados: con los de su animación de reposo, abiertos y con las palmas arriba,
+  // parecía que se encogía de hombros; y la mano por delante, abierta, no parecía una mano normal: el autor, 26 nov)
   const sp = (B.Spine || B.Hips).getWorldPosition(new T.Vector3());
-  for (const [A, Fa, Hd, dcha] of [[B.LeftArm, B.LeftForeArm, B.LeftHand, false], [B.RightArm, B.RightForeArm, B.RightHand, true]]) {
+  for (const [A, Fa, Hd] of [[B.LeftArm, B.LeftForeArm, B.LeftHand], [B.RightArm, B.RightForeArm, B.RightHand]]) {
     if (!A || !Fa || !Hd) continue;
     const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    const gesto = t && (dcha === (o.manoDcha ?? true)) ? 0.5 + 0.5 * Math.sin(t * 2.3) : 0;
-    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -1).addScaledVector(fuera, 0.16).addScaledVector(f, 0.1 + gesto * 0.28).normalize(), w);
-    apunta(T, Fa, Hd, new T.Vector3().addScaledVector(up, -0.85 + gesto * 0.75).addScaledVector(f, 0.3 + gesto * 0.55).addScaledVector(fuera, -0.12 - gesto * 0.1).normalize(), w);
+    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -1).addScaledVector(fuera, 0.14).addScaledVector(f, 0.06).normalize(), w);
+    apunta(T, Fa, Hd, new T.Vector3().addScaledVector(up, -1).addScaledVector(f, 0.16).addScaledVector(fuera, -0.04).normalize(), w);
+    // (y la palma hacia el muslo, con el pulgar delante, como cuelga una mano suelta: las figuras no tienen huesos en los
+    // dedos, la mano es de una pieza, abierta y algo curvada, y con la palma hacia delante, como la dejaba su animación,
+    // parecía una garra. El autor, 26 nov: «las manos de los botilleros no están bien, no son manos normales». Se gira
+    // el brazo entero sobre sí mismo, desde el hombro, y no la muñeca, que se retorcería)
+    const th = pulgar(T, obj, Hd); if (!th) continue;
+    const ax = Hd.getWorldPosition(new T.Vector3()).sub(Fa.getWorldPosition(new T.Vector3())).normalize();
+    const a1 = th.clone().applyQuaternion(Hd.getWorldQuaternion(new T.Quaternion())), a2 = f.clone();
+    a1.addScaledVector(ax, -a1.dot(ax)); a2.addScaledVector(ax, -a2.dot(ax));
+    if (a1.lengthSq() < 1e-6 || a2.lengthSq() < 1e-6) continue; a1.normalize(); a2.normalize();
+    const ang = Math.atan2(ax.dot(new T.Vector3().crossVectors(a1, a2)), a1.dot(a2));
+    const wq = A.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(ax, ang * w));
+    A.quaternion.copy(A.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); A.updateMatrixWorld(true);
   }
+}
+// (hacia dónde queda el pulgar en la mano, en sus ejes: en la postura en que se hizo la figura, con los brazos en cruz y
+// las palmas abajo, el pulgar apunta hacia delante, hacia donde mira la figura; se calcula una vez por mano)
+function pulgar(T, obj, Hd) {
+  const u = obj.userData.pulgar ||= new Map(); if (u.has(Hd)) return u.get(Hd);
+  let r = null;
+  obj.traverse(m => {
+    if (r || !m.isSkinnedMesh || !m.skeleton) return; const i = m.skeleton.bones.indexOf(Hd); if (i < 0) return;
+    const qb = new T.Quaternion(), qi = new T.Quaternion(), e = new T.Vector3();
+    m.bindMatrix.decompose(e, qb, new T.Vector3()); m.skeleton.boneInverses[i].decompose(e, qi, new T.Vector3());
+    r = new T.Vector3(0, 0, 1).applyQuaternion(qb).applyQuaternion(qi).normalize();
+  });
+  u.set(Hd, r); return r;
 }
 
 // ---- el consejo del botillero ----
