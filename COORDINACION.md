@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `e55569fd`.)
+(Nada por ahora: publicado el 26 nov hasta `8c69766f`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, tarde (13.ª), la hizo la ventana de Auditoría (el autor: «no delimites por cuadrícula… oscurezcas el fondo y liberes la información… aprovecha más los espacios… elimina barras separadoras… reordena… menos es más», con permiso de «Vete subiendo todo a la web»): hasta `8c69766f`. Las ventanas que se abren encima (presentación, material, final, pausa, ficha del pelotari, torneo, liga, avisos) sin caja ni sombra sobre el fondo oscurecido, con más aire, en mejor orden y sin rayas ni iconos que repiten (`src/ui/sinCajas.css`).
 - 26 nov (12.ª), la hizo la ventana de Auditoría (el autor: «que las conversaciones tengan sentido. Que vaya con el juego… el botillero del rival choca con la cabeza del pelotari», con permiso de «Vete subiendo todo a la web»): hasta `e55569fd`.
 - 26 nov (11.ª), la hizo la ventana de Auditoría (el autor: «el botillero del rival tiene que estar en la misma posición que nuestro botillero… todo tiene que ser coherente», con permiso de «Vete subiendo todo a la web»): hasta `50e41468`.
 - 26 nov, madrugada (10.ª), la hizo la ventana de Auditoría (el autor: «que metieras alguna mujer también, botillera… los botilleros traspasan mobiliarios… durante el partido los botilleros siguen el partido con atención», con permiso de «Vete subiendo todo a la web»): hasta `46976aca`.
