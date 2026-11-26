@@ -2261,7 +2261,7 @@
  {
   "fuente": "src/pelota/rules.js",
   "json": "juego/pelota/rules.json",
-  "kb": 36,
+  "kb": 37,
   "exporta": [
    "ARQ_ICON",
    "ARQ_TXT",
