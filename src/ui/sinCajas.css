@@ -192,3 +192,30 @@ html:root body:not(#sc#sc) .pel-court > svg { display: none !important; }
 html:root body:not(#sc#sc) .pel-court-t span { gap: 0 !important; }
 html:root body:not(#sc#sc) .pel-court-t i { background: none !important; padding: 0 !important; color: #cbbcf0 !important; font-weight: 600 !important; }
 html:root body:not(#sc#sc) .pel-court-t i + i::before { content: '·'; margin: 0 .5em; color: #8f7fb8; }
+
+/* ---------- 14) Perfil y ajustes sin cajas (el autor, 26 nov: «Si», a quitar el recuadro de las tarjetas del Perfil como
+   en el resto del juego). Las tarjetas de ajustes (hub/ajustes.css), la ficha del jugador, lo que llevas y los
+   desplegables (Llevar tu partida, Privacidad, Créditos, Diagnóstico), sueltos sobre el fondo oscuro de la página:
+   cada bloque lo marca su título; entre bloques, aire; sin rayas entre fila y fila ---------- */
+html:root body:not(#sc#sc) #hub :is(.aj-card, .aj-cols > .panel.creditos) { background: none !important; outline: 0 !important; border: 0 !important;
+  box-shadow: none !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; padding: 0 !important; border-radius: 0 !important; }
+html:root body:not(#sc#sc) #hub .aj-cols { column-gap: calc(var(--sp-g) * 2) !important; margin-top: calc(var(--sp-g) * 1.5) !important; }
+html:root body:not(#sc#sc) #hub .aj-cols > * { margin-bottom: calc(var(--sp-g) * 1.5) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .aj-t { margin-bottom: var(--sp-i) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set { border-bottom: 0 !important; padding: var(--sp-i) 0 !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set-note { margin-top: 0 !important; }
+/* (los desplegables, con el mismo título que las tarjetas y una flecha pequeña que dice que se abren) */
+html:root body:not(#sc#sc) #hub .aj-cols > .panel.creditos > summary { min-height: 0 !important; font: 400 var(--fs-lg, 22px)/1 var(--f-display, 'MZ Display'), sans-serif !important;
+  text-transform: uppercase; letter-spacing: .01em; color: #fff; }
+html:root body:not(#sc#sc) #hub .aj-cols > .panel.creditos > summary::after { content: ''; width: 7px; height: 7px; margin-left: 4px; border: solid #a097bd; border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translateY(-3px); transition: transform .2s; }
+html:root body:not(#sc#sc) #hub .aj-cols > .panel.creditos[open] > summary::after { transform: rotate(-135deg) translate(-2px, -1px); }
+html:root body:not(#sc#sc) #hub .aj-cols > .panel.creditos > summary :is(img, svg) { width: 26px; height: 26px; flex: none; }
+/* (la ficha del jugador: sin rectángulo; queda un halo rosa detrás del personaje, que se apaga antes de llegar a su borde) */
+html:root body:not(#sc#sc) #hub .pf-hero { background: none !important;
+  outline: 0 !important; box-shadow: none !important; border-radius: 0 !important; padding-left: 0 !important; padding-right: 0 !important; overflow: visible !important; }
+html:root body:not(#sc#sc) #hub .pf-hero::after { display: none !important; }
+html:root body:not(#sc#sc) #hub .pf-fig { margin-bottom: 0 !important; background: radial-gradient(closest-side, rgba(255, 79, 216, .26), rgba(255, 79, 216, 0)) !important; }
+/* (lo que llevas: icono y cifra, sin pastilla) */
+html:root body:not(#sc#sc) #hub .pf-stats { gap: var(--sp-i) var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .pf-stats span { background: none !important; box-shadow: none !important; padding: 2px 0 !important; }
