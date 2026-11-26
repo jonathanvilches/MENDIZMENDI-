@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `35307acd`.)
+(Nada por ahora: publicado el 26 nov hasta `034d1270`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, noche (22.ª), la hizo la ventana de Auditoría (el autor: «No me gusta lo del consejo»; de tres propuestas eligió quitarlo): hasta `034d1270`. La carga de un pueblo, sin consejo ni nombre del sitio de la lámina (`src/main.js`); en la pelota y la pasaka sigue el «¿Sabías que…?». Prueba de humo sin errores.
 - 26 nov, noche (21.ª), la hizo la ventana de Auditoría (el autor: «El consejo y la otra parte que se vea mejor o unifícalo y mejora el diseño»; «Las misiones en las cards no se ven bien. Están cortadas»): hasta `35307acd`. Galería de pueblos: el nombre y Jugar en la misma fila y las misiones debajo a todo el ancho (`galeria.css`; ninguna de las 39 cartas cortada a 844×390, 740×360, 390×844, 1280×720 y 1920×1080, iconos de 20 a 26 px). Pantalla de carga: el consejo y el sitio de la lámina en un solo bloque arriba a la derecha (`src/ui.js`, `src/style.css`). Prueba de humo sin errores.
 - 26 nov, noche (20.ª), la hizo la ventana de Auditoría (el autor, con capturas: «Hay que corregir estos diseños. Bloques ajustados textos y imágenes»; «No me gusta la línea horizontal del nombre de comarca. Es un juego no una web»): hasta `919350f5`. Perfil: la figura a la altura exacta del bloque de tu nombre (`ENCUADRE_HERO` en `src/hub/hub.js`, `ajustes.css`); galería de pueblos: nombre y misiones juntos y el botón Jugar centrado a su lado (`galeria.css`); torneo de pelota: la comarca solo si no se llama como el pueblo (`frontonBox`); ficha del pueblo con el móvil tumbado: la portada del alto que queda, con las pastillas enteras (`fichas.css`, personaje entero en 8 pueblos a 844×390 y 740×360); fuera la raya delante del nombre de comarca (`fichas.css` y la pantalla de carga en `src/style.css`). Vistas a 1280×720, 844×390 y 390×844; prueba de humo sin errores.
 - 26 nov, noche (19.ª), la hizo la ventana de Auditoría (el autor: «Quiero calidad en las figuras de pantalla. Y soluciona lo demás menos lo de las voces»): hasta `8d113000`. Las 44 figuras animadas de los pelotaris también al doble (640 × 960, `public/videos/figuras/hd/`, ampliadas con Real-ESRGAN sin generar nada nuevo; `tools/auditoria-figuras-hd/`): `src/ui/videos.js` elige la de 320, la del doble o la fija nítida, sin estirar nunca, y si una no carga pone la fija. En la pantalla VS del móvil, animadas y nítidas. Productos, Historia y Euskera, en el anillo del menú del juego, detrás de Oficios (`src/hub/hub.js`).
