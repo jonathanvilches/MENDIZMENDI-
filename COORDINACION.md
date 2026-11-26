@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `15f2c534`.)
+(Nada por ahora: publicado el 26 nov hasta `a52eea95`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, noche (17.ª), la hizo la ventana de Auditoría (el autor, con capturas: «Y faltan los fondos», «Aquí faltan espacios»; «Haz todo lo que esté en tu mano»): hasta `a52eea95`. Las cajas con su fondo morado de carta y filo sutil, y el frontón a la vista detrás de las ventanas del partido; aire dentro de los bloques del Perfil; flechas en Productos, Historia y Euskera; ficha del pelotari entera también en 667 × 375 (secciones 23 y 24 de `src/ui/sinCajas.css`).
 - 26 nov, noche (16.ª), la hizo la ventana de Auditoría (el autor: «Quiero cajas pero líneas muy sutiles… pero aprovechando los espacios»; «Revisa todo a fondo. Cada página, línea, bloque»): hasta `15f2c534`. Cajas con filo casi transparente en ventanas y bloques de página, a lo ancho y sin caja dentro de caja; Ventajas en columnas, Leyendas en retícula en el móvil, mapa de yacimientos fijo, Láminas sin hueco, ficha del pelotari entera en el móvil (secciones 15 a 22 de `src/ui/sinCajas.css`).
 - 26 nov, tarde (15.ª), la hizo la ventana de Auditoría (el autor: «Si», a quitar el recuadro de las tarjetas del Perfil como en el resto del juego): hasta `04a77c1c`. Perfil y ajustes sin cajas: tarjetas, ficha del jugador, lo que llevas y desplegables sueltos sobre el fondo oscuro (sección 14 de `src/ui/sinCajas.css`).
 - 26 nov, tarde (14.ª), la hizo la ventana de Auditoría (el autor: «la iconografía de selección de juego, de modo y ajustes que sea de la misma identidad… para selección de ajustes y demás me gustan planos, para lo demás 3D», con permiso de «Vete subiendo todo a la web»): hasta `b38f89d2`. Iconos de ajustes y de selección de modo en línea blanca, como los de la pausa (`src/ui/iconosLinea.js`, mío): Perfil y ajustes, «Cómo jugar» y «Mando del móvil» del menú y las etiquetas de modo de Torneos. Lo demás (sellos, cartas, contadores, carrusel del menú) sigue en 3D; el carrusel del menú, en 3D por decisión del autor («Opción A sin duda»).
