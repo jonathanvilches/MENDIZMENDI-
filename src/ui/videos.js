@@ -92,12 +92,8 @@ const ROF = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((es) => {
 function figura(im) {
   if (!im.isConnected) { ROF?.unobserve(im); return; }
   const an = im.dataset.an, ok = an ? basta(im, ...FIG) : null; if (ok === null) return;
-  // (si la del doble no carga, la fija, y no se vuelve a pedir: nunca una imagen rota)
-  const url = ok ? an : !im.dataset.sinHd && basta(im, ...FIG2) ? HD(an) : '';
-  if (url) {
-    if (!im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); }
-    if (im.getAttribute('src') !== url) { im.onerror = url === an ? null : () => { im.onerror = null; im.dataset.sinHd = '1'; im.classList.remove('pf-an'); if (im.dataset.fija) im.src = im.dataset.fija; }; im.src = url; }
-  }
+  const url = ok ? an : !HD_MAL.has(HD(an)) && basta(im, ...FIG2) ? HD(an) : '';
+  if (url) { if (!im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); } if (im.getAttribute('src') !== url) im.src = url; }
   else if (im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; }
 }
 /** Enciende o apaga la figura animada de una imagen de pelotari. Para el anillo de «Elige tu pelotari», donde solo se
@@ -107,6 +103,11 @@ export function figuraViva(im, on) {
   if (on) { const an = im.dataset.an || im.dataset.anNo; if (!an) return; im.dataset.an = an; delete im.dataset.anNo; if (!im.dataset.vig) { im.dataset.vig = '1'; ROF?.observe(im); } if (im.complete && im.naturalWidth) figura(im); }
   else { if (im.dataset.an) { im.dataset.anNo = im.dataset.an; delete im.dataset.an; } if (im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; } }
 }
+// (si una animada no carga, la fija, y esa no se vuelve a pedir: nunca una imagen rota. Escuchando en el documento, porque
+// la pantalla VS vuelve a pintar sus cartas y la imagen copiada pierde lo que se le haya puesto a la original)
+const HD_MAL = new Set();
+if (typeof document !== 'undefined') document.addEventListener('error', (e) => { const im = e.target; if (im?.tagName !== 'IMG' || !im.classList.contains('pf-an')) return;
+  HD_MAL.add(im.getAttribute('src')); im.classList.remove('pf-an'); if (im.dataset.fija) im.src = im.dataset.fija; if (im.dataset.an) { im.dataset.anNo = im.dataset.an; delete im.dataset.an; } }, true);
 if (typeof document !== 'undefined') document.addEventListener('load', (e) => { const im = e.target; if (im?.tagName === 'IMG' && im.dataset?.an) { if (!im.dataset.vig) { im.dataset.vig = '1'; ROF?.observe(im); } figura(im); } }, true);
 // (al cambiar el tamaño de la ventana, los vídeos que ya no tienen definición se quitan y los que ahora sí, vuelven)
 let tRes = 0;
