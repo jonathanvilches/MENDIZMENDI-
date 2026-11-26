@@ -59,6 +59,11 @@ export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ?
 const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue'];
 export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
+// (y las mismas al doble, 640 × 960, para donde la de 320 se estiraría: la pantalla VS y las cartas grandes en el móvil.
+// El autor, 26 de noviembre de 2026: «Quiero calidad en las figuras de pantalla». Hechas sin generar nada nuevo: cada
+// fotograma de la de 320, ampliado con Real-ESRGAN animevideov3 a x4 y reducido a x2, el color y la transparencia por
+// separado y el color del borde extendido hacia fuera antes, para que el contorno no salga oscuro; ~1,9 MB cada una)
+const HD = (url) => url.replace('/videos/figuras/', '/videos/figuras/hd/');
 
 /** ¿Basta una imagen o un vídeo de w × h para lo que ocupa el elemento en la pantalla? (null: aún sin medir). Como en
  *  web/hd.js: el ancho que pide según cómo se encaja («cover» la estira hasta cubrir la caja, «contain» la mete entera;
@@ -77,20 +82,23 @@ const DIM = (u) => (/\/s\//.test(u) ? [640, 360] : [1280, 720]);
 const ACTIVOS = new Set();
 
 // las figuras animadas: en su sitio va la figura fija (la de 512, que sube a la de 1024 si hace falta) y la animada solo
-// la sustituye si basta para lo que ocupa; si luego crece (otra ventana, otra pantalla), vuelve la fija
-// (lo que miden, 320 × 480, con holgura: se dejan estirar hasta un 45 %, que en una figura que se mueve no se nota y, sin
-// ella, en un móvil de densidad 3 la carta de delante del anillo de «Elige tu pelotari» se quedaba siempre con la fija)
-// (en el ordenador y en la tele, sin estirar nada: estiradas, en pantalla grande se veían pixeladas; el autor, 20 de
-// noviembre de 2026, «en la versión escritorio, en la versión televisión, las animaciones de los pelotaris se pixelan».
-// Allí, si la animada no llega, va la fija, que tiene definición de sobra y respira, sport.css gx-respira)
-const FINO = typeof matchMedia === 'function' && matchMedia('(pointer: fine)').matches, HOLGURA = FINO ? 1.04 : 1.45;
-const FIG = [320 * HOLGURA, 480 * HOLGURA];
+// la sustituye si basta para lo que ocupa: la de 320 × 480 donde llega y, si no, la del doble; si ninguna llega sin
+// estirarse, la fija, que tiene definición de sobra. Si luego crece (otra ventana, otra pantalla), se vuelve a elegir
+// (antes, en el móvil, la de 320 se dejaba estirar hasta un 45 % para que la carta de delante del anillo de «Elige tu
+// pelotari» se moviera, y en la pantalla VS se veía blanda; con la del doble ya no hace falta estirar nada, ni en el móvil
+// ni en el ordenador o la tele, donde estiradas se pixelaban: el autor, 20 de noviembre de 2026)
+const HOLGURA = 1.04, FIG = [320 * HOLGURA, 480 * HOLGURA], FIG2 = [640 * HOLGURA, 960 * HOLGURA];
 const ROF = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((es) => { for (const e of es) figura(e.target); }) : null;
 function figura(im) {
   if (!im.isConnected) { ROF?.unobserve(im); return; }
   const an = im.dataset.an, ok = an ? basta(im, ...FIG) : null; if (ok === null) return;
-  if (ok && !im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); im.src = an; }
-  else if (!ok && im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; }
+  // (si la del doble no carga, la fija, y no se vuelve a pedir: nunca una imagen rota)
+  const url = ok ? an : !im.dataset.sinHd && basta(im, ...FIG2) ? HD(an) : '';
+  if (url) {
+    if (!im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); }
+    if (im.getAttribute('src') !== url) { im.onerror = url === an ? null : () => { im.onerror = null; im.dataset.sinHd = '1'; im.classList.remove('pf-an'); if (im.dataset.fija) im.src = im.dataset.fija; }; im.src = url; }
+  }
+  else if (im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; }
 }
 /** Enciende o apaga la figura animada de una imagen de pelotari. Para el anillo de «Elige tu pelotari», donde solo se
  *  mueve la de la carta de delante: apagada, se queda la fija y no se vuelve a animar sola hasta encenderla */
