@@ -123,18 +123,25 @@ export function vistePaisano(T, root, ropa) {
     const bb = g.boundingBox, kit = new T.Vector2(bb.min.y, Math.max(1e-3, bb.max.y - bb.min.y));
     // (las manos y las muñecas, por los huesos que las mueven: ahí, lo blanco de las vendas pasa a piel)
     if (!g.attributes.aBoMano && g.attributes.skinIndex && o.skeleton) {
-      const man = o.skeleton.bones.map(b => /Hand|ForeArm/.test(b.name)), si = g.attributes.skinIndex, sw = g.attributes.skinWeight, A = new Float32Array(si.count);
-      for (let i = 0; i < si.count; i++) { let w = 0; for (let c = 0; c < 4; c++) if (man[si.getComponent(i, c)]) w += sw.getComponent(i, c); A[i] = w; }
-      g.setAttribute('aBoMano', new T.BufferAttribute(A, 1));
+      // (y, para quitarle la mano cuando lleva la del sanferminero, aBoPalma: cuánto la mueve el hueso de la mano y dónde
+      // está su muñeca, en los ejes de la malla; esos puntos se recogen en la muñeca, sin dejar bordes rotos)
+      const bs = o.skeleton.bones, man = bs.map(b => /Hand|ForeArm/.test(b.name)), si = g.attributes.skinIndex, sw = g.attributes.skinWeight, A = new Float32Array(si.count), P = new Float32Array(si.count * 4);
+      const BI = new T.Matrix4().copy(o.bindMatrix).invert(), mun = bs.map((b, i) => /Hand$/.test(b.name) ? new T.Vector3().applyMatrix4(new T.Matrix4().copy(o.skeleton.boneInverses[i]).invert()).applyMatrix4(BI) : null);
+      for (let i = 0; i < si.count; i++) {
+        let w = 0, wp = 0, mj = null, mw = 0;
+        for (let c = 0; c < 4; c++) { const k = si.getComponent(i, c), x = sw.getComponent(i, c); if (man[k]) w += x; if (mun[k]) { wp += x; if (x > mw) { mw = x; mj = mun[k]; } } }
+        A[i] = w; if (mj) { P[i * 4] = mj.x; P[i * 4 + 1] = mj.y; P[i * 4 + 2] = mj.z; } P[i * 4 + 3] = wp;
+      }
+      g.setAttribute('aBoMano', new T.BufferAttribute(A, 1)); g.setAttribute('aBoPalma', new T.BufferAttribute(P, 4));
     }
     // (una copia del material, que pierde los sombreadores del original: se le vuelven a poner, como a los pelotaris del
     // partido (actors/npcOutfit.js): el relleno de luz y su pintura, y la textura nítida, sin mezclar sus piezas)
     const fk = o.material.userData.fillK, m = o.material.clone(); m.userData.own = true; delete m.userData.pintado;
     m.onBeforeCompile = (sh) => {
       // (el color de la piel, el que saca de su textura actors/sinTacos.js; si no está, uno de piel clara)
-      Object.assign(sh.uniforms, U, { uBoKit: { value: kit }, uBoPiel: m.userData.sinTacos?.uPiel || { value: new T.Vector3(0.95, 0.78, 0.68) } });
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vBoY, vBoMano; uniform vec2 uBoKit; attribute float aBoMano;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBoY = (position.y - uBoKit.x) / uBoKit.y; vBoMano = aBoMano;');
+      Object.assign(sh.uniforms, U, { uBoKit: { value: kit }, uBoPiel: m.userData.sinTacos?.uPiel || { value: new T.Vector3(0.95, 0.78, 0.68) }, uBoSinMano: { value: ropa.sinMano ? 1 : 0 } });
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vBoY, vBoMano; uniform vec2 uBoKit; uniform float uBoSinMano; attribute float aBoMano; attribute vec4 aBoPalma;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBoY = (position.y - uBoKit.x) / uBoKit.y; vBoMano = aBoMano;\nif (uBoSinMano > 0.5) transformed = mix(transformed, aBoPalma.xyz, smoothstep(0.3, 0.7, aBoPalma.w));');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
 uniform vec3 uBoCam, uBoHom, uBoVaq, uBoPiel; varying float vBoY, vBoMano;
 ${GL_HSV}
@@ -159,7 +166,7 @@ vec3 boRopa(vec3 lin){
         // (y la luz propia del personaje, que sale de la textura: con el color ya cambiado; si no, asomaba la ropa de antes)
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
     };
-    m.customProgramCacheKey = () => 'botillero-' + ropa.camiseta;
+    m.customProgramCacheKey = () => 'botillero-' + ropa.camiseta + (ropa.sinMano ? '-sm' : '');
     if (fk != null) fillMaterial(m, fk);
     o.material = sharpMap(m);
     m.needsUpdate = true;

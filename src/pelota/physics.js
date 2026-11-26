@@ -176,13 +176,13 @@ export function landingOf(p, v, spin = 0) {
 // opts.low: cuánto se premia que pegue bajo en el frontis (la cortada a dos paredes, rasa y cerca de la chapa);
 // opts.maxFront: lo más alto que puede pegar en el frontis; opts.spin: el de la cortada (sale del frontis de otra manera)
 export function twoWallsTo(p, speed, target, opts = {}) {
-  const low = opts.low || 0, maxFront = opts.maxFront ?? COURT.FRONT_TOP - 0.3, xw = -COURT.W / 2 + R, spin = opts.spin || 0;
+  const low = opts.low || 0, maxFront = opts.maxFront ?? COURT.FRONT_TOP - 0.3, minFront = opts.minFront ?? COURT.CHAPA + 0.35, xw = -COURT.W / 2 + R, spin = opts.spin || 0;   // (minFront: lo más bajo en el frontis; a ras de chapa, la dos paredes rasa)
   let best = null;
   const prueba = (fz, yw, sp) => {
     const zw = Math.max(1.2, p.z * fz), d = Math.hypot(xw - p.x, zw - p.z); if (d < 1 || yw < 0.6) return;
     const v = aimVelocityTo(p, { x: xw, y: yw, z: zw }, Math.max(0.1, d / sp));
     const r = twoWallsPath(p, v, spin); if (!r) return;
-    const F = r.front, land = r.land; if (F.y < COURT.CHAPA + 0.35 || F.y > maxFront) return;
+    const F = r.front, land = r.land; if (F.y < minFront || F.y > maxFront) return;
     if (land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) return;
     const score = -Math.hypot(land.x - target.x, (land.z - target.z) * 0.7) - low * (F.y - COURT.CHAPA) * 0.4;
     if (!best || score > best.score) best = { score, v, land, front: F, wall: { x: xw, y: yw, z: zw }, fz, yw, sp };

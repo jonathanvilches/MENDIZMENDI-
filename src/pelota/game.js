@@ -78,10 +78,16 @@ const pow01 = (pow) => clamp((pow - 0.15) / 0.85, 0, 1);
 // 2026: «que la cortada puedas controlar la altura hasta ajustarla a la chapa… si es de derecha hacia la pared es cortada,
 // pero si es de la izquierda hacia el ancho, contracancha, es gancho»: el gancho sale con la misma altura. Antes no bajaba
 // de 35 cm por encima de la chapa. Cuanto más rasa, más fácil que el error del golpe la mande a la chapa)
+// (26 nov: aún más baja. A tope y sin tocar el joystick daba a 3 m en el frontis y botaba en el cuadro 7; ahora, de unos
+// 20 cm por encima de la chapa, tocada, a 60 cm, a tope; el joystick abajo la deja a ras de chapa y arriba la sube algo
+// más de medio metro. Así bota entre el cuadro 2 y el 4 y corre baja. El autor: «las cortadas se van muy lejos, casi hasta
+// el cuadro 7… y tenemos que mejorar mucho el control de las cortadas, que puedan ir más a ras de chapa»)
 export function cutHeight(pow, ay = 0) {
-  const a = clamp(ay, -1, 1), sobre = 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45);
-  return clamp(COURT.CHAPA + (a < 0 ? sobre * (1 + a * 0.92) : sobre + a * 0.5), COURT.CHAPA + 0.04, COURT.FRONT_H * 0.36);
+  const a = clamp(ay, -1, 1), sobre = 0.2 + pow01(pow) * 0.4;
+  return clamp(COURT.CHAPA + (a < 0 ? sobre * (1 + a * 0.85) : sobre + a * 0.55), COURT.CHAPA + 0.04, COURT.CHAPA + 1.25);
 }
+// (y lo más lejos que bota: del cuadro 3 y medio, tocada, a algo más del 4, a tope; con el joystick arriba, un cuadro más)
+const cutMaxZ = (pow, ay = 0) => 12 + pow01(pow) * 3 + Math.max(0, ay) * 3.5;
 // el joystick a un lado, casi en proporción: medio lado va a media cancha y del todo, a tope (a la izquierda, a la pared; a la
 // derecha, justo a la raya de la contracancha, donde un golpe no del todo bueno se va fuera). Antes se exageraba (medio lado ya
 // iba casi a la pared) y la derecha a tope se quedaba a medio metro de la raya: «casi es imposible fallar golpeando la pelota
@@ -451,11 +457,18 @@ export class PelotaGame {
       // a bote junto a la raya del ancho; arriba, más larga; abajo, más corta, junto al frontis)
       if (rawX < -0.45 && !serve && FEEL.tipo === 'izquierda') {   // (en la plaza libre no hay pared para la dos paredes; en el trinquete, a la izquierda está la red)
         const ang = clamp((-rawX - 0.45) / 0.5, 0, 1);
-        const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(8 + pow01(pow) * 7 + aim.y * 3, 6.5, 16) + gauss(rnd) * err * 1.6 };
-        const r = twoWallsTo(p, speed, tgt, { low: 1.5, maxFront: ty + 1.4, spin: 1 });
+        const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(7 + pow01(pow) * 5 + aim.y * 2.5, 5.5, 13.5) + gauss(rnd) * err * 1.6 };
+        // (a ras de chapa como la cortada: en el frontis, cerca de su altura y nunca mucho más arriba; antes podía dar hasta
+        // metro y medio por encima y salía larga)
+        const r = twoWallsTo(p, speed, tgt, { low: 3, maxFront: ty + 0.55, minFront: COURT.CHAPA + 0.1, spin: 1 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
-      if (!v) { const T = Math.max(0.2, p.z / speed); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); sub = lx < -2.4 ? 'cortPared' : lx > 3.2 ? 'cortAncho' : ''; }
+      if (!v) {
+        let sp = speed; const zMax = cutMaxZ(pow, aim.y) + gauss(rnd) * err * 1.2;
+        // (si aun así botaría más lejos de lo que bota una cortada, más floja: muy rápida desde lejos, la pelota sale larga)
+        for (let k = 0; k < 6; k++) { const T = Math.max(0.2, p.z / sp); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); const r = landingOf(p, v, 1); if (!r.land || r.land.z <= zMax || sp < 18) break; sp *= 0.9; }
+        sub = lx < -2.4 ? 'cortPared' : lx > 3.2 ? 'cortAncho' : '';
+      }
       // (la cortada es con la derecha y hacia la pared izquierda. Hacia el ancho, a la contracancha, no es cortada: de aire,
       // con la izquierda, es un gancho; rasa, un golpe al ancho. Lo corrigió el autor el 14 de noviembre de 2026: «cuando le
       // damos de aire con la mano izquierda hacia la derecha [...] eso se llama gancho, no cortada»)
@@ -476,7 +489,10 @@ export class PelotaGame {
       // el 2 y el rival remataba: de ahí que «hacen tanto enseguida»)
       const fz = who === 'you' && !this.autoplay ? 0.3 + pow01(pow) * 0.7 : pow01(pow), vMin = 9 + clamp(p.z, 6, 30) * 0.32;
       let tx, landZ, speed = Math.max(vMin, (9 + q * 3 + Math.pow(fz, 1.25) * 19 + (S - 3) * 1.3) * (0.8 + clamp(p.z, 8, 30) / 62)) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
-      if (gancho) aim = { x: Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
+      // (el gancho, siempre hacia el ancho, pero desde media cancha a la raya según el joystick, y de corto (abajo) a medio
+      // (arriba); antes se forzaba casi a la raya y no se podía colocar. El autor, 26 nov: «mejorar el control del gancho de
+      // izquierda»)
+      if (gancho) aim = { x: Math.max(aim.x, 0.3), y: clamp(aim.y, -1, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
       // (antes había que ir a la diagonal exacta abajo-izquierda y casi nunca salía: ahora basta con el joystick bien a la
@@ -485,9 +501,15 @@ export class PelotaGame {
       // (el ángulo, con todo el recorrido que queda del joystick, de 0,7 al tope, y algo de abajo; la fuerza dice lo larga
       // que sale, de la mitad de la cancha al cuadro 6: antes ese recorrido era la mitad y la fuerza se notaba poco)
       if (!gancho && rawX < -0.7 && aim.y < 0.3 && FEEL.tipo === 'izquierda') {
-        const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, this.cuatro ? 14.6 : 22);
+        const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(9 + pow * 8.5 + aim.y * 2.5 + gauss(rnd) * err * 2, 8, this.cuatro ? 14.6 : 19);
         // (y se apunta al bote: más a la izquierda, más cruzada, del centro al ancho)
-        const r = twoWallsTo(p, speed + 1, { x: 0.6 + ang * 3.6 + gauss(rnd) * err * 0.9, z: lz });   // (más fuerza, más rápida y más larga)
+        // (la altura en el frontis: con el joystick abajo, a ras de chapa; en medio, a media altura; arriba, más alta y
+        // larga. Antes daba donde saliera, casi siempre a media pared, y no se podía ajustar a la chapa. El autor, 26 nov:
+        // «que puedan ir más a ras de chapa, igual que las dos paredes»)
+        const baja = Math.max(0, -aim.y), dpOpts = { low: 0.5 + baja * 3, minFront: COURT.CHAPA + 0.12 };
+        // (con el joystick abajo, rasa: más baja en el frontis cuanto más abajo, sin dejar de llegar desde lejos)
+        if (baja > 0) dpOpts.maxFront = COURT.CHAPA + 0.9 + pow * 1.4 + p.z * 0.06 - baja * 0.9;
+        const r = twoWallsTo(p, speed + 1, { x: 0.6 + ang * 3.6 + gauss(rnd) * err * 0.9, z: lz }, dpOpts) || twoWallsTo(p, speed + 1, { x: 0.6 + ang * 3.6, z: lz });   // (más fuerza, más rápida y más larga)
         if (r) {
           shot = 'dosparedes'; v = r.v;
           sub = pow > 0.8 && aim.y < -0.6 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
@@ -513,7 +535,7 @@ export class PelotaGame {
         else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed -= (aim.y - 0.6) * 9; }
         else landZ = depth;
         if (aim.x < -0.6) shot = 'pared'; else if (aim.x > 0.6) { shot = 'ancho'; landZ -= 1; }
-        if (gancho) { shot = 'gancho'; sub = ''; landZ = clamp(landZ, 12, 18.5); }
+        if (gancho) { shot = 'gancho'; sub = ''; landZ = clamp(landZ, 9, 16.5); }
         lx = clamp(lx + gauss(rnd) * err * 1.2 + errRaya(gauss(rnd), aim.x, err), -4.8, COURT.W / 2 + 0.9);   // (al ancho a tope, o un golpe malo, se puede ir fuera)
         landZ += gauss(rnd) * err * 2.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
