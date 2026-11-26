@@ -61,5 +61,7 @@ if (charlaAbierta) unicos.push('la charla del descanso no se cierra');
 if (F.length < 200 || !fases.includes('rally')) unicos.push(`prueba corta: ${F.length} fotogramas, sin peloteo; más segundos`);
 const ultD = F.map(x => x.ph).lastIndexOf('descanso');
 if (ultD < 0) unicos.push('no llegó al descanso'); else if (!F.slice(ultD).some(x => /^(serveWait|servePrep|rally)$/.test(x.ph))) unicos.push('tras el descanso no se vuelve a jugar');
-console.log(JSON.stringify({ tamaño: sz, fotogramas: F.length, fases, problemas: unicos.slice(0, 12), errores: errs.slice(0, 8) }, null, 1));
+// (la secuencia, resumida: cada fase con los fotogramas que dura, y una C mientras está abierta la charla)
+const sec = []; for (const x of F) { const k = x.ph + (x.dlg ? '·C' : ''); if (sec.length && sec[sec.length - 1][0] === k) sec[sec.length - 1][1]++; else sec.push([k, 1]); }
+console.log(JSON.stringify({ tamaño: sz, fotogramas: F.length, fases, secuencia: sec.map(([k, n]) => `${k}×${n}`).join(' '), problemas: unicos.slice(0, 12), errores: errs.slice(0, 8) }, null, 1));
 process.exit(unicos.length || errs.length ? 1 : 0);
