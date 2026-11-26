@@ -18,7 +18,9 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `50e41468`.)
+- Descanso: lo que dice el botillero sale del partido (con qué te gana tantos el rival, dónde fallas tú, qué le hace
+  daño); el zurdo, de verdad en el juego (le cuesta el ancho); sin botones ni rótulo durante la charla y plano de tu
+  botillero y tu pelotari por encima de la ventana (Auditoría).
 
 
 ## Peticiones entre ventanas

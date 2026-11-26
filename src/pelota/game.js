@@ -175,6 +175,7 @@ export class PelotaGame {
     // (fuerza, agilidad y velocidad). La precisión, la de los golpes: sin ella, 3, la media
     const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3, precision: s?.precision ?? 3, style: s?.style || null });
     this.qual = { you: Q(o.youStats), rival: Q(o.rivalStats), youMate: Q(o.youMateStats), rivalMate: Q(o.rivalMateStats) };
+    this.zurdo = { rival: !!o.rivalZurdo };   // (el rival zurdo: su mano mala es la derecha, la del ancho; ver calidad)
     // por parejas: cada lado con un delantero y un zaguero (tú eliges qué juegas; tu compañero, lo otro). El rival del
     // pueblo juega de delantero y saca
     this.pairs = !!o.pairs && this.mode === 'match';
@@ -217,7 +218,7 @@ export class PelotaGame {
     // altura del hombro o más arriba), rebote (tras dar en la pared de atrás), cortada y dos paredes. fallos, los que pierde por mandar la pelota fuera, a la chapa, falta o pasa.
     // tantos: los pelotazos de cada tanto. alAire: tus golpes al aire. golpes: dónde golpeó cada lado, [x, z] en la cancha,
     // para el mapa del final; log: cada tanto en orden, con quién lo gana, cómo y el marcador, para el momento clave)
-    const lado = () => ({ hechos: 0, fallos: 0, saque: 0, dejada: 0, aire: 0, volea: 0, rebote: 0, cortada: 0, dosparedes: 0 });
+    const lado = () => ({ hechos: 0, fallos: 0, saque: 0, dejada: 0, aire: 0, volea: 0, rebote: 0, cortada: 0, dosparedes: 0, faltas: {} });   // (faltas: los fallos de cada uno, por cómo: chapa, largo, fuera…)
     this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0, por: { you: lado(), rival: lado() }, tantos: [], alAire: 0, golpes: { you: [], rival: [] }, log: [] };
     this.placeForServe();
   }
@@ -353,8 +354,9 @@ export class PelotaGame {
     const qd = 1 - clamp(Math.hypot(b.x - pl.x, b.z - pl.z) - 0.45, 0, reach) / reach;
     const tol = this.tol * (this.volley() ? 0.75 : 1) * (this.camara && who === 'you' ? 1.5 : 1);   // (de volea, el momento justo es más justo; con la cámara, bastante menos)
     const qt = timing == null ? 0.75 : 1 - clamp(Math.abs(timing) / tol, 0, 1);
-    // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
-    const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
+    // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene. Al zurdo, al revés:
+    // lo que le cuesta es lo que se va al ancho, a su derecha, lejos de la pared; lo que le dice tu botillero, botillero.js)
+    const wall = (this.zurdo[who] ? clamp((1.0 - (COURT.W / 2 - b.x)) / 0.7, 0, 1) : clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1)) * (0.2 - this.qual[who].agilidad * 0.025);
     // (lo que llega: un pelotazo a tope del otro cuesta controlarlo y sale peor; uno flojo se coge cómodo. 17 nov 2026)
     // (18 nov: a ti, con ayuda, la mitad de ese castigo o menos: con el pelotazo del rival fallabas enseguida)
     const U = this.ultimo, kLl = who === 'you' && !this.autoplay ? clamp(1 - this.lvl.assist * 0.45, 0.25, 1) : 1, llega = U && U.who !== who ? clamp((U.v - 24) / 14, 0, 1) * 0.2 * kLl - clamp((19 - U.v) / 8, 0, 1) * 0.06 : 0;
@@ -602,7 +604,7 @@ export class PelotaGame {
       if (call === 'bote') { const P = this.stats.por[winner]; P.hechos++;
         if (R.serve) P.saque++;
         else { const K = R.real || R.kind; if (K === 'dejada') P.dejada++; if (K === 'cortada') P.cortada++; if (K === 'dosparedes') P.dosparedes++; if (R.volea) { if (R.alto) P.volea++; else P.aire++; } if (R.rebote || R.kind === 'rebote') P.rebote++; }
-      } else this.stats.por[this.other(winner)].fallos++;
+      } else { const L = this.stats.por[this.other(winner)]; L.fallos++; L.faltas[call] = (L.faltas[call] || 0) + 1; }
     }
     this.phase = 'point'; this.phaseT = 0;
     if (this.mode === 'rally') {

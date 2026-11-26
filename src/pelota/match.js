@@ -22,7 +22,7 @@ import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
-import { sillasDe, montaSillas, posturaSentado, consejo, animoRacha, MIRA_SENTADO, DESC, ASIENTO_Y } from './botillero.js';
+import { sillasDe, montaSillas, posturaSentado, consejo, animoRacha, porQuePierdes, MIRA_SENTADO, DESC, ASIENTO_Y } from './botillero.js';
 import { sinCabeza } from './sinCabeza.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
@@ -349,7 +349,8 @@ export class PelotaMatch {
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
-      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara, reto: o.reto, herr: this.herrDe() });
+      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara, reto: o.reto, herr: this.herrDe(),
+      rivalZurdo: (() => { try { const rn = splitName(this.names.rival); return !!pelotariArq(o.rivalStats || {}, rn.name, rn.town || o.town || '', false).zurdo; } catch (e) { return false; } })() });
     this.herrK = this.herrDe();   // (la herramienta en la mano de cada pelotari: se pone en el bucle, cuando su figura está cargada)
     this.court.setCuatro?.(!!this.game.cuatro);   // (la raya del 4 y medio, solo en el Cuatro y Medio)
     this.rec = null; this.repAt = 0;
@@ -1464,8 +1465,10 @@ export class PelotaMatch {
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
         // (tres tantos perdidos seguidos, y cada tres más: unas palabras de tu botillero, en su burbuja, sin parar el juego:
         // game/fronton.js, 'botilleroDice'; el autor, 25 de noviembre de 2026)
+        // (y si esos tantos se han perdido igual, dice eso: con qué te los gana o dónde fallas; botillero.js, porQuePierdes)
         if (g.mode === 'match' && !e.final) { this.malos = e.winner === 'you' ? 0 : (this.malos || 0) + 1;
-          if (this.malos >= 3 && this.malos % 3 === 0) try { this.o.onEvent?.({ type: 'botilleroDice', texto: animoRacha(this.lang, this.vecesMalos = (this.vecesMalos ?? -1) + 1, !!this.o.rival?.girl) }); } catch (er) { console.warn('botillero', er); } }
+          if (e.winner === 'you') this.malosPor = []; else { let c = ''; try { c = porQuePierdes(e.call, g.rally); } catch (er) { /* sin causa */ } (this.malosPor ||= []).push(c); }
+          if (this.malos >= 3 && this.malos % 3 === 0) try { this.o.onEvent?.({ type: 'botilleroDice', texto: animoRacha(this.lang, this.vecesMalos = (this.vecesMalos ?? -1) + 1, !!this.o.rival?.girl, this.malosPor) }); } catch (er) { console.warn('botillero', er); } }
         // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
         const ex = g.mode === 'rally' ? null : { col: this.cols[e.winner], racha: this.rachaDe(e) };
         // (el rótulo: lo que canta el juez, «¡Dos botes!», «¡Falta!», y para quién es el tanto, sin la explicación de la regla
@@ -2069,11 +2072,22 @@ export class PelotaMatch {
     // 26 nov: «el botillero del rival tiene que estar en la misma posición que nuestro botillero… todo tiene que ser
     // coherente»). Con un corte al entrar y al salir. Las sillas miran siempre a la cancha, hacia -x, también en el
     // trinquete, dentro junto a su pared derecha)
-    { const D = this.desc, S = this.sillas, on = !!S?.you && D && D.dentro && !D.fuera && !this.replay;
-      if (on !== !!this.descOn) { this.descOn = on; this.camInit = false; }
+    { const D = this.desc, S = this.sillas, on = !!S?.you && D && D.dentro && !D.fuera && !this.replay, charla = on && !!D.charla;
+      // (sin los botones de juego mientras dura: en el descanso no se juega, y se transparentaban por la ventana de la charla)
+      if (on !== !!this.descOn) { this.descOn = on; this.camInit = false; this.hud?.controls?.(!on); }
+      // (mientras tu botillero te habla, el plano es de los dos, de tres cuartos desde el lado de la nevera: tu botillero de
+      // perfil, hablándole, y tu pelotari de frente, con las caras en la mitad de arriba de la pantalla, porque abajo va la
+      // ventana de la charla; el rival queda fuera, que en el borde salía cortado y enorme. El rótulo «Descanso» se va: la
+      // ventana ya dice quién habla, y tapaba las caras)
+      if (charla !== !!this.charlaOn) { this.charlaOn = charla; this.camInit = false;
+        if (charla && this.hud) { this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); if (!(this.hud.autorT > 0)) this.hud.root?.classList.remove('calling'); } }
+      // (medido: así el rival, sentado a metro y medio, queda fuera por la derecha, y la nevera en el borde; las cabezas,
+      // grandes, enteras por debajo del marcador; de cintura para abajo, detrás de la ventana)
+      if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.5, tx = S.x - 0.3;
+        lp[0] = tx - 0.6 * R; lp[1] = 1.02; lp[2] = cz + 0.8 * R; ll[0] = tx; ll[1] = 1.02; ll[2] = cz; }
       // (a la distancia justa para que quepan los cuatro de lado a lado y, de alto, entre el suelo y la mitad de la pantalla:
       // arriba va el rótulo «Descanso», y en el móvil tumbado tapaba las caras)
-      if (on) { const nz = S.nevera.z, t = Math.tan(this.cam.fov * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78);
+      else if (on) { const nz = S.nevera.z, t = Math.tan(this.cam.fov * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78);
         const d = Math.max(1.5625 / t, (g.pairs ? 2.3 : 1.75) / (t * asp)), y = 1.34;   // (medido en los botilleros, de pie delante)
         lp[0] = S.x - 0.64 - d; lp[1] = y; lp[2] = nz; ll[0] = S.x; ll[1] = y; ll[2] = nz; } }
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
