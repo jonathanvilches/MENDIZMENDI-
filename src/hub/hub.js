@@ -1195,7 +1195,7 @@ export class Hub {
       ${tarjeta('pelota', 'Tu pelotari', `
         ${/* (tu pelotari: uno de los 22 de siempre, 11 chicos y 11 chicas; pelota/aspectos.js. El autor, 18 de noviembre de 2026: «que en el juego puedas seleccionarlos») */ ''}
         <div class="set set-p10"><span>En los partidos</span>
-          <div class="p10" id="pP10" role="radiogroup" aria-label="Tu pelotari">${ASPECTOS.map(a => `<button type="button" role="radio" data-p10="${a.id}" aria-checked="${a.id === aspectoTuyo().id}" title="${esc(a.es)}"><img src="${a.cara}" alt="" draggable="false"><small>${esc(a.es)}</small></button>`).join('')}</div></div></div>
+          <div class="p10" id="pP10" role="radiogroup" aria-label="Tu pelotari">${ASPECTOS.map(a => `<button type="button" role="radio" data-p10="${a.id}" aria-checked="${a.id === aspectoTuyo().id}" title="${esc(a.es)}"><img src="${a.cara}" alt="" draggable="false"><small>${esc(a.es)}</small></button>`).join('')}</div></div>
         <p class="set-note">Los 22 pelotaris del juego: todos juegan igual, cambia el aspecto. En tus cartas y en la cancha sales con el que elijas.</p>
         ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
         <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}`)}

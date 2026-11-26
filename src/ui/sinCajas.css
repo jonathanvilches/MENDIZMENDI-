@@ -219,3 +219,264 @@ html:root body:not(#sc#sc) #hub .pf-fig { margin-bottom: 0 !important; backgroun
 /* (lo que llevas: icono y cifra, sin pastilla) */
 html:root body:not(#sc#sc) #hub .pf-stats { gap: var(--sp-i) var(--sp-g) !important; }
 html:root body:not(#sc#sc) #hub .pf-stats span { background: none !important; box-shadow: none !important; padding: 2px 0 !important; }
+
+/* ---------- 15) una raya fina donde ayuda (el autor, 26 nov: «puedes añadir una pequeña línea fina, en todo lo que veas
+   conveniente»). Regla: una raya de 1 px, muy tenue, solo entre grupos distintos de una misma ventana (lo que es / lo
+   que eliges / lo que sale) y entre las filas de una lista; nunca dentro de un grupo ni repitiendo un título.
+   · Perfil y ajustes: encima de cada bloque, antes de su título.
+   · Presentación del partido: entre el frontón y el nivel. Material: entre las pelotas del lote y las dos elegidas.
+   · Pausa: entre fila y fila. Ficha del pelotari: entre la cabecera y los datos, y entre sus apartados.
+   · Final del partido: entre el marcador y lo que has ganado.
+   El cuadro del torneo ya lleva sus propias rayas, que dicen quién pasa: no se toca ---------- */
+:root { --raya: 1px solid rgba(255, 255, 255, .12); }
+body.alto-contraste { --raya: 1px solid rgba(255, 255, 255, .4); }
+html:root body:not(#sc#sc) #hub .aj-cols > * { border-top: var(--raya) !important; padding-top: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-lbl { border-top: var(--raya); padding-top: var(--sp-g); }
+html:root body:not(#sc#sc) .pel-matcard > .pel-mchips { border-top: var(--raya); padding-top: var(--sp-g); }
+html:root body:not(#sc#sc) .pz-lista > .pz-fila { background: none !important; }
+html:root body:not(#sc#sc) .pz-lista > .pz-fila:hover, html:root body:not(#sc#sc) .pz-lista > .pz-fila:focus-visible { background: rgba(183, 156, 255, .14) !important; }
+html:root body:not(#sc#sc) .pz-lista > .pz-fila:not([hidden]) ~ .pz-fila:not([hidden]) { border-top: var(--raya) !important; }
+html:root body:not(#sc#sc) .pfx .pfx-data { border-top: var(--raya); padding-top: var(--sp-b); }
+html:root body:not(#sc#sc) .pfx .pfx-sk h4:not(:first-child) { border-top: var(--raya); padding-top: var(--sp-b); margin-top: var(--sp-b); }
+html:root body:not(#sc#sc) .pel-card > .pel-sub + .pel-fin { border-top: var(--raya); padding-top: var(--sp-g); }
+
+/* ---------- 16) toda la pantalla (el autor, 26 nov: «y aprovecha todo el espacio de la pantalla»). Sin caja, ya no hace
+   falta que estas ventanas sean estrechas: todas al mismo ancho que la presentación del partido (1180 px o la pantalla
+   entera, lo que sea menos), y la pausa, a lo ancho, en dos columnas de filas, cada una con su raya encima ---------- */
+:root { --ancho-ventana: min(1180px, 100%); }
+html:root body:not(#sc#sc) :is(.pz-panel, .pfx-card) { width: var(--ancho-ventana) !important; max-width: none !important; }
+@media (orientation: landscape) {
+  html:root body:not(#sc#sc) :is(.pel-card.pel-matcard, .pel-card:has(.pel-fin)) { width: var(--ancho-ventana) !important; max-width: none !important; }
+}
+@container (min-width: 700px) {
+  html:root body:not(#sc#sc) .pz-lista { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: calc(var(--sp-g) * 2); row-gap: 0 !important; align-content: start; }
+  html:root body:not(#sc#sc) .pz-lista > .pz-fila:not([hidden]) { border-top: var(--raya) !important; }
+}
+
+/* ---------- 17) una sola estructura para todas (el autor, 26 nov: «rehaz todas las estructuras aprovechando los nuevos
+   espacios. Todo coherente y orgánico. Espacios uniformes»). La misma gramática en la pausa, la ficha del pelotari, la
+   elección de material, el final del partido y el Perfil:
+     1. cabecera: el título (y su antetítulo) a la izquierda, la equis o la acción a la derecha, a la altura del título;
+     2. una raya a todo el ancho;
+     3. el contenido en dos columnas, con el mismo hueco entre ellas en todas (--col);
+     4. las acciones abajo.
+   Solo tres medidas de aire: --sp-g entre grupos (y lo mismo encima y debajo de cada raya), --sp-b entre las filas de una
+   lista y --sp-i entre una etiqueta y lo suyo. Todo pegado al mismo borde izquierdo: sin sangrías propias ---------- */
+:root { --col: calc(var(--sp-g) * 2); }
+/* (la pausa: el título y las filas al borde, como el resto; cada fila con el mismo aire arriba y abajo) */
+html:root body:not(#sc#sc) .pz-cab { padding: 0 0 var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pz-lista { padding-top: 0 !important; column-gap: var(--col) !important; }
+html:root body:not(#sc#sc) .pz-fila { padding: var(--sp-b) 0 !important; min-height: 0 !important; }
+html:root body:not(#sc#sc) .pz-lista > .pz-fila:not([hidden]) { border-top: var(--raya) !important; }
+/* (la ficha: arriba lo que es y la equis; la raya; a la izquierda quién es y sus datos, a la derecha cómo juega) */
+html:root body:not(#sc#sc) .pfx-card { gap: var(--sp-g) !important; padding-top: 0 !important; padding-bottom: 0 !important; }
+html:root body:not(#sc#sc) .pfx-body { column-gap: var(--col) !important; row-gap: var(--sp-g) !important; border-top: var(--raya); padding-top: var(--sp-g); }
+html:root body:not(#sc#sc) .pfx-id { display: flex; flex-direction: column; gap: var(--sp-g); }
+html:root body:not(#sc#sc) .pfx .pfx-head { margin: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-data { padding-top: var(--sp-g) !important; row-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pfx .pfx-data div { padding: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-note { margin: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-sk h4:first-child { margin-top: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-sk h4:not(:first-child) { padding-top: var(--sp-g) !important; margin-top: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pfx .pfx-sk h4 { margin-bottom: var(--sp-i) !important; }
+/* (la elección de material: el título y quién elige a lo ancho, la raya, y debajo las dos columnas: a la izquierda qué es
+   y las del rival; a la derecha lo que eliges, las dos que llevas y el botón) */
+@media (orientation: landscape) {
+  html:root body:not(#sc#sc) .pel-card.pel-matcard { column-gap: var(--col) !important; row-gap: 0 !important; align-content: center; }
+  html:root body:not(#sc#sc) .pel-matcard > h2 { grid-column: 1 / -1 !important; grid-row: 1 !important; margin: 0 0 var(--sp-i) !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-sub { grid-column: 1 / -1 !important; grid-row: 2 !important; margin: 0 0 var(--sp-g) !important; padding-bottom: var(--sp-g); border-bottom: var(--raya); }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mat-what:not([data-mat-what]) { grid-column: 1 !important; grid-row: 3 !important; margin: 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mrv { grid-column: 1 !important; grid-row: 4 / span 3 !important; align-self: start; margin: var(--sp-g) 0 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-msel { grid-column: 2 !important; grid-row: 3 !important; margin: 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mchips { grid-column: 2 !important; grid-row: 4 !important; margin: var(--sp-g) 0 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > [data-mat-what] { grid-column: 2 !important; grid-row: 5 !important; margin: var(--sp-i) 0 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mgo { grid-column: 2 !important; grid-row: 6 !important; margin: var(--sp-g) 0 0 !important; }
+}
+/* (el final: el resultado y el marcador, la raya, lo ganado en dos columnas y los botones; el mismo aire entre todo) */
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) > h2 { margin-bottom: var(--sp-i) !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) > .pel-sub { margin-bottom: 0 !important; }
+html:root body:not(#sc#sc) .pel-card > .pel-sub + .pel-fin { margin-top: var(--sp-g) !important; padding-top: var(--sp-g) !important; column-gap: var(--col) !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) .pel-fin :is(.pel-big, .pel-clave, .pel-est, .pel-xp, .pel-mapa, .pel-fact) { margin-bottom: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) .pel-fin :is(.pel-fin-a, .pel-fin-b) > :last-child { margin-bottom: 0 !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) > .pel-row { margin-top: var(--sp-g) !important; }
+/* (la presentación: a la derecha de las cartas, el mismo hueco que entre columnas en las demás) */
+@media (orientation: landscape) { html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) { column-gap: var(--col) !important; } }
+/* (el Perfil: el mismo aire encima y debajo de cada raya, y el mismo hueco entre columnas) */
+html:root body:not(#sc#sc) #hub .aj-cols { column-gap: var(--col) !important; margin-top: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .aj-cols > * { margin-bottom: var(--sp-g) !important; padding-top: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .pf-hero { column-gap: var(--col) !important; }
+
+/* ---------- 18) también dentro de cada bloque (el autor, 26 nov, con la captura de la cabecera de la ficha: «en estos
+   bloques también tienen que tener espacios y respirar»). Dentro de un bloque, entre línea y línea (antetítulo, título,
+   descripción, etiquetas), siempre --sp-i; entre una imagen o una cifra grande y su texto, --sp-b; entre las etiquetas
+   de una fila, --sp-i ---------- */
+/* (la cabecera de la ficha: la media, y a su lado la posición, el nombre, cómo es y las etiquetas, cada cosa con su aire) */
+html:root body:not(#sc#sc) .pfx .pfx-head { display: grid !important; grid-template-columns: auto minmax(0, 1fr) !important; column-gap: calc(var(--sp-b) * 1.5) !important; align-items: center !important; margin: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-head > div { display: flex !important; flex-direction: column; gap: var(--sp-i); min-width: 0; }
+html:root body:not(#sc#sc) .pfx .pfx-head > div > * { grid-column: auto !important; margin: 0 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-head h3 { line-height: 1 !important; }
+html:root body:not(#sc#sc) .pfx .pfx-arq { gap: var(--sp-i) !important; margin-top: calc(var(--sp-i) / 2) !important; }
+html:root body:not(#sc#sc) .pfx .pfx-arq span { padding: 4px 10px !important; }
+html:root body:not(#sc#sc) .pfx .pfx-av { grid-row: auto !important; }
+/* (los datos: la etiqueta y su cifra con aire; las cualidades, una fila por cualidad con el mismo aire) */
+html:root body:not(#sc#sc) .pfx .pfx-data div { display: flex; flex-direction: column; gap: calc(var(--sp-i) / 2); }
+html:root body:not(#sc#sc) .pfx .pfx-bar { margin-bottom: var(--sp-i); }
+html:root body:not(#sc#sc) .pfx .pfx-bar:last-of-type { margin-bottom: 0; }
+html:root body:not(#sc#sc) .pfx .pfx-shots { gap: var(--sp-i) !important; }
+/* (la pausa: el nombre de la fila y lo que hace, separados; el botón, a su distancia) */
+html:root body:not(#sc#sc) .pz-tx { gap: var(--sp-i) !important; }
+html:root body:not(#sc#sc) .pz-fila { gap: var(--sp-g) !important; }
+/* (la presentación: el frontón y cómo es, con aire entre ellos) */
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-court-t, html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) .pel-court-t { display: flex; flex-direction: column; gap: calc(var(--sp-i) / 2); }
+/* (el final: el icono del resultado y el título, el marcador y los nombres, separados) */
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) > h2 { gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) .pel-marca { gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin) :is(.pel-xp-top, .pel-est-top) { margin-bottom: var(--sp-i) !important; }
+/* (la elección de material: la etiqueta y su elección; las dos pelotas que llevas, separadas) */
+html:root body:not(#sc#sc) .pel-matcard .pel-msel { display: flex; flex-direction: column; gap: var(--sp-i) !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchips { gap: var(--sp-g) !important; }
+/* (el Perfil: tu nombre, tu nivel, la barra y el botón, cada uno con su aire; en las tarjetas, el título y sus filas) */
+html:root body:not(#sc#sc) #hub .pf-datos { gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .pf-nombre { gap: var(--sp-i) !important; }
+html:root body:not(#sc#sc) #hub .pf-hero .lvl .xp { margin: var(--sp-i) 0 !important; }
+html:root body:not(#sc#sc) #hub .pf-stats { gap: var(--sp-b) var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .pf-stats span { gap: var(--sp-i) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .aj-t { margin-bottom: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set-note { margin: 0 0 var(--sp-i) !important; }
+
+/* ---------- 19) Perfil: la ficha del jugador sin huecos (revisión de todos los tamaños, 26 nov). Tu nombre no necesita
+   media pantalla: la columna del nombre, a su medida, y lo que llevas en tres columnas cuando hay sitio; sin el hueco de
+   arriba entre la cabecera y la ficha ---------- */
+html:root body:not(#sc#sc) #hub .pf-hero { margin-top: 0 !important; }
+@media (min-width: 901px) and (min-height: 501px) {
+  html:root body:not(#sc#sc) #hub .pf-hero { grid-template-columns: auto minmax(0, 440px) minmax(0, 1fr) !important; }
+}
+@media (min-width: 1100px) and (min-height: 501px) {
+  html:root body:not(#sc#sc) #hub .pf-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+/* ---------- 20) revisión de todos los tamaños (26 nov): los botones pequeños de texto («Partes del frontón», «Fichas de
+   los pelotaris») tenían el texto cortado: a la medida de su texto, en una línea ---------- */
+html:root body:not(#sc#sc) .pel-card .pel-chip { white-space: nowrap !important; width: auto !important; max-width: none !important; flex: none !important; overflow: visible !important; text-overflow: clip !important; padding-left: 14px !important; padding-right: 14px !important; }
+/* (la ficha del pelotari en el móvil tumbado: que quepa entera sin desplazar; el mismo orden, con el aire de lista) */
+@media (max-height: 500px) {
+  html:root body:not(#sc#sc) .pfx .pfx-data { padding-top: var(--sp-b) !important; row-gap: var(--sp-b) !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-sk h4:not(:first-child) { padding-top: var(--sp-b) !important; margin-top: var(--sp-b) !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-id { gap: var(--sp-b) !important; }
+  html:root body:not(#sc#sc) .pfx-card { gap: var(--sp-b) !important; }
+  html:root body:not(#sc#sc) .pfx-body { padding-top: var(--sp-b) !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-bar { margin-bottom: 4px; min-height: 18px !important; }
+}
+
+/* ---------- 21) revisión página a página (26 nov, el autor: «Revisa todo a fondo. Cada página, línea, bloque»). Lo que
+   quedaba con cajas dentro de cajas o con media pantalla vacía, con la misma gramática que el Perfil: cada bloque, suelto
+   sobre el fondo con su raya fina encima, y a lo ancho ---------- */
+/* Ventajas: los comercios, una comarca por columna (antes una sola columna estrecha y el resto de la pantalla vacío); la
+   tienda sin caja y sus ofertas como filas de una lista, separadas por la raya */
+html:root body:not(#sc#sc) #hub .vt-sec:has(> .vt-cm) { display: grid !important; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)) !important; column-gap: var(--col) !important; row-gap: var(--sp-g) !important; align-items: start !important; }
+html:root body:not(#sc#sc) #hub .vt-sec:has(> .vt-cm) > h2 { grid-column: 1 / -1 !important; margin-bottom: 0 !important; }
+html:root body:not(#sc#sc) #hub .vt-cm { margin: 0 !important; padding-top: var(--sp-g) !important; border-top: var(--raya) !important; }
+html:root body:not(#sc#sc) #hub .vt-coms { grid-template-columns: minmax(0, 1fr) !important; gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .vt-com { padding: 0 !important; background: none !important; border: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) #hub .vt-com header { margin-bottom: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .vt-com ul { gap: 0 !important; }
+html:root body:not(#sc#sc) #hub .vt-of { padding: var(--sp-b) 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; }
+html:root body:not(#sc#sc) #hub .vt-of.lista { border-top-color: rgba(255, 209, 102, .6) !important; }
+html:root body:not(#sc#sc) #hub .vt-como ol { display: grid; gap: var(--sp-i); }
+
+/* Leyendas en el móvil tumbado: tarjetas de pie en retícula, como Tradiciones y Oficios (antes, una por fila, con la lámina
+   a la izquierda y dos tercios de la tarjeta vacíos) */
+@media (orientation: landscape) and (max-height: 440px) {
+  html:root body:not(#sc#sc) #hub .armorial.cuentos .ar-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; }
+  html:root body:not(#sc#sc) #hub .armorial.cuentos .ct { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Historia: el mapa de los yacimientos sin caja, la lista con rayas y el mapa quieto mientras se baja por la lista (antes se
+   quedaba arriba y dejaba media pantalla vacía) */
+html:root body:not(#sc#sc) #hub .yac { padding: var(--sp-g) 0 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .yac-in { column-gap: var(--col) !important; }
+html:root body:not(#sc#sc) #hub .yac-mapa { position: sticky; top: var(--sp-g); }
+html:root body:not(#sc#sc) #hub .yac-lista { gap: 0 !important; }
+html:root body:not(#sc#sc) #hub .yac-lista li { padding: var(--sp-b) 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; }
+
+/* Pasaporte: cada comarca sin caja (los sellos ya son las piezas); su nombre con la raya encima */
+html:root body:not(#sc#sc) #hub .passport { column-gap: var(--col) !important; }
+html:root body:not(#sc#sc) #hub .passport > .ppage { margin: 0 0 var(--sp-g) !important; padding: var(--sp-g) 0 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) #hub .ppage .pstamps { margin-top: var(--sp-b) !important; }
+
+/* Pasaka, escudos y las demás guías: los apartados de texto sin caja, con su raya */
+html:root body:not(#sc#sc) #hub .armorial .ar-guia { padding: var(--sp-g) 0 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) #hub .armorial.pasaka .pk-secs { column-gap: var(--col) !important; row-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .armorial.pasaka .pk-sec h3 { margin-top: 0 !important; margin-bottom: var(--sp-i) !important; }
+
+/* Progreso: los módulos del panel sin caja, como el Perfil; cada uno con su raya encima, y las comarcas como filas */
+html:root body:not(#sc#sc) #hub .pg-panel { gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub :is(.pg-yo, .pg-mod, .pg-c) { background: none !important; outline: 0 !important; box-shadow: none !important; border-radius: 0 !important; border-top: var(--raya) !important; }
+html:root body:not(#sc#sc) #hub :is(.pg-yo, .pg-mod) { padding-left: 0 !important; padding-right: 0 !important; padding-top: var(--sp-g) !important; padding-bottom: 0 !important; }
+html:root body:not(#sc#sc) #hub .pg-c { padding-left: 0 !important; }
+html:root body:not(#sc#sc) #hub :is(.pg-mod[data-go], .pg-c):is(:hover, :focus-visible) { background: none !important; }
+html:root body:not(#sc#sc) #hub :is(.pg-mod[data-go], .pg-c):is(:hover, :focus-visible) :is(h3, b) { color: #ffb1e3; }
+
+/* Láminas: el primer grupo pegado a la cabecera, como en las demás páginas (antes, casi 100 px de aire en el ordenador) */
+html:root body:not(#sc#sc) #hub .album-sec:first-of-type > h2.sec { margin-top: 0 !important; }
+/* (el relleno de esas tarjetas va en ::before y el destello en ::after, hub/identidad.css y ui/neon.css: fuera también) */
+html:root body:not(#sc#sc) #hub :is(.armorial .ar-guia, .vt-com, .passport > .ppage)::before,
+html:root body:not(#sc#sc) #hub :is(.armorial .ar-guia, .vt-com, .passport > .ppage)::after { content: none !important; display: none !important; }
+
+/* Página de comarca: la cultura que no lleva ilustración y la naturaleza (fauna, árboles, plantas, flores) sin caja: su
+   rótulo con la raya encima y las fichas sueltas */
+html:root body:not(#sc#sc) #hub :is(.cm-cult .cult:not(.con-img), .cm-ng) { padding: var(--sp-g) 0 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) #hub :is(.cm-cult .cult:not(.con-img), .cm-ng)::before, html:root body:not(#sc#sc) #hub :is(.cm-cult .cult:not(.con-img), .cm-ng)::after { content: none !important; }
+html:root body:not(#sc#sc) #hub .cm-nat { column-gap: var(--col) !important; }
+/* Ficha del pueblo: «Qué visitar» como filas con su raya, no tarjetas dentro de la ventana */
+html:root body:not(#sc#sc) .fh-vis { column-gap: var(--col) !important; row-gap: 0 !important; }
+html:root body:not(#sc#sc) .fh-vis li { padding: var(--sp-b) 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) .fh-vis li::before, html:root body:not(#sc#sc) .fh-vis li::after { content: none !important; }
+/* Cómo jugar: el detalle de cada forma, suelto (sin la caja de al lado de las tres formas), y sus pasos como filas */
+html:root body:not(#sc#sc) .cj .cj-card { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 0 0 var(--sp-g) !important; }
+html:root body:not(#sc#sc) .cj .cj-pasos { gap: 0 var(--col) !important; }
+html:root body:not(#sc#sc) .cj .cj-pasos li { padding: var(--sp-b) 0 !important; background: none !important; border: 0 !important; border-top: var(--raya) !important; border-radius: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) .cj .cj-pasos li::before, html:root body:not(#sc#sc) .cj .cj-pasos li::after { content: none !important; }
+
+/* ---------- 22) cajas, con líneas muy sutiles, aprovechando el espacio (el autor, 26 nov: «Quiero cajas pero líneas
+   muy sutiles… pero aprovechando los espacios»). Vuelve a haber caja en cada ventana y en cada bloque de página, pero
+   solo un filo de 1 px casi transparente y un relleno que apenas se nota. Las ventanas siguen a lo ancho de la pantalla
+   (--ancho-ventana) y entre caja y caja el hueco justo (--sp-g), no el doble de antes. Dentro de una caja no hay otra:
+   las filas se separan con la raya, también más tenue. Las cartas de jugador, las de colección y los botones, como estaban ---------- */
+:root { --caja-linea: rgba(255, 255, 255, .075); --caja-fondo: rgba(255, 255, 255, .025); --caja-r: 10px; --raya: 1px solid rgba(255, 255, 255, .07); }
+body.alto-contraste { --caja-linea: rgba(255, 255, 255, .32); --caja-fondo: rgba(255, 255, 255, .04); --raya: 1px solid rgba(255, 255, 255, .3); }
+
+/* las ventanas que se abren encima: la presentación, el material, el final, la pausa, la ficha del pelotari, los avisos */
+html:root body:not(#sc#sc) :is(.pel-card, .lg-card:not(.c3-pant, .pt-pant, .pt-libre), .fb-card, .pfx-card, .tq-how, .pz-panel, .mg-card:not(.fc), .mnd-card),
+html:root body:not(#sc#sc).alto-contraste :is(.pel-card, .lg-card:not(.c3-pant, .pt-pant, .pt-libre), .fb-card, .pfx-card, .tq-how, .pz-panel, .mg-card:not(.fc), .mnd-card) {
+  background: var(--caja-fondo) !important; border: 1px solid var(--caja-linea) !important; border-radius: var(--caja-r) !important; box-shadow: none !important; outline: 0 !important; }
+html:root body:not(#sc#sc) :is(.pel-card, .pfx-card, .pz-panel, .mg-card:not(.fc), .mnd-card) { padding: var(--sp-g) !important; }
+/* (la fila de botones que se queda abajo al desplazar: su velo, dentro de la caja, no a lo ancho de toda la pantalla) */
+html:root body:not(#sc#sc) .lg-card > .lg-foot { border-image: none !important; background: linear-gradient(180deg, transparent, rgba(14, 6, 32, .96) 12px) !important; }
+
+/* los bloques de cada página: Perfil, Progreso, Pasaporte, Ventajas, Pasaka, Historia, la comarca y Cómo jugar */
+html:root body:not(#sc#sc) #hub :is(.aj-cols > *, .pg-yo, .pg-mod, .pg-c, .passport > .ppage, .vt-cm, .armorial .ar-guia, .yac, .cm-cult .cult:not(.con-img), .cm-ng),
+html:root body:not(#sc#sc) .cj .cj-card {
+  background: var(--caja-fondo) !important; border: 1px solid var(--caja-linea) !important; border-radius: var(--caja-r) !important; box-shadow: none !important; outline: 0 !important;
+  padding: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .pg-c { padding: var(--sp-b) var(--sp-g) var(--sp-b) var(--sp-b) !important; }
+/* (el hueco entre cajas, el de siempre; las cajas en columnas, sin partirse) */
+html:root body:not(#sc#sc) #hub .aj-cols { column-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .aj-cols > * { break-inside: avoid !important; margin-bottom: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub :is(.passport, .yac-in, .cm-nat) { column-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .vt-sec:has(> .vt-cm) { column-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .armorial.pasaka .pk-secs { column-gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .pg-panel { gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .cj .cj-card { padding: var(--sp-g) !important; }
+/* (dentro de una caja, la primera fila sin raya encima: el filo de la caja ya hace de raya) */
+html:root body:not(#sc#sc) :is(.vt-com ul > li:first-child, .yac-lista > li:first-child, .cj-pasos > li:first-child) { border-top: 0 !important; padding-top: 0 !important; }
+@media not ((min-height: 600px) and (orientation: landscape)) { html:root body:not(#sc#sc) .cj .cj-pasos > li { border-top: 0 !important; padding-top: 0 !important; } }
+/* (la ficha del pelotari en el móvil tumbado, ya con su caja: que siga cabiendo sin desplazar; los apartados de la
+   derecha, más juntos, y la caja con menos relleno arriba y abajo) */
+@media (max-height: 500px) {
+  html:root body:not(#sc#sc) .pfx-card { padding: var(--sp-b) var(--sp-g) !important; }
+  html:root body:not(#sc#sc) .pfx .pfx-sk h4:not(:first-child) { padding-top: 4px !important; margin-top: 4px !important; }
+  html:root body:not(#sc#sc) .pfx-card { gap: 6px !important; }
+  html:root body:not(#sc#sc) .pfx-body { padding-top: 6px !important; }
+  html:root body:not(#sc#sc) :is(.pel-card, .pz-panel, .mg-card:not(.fc), .mnd-card) { padding: var(--sp-b) var(--sp-g) !important; }
+}
