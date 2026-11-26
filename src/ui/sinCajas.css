@@ -489,3 +489,23 @@ html:root body:not(#sc#sc) :is(.vt-com ul > li:first-child, .yac-lista > li:firs
   html:root body:not(#sc#sc) .pfx .pfx-data { row-gap: 6px !important; padding-top: 6px !important; }
   html:root body:not(#sc#sc) .pfx-body { padding-top: 4px !important; }
 }
+
+/* ---------- 23) las cajas, con su fondo (el autor, 26 nov, con la captura de la presentación: «Y faltan los fondos»).
+   El relleno de las cajas vuelve a ser el morado de las cartas del juego (hub/identidad.css, --carta-fondo), casi opaco,
+   con el filo sutil de la 22; y detrás de las ventanas del partido, el velo de antes, más claro, para que el frontón se
+   intuya alrededor de la caja ---------- */
+:root { --caja-fondo: linear-gradient(165deg, rgba(44, 22, 89, .94) 0%, rgba(28, 13, 59, .94) 100%); --velo-fondo: rgba(10, 4, 24, .6); }
+body.alto-contraste { --caja-fondo: linear-gradient(165deg, #241048 0%, #160a30 100%); }
+
+/* ---------- 24) el Perfil y sus ajustes, con aire dentro de cada caja (el autor, 26 nov, con la captura de «Juego» y «Cómo
+   jugar»: «Aquí faltan espacios»). Cada ajuste con su nota pegada debajo (--sp-i) y separado del siguiente (--sp-g); los
+   botones, con su explicación debajo y aire antes del siguiente botón; y el título de la caja, separado de lo primero ---------- */
+html:root body:not(#sc#sc) #hub .aj-card > .aj-t { margin: 0 0 var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set { margin: 0 !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set + .set { margin-top: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .aj-card :is(.set, .btn) + .set-note { margin-top: var(--sp-i) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set-note { margin-bottom: 0 !important; }
+html:root body:not(#sc#sc) #hub .aj-card .set-note + :is(.set, .btn, .set-note, .hint) { margin-top: var(--sp-g) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .btn + .btn { margin-top: var(--sp-b) !important; }
+html:root body:not(#sc#sc) #hub .aj-card .hint { margin: var(--sp-g) 0 0 !important; }
+html:root body:not(#sc#sc) #hub .aj-card.pjugar .btn + .set-note { margin-top: var(--sp-i) !important; }
