@@ -1,6 +1,6 @@
-// Retratos de los botilleros que se eligen junto al pelotari (pelota/botillero.js, BOTILLEROS): su figura del juego (un
-// pelotari de los de siempre) con su camiseta de color, vaqueros y las manos sin tacos, en reposo, con fondo transparente:
-// busto (256×256, para la burbuja y la charla) y cuerpo entero (320×480, para su carta). Salen en src/assets/pelota/botilleros.
+// Retratos de los botilleros que se eligen junto al pelotari (pelota/botilleroRetrato.js, BOTILLEROS): su figura del juego,
+// una persona del público tal cual, con su ropa, en su reposo («Idle»), con fondo transparente: busto (256×256, para la
+// burbuja y la charla) y cuerpo entero (320×480, para su carta). Salen en src/assets/pelota/botilleros.
 // Uso, con el servidor de desarrollo en marcha: node tools/auditoria-retratos-botilleros.mjs   (URL=http://127.0.0.1:5176)
 import { chromium } from 'playwright-core';
 import { writeFileSync, mkdirSync, unlinkSync } from 'fs';
@@ -8,16 +8,17 @@ import { execFileSync } from 'child_process';
 const URL = process.env.URL || 'http://127.0.0.1:5176';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage(); p.on('pageerror', e => console.log('PAGEERROR', e.message));
-await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });
-await p.goto(URL + '/?town=lumbier&q=low&weather=clear&skipintro=1&noflora', { timeout: 300000 });
-await p.waitForFunction(() => window.__ready && window.__THREE, null, { timeout: 600000 });
+if (process.env.DEBUG) p.on('response', r => { if (/\.glb/.test(r.url())) console.log(r.status(), r.headers()['content-type'], r.url()); });
+// (en una página vacía del servidor de desarrollo, sin arrancar el juego: solo los módulos de los personajes)
+await p.route(URL + '/retratos-botilleros.html', r => r.fulfill({ contentType: 'text/html', body: '<!doctype html><html><body></body></html>' }));
+await p.addInitScript(() => { window.__WEB__ = true; window.__AF__ = false; window.__HDMAP__ = null; window.__VERSION__ = ''; });
+await p.goto(URL + '/retratos-botilleros.html', { timeout: 300000 });
 const out = await p.evaluate(async () => {
-  const THREE = window.__THREE, { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js');
-  const { BOTILLEROS, vistePaisano } = await import('/src/pelota/botillero.js'), { sinTacos } = await import('/src/actors/sinTacos.js');
+  const THREE = await import('/node_modules/three/build/three.module.js'), { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js');
+  const { BOTILLEROS } = await import('/src/pelota/botilleroRetrato.js');
   const res = {};
   for (const B of BOTILLEROS) {
-    const g = await loadMeshy(B.modelo), c = new GlbChar(g, {}); c.root.scale.setScalar(g.userData.fit);
-    vistePaisano(THREE, c.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: '#3b5878' }); sinTacos(c, true);
+    const g = await loadMeshy(B.persona, true), c = new GlbChar(g, {}); c.root.scale.setScalar(g.userData.fit);
     c.play('Idle', 0); for (let t = 0; t < 0.6; t += 0.05) c.update(0.05);
     const scene = new THREE.Scene(); scene.add(c.root);
     scene.add(new THREE.HemisphereLight('#fff8ee', '#5a5868', 2.1)); const sun = new THREE.DirectionalLight('#ffffff', 2.4); sun.position.set(1.6, 3, 4); scene.add(sun);

@@ -7,14 +7,12 @@
 // Aquí, lo que no depende de quién lo dibuja:
 //  - dónde van la nevera, las sillas y el botillero de cada lado, en las medidas de la cancha (sillasDe);
 //  - la nevera, las sillas y las botellas de encima, en dos piezas (montaSillas);
-//  - los botilleros que se pueden elegir, con su palmarés y su camiseta, que nunca es roja ni azul (BOTILLEROS), y su ropa
-//    de calle sobre la figura de un pelotari (vistePaisano);
-//  - la postura sentada, encima de la animación (posturaSentado), y la del botillero de pie, un poco echado hacia su
-//    pelotari (posturaDePie);
+//  - los botilleros que se pueden elegir, con su palmarés (BOTILLEROS, en botilleroRetrato.js): cada uno, una persona del
+//    público tal cual, sentada en su silla, que en el descanso llega andando hasta su pelotari (game/fronton.js);
+//  - la postura sentada de los pelotaris, encima de su animación (posturaSentado): ellos no traen la de sentarse;
 //  - el consejo del descanso (consejo) y las palabras cuando pierdes varios tantos seguidos (animoRacha).
 // match.js hace el fundido del descanso y sienta a los pelotaris; game/fronton.js pone a los botilleros.
 import { COURT } from './rules.js';
-import { fillMaterial, sharpMap } from '../engine/charLight.js';
 
 /** Hacia dónde mira el que está sentado: hacia la cancha (la pared izquierda), en el giro de las figuras de match.js. */
 export const MIRA_SENTADO = -Math.PI / 2;
@@ -102,77 +100,6 @@ function juntar(T, arr) {
   geo.computeBoundingSphere(); return geo;
 }
 
-// ---- la ropa de calle del botillero ----
-// (el autor, 25 de noviembre de 2026: «los dos botilleros son iguales… no tienen que ser iguales, tienen mucha falta de
-// dibujo, de pintura, de color… y sobre todo los botilleros no llevan tacos en las manos». Cada uno es un pelotari
-// distinto de los de siempre, con su cara y su pelo, y sobre su textura, con sus pliegues y sus sombras, la ropa de
-// calle: la camiseta azul pasa a la del botillero, con los hombros de otro color, como en la primera foto; el pantalón
-// blanco, a vaqueros; y la faja, a la camiseta, que cae por encima. Las manos, de piel: actors/sinTacos.js)
-const GL_HSV = `vec3 boHsv(vec3 c){ vec4 K = vec4(0., -1./3., 2./3., -1.); vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
-  vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r)); float d = q.x - min(q.w, q.y), e = 1.0e-10;
-  return vec3(abs(q.z + (q.w - q.y) / (6. * d + e)), d / (q.x + e), q.x); }
-vec3 boTono(vec3 c, float v, float ref){ float k = clamp(v / ref, 0.45, 1.25); return clamp(c * k + (k - 1.) * 0.07, 0., 1.); }`;
-/** Viste de calle al botillero (root: su figura, un pelotari de los de siempre): camiseta del color ropa.camiseta con
- *  los hombros de ropa.hombros, vaqueros ropa.vaqueros. Encima de su material, sin perder su textura. */
-export function vistePaisano(T, root, ropa) {
-  const c = (x) => { const k = new T.Color(x); return new T.Vector3(Math.pow(k.r, 1 / 2.2), Math.pow(k.g, 1 / 2.2), Math.pow(k.b, 1 / 2.2)); };
-  const U = { uBoCam: { value: c(ropa.camiseta) }, uBoHom: { value: c(ropa.hombros || ropa.camiseta) }, uBoVaq: { value: c(ropa.vaqueros || '#3b5878') } };
-  root.traverse(o => {
-    if (o.userData.pelo || o.userData.peloColor || !o.isSkinnedMesh || !o.material?.map) return;
-    const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox();
-    const bb = g.boundingBox, kit = new T.Vector2(bb.min.y, Math.max(1e-3, bb.max.y - bb.min.y));
-    // (las manos y las muñecas, por los huesos que las mueven: ahí, lo blanco de las vendas pasa a piel)
-    if (!g.attributes.aBoMano && g.attributes.skinIndex && o.skeleton) {
-      // (y, para quitarle la mano cuando lleva la del sanferminero, aBoPalma: cuánto la mueve el hueso de la mano y dónde
-      // está su muñeca, en los ejes de la malla; esos puntos se recogen en la muñeca, sin dejar bordes rotos)
-      const bs = o.skeleton.bones, man = bs.map(b => /Hand|ForeArm/.test(b.name)), si = g.attributes.skinIndex, sw = g.attributes.skinWeight, A = new Float32Array(si.count), P = new Float32Array(si.count * 4);
-      const BI = new T.Matrix4().copy(o.bindMatrix).invert(), mun = bs.map((b, i) => /Hand$/.test(b.name) ? new T.Vector3().applyMatrix4(new T.Matrix4().copy(o.skeleton.boneInverses[i]).invert()).applyMatrix4(BI) : null);
-      for (let i = 0; i < si.count; i++) {
-        let w = 0, wp = 0, mj = null, mw = 0;
-        for (let c = 0; c < 4; c++) { const k = si.getComponent(i, c), x = sw.getComponent(i, c); if (man[k]) w += x; if (mun[k]) { wp += x; if (x > mw) { mw = x; mj = mun[k]; } } }
-        A[i] = w; if (mj) { P[i * 4] = mj.x; P[i * 4 + 1] = mj.y; P[i * 4 + 2] = mj.z; } P[i * 4 + 3] = wp;
-      }
-      g.setAttribute('aBoMano', new T.BufferAttribute(A, 1)); g.setAttribute('aBoPalma', new T.BufferAttribute(P, 4));
-    }
-    // (una copia del material, que pierde los sombreadores del original: se le vuelven a poner, como a los pelotaris del
-    // partido (actors/npcOutfit.js): el relleno de luz y su pintura, y la textura nítida, sin mezclar sus piezas)
-    const fk = o.material.userData.fillK, m = o.material.clone(); m.userData.own = true; delete m.userData.pintado;
-    m.onBeforeCompile = (sh) => {
-      // (el color de la piel, el que saca de su textura actors/sinTacos.js; si no está, uno de piel clara)
-      Object.assign(sh.uniforms, U, { uBoKit: { value: kit }, uBoPiel: m.userData.sinTacos?.uPiel || { value: new T.Vector3(0.95, 0.78, 0.68) }, uBoSinMano: { value: ropa.sinMano ? 1 : 0 } });
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vBoY, vBoMano; uniform vec2 uBoKit; uniform float uBoSinMano; attribute float aBoMano; attribute vec4 aBoPalma;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvBoY = (position.y - uBoKit.x) / uBoKit.y; vBoMano = aBoMano;\nif (uBoSinMano > 0.5) transformed = mix(transformed, aBoPalma.xyz, smoothstep(0.3, 0.7, aBoPalma.w));');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-uniform vec3 uBoCam, uBoHom, uBoVaq, uBoPiel; varying float vBoY, vBoMano;
-${GL_HSV}
-vec3 boRopa(vec3 lin){
-  vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = boHsv(cs); float h = q.x, s = q.y, v = q.z, y = vBoY;
-  // (con pesos suaves y no con cortes de sí o no: los puntos de la textura entre dos colores, en el borde del cuello o
-  // de la manga, se quedaban sin pintar con el color de antes y el borde salía en escalera. El autor, 26 nov 2026: «los
-  // modelos, cuando los miras de cerca, tienen muchos fallos de pintura»)
-  float blue = smoothstep(0.45, 0.49, h) * (1. - smoothstep(0.77, 0.81, h)) * smoothstep(0.17, 0.24, s);
-  float white = (1. - smoothstep(0.17, 0.23, s)) * smoothstep(0.38, 0.45, v);
-  float red = max(1. - smoothstep(0.03, 0.07, h), smoothstep(0.91, 0.95, h)) * smoothstep(0.38, 0.5, s) * smoothstep(0.15, 0.25, v);
-  vec3 top = boTono(mix(uBoCam, uBoHom, smoothstep(0.61, 0.65, y)), v, 0.62);
-  vec3 o = cs;
-  if (vBoMano > 0.3 && vBoMano < 0.6 && blue > 0.5 && y > 0.2) return pow(mix(cs, top, blue), vec3(2.2));   // (el borde de la manga, donde ya pesa algo el antebrazo)
-  if (vBoMano > 0.3) { float k = max(max(white, step(0.6, vBoMano)), smoothstep(0.07, 0.1, h) * (1. - smoothstep(0.19, 0.22, h)) * smoothstep(0.34, 0.4, v));
-    o = mix(cs, uBoPiel * clamp(pow(v / 0.8, 0.8), 0.55, 1.2), k * smoothstep(0.3, 0.55, vBoMano)); return pow(o, vec3(2.2)); }
-  o = mix(o, top, blue * smoothstep(0.18, 0.22, y) * (1. - smoothstep(0.7, 0.74, y)));
-  o = mix(o, boTono(uBoCam, v, 0.62), red * smoothstep(0.28, 0.32, y) * (1. - smoothstep(0.48, 0.52, y)));
-  o = mix(o, boTono(uBoVaq, v, 0.86), white * smoothstep(0.065, 0.085, y) * (1. - smoothstep(0.4, 0.44, y)));
-  return pow(o, vec3(2.2));
-}`).replace('#include <map_fragment>', '#include <map_fragment>\n diffuseColor.rgb = boRopa(diffuseColor.rgb);')
-        // (y la luz propia del personaje, que sale de la textura: con el color ya cambiado; si no, asomaba la ropa de antes)
-        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
-    };
-    m.customProgramCacheKey = () => 'botillero-' + ropa.camiseta + (ropa.sinMano ? '-sm' : '');
-    if (fk != null) fillMaterial(m, fk);
-    o.material = sharpMap(m);
-    m.needsUpdate = true;
-  });
-}
-
 // ---- las posturas, encima de la animación ----
 const _a = { a: null, b: null, c: null, d: null, q: null, q2: null, q3: null, I: null };
 function v(T, k) { return _a[k] ||= new T.Vector3(); }
@@ -226,8 +153,8 @@ function altoNalga(T, obj, H, a, de) {
  *  nada. o.asiento = { y, cx, cz, r } (en el mundo: la altura de encima del asiento, su centro y su radio): la figura se
  *  apoya en él, sin hundirse ni quedarse en el aire (se mide con sus vértices), y las espinillas bajan hasta que los pies
  *  tocan el suelo, sin meterse en él (el autor, 26 de noviembre de 2026: «los pelotaris traspasan las sillas… mucho
- *  cuidado»). Sin asiento, la cadera baja hasta que los pies vuelven al suelo. o.atento: el cuerpo más derecho, para seguir
- *  el partido; o.mira: un punto del mundo al que mira (la pelota), con la cabeza. */
+ *  cuidado»). Sin asiento, la cadera baja hasta que los pies vuelven al suelo. o.atento: el cuerpo más derecho. La cabeza,
+ *  como la lleve su animación. */
 export function posturaSentado(T, obj, w, fx, fz, o = {}) {
   const B = huesos(obj); if (!B) return;
   const H = B.Hips, u = obj.userData;
@@ -297,82 +224,8 @@ export function posturaSentado(T, obj, w, fx, fz, o = {}) {
     apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.78).addScaledVector(f, 0.5).addScaledVector(fuera, 0.06).normalize(), w);
     apunta(T, Fa, Hd, new T.Vector3().copy(f).multiplyScalar(0.85).addScaledVector(up, -0.42).addScaledVector(fuera, -0.28).normalize(), w);
   }
-  if (o.mira) mira(T, obj, B, o.mira, f, w, o.dt || 1 / 60, { arriba: o.arriba });
   u.silla.ult = H.position.clone();
 }
-/** La cabeza hacia un punto del mundo (la pelota, o su botillero), con el cuello: como quien sigue el partido. Con un poco
- *  de retraso, sin pasar de lo que gira un cuello (unos 70° a cada lado; hacia arriba, o.arriba, casi nada si no se dice).
- *  f: hacia dónde mira el cuerpo. Lo de arriba y abajo se suma a la cabeza de su animación, sin ponerla recta: puesta
- *  «derecha» con el eje del hueso, la cara de estos muñecos quedaba mirando al cielo (el autor, 26 nov: «durante el
- *  partido los botilleros tienen la cabeza como levantada») */
-function mira(T, obj, B, punto, f, w, dt, o = {}) {
-  if (!B.Neck || !B.Head) return;
-  const u = obj.userData, M = u.mirada ||= { yaw: 0, pitch: 0 };
-  const up = new T.Vector3(0, 1, 0);
-  const hp = B.Head.getWorldPosition(new T.Vector3()), d = new T.Vector3().subVectors(punto, hp); if (d.lengthSq() < 1e-4) return; d.normalize();
-  const dh = new T.Vector3(d.x, 0, d.z); if (dh.lengthSq() < 1e-6) return; dh.normalize();
-  // (hacia dónde mira ya la cara, con lo que traiga su animación de reposo: se gira lo que falta hasta la pelota, no
-  // encima de lo que tuviera; si no, el que la animación deja con la cabeza ladeada se quedaba mirando a otro lado)
-  const ang = (a, b) => Math.atan2(a.z * b.x - a.x * b.z, a.x * b.x + a.z * b.z);   // (el giro, sobre la vertical, de a hasta b)
-  const cara = () => new T.Vector3(0, 0, 1).applyQuaternion(B.Head.getWorldQuaternion(new T.Quaternion()));
-  // (arriba, casi nada: la pelota alta se sigue con los ojos; abajo, algo más)
-  const yaw = Math.max(-1.22, Math.min(1.22, ang(f, dh))), pitch = Math.max(-0.35, Math.min(o.arriba ?? 0.06, Math.asin(Math.max(-1, Math.min(1, d.y))) * 0.7));
-  const k = 1 - Math.exp(-dt * 7); M.yaw += (yaw - M.yaw) * k; M.pitch += (pitch - M.pitch) * k;
-  const gira = (b, a, eje) => { const qd = new T.Quaternion().setFromAxisAngle(eje, a * w), wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(qd); b.quaternion.copy(b.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); b.updateMatrixWorld(true); };
-  const c0 = cara(), ch = new T.Vector3(c0.x, 0, c0.z); if (ch.lengthSq() < 1e-6) return; ch.normalize();
-  const falta = M.yaw - ang(f, ch);
-  gira(B.Neck, falta * 0.4, up);
-  gira(B.Head, falta * 0.6, up);
-  const c1 = cara(), fy = new T.Vector3(c1.x, 0, c1.z).normalize(), eje = new T.Vector3().crossVectors(fy, up).normalize();
-  gira(B.Neck, M.pitch * 0.35, eje);
-  gira(B.Head, M.pitch * 0.55, eje);
-}
-/** El botillero de pie delante de su pelotari sentado (las fotos del autor): con peso w (0 a 1), un poco echado hacia él y
- *  la cabeza algo baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */
-export function posturaDePie(T, obj, w, fx, fz, o = {}) {
-  const B = huesos(obj); if (!B || w <= 0.001) return;
-  obj.updateMatrixWorld(true);
-  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize(), t = o.habla || 0;
-  // (apenas echado: inclinado como antes, su cabeza bajaba hasta la altura de la del pelotari sentado)
-  if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);
-  // (hablando, asiente un poco con la cabeza, despacio)
-  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.3 + (t ? 0.07 * Math.sin(t * 4.2) : 0)).normalize(), w);
-  // (los brazos, abajo y sueltos, a los lados: con los de su animación de reposo, abiertos y con las palmas arriba,
-  // parecía que se encogía de hombros; y la mano por delante, abierta, no parecía una mano normal: el autor, 26 nov)
-  const sp = (B.Spine || B.Hips).getWorldPosition(new T.Vector3());
-  for (const [A, Fa, Hd] of [[B.LeftArm, B.LeftForeArm, B.LeftHand], [B.RightArm, B.RightForeArm, B.RightHand]]) {
-    if (!A || !Fa || !Hd) continue;
-    const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
-    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -1).addScaledVector(fuera, 0.14).addScaledVector(f, 0.06).normalize(), w);
-    apunta(T, Fa, Hd, new T.Vector3().addScaledVector(up, -1).addScaledVector(f, 0.16).addScaledVector(fuera, -0.04).normalize(), w);
-    // (y la palma hacia el muslo, con el pulgar delante, como cuelga una mano suelta: las figuras no tienen huesos en los
-    // dedos, la mano es de una pieza, abierta y algo curvada, y con la palma hacia delante, como la dejaba su animación,
-    // parecía una garra. El autor, 26 nov: «las manos de los botilleros no están bien, no son manos normales». Se gira
-    // el brazo entero sobre sí mismo, desde el hombro, y no la muñeca, que se retorcería)
-    const th = pulgar(T, obj, Hd); if (!th) continue;
-    const ax = Hd.getWorldPosition(new T.Vector3()).sub(Fa.getWorldPosition(new T.Vector3())).normalize();
-    const a1 = th.clone().applyQuaternion(Hd.getWorldQuaternion(new T.Quaternion())), a2 = f.clone();
-    a1.addScaledVector(ax, -a1.dot(ax)); a2.addScaledVector(ax, -a2.dot(ax));
-    if (a1.lengthSq() < 1e-6 || a2.lengthSq() < 1e-6) continue; a1.normalize(); a2.normalize();
-    const ang = Math.atan2(ax.dot(new T.Vector3().crossVectors(a1, a2)), a1.dot(a2));
-    const wq = A.getWorldQuaternion(new T.Quaternion()).premultiply(new T.Quaternion().setFromAxisAngle(ax, ang * w));
-    A.quaternion.copy(A.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); A.updateMatrixWorld(true);
-  }
-}
-// (hacia dónde queda el pulgar en la mano, en sus ejes: en la postura en que se hizo la figura, con los brazos en cruz y
-// las palmas abajo, el pulgar apunta hacia delante, hacia donde mira la figura; se calcula una vez por mano)
-function pulgar(T, obj, Hd) {
-  const u = obj.userData.pulgar ||= new Map(); if (u.has(Hd)) return u.get(Hd);
-  let r = null;
-  obj.traverse(m => {
-    if (r || !m.isSkinnedMesh || !m.skeleton) return; const i = m.skeleton.bones.indexOf(Hd); if (i < 0) return;
-    const qb = new T.Quaternion(), qi = new T.Quaternion(), e = new T.Vector3();
-    m.bindMatrix.decompose(e, qb, new T.Vector3()); m.skeleton.boneInverses[i].decompose(e, qi, new T.Vector3());
-    r = new T.Vector3(0, 0, 1).applyQuaternion(qb).applyQuaternion(qi).normalize();
-  });
-  u.set(Hd, r); return r;
-}
-
 // ---- el consejo del botillero ----
 // (sus palabras: cortas, de frontón, sin explicar la regla; en la ventana de conversación, como las charlas de los
 // vecinos. Y que vayan con el juego (el autor, 26 de noviembre de 2026: «que las conversaciones tengan sentido. Que vaya

@@ -2,24 +2,21 @@
 // el busto, {id}.webp, para la charla y el bocadillo; la figura, {id}-full.webp, para su carta). Sin nada de 3D: lo lee
 // también el menú, al elegir botillero.
 /** Los botilleros que se pueden elegir junto al pelotari (el autor, 25 de noviembre de 2026: «que cuando elijas pelotari
- *  también puedas elegir entrenador… el palmarés del botillero, cuántas txapelas ha conseguido estando él como botillero.
- *  Y que lleve camisetas de colores, mientras no sea ninguna roja ni azul, para no confundirlo con los pelotaris»).
- *  Inventados. modelo: la figura (uno de los pelotaris de siempre, con su cara y su pelo; si ese día juega, otro libre);
- *  camiseta y hombros (el cuello y los hombros), nunca rojos ni azules; txapelas y finales, como botillero; desde, el año
- *  en que empezó; estilo: lo que más mira (sale en su carta). girl: botillera (el autor, 26 de noviembre de 2026: «sería
- *  interesante que metieras alguna mujer también, botillera»), con la figura de una de las pelotaris de siempre. */
+ *  también puedas elegir entrenador… el palmarés del botillero, cuántas txapelas ha conseguido estando él como botillero»;
+ *  «sería interesante que metieras alguna mujer también, botillera»). Inventados. persona: su figura, una persona del
+ *  público, la misma de la grada, tal cual, con su ropa, su talla y sus animaciones de andar y de estar quieta (el autor,
+ *  26 de noviembre de 2026: «no quiero que pongas de botillero a un vecino, quiero que sea una persona normal… como una
+ *  persona que has puesto del público, que haga de botillero y ya está»). Sin tocarle nada. Cada uno, una distinta;
+ *  sin la señora mayor (el autor, 26 nov: «quita a la señora mayor… que no salga»), ni la del jersey rojo ni la de la
+ *  chaqueta azul marino, los colores de los pelotaris. camiseta: su color en los menús (el
+ *  botón y el borde de su retrato). txapelas y finales, como botillero; desde, el año en que empezó; estilo: lo que más
+ *  mira (sale en su carta). girl: botillera. */
 export const BOTILLEROS = [
-  { id: 'patxi', nombre: 'Patxi', pueblo: 'Leitza', modelo: 'pelotari_aitor', camiseta: '#2f8f5b', hombros: '#f2f0ea', txapelas: 21, finales: 34, desde: 1998, estilo: { es: 'Ataque', eu: 'Erasoa' } },
-  { id: 'koldo', nombre: 'Koldo', pueblo: 'Lekunberri', modelo: 'pelotari_xabier', camiseta: '#e8b828', hombros: '#1c1c21', txapelas: 14, finales: 25, desde: 2004, estilo: { es: 'Defensa', eu: 'Defentsa' } },
-  { id: 'joxemari', nombre: 'Joxe Mari', pueblo: 'Elizondo', modelo: 'pelotari_mikel', camiseta: '#1c1c21', hombros: '#e8b828', txapelas: 17, finales: 29, desde: 2001, estilo: { es: 'Saque', eu: 'Sakea' } },
-  { id: 'arantxa', nombre: 'Arantxa', girl: true, pueblo: 'Etxalar', modelo: 'pelotari_ane', camiseta: '#b58ad6', hombros: '#3d2a55', txapelas: 16, finales: 26, desde: 2003, estilo: { es: 'Velocidad', eu: 'Abiadura' } },
-  { id: 'fermin', nombre: 'Fermín', pueblo: 'Tafalla', modelo: 'pelotari_jokin', camiseta: '#e8762a', hombros: '#1c1c21', txapelas: 9, finales: 18, desde: 2009, estilo: { es: 'Cabeza', eu: 'Burua' } },
-  { id: 'maite', nombre: 'Maite', girl: true, pueblo: 'Isaba', modelo: 'pelotari_nerea', camiseta: '#d8c29a', hombros: '#6b4a2b', txapelas: 12, finales: 19, desde: 2007, estilo: { es: 'Dos paredes', eu: 'Bi paretakoa' } },
-  { id: 'peio', nombre: 'Peio', pueblo: 'Lesaka', modelo: 'pelotari_ander', camiseta: '#7a4ba8', hombros: '#f2f0ea', txapelas: 6, finales: 11, desde: 2014, estilo: { es: 'Fondo físico', eu: 'Fondoa' } },
-  { id: 'txomin', nombre: 'Txomin', pueblo: 'Estella', modelo: 'pelotari_julen', camiseta: '#f2f0ea', hombros: '#2f8f5b', txapelas: 11, finales: 20, desde: 2006, estilo: { es: 'Dejadas', eu: 'Utziak' } },
-  { id: 'inaxio', nombre: 'Iñaxio', pueblo: 'Altsasu', modelo: 'pelotari_asier', camiseta: '#8b8f94', hombros: '#e8762a', txapelas: 4, finales: 9, desde: 2017, estilo: { es: 'Cortada', eu: 'Cortada' } },
-  { id: 'nekane', nombre: 'Nekane', girl: true, pueblo: 'Otsagabia', modelo: 'pelotari_irati', camiseta: '#7a4e2d', hombros: '#e8b828', txapelas: 7, finales: 13, desde: 2015, estilo: { es: 'Volea', eu: 'Bolea' } },
-  { id: 'bittor', nombre: 'Bittor', pueblo: 'Sangüesa', modelo: 'pelotari_unai', camiseta: '#8cc63f', hombros: '#1c1c21', txapelas: 8, finales: 15, desde: 2011, estilo: { es: 'Remate', eu: 'Errematea' } },
+  { id: 'patxi', nombre: 'Patxi', pueblo: 'Leitza', persona: 'aficion_hombre', camiseta: '#2f8f5b', txapelas: 21, finales: 34, desde: 1998, estilo: { es: 'Ataque', eu: 'Erasoa' } },
+  { id: 'koldo', nombre: 'Koldo', pueblo: 'Lekunberri', persona: 'aficion_abuelo', camiseta: '#d8c29a', txapelas: 14, finales: 25, desde: 1984, estilo: { es: 'Defensa', eu: 'Defentsa' } },
+  { id: 'arantxa', nombre: 'Arantxa', girl: true, pueblo: 'Etxalar', persona: 'aficion_mujer', camiseta: '#e8b828', txapelas: 16, finales: 26, desde: 2003, estilo: { es: 'Velocidad', eu: 'Abiadura' } },
+  { id: 'nekane', nombre: 'Nekane', girl: true, pueblo: 'Otsagabia', persona: 'aficion_rubia', camiseta: '#e8762a', txapelas: 7, finales: 13, desde: 2015, estilo: { es: 'Volea', eu: 'Bolea' } },
+  { id: 'ainhoa', nombre: 'Ainhoa', girl: true, pueblo: 'Altsasu', persona: 'aficion_chica', camiseta: '#6f9bd1', txapelas: 9, finales: 18, desde: 2009, estilo: { es: 'Cabeza', eu: 'Burua' } },
 ];
 export const botilleroDe = (id) => BOTILLEROS.find(b => b.id === id) || BOTILLEROS[0];
 const R = import.meta.glob('../assets/pelota/botilleros/*.webp', { eager: true, query: '?url', import: 'default' });

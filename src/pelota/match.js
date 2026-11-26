@@ -1943,10 +1943,10 @@ export class PelotaMatch {
         // (apoyado en el asiento de su silla, medido con sus vértices: ni hundido ni en el aire; los pies, en el suelo)
         const sc = D.dentro && !D.fuera && this.sillas?.[who];
         const as = sc ? ((this.asientos ||= {})[who] ||= (() => { const c = grp.localToWorld(new T.Vector3(sc.x, ASIENTO_Y, sc.z)), e = grp.localToWorld(new T.Vector3(sc.x + 0.2, ASIENTO_Y, sc.z)); return { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; })()) : null;
-        // (sentado derecho y mirando a su botillero, que le habla de pie: el autor, 26 nov, «no da la sensación de que estén
-        // hablando». Por parejas, como antes)
-        const mb = sc && !g.pairs && (who === 'you' || who === 'rival') ? this.cabezaBot(who) : null;
-        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw), { asiento: as, atento: !!mb, mira: mb, arriba: 0.45, dt }); } catch (e) { console.warn('silla', e); }
+        // (sentado derecho, de cara a su botillero, que le habla de pie; la cabeza, como la lleve su animación: sin girarla
+        // hacia nadie. El autor, 26 nov: «no hagas movimientos raros de cabeza… movimientos humanos, coherentes y lógicos»)
+        const frente = sc && !g.pairs && (who === 'you' || who === 'rival');
+        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw), { asiento: as, atento: frente, dt }); } catch (e) { console.warn('silla', e); }
       }
       // (y las manos, nunca dentro de la cabeza: al celebrar, al lamentarse, al bailar o al beber; sinCabeza.js)
       if (!this.sinCabOff) try { sinCabeza(T, side.obj); } catch (e) { console.warn('cabeza', e); this.sinCabOff = true; }
@@ -1956,7 +1956,9 @@ export class PelotaMatch {
       const D = this.desc; D.salto = false;
       // (en la ventana de conversación de los vecinos, si quien juega el partido la tiene: game/fronton.js, 'botillero'.
       // Mientras se lee, el descanso espera; al cerrarla, se levantan y vuelven al saque. Si no, en el aviso grande)
-      if (!D.dicho && D.sit.you != null && this.t - D.sit.you > DESC.consejo) { D.dicho = true;
+      // (y con tu botillero ya delante: llega andando, game/fronton.js, que lo apunta en userData.llegado; si no hay figura
+      // o tarda, a los seis segundos)
+      if (!D.dicho && D.sit.you != null && this.t - D.sit.you > DESC.consejo && (this.botLlegado() || this.t - D.sit.you > 6)) { D.dicho = true;
         try { const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false), c = consejo(g, A, this.lang, !!this.o.rival?.girl, this.dichosBot ||= new Set(), !!this.o.final && !!this.o.camp);
           let abre = false; const fin = () => { if (D.charla) { D.charla = false; if (g.phase === 'descanso') this.finDesc = true; } };
           this.o.onEvent?.({ type: 'botillero', quien: c.quien, lineas: c.lineas, bien: c.bien, abre: () => { abre = true; D.charla = true; }, fin });
@@ -2238,6 +2240,11 @@ export class PelotaMatch {
     const R = this.o.rival; if (R?.obj) R.obj.visible = !on; if (R?.sombra) R.sombra.visible = !on;
     let r = this.court?.group; while (r?.parent) r = r.parent;
     const b = r?.getObjectByName?.('botillero-rival'); if (b) b.visible = !on;
+  }
+  // si tu botillero ya ha llegado delante de tu pelotari (o no hay figura que esperar)
+  botLlegado() {
+    let r = this.court?.group; while (r?.parent) r = r.parent;
+    const b = r?.getObjectByName?.('botillero-you'); return !b || !!b.userData.llegado;
   }
   // la cabeza del botillero de cada lado (game/fronton.js los pone en la escena con su nombre), en el mundo; o null
   cabezaBot(lado) {

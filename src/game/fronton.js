@@ -3,9 +3,9 @@
 import { arqDe, ARQ_LOOK } from '../data/frontonArq.js';
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl, meshyBust } from '../actors/glbChar.js';
-import { sillasDe, posturaSentado, posturaDePie, vistePaisano, MIRA_SENTADO, BOTILLEROS, botilleroDe, ASIENTO_Y } from '../pelota/botillero.js';
-import { sinTacos } from '../actors/sinTacos.js';
-import { fillMaterial } from '../engine/charLight.js';
+import { sillasDe, MIRA_SENTADO, ASIENTO_Y, DESC, BOTILLEROS, botilleroDe } from '../pelota/botillero.js';
+import { figure, nFigs } from '../actors/crowdSprites.js';
+import { sharpMap } from '../engine/charLight.js';
 import { retratoBotillero } from '../pelota/botilleroRetrato.js';
 import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
@@ -22,7 +22,7 @@ import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
-import { crowd3d, preparaPublico } from '../actors/crowd3d.js';
+import { crowd3d, preparaPublico, conPiel, LUZ_PROPIA } from '../actors/crowd3d.js';
 import { crowdAnim, cocinaPublico, posturasRetrato } from '../actors/crowdAnim.js';
 import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
@@ -81,7 +81,7 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
 // manos (el autor los quiere así; antes iban de blanco con boina, moño y pañuelo), a la altura de la chapa, del 4 y del
 // 7, de cara a la cancha. En cada
 // falta (chapa, fuera, alta, pasa…) levanta la mano el que la ve: el de la chapa lo del frontis; si no, el más cercano
-const _jv = new THREE.Vector3(), _bolaW = new THREE.Vector3();
+const _jv = new THREE.Vector3();
 function makeJueces(G, C) {
   const g = C.group; g.updateMatrixWorld(true);
   const yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y, x = COURT.W / 2 + (C.contra || 2.6) * 0.62;
@@ -96,126 +96,86 @@ function makeJueces(G, C) {
     a.frozen = true; a.zl = z; return a;
   });
 }
-// Los botilleros (el autor, 25 de noviembre de 2026: «quiero que sean dos personajes, dos pelotaris, pero con ropa…
-// normal»; «los dos botilleros son iguales… tienen mucha falta de dibujo, de pintura, de color»; «que cuando elijas
-// pelotari también puedas elegir entrenador… camisetas de colores, mientras no sea ninguna roja ni azul»; «los botilleros
-// no llevan tacos en las manos»; «que no se vea cómo se sienta o cómo se levanta»): el tuyo, el que eliges junto al
-// pelotari (perfil, botillero; pelota/botillero.js, BOTILLEROS); el del rival, otro. Cada uno, la figura de un pelotari de
-// los de siempre que no juega este partido, con la textura entera, su camiseta y vaqueros, y las manos de piel. Todo el
-// partido, sentado en su silla, la de detrás de la de su pelotari, a un lado de la nevera; en el descanso, tras el fundido
-// a negro (match.js), de pie delante de su pelotari, un poco echado hacia él. Sin verlo levantarse ni sentarse: el cambio
-// es de golpe, en negro. Lo que te dice sale en la ventana de charla de los vecinos (onEvent 'botillero') y, si pierdes
-// varios tantos seguidos, en su burbuja (onEvent 'botilleroDice')
+// Los botilleros (el autor, 25 de noviembre de 2026: «que cuando elijas pelotari también puedas elegir entrenador»; «que no
+// se vea cómo se sienta o cómo se levanta»; y el 26: «no deformes el modelado… no modifiques el botillero… no inventar
+// nuevas posiciones»; «no hagas movimientos raros de cabeza ni nada por el estilo, simplemente haz movimientos humanos,
+// coherentes y lógicos»; «no te compliques la vida, simplemente el botillero está ahí cuando se sienta el pelotari. Se
+// acerca a él, andando, le dice lo que sea y ya está, pero no quiero que pongas de botillero a un vecino, quiero que sea
+// una persona normal»; «como una persona que has puesto del público, que haga de botillero y ya está. Nada más»; y luego:
+// «durante el partido yo sí que quiero que haya botillero también, que estén sentados viendo el partido»). El tuyo, el
+// que eliges junto al pelotari (perfil, botillero; pelota/botilleroRetrato.js, BOTILLEROS); el del rival, otro. Cada uno
+// es una persona del público, la misma figura de la grada, tal cual, con su ropa y su talla, sin tocarle un hueso, ni la
+// cabeza, ni las manos, ni el color, ni el tamaño:
+//  - mientras se juega, sentado en su silla, de cara a la cancha, con la misma postura de sentado de la grada, la de
+//    reposo con las manos en los muslos (actors/crowdAnim.js, posturasRetrato), quieto;
+//  - en el descanso, en negro (match.js), se cambia por la figura de pie, al lado de su silla; al volver la imagen, con su
+//    pelotari ya sentado, se acerca andando («Walk», la suya) hasta delante de él, se para, se vuelve hacia él y ahí se
+//    queda («Idle») mientras dura la charla; al acabar el descanso, otra vez en negro, vuelve a estar sentado. Nadie le
+//    ve levantarse ni sentarse, como a los pelotaris.
+// Lo que te dice sale en la ventana de charla de los vecinos (onEvent 'botillero', que se abre cuando ya ha llegado:
+// userData.llegado) y, si pierdes varios tantos seguidos, en su burbuja ('botilleroDice')
 export const botilleroTuyo = () => botilleroDe(profile().botillero);
+const PASO_BOT = 1.2, GIRO_BOT = 3.6;   // (a qué paso anda, m/s, y cuánto gira como mucho, rad/s)
+// (sentado: la malla de su figura de la grada en su postura de reposo, a su tamaño de verdad, cocinada para un asiento de
+// la altura de estas sillas. Los pies, en el suelo; la espalda, centímetro y medio delante del respaldo, medida en su malla)
+async function sentadoBotillero(persona) {
+  const P = await posturasRetrato('aficion', ASIENTO_Y);
+  let f = -1; for (let i = 0; i < nFigs('aficion'); i++) if (figure('aficion', i).meshy === persona) { f = i; break; }
+  const q = P?.[f]?.[0]; if (!q?.geometry || !q.map) return null;
+  const geo = q.geometry, A = geo.attributes.position; let suelo = Infinity, espalda = Infinity;
+  for (let i = 0; i < A.count; i++) { const y = A.getY(i); if (y < suelo) suelo = y; }
+  for (let i = 0; i < A.count; i++) { const y = A.getY(i) - suelo; if (y > ASIENTO_Y + 0.19 && y < ASIENTO_Y + 0.39 && Math.abs(A.getX(i)) < 0.2) espalda = Math.min(espalda, A.getZ(i)); }
+  const mat = conPiel(new THREE.MeshStandardMaterial({ map: q.map, roughness: 0.82, emissive: 0xffffff, emissiveMap: q.map, emissiveIntensity: LUZ_PROPIA })); sharpMap(mat);
+  const m = new THREE.Mesh(geo, mat); m.castShadow = true; m.userData.suelo = suelo; m.userData.espalda = Number.isFinite(espalda) ? espalda : -0.15;
+  return m;
+}
 async function makeBotilleros(G, C, pairs) {
   const g = C.group; g.updateMatrixWorld(true);
   const S = sillasDe(C.contra ?? 2.6, pairs), yaw = new THREE.Euler().setFromQuaternion(g.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
-  const tuyo = botilleroTuyo(), rgb = (h) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)), dist = (a, b) => Math.hypot(...rgb(a).map((v, i) => v - rgb(b)[i]));
-  // (el del rival, uno de los otros con la camiseta bien distinta de la tuya: de los que más se distinguen, uno distinto cada día)
-  const otros = BOTILLEROS.filter(b => b.id !== tuyo.id && dist(b.camiseta, tuyo.camiseta) > 150), suyo = otros.length ? otros[(Date.now() / 86400000 | 0) % otros.length] : BOTILLEROS.find(b => b.id !== tuyo.id);
-  const libres = (B) => (B.girl ? ['ane', 'nerea', 'irati', 'amaia', 'garazi', 'leire', 'maialen', 'miren', 'nahia', 'oihana', 'uxue'] : ['aitor', 'xabier', 'mikel', 'jokin', 'ander', 'julen', 'asier', 'unai', 'ekaitz', 'inaki', 'inigo']).map(n => 'pelotari_' + n).filter(m => !enCancha.has(m.slice(9)) && hasMeshy(m));   // (la botillera, con figura de chica)
+  // (el del rival, otra persona que el tuyo, una distinta cada día)
+  const tuyo = botilleroTuyo(), otros = BOTILLEROS.filter(b => b.persona !== tuyo.persona);
+  const suyo = otros.length ? otros[(Date.now() / 86400000 | 0) % otros.length] : tuyo;
   const out = [];
-  for (const [lado, B] of [['you', tuyo], ['rival', suyo]]) {
-    // (su figura; si ese pelotari juega hoy, otro que no juegue)
-    const model = !enCancha.has(B.modelo.slice(9)) && hasMeshy(B.modelo) ? B.modelo : libres(B).find(m => !out.some(r => r.modelo === m)) || B.modelo;
-    enCancha.add(model.slice(9));
-    nitido(model); const r = new GlbRig(await loadMeshy(model), model);
-    const manos = await manosSanfermin().catch(() => null);
-    vistePaisano(THREE, r.char.root, { camiseta: B.camiseta, hombros: B.hombros, vaqueros: lado === 'you' ? '#3b5878' : '#45607e', sinMano: !!manos }); sinTacos(r.char, true); pielDelBrazo(r.char.root);
-    if (manos) ponManos(r.char.root, manos);   // (manos de piel: el botillero no lleva tacos)
-    const b = S.bot[lado], p = S.pie[lado], pel = S[lado];
-    r.silla = g.localToWorld(new THREE.Vector3(b.x - 0.01, 0, b.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
-    { const c = g.localToWorld(new THREE.Vector3(b.x, ASIENTO_Y, b.z)), e = g.localToWorld(new THREE.Vector3(b.x + 0.2, ASIENTO_Y, b.z)); r.asiento = { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; }   // (encima del asiento: ahí se apoya, sin hundirse)
-    r.yawSit = yaw + MIRA_SENTADO; r.yawMira = yaw + Math.atan2(pel.x - p.x, pel.z - p.z);
-    r.obj.position.copy(r.silla); r.obj.rotation.y = r.yawSit;   // (sentado, de cara a la cancha)
-    r.obj.name = 'botillero-' + lado; r.obj.userData.modelo = model; r.modelo = model; r.datos = B;
-    G.scene.add(r.obj); r.lado = lado;
+  for (const [lado, B, s] of [['you', tuyo, -1], ['rival', suyo, 1]]) {
+    const r = new GlbRig(await loadMeshy(B.persona, true), B.persona);
+    // (de pie, en negro: al lado de su silla, por fuera y un paso por delante; de ahí va derecho hasta delante de su
+    // pelotari, a más de medio metro de la esquina de su silla y sin cruzarse con nadie)
+    const p = S.pie[lado], pel = S[lado], b = S.bot[lado];
+    const sale = { x: b.x - (pairs ? 0.75 : 0.45), z: Math.max(0.8, Math.min(COURT.L - 0.6, b.z + s * 0.75)) };
+    r.sale = g.localToWorld(new THREE.Vector3(sale.x, 0, sale.z)); r.pie = g.localToWorld(new THREE.Vector3(p.x, 0, p.z));
+    r.yawMira = yaw + Math.atan2(pel.x - p.x, pel.z - p.z);
+    r.obj.name = 'botillero-' + lado; r.obj.userData.modelo = B.persona; r.modelo = B.persona; r.datos = B; r.lado = lado;
+    r.obj.position.copy(r.sale); r.obj.visible = false; r.viene = false;
+    G.scene.add(r.obj);
+    // (y sentado en su silla, de cara a la cancha: el respaldo queda a 0,19 detrás del centro del asiento)
+    try { const m = await sentadoBotillero(B.persona);
+      if (m) { m.name = 'botillero-sentado-' + lado; m.position.copy(g.localToWorld(new THREE.Vector3(b.x + 0.1775 + m.userData.espalda, -m.userData.suelo, b.z))); m.rotation.y = yaw + MIRA_SENTADO; G.scene.add(m); r.sentado = m; }
+      else console.warn('botillero: sin postura de sentado para', B.persona); } catch (e) { console.warn('botillero sentado', e); }
     out.push(r);
   }
   return out;
 }
-// (las manos del botillero, del color de la piel de sus brazos: sinTacos (actors/sinTacos.js) saca el de las yemas de los
-// dedos, más claro, y la mano y la muñeca salían blanquecinas al lado del brazo moreno. El autor, 26 de noviembre de 2026:
-// «las manos de los botilleros no están bien, no son manos normales». La mediana de los píxeles de color piel bajo los
-// puntos del brazo y del cuello que no son de la mano)
-function pielDelBrazo(root) {
-  root.traverse(o => {
-    const U = o.material?.userData?.sinTacos, g = o.geometry, img = o.material?.map?.image; if (!U || !o.isSkinnedMesh || !img?.width) return;
-    const uv = g.attributes.uv, A = g.attributes.aTaco, SI = g.attributes.skinIndex, SW = g.attributes.skinWeight; if (!uv || !A || !SI || !SW) return;
-    try {
-      const quiero = new Set(); o.skeleton.bones.forEach((b, i) => { if (/(Arm|Neck)$/.test(b.name)) quiero.add(i); });
-      const cv = document.createElement('canvas'); cv.width = Math.min(512, img.width); cv.height = Math.round(cv.width * img.height / img.width);
-      const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0, cv.width, cv.height);
-      const px = cx.getImageData(0, 0, cv.width, cv.height).data, R = [], G = [], B = [], flip = o.material.map.flipY;
-      for (let i = 0; i < uv.count; i += 2) {
-        if (A.getX(i) > 0.01) continue;
-        let w = 0; for (let k = 0; k < 4; k++) if (quiero.has(SI.getComponent(i, k))) w += SW.getComponent(i, k); if (w < 0.6) continue;
-        let u = uv.getX(i), t = uv.getY(i); if (flip) t = 1 - t;
-        const x = Math.min(cv.width - 1, Math.max(0, Math.floor((u - Math.floor(u)) * cv.width))), y = Math.min(cv.height - 1, Math.max(0, Math.floor((t - Math.floor(t)) * cv.height)));
-        const q = (y * cv.width + x) * 4, r = px[q] / 255, gg = px[q + 1] / 255, b = px[q + 2] / 255;
-        if (r - gg > 0.1 && gg - b > 0.03 && r > 0.45 && r < 0.995) { R.push(r); G.push(gg); B.push(b); }
-      }
-      if (R.length < 30) return;
-      const med = (a) => a.sort((x, y) => x - y)[a.length >> 1];
-      U.uPiel.value = new THREE.Vector3(med(R), med(G), med(B));   // (uno nuevo: el de sinTacos lo comparten todos los de esa textura)
-    } catch (e) { /* textura sin leer: el de sinTacos */ }
-  });
-}
-// (las manos del sanferminero, para los botilleros: las suyas son las de un pelotari, de una pieza, abiertas y con la
-// forma de los tacos, y ni encogidas, ni giradas, ni escondidas parecían manos normales (el autor, 26 nov: «coge las manos
-// del sanferminero, que tenía las manos normales»). Se sacan de su malla los triángulos que mueve la mano, en los ejes del
-// hueso de la mano; la de cada botillero se esconde (botillero.js, vistePaisano, sinMano) y la del sanferminero se cuelga
-// de su hueso, a la medida de su antebrazo y del color de su piel)
-let manoSanf = null;
-function manosSanfermin() {
-  return (manoSanf ||= (async () => {
-    const g = await loadMeshy('sanfermin'); let sm = null; (g.scene || g).traverse(o => { if (!sm && o.isSkinnedMesh) sm = o; });
-    if (!sm?.skeleton) return null;
-    const G = sm.geometry, P = G.attributes.position, N = G.attributes.normal, SI = G.attributes.skinIndex, SW = G.attributes.skinWeight, ix = G.index, bs = sm.skeleton.bones, out = {};
-    for (const lado of ['Left', 'Right']) {
-      const hi = bs.findIndex(b => new RegExp(lado + 'Hand$').test(b.name)); if (hi < 0 || !SI) return null;
-      const M = new THREE.Matrix4().multiplyMatrices(sm.skeleton.boneInverses[hi], sm.bindMatrix), Nm = new THREE.Matrix3().getNormalMatrix(M);
-      const peso = (i) => { let w = 0; for (let k = 0; k < 4; k++) if (SI.getComponent(i, k) === hi) w += SW.getComponent(i, k); return w; };
-      const pos = [], nor = [], v = new THREE.Vector3(), nt = (ix ? ix.count : P.count) / 3;
-      for (let t = 0; t < nt; t++) {
-        const tri = [0, 1, 2].map(k => ix ? ix.getX(t * 3 + k) : t * 3 + k);
-        if (tri.some(i => peso(i) < 0.35)) continue;   // (con algo de muñeca, que tape el borde de la mano que se quita)
-        for (const i of tri) { v.fromBufferAttribute(P, i).applyMatrix4(M); pos.push(v.x, v.y, v.z); if (N) { v.fromBufferAttribute(N, i).applyMatrix3(Nm).normalize(); nor.push(v.x, v.y, v.z); } }
-      }
-      if (!pos.length) return null;
-      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-      if (nor.length) geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); else geo.computeVertexNormals();
-      out[lado] = { geo, ante: bs[hi].position.length() };   // (lo largo del antebrazo, en los mismos ejes: para la medida)
-    }
-    return out;
-  })());
-}
-function ponManos(root, manos) {
-  let piel = null; root.traverse(o => { if (!piel && o.material?.userData?.sinTacos) piel = o.material.userData.sinTacos.uPiel.value; });
-  // (la piel, como textura de un punto: así lleva la misma luz propia que el resto del personaje de Meshy, que la toma de
-  // su textura, y la mano no sale más oscura que el brazo)
-  const c = piel ? new THREE.Color().setRGB(piel.x, piel.y, piel.z, THREE.SRGBColorSpace) : new THREE.Color('#e0a27c');
-  const px = new Uint8Array([...c.clone().convertLinearToSRGB().toArray().map(v => Math.round(v * 255)), 255]);
-  const tex = new THREE.DataTexture(px, 1, 1); tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
-  const mat = new THREE.MeshStandardMaterial({ map: tex, emissiveMap: tex, roughness: 0.75, metalness: 0, side: THREE.DoubleSide }); fillMaterial(mat, 0.3);   // (por dentro también: el borde abierto de la muñeca no se ve hueco)
-  root.traverse(b => {
-    if (!b.isBone) return; const m = /(Left|Right)Hand$/.exec(b.name); if (!m || !manos[m[1]] || b.userData.manoSanf) return;
-    const h = new THREE.Mesh(manos[m[1]].geo, mat), k = manos[m[1]].ante > 1e-6 ? b.position.length() / manos[m[1]].ante : 1;
-    h.scale.setScalar(k * 0.8); h.name = 'mano-sanfermin'; h.castShadow = false; b.add(h); b.userData.manoSanf = h;
-  });
-}
-// (un botillero, en cada fotograma: sentado en su silla o, en el descanso, después del fundido, de pie delante de su pelotari)
-// (sentado, sigue el partido con atención: el cuerpo derecho y la cabeza tras la pelota, mira; el autor, 26 de noviembre de
-// 2026: «durante el partido los botilleros siguen el partido con atención»)
-function mueveBotillero(a, D, dt, mira) {
-  const dePie = !!(D && D.dentro && !D.fuera);
-  a.obj.position.copy(dePie ? a.pie : a.silla); a.obj.rotation.y = dePie ? a.yawMira : a.yawSit;
-  a.update(dt, 0, true, 0);
-  posturaSentado(THREE, a.obj, dePie ? 0 : 1, Math.sin(a.yawSit), Math.cos(a.yawSit), { asiento: a.asiento, atento: true, mira: dePie ? null : mira, dt });
-  // (de pie, le habla: asiente despacio, con los brazos sueltos; el autor, 26 nov, «no da la sensación de que estén
-  // hablando»)
-  a.tHabla = dePie ? (a.tHabla || 0) + dt : 0;
-  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira), { habla: dePie ? 0.4 + a.tHabla : 0 });
+const quitaBotillero = (r) => { r.obj.parent?.remove(r.obj); r.dispose?.(); const m = r.sentado; if (m) { m.parent?.remove(m); m.geometry.dispose(); m.material.dispose(); } };
+const giroCorto = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+// (un botillero, en cada fotograma. Mientras se juega, sentado. En el descanso, con su pelotari ya sentado, de pie: espera
+// al lado de su silla lo que dura el negro y va andando hasta delante de él, mirando adonde va; al llegar se para y se
+// vuelve hacia él, sin saltos. Solo andar y estar quieto, las animaciones de la figura: nada encima)
+function mueveBotillero(a, D, dt) {
+  const o = a.obj, u = o.userData, aqui = !!(D && D.dentro && !D.fuera);
+  if (a.sentado) a.sentado.visible = !aqui;
+  if (!aqui) { a.viene = false; u.llegado = false; o.visible = false; return; }
+  if (!a.viene) { a.viene = true; a.espera = DESC.fundido.negro; u.llegado = false; o.position.copy(a.sale); o.rotation.y = Math.atan2(a.pie.x - a.sale.x, a.pie.z - a.sale.z); o.visible = true; }
+  if (a.espera > 0) { a.espera -= dt; a.update(dt, 0, true, 0); return; }
+  const dx = a.pie.x - o.position.x, dz = a.pie.z - o.position.z, d = Math.hypot(dx, dz);
+  let v = 0, hacia = a.yawMira;
+  if (!u.llegado && d > 0.02) {   // (los dos últimos palmos, más despacio, como quien llega)
+    v = Math.min(PASO_BOT, Math.max(0.45, d * 2.4)); const k = Math.min(1, v * dt / d);
+    o.position.x += dx * k; o.position.z += dz * k; hacia = Math.atan2(dx, dz);
+  } else if (!u.llegado) { o.position.x = a.pie.x; o.position.z = a.pie.z; }
+  const g = giroCorto(hacia - o.rotation.y), paso = GIRO_BOT * dt;
+  o.rotation.y += Math.abs(g) <= paso ? g : Math.sign(g) * paso;
+  if (!u.llegado && v === 0 && Math.abs(giroCorto(a.yawMira - o.rotation.y)) < 0.05) u.llegado = true;
+  a.update(dt, v, true, 0);
 }
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // (la burbuja de tu botillero, arriba a la izquierda bajo los botones: su cara, su nombre y lo que te dice; no para el juego)
@@ -866,7 +826,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         if (e.type === 'botillero' && G.ui?.dialog) { e.abre(); const B = botilleroTuyo(), img = retratoBotillero(B); G.ui.dialog(e.lineas.map(text => ({ who: `${B.nombre} · ${isEU() ? e.quien : B.girl ? 'Tu botillera' : e.quien}`, img, icon: 'talk', text }))).then(e.fin, e.fin); }
         if (e.type === 'botilleroDice') try { burbujaBotillero(botilleroTuyo(), e.texto); } catch (er) { console.warn('botillero', er); } },
     }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
-    if (mode === 'match') makeBotilleros(G, fronton.court, !!match.game?.pairs).then(b => { if (ended) { for (const r of b) { r.obj.parent?.remove(r.obj); r.dispose?.(); } return; } botis = b; for (const r of b) G.rt?.warm?.(r.obj); }, e => { console.warn('botilleros', e); apunta('botilleros', e); });
+    if (mode === 'match') makeBotilleros(G, fronton.court, !!match.game?.pairs).then(b => { if (ended) { for (const r of b) quitaBotillero(r); return; } botis = b; for (const r of b) { G.rt?.warm?.(r.obj); if (r.sentado) G.rt?.warm?.(r.sentado); } }, e => { console.warn('botilleros', e); apunta('botilleros', e); });
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
     G.pelotaAbort = () => done({ win: false, quit: true, error: true }); G.pelotaLoading = false;
@@ -877,8 +837,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (en la llegada al Labrit, mientras la cámara va por la calle, el público de dentro no se ve: ni se mueve ni se dibuja)
       try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
-      // (los botilleros, sentados en su silla; en el descanso, con su pelotari ya sentado, de pie delante de él, hablándole)
-      try { if (botis.length) { const D = match.desc, bola = fronton.court?.ball, mira = bola ? bola.getWorldPosition(_bolaW) : null; for (const a of botis) mueveBotillero(a, D, dt, mira); } } catch (e) { console.warn('botilleros', e); botis = []; }
+      // (los botilleros: sentados en su silla; en el descanso, con su pelotari ya sentado, llegan andando hasta delante de él)
+      try { if (botis.length) { const D = match.desc; for (const a of botis) mueveBotillero(a, D, dt); } } catch (e) { console.warn('botilleros', e); botis = []; }
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); brazoJuez(j, dt); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);
@@ -905,7 +865,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => quitaDorsal(rig));   // (si tu pelotari es tu figura de siempre, sin el nombre en la espalda al volver)
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
         safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
-        safe(() => { for (const r of botis) { r.obj.parent?.remove(r.obj); r.dispose?.(); } botis = []; });
+        safe(() => { for (const r of botis) quitaBotillero(r); botis = []; });
         safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
         safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
         safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
