@@ -27,7 +27,8 @@ import { sinCabeza } from './sinCabeza.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
 const BAILE_T0 = 1.0, BAILE_S = 5.0;   // (el plano del baile del que gana: empieza al segundo del último tanto y acaba con el baile, que dura 6 s)
-const ESCENA_CESTANO = false;   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
+const ESCENA_CESTANO = false;
+const CHARLA_FOV = 26;   // (el campo de la cámara en la charla del botillero: teleobjetivo, planoCharla)   // (la escena 3D de la caja de pelotas en la elección de material: retirada)
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
 // vuelta a su sitio entre tanto y tanto (la figura; la lógica ya los ha puesto allí): a paso de carrera, con su arranque y
 // su frenada, en m/s y m/s²
@@ -274,11 +275,16 @@ export class PelotaMatch {
       const estilo = perfil(this.o.rivalStats), tuPrimero = Math.random() < 0.5, rn = this.nomLimpio('rival');
       let rv = tuPrimero ? [] : elige(lot, n, estilo), mio = 'mixto', mias = [];
       const icono = (b) => bolaSVG(clase(b) === 'viva' ? '#ff7ac8' : clase(b) === 'pesada' ? '#7fb2ff' : '#c9b2ff');
-      const chip = (b) => `<span class="pel-mchip">${icono(b)}<b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span>`;
-      const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${tuPrimero ? t.first : t.second(rn)}</p><p class="pel-mat-what">${t.sub(n)}</p>
-        <div class="pel-msel"><span>${t.tuyas}</span><div class="pel-mseg" role="radiogroup">${['mixto', 'pegador', 'manos'].map(k => `<button type="button" role="radio" data-mat-k="${k}" aria-checked="${k === 'mixto'}">${esc((t.cortos || TEXT.es.mat.cortos)[k])}</button>`).join('')}</div></div>
-        <div class="pel-mchips" data-mat-tuyas></div><p class="pel-mat-what" data-mat-what></p><p class="pel-mrv" data-mat-rv></p>
-        <div class="pel-row pel-mgo"><button class="pel-go" data-mat-go>${t.go}</button></div>`);
+      // (el orden, de arriba abajo y de izquierda a derecha: quién elige y qué se elige; luego lo que llevas tú y lo del
+      // rival, juntos, que es lo que se compara; y a la derecha cómo las quieres y el botón. El autor, 26 nov: «hay bloques
+      // cuando pone elige tu material que no está bien jerarquizado»; antes «Tus pelotas» encabezaba los tres botones, y
+      // las tuyas y las del rival iban sueltas, en letra pequeña, cada una en una columna)
+      const chip = (b, peq) => `<span class="pel-mchip${peq ? ' peq' : ''}">${icono(b)}<span><b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span></span>`;
+      const p = this.hud.panel(`<div class="mt-izq"><div class="mt-cab"><p class="mt-k">${tuPrimero ? t.first : t.second(rn)}</p><h2>${t.title}</h2><p class="mt-lead">${t.sub(n)}</p></div>
+        <div class="mt-cesta"><div class="mt-lado"><span class="mt-l">${t.tuyas}</span><div class="pel-mchips" data-mat-tuyas></div></div>
+          <div class="mt-lado mt-rv"><span class="mt-l">${t.rival}</span><div class="pel-mchips" data-mat-rv></div></div></div></div>
+        <div class="mt-elige"><span class="mt-l">${t.como || TEXT.es.mat.como}</span><div class="pel-mseg" role="radiogroup">${['mixto', 'pegador', 'manos'].map(k => `<button type="button" role="radio" data-mat-k="${k}" aria-checked="${k === 'mixto'}">${esc((t.cortos || TEXT.es.mat.cortos)[k])}</button>`).join('')}</div>
+          <p class="mt-que" data-mat-what></p><div class="pel-row pel-mgo"><button class="pel-go" data-mat-go>${t.go}</button></div></div>`);
       p.querySelector('.pel-card')?.classList.add('pel-matcard');
       // (detrás de la tarjeta, la escena de verdad: los dos pelotaris delante del frontis con la caja de las pelotas entre
       // los dos, como en la foto del autor; cestano3d.js. Las que se eligen suben y se encienden con el color de cada uno.
@@ -294,9 +300,9 @@ export class PelotaMatch {
       }).catch((err) => console.warn('cestaño', err));
       const pinta = () => {
         mias = elige(lot, n, mio, new Set(rv.map(b => b.n)));
-        p.querySelector('[data-mat-tuyas]').innerHTML = mias.map(chip).join('');
+        p.querySelector('[data-mat-tuyas]').innerHTML = mias.map(b => chip(b)).join('');
         p.querySelector('[data-mat-what]').textContent = t.que[mio];
-        p.querySelector('[data-mat-rv]').textContent = rv.length ? `${t.rival}: ${rv.map(b => `Nº ${b.n} (${t.kinds[clase(b)].toLowerCase()})`).join(' · ')}` : '';
+        p.querySelector('[data-mat-rv]').innerHTML = rv.length ? rv.map(b => chip(b, true)).join('') : `<small class="mt-luego">${esc(t.luego || TEXT.es.mat.luego)}</small>`;
         marca();
       };
       let hecho = false;
@@ -1515,7 +1521,7 @@ export class PelotaMatch {
     // (por la fase y no por el aviso 'serveReady': el del primer saque sale al empezar el partido, fuera del paso del
     // juego, y no llega aquí. Y el tiempo solo corre mientras la ficha se ve: ni en pausa ni con la pantalla VS delante)
     const ph = this.game.phase; if (ph !== this._sobPh) { this._sobPh = ph; if (ph === 'serveWait') this.sobreT = 3.2; }
-    if (!(this.sobreT > 0) || this.fp?.on || !o.visible || this.vsOpen || this.paused) return h.sobre(null);
+    if (!(this.sobreT > 0) || this.fp?.on || !o.visible || this.vsOpen || this.paused || this.desc) return h.sobre(null);   // (ni en el descanso)
     const v = (this._sv ||= new this.T.Vector3());
     if (this._sh == null) { const b = new this.T.Box3().setFromObject(o); o.getWorldPosition(v); this._sh = Math.min(2.4, Math.max(1, b.max.y - v.y)) + 0.2; }
     // (la cámara se acaba de mover en este mismo paso y sus matrices son aún las del fotograma anterior: se ponen al día
@@ -1915,7 +1921,10 @@ export class PelotaMatch {
         // (apoyado en el asiento de su silla, medido con sus vértices: ni hundido ni en el aire; los pies, en el suelo)
         const sc = D.dentro && !D.fuera && this.sillas?.[who];
         const as = sc ? ((this.asientos ||= {})[who] ||= (() => { const c = grp.localToWorld(new T.Vector3(sc.x, ASIENTO_Y, sc.z)), e = grp.localToWorld(new T.Vector3(sc.x + 0.2, ASIENTO_Y, sc.z)); return { y: c.y, cx: c.x, cz: c.z, r: c.distanceTo(e) }; })()) : null;
-        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw), { asiento: as }); } catch (e) { console.warn('silla', e); }
+        // (sentado derecho y mirando a su botillero, que le habla de pie: el autor, 26 nov, «no da la sensación de que estén
+        // hablando». Por parejas, como antes)
+        const mb = sc && !g.pairs && (who === 'you' || who === 'rival') ? this.cabezaBot(who) : null;
+        try { posturaSentado(T, side.obj, D.w[who] || 0, Math.sin(yw), Math.cos(yw), { asiento: as, atento: !!mb, mira: mb, arriba: 0.45, dt }); } catch (e) { console.warn('silla', e); }
       }
       // (y las manos, nunca dentro de la cabeza: al celebrar, al lamentarse, al bailar o al beber; sinCabeza.js)
       if (!this.sinCabOff) try { sinCabeza(T, side.obj); } catch (e) { console.warn('cabeza', e); this.sinCabOff = true; }
@@ -2079,11 +2088,21 @@ export class PelotaMatch {
       // perfil, hablándole, y tu pelotari de frente, con las caras en la mitad de arriba de la pantalla, porque abajo va la
       // ventana de la charla; el rival queda fuera, que en el borde salía cortado y enorme. El rótulo «Descanso» se va: la
       // ventana ya dice quién habla, y tapaba las caras)
-      if (charla !== !!this.charlaOn) { this.charlaOn = charla; this.camInit = false;
+      if (charla !== !!this.charlaOn) { this.charlaOn = charla; this.camInit = false; this.hud?.root?.classList.toggle('charla', charla);   // (mientras hablan, sin marcador ni botones encima: ui/sinCajas.css)
         if (charla && this.hud) { this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); if (!(this.hud.autorT > 0)) this.hud.root?.classList.remove('calling'); } }
       // (medido: así el rival, sentado a metro y medio, queda fuera por la derecha, y la nevera en el borde; las cabezas,
       // grandes, enteras por debajo del marcador; de cintura para abajo, detrás de la ventana)
-      if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.45, tx = S.x - 0.3;
+      // (y desde el 26 nov, el plano de una conversación: los dos de perfil, uno frente al otro, con teleobjetivo (26°) para
+      // que el fondo no se coma a los muñecos ni se cuele el rival, que se sienta a metro y medio; las cabezas, con aire por
+      // arriba y en la mitad de arriba de la pantalla, encima de la ventana de lo que dice. Medido con sus cabezas al abrirse
+      // la charla. El autor: «no me gusta el plano de los botilleros dando el consejo… no da la sensación de que estén
+      // hablando, parece que el botillero está mucho más lejos». Por parejas, el plano de antes)
+      this.charlaFov = 0; if (!charla) this.charlaCam = null;
+      const CC = charla && !g.pairs && S.pie?.you ? (this.charlaCam ||= this.planoCharla(S, grp)) : null;
+      if (CC) { const t = Math.tan(CHARLA_FOV * Math.PI / 360), asp = Math.max(1, this.cam.aspect || 1.78), H = Math.max(1.35, Math.min(1.6, 2.85 / asp)), D = H / (2 * t);
+        const ly = CC.top + 0.12 * H - H / 2;
+        lp[0] = CC.mx + CC.dx * D; lp[1] = ly + 0.08; lp[2] = CC.mz + CC.dz * D; ll[0] = CC.mx; ll[1] = ly; ll[2] = CC.mz; this.charlaFov = CHARLA_FOV; }
+      else if (charla) { const t = Math.tan(this.cam.fov * Math.PI / 360), R = 1.0 / t, cz = S.you.z - 0.45, tx = S.x - 0.3;
         lp[0] = tx - 0.6 * R; lp[1] = 1.02; lp[2] = cz + 0.8 * R; ll[0] = tx; ll[1] = 1.02; ll[2] = cz; }
       // (a la distancia justa para que quepan los cuatro de lado a lado y, de alto, entre el suelo y la mitad de la pantalla:
       // arriba va el rótulo «Descanso», y en el móvil tumbado tapaba las caras)
@@ -2161,7 +2180,32 @@ export class PelotaMatch {
     { const sp = this.camDyn && !this.fijaOn && g.players.you?.sprint ? 1 : 0; this.sprintK = (this.sprintK || 0) + (sp - (this.sprintK || 0)) * Math.min(1, dt * (sp ? 4 : 6)); }   // (al esprintar, el plano se abre un poco: se nota la arrancada)
     let fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10) * (1 - (this.fondoK || 0)) + (this.fondoK || 0) * (this.detrasOn ? 0 : 8);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
     if (this.dronOn && this.dronFov) fov = this.dronFov;   // (los planos de la grada: teleobjetivo, planoDron)
+    if (this.charlaFov) fov = this.charlaFov;
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
+  }
+  // el plano de la charla del descanso: las dos cabezas (la de tu pelotari, sentado, y la de tu botillero, de pie), en las
+  // medidas de la cancha; hacia dónde se pone la cámara (de perfil a los dos, desde la cancha, girada un poco hacia la cara
+  // del botillero) y a qué altura queda lo más alto de las cabezas. Sin las figuras, con sus sitios y alturas de siempre
+  planoCharla(S, grp) {
+    const T = this.T, hb = this.cabezaBot('you'); let hd = null;
+    this.o.you?.obj?.traverse(x => { if (!hd && x.isBone && /(^|[^A-Za-z]|mixamorig)Head$/.test(x.name)) hd = x; });
+    const a = hd ? grp.worldToLocal(hd.getWorldPosition(new T.Vector3())) : new T.Vector3(S.you.x - 0.1, 0.94, S.you.z);
+    const b = hb ? grp.worldToLocal(hb.clone()) : new T.Vector3(S.pie.you.x + 0.05, 1.13, S.pie.you.z + 0.05);
+    let ux = a.x - b.x, uz = a.z - b.z; const ul = Math.hypot(ux, uz) || 1; ux /= ul; uz /= ul;
+    let nx = -uz, nz = ux; if (nx > 0) { nx = -nx; nz = -nz; }   // (del lado de la cancha)
+    const g = 0.2, dx = nx * Math.cos(g) + ux * Math.sin(g), dz = nz * Math.cos(g) + uz * Math.sin(g), dl = Math.hypot(dx, dz) || 1;
+    // (el centro, 12 cm hacia el lado del botillero: así el rival, que se sienta más allá de la nevera, se queda fuera del
+    // borde; antes asomaba su mano en la esquina)
+    const ex = dx / dl, ez = dz / dl;
+    return { mx: (a.x + b.x) / 2 - 0.12 * ez, mz: (a.z + b.z) / 2 + 0.12 * ex, dx: ex, dz: ez, top: Math.max(a.y, b.y) + 0.42 };
+  }
+  // la cabeza del botillero de cada lado (game/fronton.js los pone en la escena con su nombre), en el mundo; o null
+  cabezaBot(lado) {
+    const C = this._cabB ||= {};
+    if (!C[lado]?.parent) { if (this.t - (C[lado + 'T'] ?? -9) < 2) return null; C[lado + 'T'] = this.t;   // (si aún no está, se vuelve a buscar cada 2 s)
+      let r = this.court?.group; while (r?.parent) r = r.parent; let hd = null;
+      r?.getObjectByName?.('botillero-' + lado)?.traverse(x => { if (!hd && x.isBone && /(^|[^A-Za-z]|mixamorig)Head$/.test(x.name)) hd = x; }); C[lado] = hd; if (!hd) return null; }
+    return C[lado].getWorldPosition(this._cabV ||= new this.T.Vector3());
   }
   // el radio de la pelota tal como se dibuja, en el mundo, a la escala esc (con sus costuras, que sobresalen un poco)
   radioBola(esc = 1) { return COURT.BALL_R * 1.03 * esc * (this.escG ??= this.court.group.getWorldScale(new this.T.Vector3()).x); }

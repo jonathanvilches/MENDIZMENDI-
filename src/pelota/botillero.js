@@ -50,7 +50,10 @@ export function sillasDe(contra = 2.6, pairs = false) {
     // reflejo del otro a cada lado de la nevera: el autor, 26 nov, «el botillero del rival tiene que estar en la misma
     // posición que nuestro botillero… todo tiene que ser coherente». A 0,8 de lado y no a medio metro: las cabezas de los
     // muñecos son grandes y, echado hacia él, la suya se metía en la del pelotari sentado: «choca con la cabeza»)
-    pie[lado] = pairs ? { x: x - 1.0, z: S[lado].z + s * 0.27 } : { x: x - 0.6, z: S[lado].z + s * 0.85 };
+    // (y luego más cerca, a 0,74 de su pelotari en vez de a un metro: el autor, 26 nov, «no da la sensación de que estén
+    // hablando, parece que el botillero está mucho más lejos». Delante de su propia silla y sin chocar las cabezas: él,
+    // apenas echado y de pie; el pelotari, sentado derecho y mirándole)
+    pie[lado] = pairs ? { x: x - 1.0, z: S[lado].z + s * 0.27 } : { x: x - 0.5, z: S[lado].z + s * 0.55 };
   }
   return { ...S, sillas: [...Object.values(S), bot.you, bot.rival], nevera: { x, z: zc }, bot, pie, x };
 }
@@ -280,23 +283,26 @@ export function posturaSentado(T, obj, w, fx, fz, o = {}) {
     apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -0.78).addScaledVector(f, 0.5).addScaledVector(fuera, 0.06).normalize(), w);
     apunta(T, Fa, Hd, new T.Vector3().copy(f).multiplyScalar(0.85).addScaledVector(up, -0.42).addScaledVector(fuera, -0.28).normalize(), w);
   }
-  if (o.mira) mira(T, obj, B, o.mira, f, w, o.dt || 1 / 60);
+  if (o.mira) mira(T, obj, B, o.mira, f, w, o.dt || 1 / 60, { arriba: o.arriba });
   u.silla.ult = H.position.clone();
 }
-/** La cabeza hacia un punto del mundo (la pelota), con el cuello: como quien sigue el partido. Con un poco de retraso,
- *  sin pasar de lo que gira un cuello (unos 70° a cada lado, 30° arriba y abajo). f: hacia dónde mira el cuerpo. */
-function mira(T, obj, B, punto, f, w, dt) {
+/** La cabeza hacia un punto del mundo (la pelota, o su botillero), con el cuello: como quien sigue el partido. Con un poco
+ *  de retraso, sin pasar de lo que gira un cuello (unos 70° a cada lado; hacia arriba, o.arriba, casi nada si no se dice).
+ *  f: hacia dónde mira el cuerpo. Lo de arriba y abajo se suma a la cabeza de su animación, sin ponerla recta: puesta
+ *  «derecha» con el eje del hueso, la cara de estos muñecos quedaba mirando al cielo (el autor, 26 nov: «durante el
+ *  partido los botilleros tienen la cabeza como levantada») */
+function mira(T, obj, B, punto, f, w, dt, o = {}) {
   if (!B.Neck || !B.Head) return;
   const u = obj.userData, M = u.mirada ||= { yaw: 0, pitch: 0 };
   const up = new T.Vector3(0, 1, 0);
-  apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);   // (el cuello derecho, la cabeza alta)
   const hp = B.Head.getWorldPosition(new T.Vector3()), d = new T.Vector3().subVectors(punto, hp); if (d.lengthSq() < 1e-4) return; d.normalize();
   const dh = new T.Vector3(d.x, 0, d.z); if (dh.lengthSq() < 1e-6) return; dh.normalize();
   // (hacia dónde mira ya la cara, con lo que traiga su animación de reposo: se gira lo que falta hasta la pelota, no
   // encima de lo que tuviera; si no, el que la animación deja con la cabeza ladeada se quedaba mirando a otro lado)
   const ang = (a, b) => Math.atan2(a.z * b.x - a.x * b.z, a.x * b.x + a.z * b.z);   // (el giro, sobre la vertical, de a hasta b)
   const cara = () => new T.Vector3(0, 0, 1).applyQuaternion(B.Head.getWorldQuaternion(new T.Quaternion()));
-  const yaw = Math.max(-1.22, Math.min(1.22, ang(f, dh))), pitch = Math.max(-0.5, Math.min(0.35, Math.asin(Math.max(-1, Math.min(1, d.y)))));
+  // (arriba, casi nada: la pelota alta se sigue con los ojos; abajo, algo más)
+  const yaw = Math.max(-1.22, Math.min(1.22, ang(f, dh))), pitch = Math.max(-0.35, Math.min(o.arriba ?? 0.06, Math.asin(Math.max(-1, Math.min(1, d.y))) * 0.7));
   const k = 1 - Math.exp(-dt * 7); M.yaw += (yaw - M.yaw) * k; M.pitch += (pitch - M.pitch) * k;
   const gira = (b, a, eje) => { const qd = new T.Quaternion().setFromAxisAngle(eje, a * w), wq = b.getWorldQuaternion(new T.Quaternion()).premultiply(qd); b.quaternion.copy(b.parent.getWorldQuaternion(new T.Quaternion()).invert().multiply(wq)); b.updateMatrixWorld(true); };
   const c0 = cara(), ch = new T.Vector3(c0.x, 0, c0.z); if (ch.lengthSq() < 1e-6) return; ch.normalize();
@@ -304,17 +310,29 @@ function mira(T, obj, B, punto, f, w, dt) {
   gira(B.Neck, falta * 0.4, up);
   gira(B.Head, falta * 0.6, up);
   const c1 = cara(), fy = new T.Vector3(c1.x, 0, c1.z).normalize(), eje = new T.Vector3().crossVectors(fy, up).normalize();
-  gira(B.Head, M.pitch - Math.asin(Math.max(-1, Math.min(1, c1.y))), eje);
+  gira(B.Neck, M.pitch * 0.35, eje);
+  gira(B.Head, M.pitch * 0.55, eje);
 }
 /** El botillero de pie delante de su pelotari sentado (las fotos del autor): con peso w (0 a 1), un poco echado hacia él y
  *  la cabeza algo baja, mirándole; los brazos, como los lleve su animación de reposo. fx, fz: hacia el pelotari. */
-export function posturaDePie(T, obj, w, fx, fz) {
+export function posturaDePie(T, obj, w, fx, fz, o = {}) {
   const B = huesos(obj); if (!B || w <= 0.001) return;
   obj.updateMatrixWorld(true);
-  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize();
+  const up = v(T, 'c').set(0, 1, 0), f = new T.Vector3(fx, 0, fz).normalize(), t = o.habla || 0;
   // (apenas echado: inclinado como antes, su cabeza bajaba hasta la altura de la del pelotari sentado)
   if (B.Spine && B.Neck) apunta(T, B.Spine, B.Neck, new T.Vector3().copy(up).addScaledVector(f, 0.12).normalize(), w);
-  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.3).normalize(), w);
+  // (hablando, asiente un poco con la cabeza, despacio)
+  if (B.Neck && B.Head) apunta(T, B.Neck, B.Head, new T.Vector3().copy(up).addScaledVector(f, 0.3 + (t ? 0.07 * Math.sin(t * 4.2) : 0)).normalize(), w);
+  // (los brazos, abajo y sueltos: con los de su animación de reposo, abiertos y con las palmas arriba, parecía que se
+  // encogía de hombros. Mientras habla, la mano de fuera acompaña lo que dice, a la altura de la cintura, hacia él)
+  const sp = (B.Spine || B.Hips).getWorldPosition(new T.Vector3());
+  for (const [A, Fa, Hd, dcha] of [[B.LeftArm, B.LeftForeArm, B.LeftHand, false], [B.RightArm, B.RightForeArm, B.RightHand, true]]) {
+    if (!A || !Fa || !Hd) continue;
+    const fuera = A.getWorldPosition(new T.Vector3()).sub(sp).setY(0); if (fuera.lengthSq() > 1e-6) fuera.normalize();
+    const gesto = t && (dcha === (o.manoDcha ?? true)) ? 0.5 + 0.5 * Math.sin(t * 2.3) : 0;
+    apunta(T, A, Fa, new T.Vector3().addScaledVector(up, -1).addScaledVector(fuera, 0.16).addScaledVector(f, 0.1 + gesto * 0.28).normalize(), w);
+    apunta(T, Fa, Hd, new T.Vector3().addScaledVector(up, -0.85 + gesto * 0.75).addScaledVector(f, 0.3 + gesto * 0.55).addScaledVector(fuera, -0.12 - gesto * 0.1).normalize(), w);
+  }
 }
 
 // ---- el consejo del botillero ----

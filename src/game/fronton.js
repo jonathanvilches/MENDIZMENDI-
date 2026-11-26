@@ -139,7 +139,10 @@ function mueveBotillero(a, D, dt, mira) {
   a.obj.position.copy(dePie ? a.pie : a.silla); a.obj.rotation.y = dePie ? a.yawMira : a.yawSit;
   a.update(dt, 0, true, 0);
   posturaSentado(THREE, a.obj, dePie ? 0 : 1, Math.sin(a.yawSit), Math.cos(a.yawSit), { asiento: a.asiento, atento: true, mira: dePie ? null : mira, dt });
-  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira));
+  // (de pie, le habla: asiente y acompaña con la mano de fuera, la que queda hacia la cancha; el autor, 26 nov, «no da la
+  // sensación de que estén hablando»)
+  a.tHabla = dePie ? (a.tHabla || 0) + dt : 0;
+  posturaDePie(THREE, a.obj, dePie ? 1 : 0, Math.sin(a.yawMira), Math.cos(a.yawMira), { habla: dePie ? 0.4 + a.tHabla : 0, manoDcha: a.lado === 'you' });
 }
 const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // (la burbuja de tu botillero, arriba a la izquierda bajo los botones: su cara, su nombre y lo que te dice; no para el juego)

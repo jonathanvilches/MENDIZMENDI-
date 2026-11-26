@@ -509,3 +509,58 @@ html:root body:not(#sc#sc) #hub .aj-card .set-note + :is(.set, .btn, .set-note, 
 html:root body:not(#sc#sc) #hub .aj-card .btn + .btn { margin-top: var(--sp-b) !important; }
 html:root body:not(#sc#sc) #hub .aj-card .hint { margin: var(--sp-g) 0 0 !important; }
 html:root body:not(#sc#sc) #hub .aj-card.pjugar .btn + .set-note { margin-top: var(--sp-i) !important; }
+
+/* ---------- 25) la charla del botillero en el descanso: solo los dos y la ventana de lo que dice, sin el marcador ni los
+   botones del partido encima (el autor, 26 nov: «no me gusta el plano de los botilleros dando el consejo») ---------- */
+html:root body:not(#sc#sc) .pel-root.charla > :not(.pel-panel) { visibility: hidden !important; }
+
+/* ---------- 26) la elección de material, ordenada (el autor, 26 nov: «hay bloques cuando pone elige tu material que no
+   está bien jerarquizado»). A lo ancho, en dos columnas (16: toda la pantalla). A la izquierda, quién elige (antetítulo),
+   el título y la regla y, tras la raya fina (15), lo que llevas tú, en grande, y lo del rival, que es lo que se compara;
+   a la derecha, a media altura, cómo las quieres, qué quiere decir eso y el botón. pelota/match.js, eleccion ---------- */
+html:root body:not(#sc#sc) .pel-card.pel-matcard { display: grid !important; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) !important; column-gap: var(--col, 48px) !important; row-gap: 0 !important; align-items: center !important; align-content: center !important; }
+html:root body:not(#sc#sc) .pel-matcard :is(.mt-izq, .mt-cab, .mt-cesta, .mt-elige, .mt-lado) { display: flex; flex-direction: column; min-width: 0; }
+html:root body:not(#sc#sc) .pel-matcard .mt-izq { gap: var(--sp-g); }
+html:root body:not(#sc#sc) .pel-matcard .mt-cab { gap: var(--sp-i); }
+html:root body:not(#sc#sc) .pel-matcard .mt-cab > * { margin: 0 !important; padding: 0 !important; border: 0 !important; }
+html:root body:not(#sc#sc) .pel-matcard :is(.mt-k, .mt-l) { margin: 0; font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Texto'), sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #ff9ad8; }
+html:root body:not(#sc#sc) .pel-matcard .mt-lead { max-width: 60ch; font-size: var(--fs-sm); line-height: 1.45; color: #cbbcf0; }
+html:root body:not(#sc#sc) .pel-matcard .mt-cesta { gap: var(--sp-g); border-top: var(--raya); padding-top: var(--sp-g); }
+html:root body:not(#sc#sc) .pel-matcard :is(.mt-lado, .mt-elige) { gap: var(--sp-i); }
+html:root body:not(#sc#sc) .pel-matcard .mt-rv .mt-l { color: #a99bd0; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchips { display: flex; flex-wrap: wrap; gap: var(--sp-i) var(--sp-g) !important; margin: 0 !important; padding: 0 !important; border: 0 !important; min-height: 34px; align-items: center; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip { gap: 10px; padding: 0 !important; background: none !important; border: 0 !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip svg { width: 42px; height: 42px; flex: none; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip > span { display: flex; flex-direction: column; gap: 2px; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip b { font-size: var(--fs-lg); }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip.peq { opacity: .8; gap: 8px; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip.peq svg { width: 28px; height: 28px; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchip.peq b { font-size: var(--fs-sm); }
+html:root body:not(#sc#sc) .pel-matcard .mt-luego { font-size: var(--fs-sm); color: #a99bd0; }
+html:root body:not(#sc#sc) .pel-matcard .mt-que { margin: 0 !important; font-size: var(--fs-sm); line-height: 1.4; color: #e6dcff; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mgo { position: static !important; margin: var(--sp-i) 0 0 !important; padding: 0 !important; background: none !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mgo .pel-go { width: 100%; }
+@media (max-height: 500px) {
+  html:root body:not(#sc#sc) .pel-matcard :is(.mt-izq, .mt-cesta) { gap: var(--sp-b); }
+  html:root body:not(#sc#sc) .pel-matcard .mt-cab { gap: 4px; }
+  html:root body:not(#sc#sc) .pel-matcard .mt-cesta { padding-top: var(--sp-b); }
+  html:root body:not(#sc#sc) .pel-matcard .pel-mchip svg { width: 34px; height: 34px; }
+}
+@media (orientation: portrait) {
+  html:root body:not(#sc#sc) .pel-card.pel-matcard { grid-template-columns: minmax(0, 1fr) !important; row-gap: var(--sp-g) !important; }
+}
+
+/* ---------- 27) la presentación del partido y el final, sin descompensar (el autor, 26 nov: «las composiciones no son
+   equilibradas… muchos espacios en aire»). En la presentación, con sitio (no en el móvil tumbado), los cinco niveles en
+   una sola fila igual, en vez de tres arriba y dos más anchos abajo; y «Partes del frontón», como «Más opciones»: texto,
+   sin caja. En el final, si no hay nada que poner a la derecha (un partido sin tantos con datos), la ventana a la medida
+   de lo que tiene, sin media pantalla vacía ---------- */
+@media (min-height: 501px) and (orientation: landscape) {
+  html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-lv5 { display: grid !important; grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+  html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-lv5 button { grid-column: auto !important; min-width: 0 !important; padding-left: 4px !important; padding-right: 4px !important; }
+}
+html:root body:not(#sc#sc) .pel-card .pel-mas .pel-chip { background: none !important; border: 0 !important; box-shadow: none !important; padding: 0 0 0 var(--sp-b) !important; min-height: 44px; color: #ff9ad8 !important; }
+html:root body:not(#sc#sc) .pel-card .pel-mas .pel-chip:hover { color: #fff !important; }
+html:root body:not(#sc#sc) .pel-card:has(.pel-fin-b:empty) { width: min(680px, 100%) !important; }
+html:root body:not(#sc#sc) .pel-card .pel-fin:has(> .pel-fin-b:empty) { grid-template-columns: minmax(0, 1fr) !important; }
+html:root body:not(#sc#sc) .pel-card .pel-fin > .pel-fin-b:empty { display: none !important; }

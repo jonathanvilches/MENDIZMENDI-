@@ -349,7 +349,7 @@ export const TEXT = {
     force: 'fuerza', volea: 'De volea', costs: 'gasta energía', gains: 'recuperas energía',
     // la elección de material (material.js): el lote de diez pelotas, el cestaño y la pelota de cada saque
     mat: { title: 'Elección de material', sub: (n) => `Un lote de 10 pelotas, todas de 102 a 107 g. Elige ${n} para el cestaño: sacarás con ellas y podrás cambiarlas en cada saque.`,
-      first: 'Eliges tú primero', second: (r) => `${r} ya ha elegido`, go: 'Al cestaño', rival: 'Las del rival', tuyas: 'Tus pelotas',
+      first: 'Eliges tú primero', second: (r) => `${r} ya ha elegido`, go: 'Al cestaño', rival: 'Las del rival', tuyas: 'Tus pelotas', como: 'Cómo las quieres', luego: 'Elige después de ti',
       estilos: { mixto: (n) => n > 2 ? 'De todo: viva, media y pesada' : 'De todo: una viva y una pesada', pegador: (n) => `Las ${n} más vivas`, manos: (n) => `Las ${n} más pesadas` },
       cortos: { mixto: 'De todo', pegador: 'Vivas', manos: 'Pesadas' },
       que: { mixto: 'Con la viva vas a por el tanto y con la pesada colocas la pelota.', pegador: 'Salen más del frontis y botan más: el peloteo va más rápido.', manos: 'Salen menos y botan menos: quedan bajas y hay que llegar antes.' },
@@ -488,7 +488,7 @@ export const TEXT = {
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', early: 'Goiz', whiff: 'Airera!' },
     force: 'indarra', volea: 'Boleaz', costs: 'energia gastatzen du', gains: 'energia berreskuratzen duzu',
     mat: { title: 'Materiala aukeratzea', sub: (n) => `10 pilotako sorta, denak 102 eta 107 g artekoak. Aukeratu ${n} saskirako: haiekin aterako duzu eta sake bakoitzean alda ditzakezu.`,
-      first: 'Zuk aukeratzen duzu lehenik', second: (r) => `${r}: aukeratuta`, go: 'Saskira', rival: 'Aurkariarenak', tuyas: 'Zure pilotak',
+      first: 'Zuk aukeratzen duzu lehenik', second: (r) => `${r}: aukeratuta`, go: 'Saskira', rival: 'Aurkariarenak', tuyas: 'Zure pilotak', como: 'Nolakoak nahi dituzu', luego: 'Zure ondoren aukeratuko du',
       estilos: { mixto: (n) => n > 2 ? 'Denetik: bizia, erdikoa eta astuna' : 'Denetik: bizi bat eta astun bat', pegador: (n) => `${n} biziena`, manos: (n) => `${n} astunena` },
       cortos: { mixto: 'Denetik', pegador: 'Biziak', manos: 'Astunak' },
       que: { mixto: 'Biziarekin tantoaren bila zoaz eta astunarekin pilota kokatzen duzu.', pegador: 'Frontisetik gehiago ateratzen dira eta gehiago egiten dute bote: pilotakada azkarragoa da.', manos: 'Gutxiago ateratzen dira eta gutxiago egiten dute bote: baxu geratzen dira eta lehenago iritsi behar da.' },
