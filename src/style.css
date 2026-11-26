@@ -97,7 +97,7 @@ summary { line-height: 1.3; }
 #loading .ld-head { display: flex; flex-direction: column; gap: 0; } #loading :is(.ld-k, .ld-name, .ld-intro, .ld-ms > span) { text-box: trim-both cap alphabetic; }
 #loading .ld-k + .ld-name { margin-top: calc(var(--r-kt) - .3em); } #loading .ld-name + .ld-intro { margin-top: var(--r-tx); }
 #loading .ld-k { display: block; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-carga); }
-#loading .ld-k::before { content: ''; display: inline-block; vertical-align: .3em; margin-right: 10px; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
+
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35));
@@ -158,7 +158,7 @@ summary { line-height: 1.3; }
 #loading.ld-min .ld-in { grid-template-columns: min(640px, 100%); grid-template-rows: auto auto; grid-template-areas: "txt" "prog"; justify-content: center; align-content: center; text-align: center; gap: 28px; }
 #loading.ld-min :is(.ld-pic, .ld-intro, .ld-ms, .ld-tip) { display: none; }
 #loading.ld-min .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; background-size: cover; } #loading.ld-min .ld-bg::before, #loading.ld-min .ld-bg::after { display: none; }
-#loading.ld-min .ld-txt { align-self: center; align-items: center; } #loading.ld-min .ld-k { text-align: center; } #loading.ld-min .ld-k::after { content: ''; display: inline-block; vertical-align: .3em; margin-left: 10px; width: 28px; height: 2px; background: linear-gradient(270deg, #ff7ac8, transparent); }
+#loading.ld-min .ld-txt { align-self: center; align-items: center; } #loading.ld-min .ld-k { text-align: center; }
 /* el móvil tumbado: todo un paso más pequeño. La descripción y el consejo, enteros: antes se cortaban a dos líneas con
    puntos suspensivos (los bosques y los «¿Sabías que…?» de la pelota no se podían leer) */
 @media (max-height: 520px) and (orientation: landscape) {

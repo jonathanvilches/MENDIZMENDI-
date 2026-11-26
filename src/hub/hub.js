@@ -155,6 +155,11 @@ const comarca = (id) => COMARCAS.find(c => c.id === id);
 const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // el color de cada parte del juego, para distinguirlas de un vistazo (hub.css, --cat): la aventura, en fucsia; los torneos,
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
+// ENCUADRE DE LA FIGURA DEL PERFIL (26 nov; el autor, con la captura del perfil: «bloques ajustados a textos e imágenes»).
+// La figura mide lo mismo que el bloque de tu nombre y tu nivel: del pelo a «Tu nombre» y de los pies al pie del botón. Para
+// eso, lo que ocupa el personaje dentro de su retrato (512×768, con aire transparente): --fr, su ancho entre su alto; --ft y
+// --fb, el aire de arriba y de abajo; --fc, el centro del personaje a lo ancho (medido con sharp en los dos retratos)
+const ENCUADRE_HERO = { explorador: '--fr:.407;--ft:.060;--fb:.007;--fc:55%', exploradora: '--fr:.354;--ft:.074;--fb:.023;--fc:52.3%' };
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', frontones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo', ventajas: 'yo' };
 const kc = (id) => KC[String(id).split(':')[0]] || 'av';
 // (el carrusel del menú: alto / ancho de cada portada, como las de los campeonatos, y los estilos comunes del anillo, una vez)
@@ -562,7 +567,10 @@ export class Hub {
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas
   frontonBox(l = levelById(this.frontonId())) {
-    return `<button class="sp-box sp-pick" data-frpick data-una-linea aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(l.name.split(' /')[0])}</b><small>${esc((comarca(l.comarca)?.name || '').replace(/^Comarca de /, ''))}</small></span><i class="sp-chev" aria-hidden="true"></i></button>`;
+    // (la comarca solo si no se llama como el pueblo: «Sangüesa / Sangüesa» repetía lo mismo; el autor, 26 nov: «bloques
+    // ajustados a textos e imágenes»)
+    const pueblo = l.name.split(' /')[0], com = (comarca(l.comarca)?.name || '').replace(/^Comarca de /, ''), igual = (x) => x.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    return `<button class="sp-box sp-pick" data-frpick data-una-linea aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(pueblo)}</b>${com && igual(com) !== igual(pueblo) ? `<small>${esc(com)}</small>` : ''}</span><i class="sp-chev" aria-hidden="true"></i></button>`;
   }
   // ELIGE FRONTÓN, CON CARTAS DE FOTO (19 de noviembre de 2026; el autor, con la captura de la ventana: «hay que modificarlas
   // y adaptarlas al nuevo diseño»). Antes, un botón de texto por pueblo bajo el nombre de su comarca, con media ventana
@@ -1178,7 +1186,7 @@ export class Hub {
       <section class="aj-cols">${tarjeta('ajustes', 'Ajustes', mode + idioma)}${tarjeta('sonido', 'Sonido', sonido)}${tarjeta('imagen', 'Imagen', sencilloSet)}${this.partida()}${this.creditos()}${this.diagnostico()}</section>`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `${cabeza('Tu partida · Perfil', 'gear', 'Perfil y ajustes')}
-      <section class="pf-hero"><div class="pf-fig"><img src="${avatarPortrait(p.avatar, 'hero')}" alt="" decoding="async"></div>
+      <section class="pf-hero"><div class="pf-fig" style="${ENCUADRE_HERO[p.avatar] || ENCUADRE_HERO.explorador}"><img src="${avatarPortrait(p.avatar, 'hero')}" alt="" decoding="async"></div>
         <div class="pf-datos"><label class="pf-nombre">Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
           <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
           <button class="btn" data-go="avatars">${IL('personaje', 22)} Cambiar personaje</button></div>

@@ -37,8 +37,12 @@
 #hub .pf-hero::after { content: ''; position: absolute; z-index: -1; top: -20%; bottom: -20%; left: 0; width: 30%; pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .1), transparent); transform: translateX(-170%) skewX(-16deg); animation: s2-luz 6.4s ease-in-out 1.5s infinite; }
 @media (prefers-reduced-motion: reduce) { #hub .pf-hero::after { display: none; } }
-#hub .pf-fig { align-self: end; margin-bottom: calc(-1 * clamp(12px, 2vw, 20px)); }
-#hub .pf-fig img { display: block; height: clamp(170px, 30vh, 250px); width: auto; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5)); }
+/* (la figura, a la altura exacta del bloque de tu nombre: la caja mide lo que el personaje, sin el aire transparente del
+   retrato, y el retrato se coloca dentro; las medidas, en hub.js, ENCUADRE_HERO. Antes, de 150 a 250 px fijos y pegada
+   abajo: flotaba con aire encima; el autor, 26 nov: «bloques ajustados a textos e imágenes») */
+#hub .pf-fig { position: relative; align-self: stretch; aspect-ratio: var(--fr, .407); min-height: 120px; margin: 0; }
+#hub .pf-fig img { position: absolute; left: 50%; top: calc(-100% * var(--ft, .06) / (1 - var(--ft, .06) - var(--fb, .007))); height: calc(100% / (1 - var(--ft, .06) - var(--fb, .007))); width: auto; max-width: none;
+  transform: translateX(calc(-1 * var(--fc, 55%))); filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5)); }
 #hub .pf-datos { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 #hub .pf-nombre { display: flex; flex-direction: column; gap: 6px; color: var(--mute); font: 800 var(--fs-xs, 12px)/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
 #hub .pf-nombre input { font: 400 var(--fs-xl, 26px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; letter-spacing: .01em; padding: 8px 12px;
@@ -53,18 +57,15 @@
 @media (max-width: 900px) {
   #hub .pf-hero { grid-template-columns: auto minmax(0, 1fr); }
   #hub .pf-stats { grid-column: 1 / -1; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  #hub .pf-fig { grid-row: span 1; margin-bottom: 0; align-self: center; }
 }
 /* (móvil tumbado: la ficha baja, el personaje más pequeño y lo tuyo en una fila de seis) */
 @media (orientation: landscape) and (max-height: 500px) {
   #hub .pf-hero { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.2fr); padding: 10px 16px; gap: 14px; }
   #hub .pf-stats { grid-column: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #hub .pf-fig { margin-bottom: -10px; align-self: end; } #hub .pf-fig img { height: 150px; }
   #hub .pf-nombre input { font-size: var(--fs-lg, 22px); padding: 6px 10px; }
   #hub .pf-datos { gap: 6px; } #hub .pf-hero .lvl small { display: none; }
   #hub .pf-stats span { padding: 4px 8px; font-size: 12px; }
 }
 @media (max-width: 560px) {
   #hub .pf-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #hub .pf-fig img { height: 140px; }
 }
