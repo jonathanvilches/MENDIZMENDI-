@@ -23,6 +23,22 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz y a Principal** (26 nov, tarde): por encargo directo del autor («en este tipo de
+  bloques en todo el juego quiero que no delimites por cuadrícula… oscurezcas el fondo y liberes la información»; luego
+  «aprovecha más los espacios» y «elimina barras separadoras que no aportan nada»). Capa nueva, mía,
+  `src/ui/sinCajas.css`, cargada en `src/hub/hub.js` después de `neon.css`: manda con `html:root body` y `!important`
+  sobre `pelota/hud.js`, `vs.js`, `ficha.js`, `game/torneo.js`, `futbol/liga.js`, `futbol/hud.js`, `ui/pausa.css`,
+  `mando/mando.js` y el alto contraste. Las ventanas que se abren encima (presentación, material, final, pausa, ficha del
+  pelotari, torneo, liga, avisos) van sin relleno, borde, sombra ni raya de arriba, sobre el fondo oscurecido; sin rayas
+  separadoras (la de la cabecera de la pausa, la de encima de los botones del torneo, las de las casillas del cuadro y
+  de las tablas; se queda la del corte de la clasificación); más anchas (presentación hasta 1180 px, material en dos
+  columnas, ficha hasta 960 px) y, con una ventana abierta, sin los botones del partido asomando detrás. En
+  `src/pelota/match.js` (sin dueño), las cartas de la presentación pueden crecer hasta 250 px (antes 200). Las fichas con
+  foto (pueblo del mapa, animales y plantas) se quedan como cartas. Luego, «menos es más» y «reordena»: escala de
+  espacios común, lo secundario («Más opciones», «Partes del frontón») debajo de ¡A jugar!, lo que eligió el rival junto
+  a la explicación del material, y fuera la barra rosa de los títulos (`hud.js`), la marca amarilla del botón elegido
+  (salvo con alto contraste), el dibujo del frontón junto a su nombre y las pastillas de sus rasgos. Si tocáis una
+  ventana nueva que se abra encima, añadidla a la lista de `sinCajas.css` o decídmelo.
 - **De Auditoría a Pelota · interfaz** (26 nov, madrugada): por encargo directo del autor («que metieras alguna mujer
   también, botillera»). En `src/game/torneo.js` (tuyo) solo los textos: el anillo se titula «Elige quién te asiste» con
   el antetítulo «Botilleros y botilleras»; la marca de la elegida dice «La tuya»; el botón del pie, «Botillera» si es

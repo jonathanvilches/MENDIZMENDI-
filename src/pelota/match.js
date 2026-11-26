@@ -454,7 +454,7 @@ export class PelotaMatch {
       let w;
       if (matchMedia('(orientation: landscape)').matches) w = Math.min(alto(ih), (iw - 280 - 16 - 48) / 2);
       else { card.style.setProperty('--cw', '92px'); const otros = card.scrollHeight - px(sc.paddingTop) - px(sc.paddingBottom) - rv.offsetHeight; w = Math.min(alto(ih - otros), (iw - 48) / 2); }
-      card.style.setProperty('--cw', Math.floor(Math.max(n > 1 ? 92 : 104, Math.min(n > 1 ? 150 : 200, w))) + 'px');
+      card.style.setProperty('--cw', Math.floor(Math.max(n > 1 ? 92 : 104, Math.min(n > 1 ? 180 : 250, w))) + 'px');   // (hasta 250 px desde que la ventana va sin caja y más ancha: ui/sinCajas.css, el autor, 26 nov, «aprovecha más los espacios»)
     };
     encaja();
     if (duelo && window.ResizeObserver) { const ro = new ResizeObserver(() => { if (card.isConnected) encaja(); else ro.disconnect(); }); ro.observe(p); }

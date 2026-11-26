@@ -78,6 +78,7 @@ import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
+import '../ui/sinCajas.css';   // (las ventanas sin caja, sobre el fondo oscurecido: ui/sinCajas.css, el autor, 26 nov)
 import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores, reducido } from '../ui/motion.js';
 import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';

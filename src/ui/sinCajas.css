@@ -1,0 +1,194 @@
+/* ================= Sin cajas: la información, suelta sobre el fondo oscurecido =================
+   (el autor, 26 de noviembre de 2026, con capturas de la elección de material, la presentación del partido y la página
+   del torneo: «En este tipo de bloques en todo el juego quiero que no delimites por cuadrícula, quiero que oscurezcas el
+   fondo y liberes la información para tener más espacio, jerarquizar y distribuir mejor la información. Para todo el
+   juego»).
+   · Las ventanas que se abren encima (los avisos y paneles del partido, la presentación, la elección de material, el
+     torneo, la liga, el resumen...) ya no se dibujan: ni relleno, ni borde, ni sombra, ni la raya de color de arriba.
+   · Lo de detrás se oscurece casi del todo, y lo de dentro queda suelto: se ordena por tamaños de letra y por espacios,
+     no por recuadros. Tampoco llevan caja los bloques de dentro (paneles, fichas del frontón, chapas de datos): solo
+     conservan su forma las cartas de jugador, los botones, lo que se elige y las casillas del cuadro del torneo, estas
+     sin raya, con un relleno muy tenue que junta a los dos de cada partido.
+   · También con alto contraste (body.alto-contraste, util/accesible.js), que ponía una raya lila de 2 px alrededor de
+     cada panel y de cada bloque: ahí, el fondo aún más oscuro y la letra blanca, que es lo que da el contraste.
+   La carga hub/hub.js después de neon.css, y manda sobre las hojas de cada pantalla (pelota/hud.js, vs.js, torneo.js,
+   futbol/liga.js...): por eso los !important y el html:root body:not(#sc#sc) delante. Una ventana nueva que se abra encima, a la lista. */
+:root { --velo-fondo: rgba(8, 2, 20, .86); --velo-pie: rgba(8, 2, 20, .94); }
+
+/* ---------- 1) el fondo, oscurecido ---------- */
+html:root body:not(#sc#sc) .pel-panel { background: var(--velo-fondo) !important; }
+/* (el torneo y la liga, .lg-root, son una página entera: su caja tapaba a medias lo de detrás, el mapa o la portada de
+   torneos; sin caja, el fondo de la página casi opaco, para que no asome nada. Las pantallas con su propio fondo, los
+   carruseles y el perfil, .c3-pant, .pt-pant, .pt-libre, se quedan como estaban) */
+html:root body:not(#sc#sc) .lg-root:has(> .lg-card:not(.c3-pant, .pt-pant, .pt-libre)) { background: rgba(8, 2, 20, .95) !important; }
+html:root body:not(#sc#sc).alto-contraste .pel-panel, html:root body:not(#sc#sc).alto-contraste .lg-root:has(> .lg-card:not(.c3-pant, .pt-pant, .pt-libre)) { background: rgba(4, 1, 10, .96) !important; }
+
+/* ---------- 2) las ventanas, sin dibujar ---------- */
+html:root body:not(#sc#sc) :is(.pel-card, .lg-card:not(.c3-pant, .pt-pant, .pt-libre), .fb-card, .pfx-card, .tq-how) {
+  background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) :is(.pel-card, .lg-card, .fb-card, .pfx-card)::before { display: none !important; }
+html:root body:not(#sc#sc).alto-contraste :is(.pel-card, .lg-card, .fb-card, .pfx-card) { background: transparent !important; border-color: transparent !important; }
+
+/* ---------- 3) los bloques de dentro, sin caja ---------- */
+html:root body:not(#sc#sc) :is(.lg-pn, .lg-next, .pvs-venue, .pel-court, .pel-mchip, .pel-card .pel-est, .pel-card .pel-xp, .pel-card .pel-clave, .pel-card .pel-mapa,
+  .pel-card .pel-fact, .pel-card .pel-ctrl, .pel-card .pel-side) {
+  background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+html:root body:not(#sc#sc).alto-contraste :is(.lg-pn, .lg-next, .pvs-venue, .pel-court, .pel-mchip, .pel-card .pel-est, .pel-card .pel-xp, .pel-card .pel-clave, .pel-card .pel-mapa,
+  .pel-card .pel-fact, .pel-card .pel-ctrl) { background: transparent !important; border-color: transparent !important; }
+/* (sin caja, sin el sangrado de dentro: lo de cada bloque se alinea con lo demás) */
+html:root body:not(#sc#sc) .lg-pn { padding-left: 0 !important; padding-right: 0 !important; }
+html:root body:not(#sc#sc) .pel-mchip { padding-left: 0 !important; padding-right: 8px !important; }
+html:root body:not(#sc#sc) .pvs-venue { margin-left: 0 !important; padding-left: 0 !important; }
+html:root body:not(#sc#sc) .pel-court { padding-left: 0 !important; }
+
+/* (con alto contraste, los botones de dentro de estas ventanas, sin su raya clara de 2 px: cinco botones con contorno
+   volvían a dibujar una cuadrícula. Se distinguen por su relleno, que ya contrasta con el fondo casi negro; el elegido,
+   con su relleno vivo y la marca amarilla) */
+html:root body:not(#sc#sc).alto-contraste :is(.pel-card, .lg-card, .fb-card, .pfx-card) :is(button, [role=button], [role=radio], .btn, .lg-btn, .pel-go, .pel-chip):not(.gx-card, .ep-port, .c3-port) { border-color: transparent !important; }
+
+/* ---------- 4) el cuadro del torneo: cada partido, junto pero sin raya ---------- */
+html:root body:not(#sc#sc) .tq-m { border-color: transparent !important; background: rgba(255, 255, 255, .045) !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) .tq-m.me { background: rgba(255, 122, 200, .12) !important; }
+html:root body:not(#sc#sc).alto-contraste .tq-m { background: rgba(255, 255, 255, .08) !important; }
+
+/* ---------- 5) las filas de botones que se quedan abajo al desplazar: sin raya ni color de caja ---------- */
+html:root body:not(#sc#sc) .lg-card > .lg-foot { border-image: linear-gradient(180deg, transparent, var(--velo-pie) 12px) fill 0/0/0 100vmax !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mgo { background: linear-gradient(180deg, transparent, var(--velo-pie) 14px) !important; }
+
+/* ---------- 6) la ventana de pausa (ui/pausa.css): sin el panel morado, sin la raya de la cabecera ni las filas a rayas ---------- */
+html:root body:not(#sc#sc) .pz-fondo { background: var(--velo-fondo) !important; }
+html:root body:not(#sc#sc).alto-contraste .pz-fondo { background: rgba(4, 1, 10, .94) !important; }
+html:root body:not(#sc#sc) .pz-panel, html:root body:not(#sc#sc).alto-contraste .pz-panel { background: transparent !important; box-shadow: none !important; border-color: transparent !important; }
+html:root body:not(#sc#sc) .pz-cab { background: none !important; border-bottom-color: transparent !important; }
+html:root body:not(#sc#sc) .pz-lista > :nth-child(even of :not([hidden])) { background: none; }
+
+/* ---------- 7) las demás ventanas que se abren encima: la ficha del pelotari (pelota/ficha.js), los avisos de los juegos
+   (hub.css .mg-overlay) y el mando (mando/mando.js). La ficha del pueblo del mapa (hub.css .sheet) y las de animales y
+   plantas (ui/ficha.js, .mg-card.fc) se quedan como están: son cartas con su foto o su lámina, como las de jugador, y
+   alrededor siguen a la vista los botones del mapa, que no se pueden tapar ---------- */
+html:root body:not(#sc#sc) :is(.pfx, .mg-overlay:not(:has(.fc)), .mnd-ov) { background: var(--velo-fondo) !important; }
+html:root body:not(#sc#sc).alto-contraste :is(.pfx, .mg-overlay:not(:has(.fc)), .mnd-ov) { background: rgba(4, 1, 10, .94) !important; }
+html:root body:not(#sc#sc) :is(.mg-card:not(.fc), .mnd-card), html:root body:not(#sc#sc).alto-contraste :is(.mg-card:not(.fc), .mnd-card) {
+  background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
+/* (la ficha del pelotari: los nueve datos, sin celda ni raya de color a la izquierda; solo la etiqueta y la cifra) */
+html:root body:not(#sc#sc) .pfx-data div, html:root body:not(#sc#sc).alto-contraste .pfx-data div { background: transparent !important; border-left-color: transparent !important; padding-left: 0 !important; }
+html:root body:not(#sc#sc) .mnd-card::before { display: none !important; }
+
+/* ---------- 8) sin rayas separadoras (el autor, 26 nov: «elimina barras separadoras que no aportan nada»): lo que va
+   junto se junta por el espacio, no por una raya. Se queda la raya del corte de la clasificación (tq-tab tr.corte),
+   que sí dice algo: quién pasa ---------- */
+html:root body:not(#sc#sc) .pz-cab, html:root body:not(#sc#sc) .pel-root .pz-cab { border-bottom: 0 !important; box-shadow: none !important; }
+html:root body:not(#sc#sc) :is(.lg-bar, .fb-foot), html:root body:not(#sc#sc) .lg-root > .lg-card.lg-two > .lg-bar { border-top-color: transparent !important; }
+html:root body:not(#sc#sc) .tq-m > div + div { border-top-color: transparent !important; }
+html:root body:not(#sc#sc) :is(.tq-tab td, .lg-table td, .fb-ctrl td) { border-top-color: transparent !important; }
+html:root body:not(#sc#sc) :is(.fb-stats td, .fb-stats tr) { border-bottom-color: transparent !important; }
+html:root body:not(#sc#sc) .pel-card.desliza .pel-row { background: linear-gradient(rgba(8, 2, 20, 0), var(--velo-pie) 10px) !important; }
+
+/* ---------- 9) más espacio: sin caja no hace falta el relleno de dentro, y las ventanas se abren a lo ancho ---------- */
+html:root body:not(#sc#sc) .pel-card { padding-left: 4px !important; padding-right: 4px !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mgo { margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important; }
+html:root body:not(#sc#sc) .pfx-card { width: min(960px, 100%) !important; padding-left: 0 !important; padding-right: 0 !important; }
+@media (orientation: landscape) {
+  /* (la presentación: más ancha, y las cartas, más grandes: match.js, encaja) */
+  html:root body:not(#sc#sc) .pel-card.pel-pres { width: min(1180px, 100%) !important; }
+  /* (la elección de material, en dos columnas: a la izquierda qué es; a la derecha, lo que eliges y el botón) */
+  html:root body:not(#sc#sc) .pel-card.pel-matcard { width: min(980px, 100%) !important; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    column-gap: clamp(24px, 4vw, 56px); align-content: center; align-items: start; }
+  html:root body:not(#sc#sc) .pel-matcard > h2 { grid-column: 1; grid-row: 1; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-sub { grid-column: 1; grid-row: 2; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mat-what:not([data-mat-what]) { grid-column: 1; grid-row: 3 / span 4; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-msel { grid-column: 2; grid-row: 1 / span 2; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mchips { grid-column: 2; grid-row: 3; }
+  html:root body:not(#sc#sc) .pel-matcard > [data-mat-what] { grid-column: 2; grid-row: 4; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mrv { grid-column: 2; grid-row: 5; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mgo { grid-column: 2; grid-row: 6; position: static !important; margin: 4px 0 0 !important; padding: 0 !important; background: none !important; }
+}
+
+/* ---------- 10) con una ventana abierta, lo del partido no asoma detrás: sin caja, los botones de golpe, el mando, las
+   teclas y el marcador se veían a través del velo junto a lo de la ventana (hud.js ya escondía otros con .paneled; con la
+   pausa abierta, .pel-menu.on, lo mismo menos el propio menú) ---------- */
+html:root body:not(#sc#sc) .pel-root.paneled :is(.pel-btns, .pel-teclas, .pel-stick, .pel-stickhint, .pel-top),
+html:root body:not(#sc#sc) .pel-root:has(.pel-menu.on) :is(.pel-btns, .pel-teclas, .pel-stick, .pel-stickhint) { visibility: hidden !important; }
+/* (el panel del final: la experiencia, sin el sangrado de cuando era una caja, alineada con el marcador) */
+html:root body:not(#sc#sc) .pel-card :is(.pel-xp, .pel-est, .pel-clave, .pel-mapa) { padding-left: 0 !important; padding-right: 0 !important; }
+
+/* ---------- 11) los espacios (el autor, 26 nov: «solo información que aporte, clara, espaciada y jerárquica… mejorar los
+   espacios entre elementos, para que no estén tan pegados»). Una escala para todas estas ventanas: --sp-g entre grupos
+   (título, opciones, botones), --sp-i dentro de un grupo (la etiqueta y lo suyo, el título y su antetítulo) y --sp-b
+   entre botones. En el móvil tumbado (poca altura), algo menos, pero sin volver a pegarlo todo ---------- */
+:root { --sp-g: 24px; --sp-i: 8px; --sp-b: 12px; }
+@media (max-height: 500px) { :root { --sp-g: 14px; --sp-i: 6px; --sp-b: 10px; } }
+
+/* (la presentación: título y modalidad juntos; el frontón, el nivel y los botones, cada uno con su aire) */
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado { gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > h2 + .pel-sub { margin-top: calc(var(--sp-i) - var(--sp-g)) !important; }
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-lbl { margin-bottom: calc(var(--sp-i) - var(--sp-g)) !important; }
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) { gap: clamp(16px, 3vw, 40px) !important; }
+html:root body:not(#sc#sc) .pel-card :is(.pel-levels, .pel-lv5, .pel-mod) { gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) .pel-card .pel-row { gap: var(--sp-b) !important; }
+
+/* (la elección de material) */
+html:root body:not(#sc#sc) .pel-card.pel-matcard { row-gap: var(--sp-i); }
+html:root body:not(#sc#sc) .pel-matcard > :is(h2, .pel-sub) { margin-bottom: 0 !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-msel { gap: var(--sp-i) !important; margin-bottom: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mseg { gap: var(--sp-b) !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mchips { gap: 8px 20px !important; margin-bottom: var(--sp-i) !important; }
+html:root body:not(#sc#sc) .pel-matcard .pel-mat-what { line-height: 1.45 !important; margin-bottom: var(--sp-i) !important; }
+html:root body:not(#sc#sc) .pel-matcard > .pel-mgo { margin-top: calc(var(--sp-g) - var(--sp-i)) !important; }
+
+/* (el panel del final: cada bloque, con su aire) */
+html:root body:not(#sc#sc) .pel-card:not(.pel-pres, .pel-matcard) > :is(.pel-big, .pel-clave, .pel-est, .pel-xp, .pel-mapa, .pel-fact, .pel-estrellas) { margin-bottom: var(--sp-g) !important; }
+
+/* (la pausa: las filas separadas por aire, no por rayas) */
+html:root body:not(#sc#sc) .pz-lista { gap: 6px; padding-top: var(--sp-i); }
+html:root body:not(#sc#sc) .pz-fila { min-height: 68px; }
+html:root body:not(#sc#sc) .pz-tx { gap: 6px !important; }
+
+/* (la ficha del pelotari) */
+html:root body:not(#sc#sc) .pfx-card { gap: var(--sp-g) !important; }
+html:root body:not(#sc#sc) .pfx-body { gap: var(--sp-g) clamp(24px, 4vw, 48px) !important; }
+html:root body:not(#sc#sc) .pfx-data { gap: 16px 20px !important; }
+html:root body:not(#sc#sc) .pfx-head { margin-bottom: var(--sp-g) !important; }
+
+/* (el torneo y la liga: los bloques sueltos, con su aire entre ellos y dentro) */
+html:root body:not(#sc#sc) .lg-pn { gap: 10px !important; }
+
+/* ---------- 12) el orden: primero lo que se decide y el botón de jugar; lo secundario, al final y en voz baja, separado
+   por una línea muy fina (el autor, 26 nov: «reordena la información… líneas separadoras si lo ves viable, pero muy
+   finas») ---------- */
+/* (la presentación: título, frontón, nivel y ¡A jugar!; «Más opciones» y «Partes del frontón», debajo) */
+html:root body:not(#sc#sc) .pel-card.pel-pres:not(.mas) > .pel-lado > .pel-mas { order: 10; }
+/* (la elección de material: lo que eligió el rival va con la explicación, a la izquierda; a la derecha, solo lo tuyo) */
+@media (orientation: landscape) {
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mat-what:not([data-mat-what]) { grid-row: 3 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mrv { grid-column: 1 !important; grid-row: 4 !important; margin-top: 0 !important; }
+  html:root body:not(#sc#sc) .pel-matcard > .pel-mgo { grid-row: 5 !important; }
+}
+/* (la pausa: las filas, separadas solo por su aire) */
+html:root body:not(#sc#sc) .pz-lista { gap: 4px !important; }
+
+/* (con una ventana abierta, el rótulo del pueblo que acaba de entrar, ui/rotulo.js, tampoco asoma detrás) */
+html:root body:not(#sc#sc):has(.pel-root.paneled, .pel-menu.on, .lg-root, .pfx) .rotulo { visibility: hidden !important; }
+/* (también con la pausa abierta o con la ficha del pelotari encima: lo mismo, mirado desde el body, que el menú y la
+   ficha no siempre cuelgan de .pel-root) */
+html:root body:not(#sc#sc):has(.pel-menu.on, .pfx) :is(.pel-btns, .pel-golpe, .pel-teclas, .pel-stick, .pel-stickhint) { visibility: hidden !important; }
+/* (las teclas de ayuda, .pel-teclas, se encienden con una transición de visibilidad que pasaba por encima: fuera del todo) */
+html:root body:not(#sc#sc):has(.pel-menu.on, .pfx, .pel-root.paneled) .pel-teclas { display: none !important; }
+
+/* ---------- 13) menos es más (el autor, 26 nov: «a veces hay demasiados iconos y líneas… menos es más, analízalo»).
+   Analizado ventana a ventana, fuera lo que repetía algo que ya se ve:
+   · la barra rosa a la izquierda de cada título (hud.js): el título ya manda por su tamaño; con el icono del resultado del
+     final eran dos adornos seguidos;
+   · la marca amarilla en la esquina del botón elegido (nivel, pelotas...): el elegido ya va relleno de color. Se queda solo
+     con alto contraste, donde no hay que fiarlo todo al color;
+   · el dibujo del frontón junto a su nombre, que repetía el nombre, y las pastillas de «Al aire libre» y «Frontis de
+     piedra»: ahora texto seguido, separado por un punto;
+   · las líneas finas de la pausa y de «Más opciones»: con el aire basta.
+   Se quedan las líneas que dicen algo (las del cuadro del torneo, que unen a quien pasa de ronda, y el corte de la
+   clasificación) y los iconos que son botones (los redondos de la pausa) ---------- */
+html:root body:not(#sc#sc) .pel-root .pel-card h2 { box-shadow: none !important; padding-left: 0 !important; }
+html:root body:not(#sc#sc):not(.alto-contraste) .pel-root .pel-card button:is([aria-pressed=true], [aria-checked=true]):not(.pel-switch, .pr-op)::after { display: none !important; }
+html:root body:not(#sc#sc) .pel-court > svg { display: none !important; }
+html:root body:not(#sc#sc) .pel-court-t span { gap: 0 !important; }
+html:root body:not(#sc#sc) .pel-court-t i { background: none !important; padding: 0 !important; color: #cbbcf0 !important; font-weight: 600 !important; }
+html:root body:not(#sc#sc) .pel-court-t i + i::before { content: '·'; margin: 0 .5em; color: #8f7fb8; }
