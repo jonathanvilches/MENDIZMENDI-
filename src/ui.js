@@ -74,9 +74,8 @@ export class UI {
   buildLoading() {
     this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"><video class="ld-vid" muted playsinline loop preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video></div><div class="ld-marco"></div>
       <div class="ld-in">
-        <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
+        <div class="ld-tip"><span class="ld-bulb"></span><div class="ld-tc"><b>¿Sabías que…?</b><p class="tip"></p><figure class="ld-pic"><span class="ld-pin"></span><figcaption></figcaption></figure></div></div>
         <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
-        <figure class="ld-pic"><figcaption></figcaption></figure>
         <div class="ld-prog"><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div><div class="ld-barra"><div class="bar"><i></i></div><img class="ld-av" alt=""></div></div>
       </div></div>`);
     document.body.appendChild(this.loading);
@@ -105,7 +104,9 @@ export class UI {
     // (las de tu edad y las que te quedan: antes contaba todas, aunque ya las hubieras hecho)
     const left = info.left ?? info.missions?.length ?? 0;
     $('.ld-ms', L).innerHTML = info.missions?.length ? `<span>${left === 0 ? 'Ya has hecho todas sus misiones' : left === 1 ? 'Te espera 1 misión' : `${left} misiones te esperan`}</span><div>${info.missions.map(ic => I(ic, 34)).join('')}</div>` : '';
-    $('.ld-bulb', L).innerHTML = I('sparkle', 30);
+    // (el consejo y el sitio de la lámina, en un solo bloque arriba a la derecha: antes eran una caja y, debajo, una pastilla
+    // suelta; el autor, 26 nov: «el consejo y la otra parte que se vea mejor o unifícalo y mejora el diseño». style.css)
+    $('.ld-bulb', L).innerHTML = I('sparkle', 30); $('.ld-pin', L).innerHTML = I('pin', 18);
     $('.tip', L).textContent = tip; $('.ld-tip b', L).textContent = info.tipTitle || '¿Sabías que…?';   // (un dato o un consejo: cada uno con su nombre)
     this.progress(0, 'Preparando…');
     // (se cumple cuando ha terminado de entrar: quien abre la carga quita entonces lo que hay debajo)

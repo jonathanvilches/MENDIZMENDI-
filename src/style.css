@@ -112,22 +112,25 @@ summary { line-height: 1.3; }
 #loading .ld-ms div { display: flex; flex-wrap: wrap; gap: var(--e2); }
 #loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .7); border: 1px solid rgba(255,255,255,.08);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-/* (de la lámina solo queda su nombre, como una etiqueta abajo a la derecha: la lámina ya es el fondo) */
-/* (el nombre del sitio de la lámina, arriba bajo el «¿Sabías que…?»: abajo a la derecha tapaba al personaje, que suele
-   estar a ese lado) */
-#loading .ld-pic { grid-area: tip; align-self: end; justify-self: end; margin: 0; translate: 0 calc(100% + 10px); }
-#loading .ld-pic figcaption { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: rgba(13, 6, 28, .72); border: 1px solid rgba(255,255,255,.08); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em;
-  border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-#loading .ld-pic figcaption::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; }
-#loading .ld-pic figcaption:empty { display: none; }
 #loading.no-pic .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; background-size: cover; } #loading.no-pic .ld-bg::before, #loading.no-pic .ld-bg::after { display: none; }
-/* (el consejo, como un mensaje en una esquina de la pantalla) */
-#loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(13, 6, 28, .74); border: 1px solid rgba(255,255,255,.08); border-radius: 18px;
+/* (el consejo y, debajo, el sitio de la lámina, en un solo bloque arriba a la derecha, como un mensaje en una esquina de la
+   pantalla. 26 nov, el autor: «el consejo y la otra parte que se vea mejor o unifícalo y mejora el diseño»: antes eran una
+   caja de letra pequeña y, debajo, una pastilla suelta con el nombre del sitio. Ahora un solo bloque, el velo más oscuro, la
+   letra un paso más grande y el sitio con su chincheta, sin caja propia) */
+#loading .ld-tip { grid-area: tip; justify-self: end; align-self: start; max-width: 400px; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: start;
+  padding: 14px 20px 14px 14px; background: rgba(12, 5, 26, .82); border: 1px solid rgba(255, 255, 255, .1); border-radius: 14px; box-shadow: 0 10px 30px rgba(4, 1, 12, .35);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+#loading .ld-tip:has(.tip:empty):has(figcaption:empty) { display: none; }
+#loading .ld-tc { display: flex; flex-direction: column; min-width: 0; }
 #loading .ld-tip b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ff9ad8; }
-#loading .ld-tip p { margin: 5px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; }
-#loading .ld-bulb { flex: none; display: grid; }
-#loading .ld-bulb .ico { width: 26px; height: 26px; }
+#loading .ld-tip p { margin: 7px 0 0; font-size: var(--fs-sm); font-weight: 700; line-height: 1.4; color: #fff; }
+#loading .ld-tip p:empty { display: none; }
+#loading .ld-bulb { flex: none; display: grid; margin-top: -2px; }
+#loading .ld-bulb .ico { width: 28px; height: 28px; }
+#loading .ld-pic { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; }
+#loading .ld-pic:has(figcaption:empty) { display: none; }
+#loading .ld-pin { flex: none; display: grid; } #loading .ld-pin .ico { width: 16px; height: 16px; }
+#loading .ld-pic figcaption { min-width: 0; color: #d9ccf6; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .03em; }
 /* (abajo: lo que se prepara, con su cursor, el tanto por ciento grande y la barra por segmentos) */
 #loading .ld-prog { grid-area: prog; min-width: 0; display: flex; flex-direction: column; gap: 20px; }   /* (20: el personaje que corre sobre la barra sobresale por arriba y, al llegar al final, rozaba el tanto por ciento) */
 #loading .ld-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
@@ -166,20 +169,20 @@ summary { line-height: 1.3; }
   #loading .ld-name { font-size: clamp(36px, 13vh, 64px); }
   #loading .ld-intro { font-size: var(--fs-xs); line-height: 1.38; }
   #loading .ld-ms .ico { width: 30px; height: 30px; padding: 5px; }
-  #loading .ld-tip { max-width: 340px; padding: 7px 12px; } #loading .ld-tip p { line-height: 1.32; } #loading .ld-bulb .ico { width: 20px; height: 20px; }
+  #loading .ld-tip { max-width: 360px; padding: 10px 14px 10px 11px; gap: 9px; border-radius: 12px; } #loading .ld-tip p { margin-top: 5px; font-size: var(--fs-xs); line-height: 1.34; } #loading .ld-bulb .ico { width: 22px; height: 22px; }
+  #loading .ld-pic { margin-top: 7px; } #loading .ld-pin .ico { width: 14px; height: 14px; }
   #loading .bar { height: 10px; } #loading .ld-av { width: 30px; height: 30px; margin-left: -15px; bottom: -10px; }
 }
 /* las pantallas grandes (iPad, ordenador): la letra y los iconos un paso más grandes */
 @media (min-height: 700px) and (orientation: landscape) {
   #loading .ld-intro { font-size: var(--fs-md); }
   #loading .ld-ms .ico { width: 48px; height: 48px; padding: 9px; }
-  #loading .ld-tip p, #loading .ld-row .msg, #loading .ld-pic figcaption { font-size: var(--fs-sm); }
+  #loading .ld-tip { max-width: 440px; } #loading .ld-tip p { font-size: var(--fs-md); } #loading .ld-row .msg, #loading .ld-pic figcaption { font-size: var(--fs-sm); }
 }
 /* en vertical: el consejo arriba, el pueblo abajo y la barra al pie; la lámina, de fondo con su centro a la vista */
 @media (orientation: portrait) {
   #loading .ld-in { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "tip" "." "txt" "prog"; gap: 20px; }
   #loading .ld-tip { justify-self: stretch; max-width: none; }
-  #loading .ld-pic { display: none; }
   /* (las misiones en una sola fila, aunque sean ocho: los iconos encogen un poco si no caben) */
   #loading .ld-ms div { flex-wrap: nowrap; gap: 5px; } #loading .ld-ms .ico { flex: 0 1 38px; width: auto; height: auto; aspect-ratio: 1; min-width: 0; padding: 6px; }
 }
