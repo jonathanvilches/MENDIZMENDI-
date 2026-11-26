@@ -18,7 +18,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `5435e79c`.)
+(Nada por ahora: publicado el 26 nov hasta `a20cb201`.)
 
 
 ## Peticiones entre ventanas
@@ -302,6 +302,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 26 nov, noche (25.ª), la hizo la ventana de Auditoría (el autor: «no quiero las manos en la cintura… coge las manos del explorador sanferminero», «las cortadas se van casi hasta el cuadro 7… más a ras de chapa, igual que las dos paredes», «mejorar el control del gancho de izquierda»): hasta `a20cb201`. Botilleros con las manos del sanferminero, cosidas al hueso de la mano, y la suya recogida en la muñeca (`fronton.js`, `manosSanfermin`, `ponManos`; `botillero.js`, `vistePaisano`, `aBoPalma`, `sinMano`); cortada del cuadro 2 al 5 y a ras de chapa con el joystick abajo (`pelota/game.js`, `cutHeight`, `cutMaxZ`); gancho siempre a la pared y sin irse largo; dos paredes rasa con el joystick abajo (`game.js`; `physics.js`, `twoWallsTo` con `minFront`). Prueba de humo sin errores.
 - 26 nov, noche (24.ª), la hizo la ventana de Auditoría (el autor: botilleros, «Elige tu material», encuadres; «el botillero delante del pelotari», «las manos no son normales», «no quiero amarillo con verde», «pantallas de las que no puedo salir», «más visual… barras, aros», «el rótulo de último tanto estaba cortado»): hasta `5435e79c`. Charla del descanso frente a frente y sin la otra pareja detrás (`match.js`, `planoCharla`, `ocultaRival`; `botillero.js`, `sillasDe`, `posturaDePie`, `pulgar`); manos del botillero del color de su brazo (`fronton.js`, `pielDelBrazo`) y ropa pintada sin escalones (`vistePaisano`); final con aros y barras (`match.js`, `aros`, `estBloque`, `xpBloque`; sección 29 de `ui/sinCajas.css`); X en la elección de material y Esc como salida de las ventanas del partido. Desde `ui/sinCajas.css` se tapan cosas de `pelota/hud.js` (rótulo `.pel-call h3`, presentación) y de `ui/pausa.css` (colores de `.pz-res`). Prueba de humo sin errores.
 - 26 nov, noche (23.ª), la hizo la ventana de Auditoría (el autor: «no puedo entrar en el juego»): hasta `d19c66fc`. Si al entrar en un pueblo falla la descarga de una parte del juego (archivos de la versión anterior, con la página abierta desde antes de publicar), se carga la nueva y se entra en el mismo pueblo (`src/web/update.js`, `recargaPorModulo`; en `src/main.js`, en el `catch` de `play`). Prueba de humo y entrada desde la ficha sin errores.
 - 26 nov, noche (22.ª), la hizo la ventana de Auditoría (el autor: «No me gusta lo del consejo»; de tres propuestas eligió quitarlo): hasta `034d1270`. La carga de un pueblo, sin consejo ni nombre del sitio de la lámina (`src/main.js`); en la pelota y la pasaka sigue el «¿Sabías que…?». Prueba de humo sin errores.
