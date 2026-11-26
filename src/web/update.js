@@ -57,3 +57,25 @@ export function watchUpdates() {
   // así que el iPhone podía seguir con la de antes aunque se cerrase y se abriese la app)
   const alAbrir = setInterval(() => { if (!window.__ready) return; clearInterval(alAbrir); last = 0; check(true); }, 1000);
 }
+
+// UNA PARTE DEL JUEGO QUE YA NO EXISTE (26 nov; el autor: «no puedo entrar en el juego»). El código del pueblo, de los
+// partidos y de otras pantallas se descarga al usarlo, y en cada publicación sus archivos cambian de nombre. Con la página
+// abierta desde antes de publicar (o guardada en la memoria del iPhone), al entrar en un pueblo pedía el archivo de antes,
+// que ya no está, y el juego volvía al menú con un error. Ahora, si falla así, se carga la versión nueva y se entra en el
+// mismo sitio, una sola vez por minuto (por si el fallo fuese otro y no se arreglase recargando).
+const FALLO_MODULO = /dynamically imported module|Importing a module script failed|error loading dynamically imported|Unable to preload CSS|Failed to fetch dynamically/i;
+/** ¿El error es de una parte del juego que no se ha podido descargar? */
+export const falloDeModulo = (e) => FALLO_MODULO.test(String(e?.message || e || ''));
+/** Recarga la versión publicada y vuelve a `volver` (un pueblo, «pueblo|pelota») al arrancar. Devuelve false si ya se intentó hace poco */
+export function recargaPorModulo(volver = '') {
+  try {
+    const antes = +sessionStorage.getItem('herrizherri-recarga-modulo') || 0;
+    if (Date.now() - antes < 60000) return false;
+    sessionStorage.setItem('herrizherri-recarga-modulo', String(Date.now()));
+    if (volver) sessionStorage.setItem('herrizherri-volver', volver);
+  } catch (e) { return false; }
+  location.replace(`./?v=${Date.now()}`);
+  return true;
+}
+// (lo mismo para lo que se descarga en el menú: Vite avisa con este evento cuando no llega una parte)
+if (typeof window !== 'undefined') addEventListener('vite:preloadError', (e) => { if (recargaPorModulo()) e.preventDefault?.(); });

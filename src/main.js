@@ -51,7 +51,7 @@ import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n, isEU } from './i18n.js';
 import { startVerMas } from './ui/vermas.js';
-import { watchUpdates } from './web/update.js';
+import { watchUpdates, falloDeModulo, recargaPorModulo } from './web/update.js';
 import { startHD } from './web/hd.js';
 import { startVercel } from './web/vercel.js';
 import { sencillo } from './util/sencillo.js';
@@ -314,6 +314,9 @@ async function boot() {
       // antes se volvía al menú sin decir nada («me saca del juego»): ahora se avisa, y si no estaba ya en calidad
       // baja se guarda la baja para el siguiente intento
       console.error(e);
+      // (si lo que falló es una parte del juego de una versión ya sustituida, se recarga la nueva y se entra aquí mismo;
+      // web/update.js, recargaPorModulo)
+      if (falloDeModulo(e) && recargaPorModulo(d.id + (opt.sport === 'pelota' ? '|pelota' : ''))) return;
       ui.hideLoading(); loading = false; queueMode('all');
       try { rt.unload(); } catch (e2) { }
       const S = P.settings, lowered = (S.quality || rt.quality) !== 'low';
