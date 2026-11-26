@@ -2087,7 +2087,7 @@ export class PelotaMatch {
       const zf = Math.min(COURT.L + (portrait ? 2.6 : 1.4), COURT.REBOTE - 0.6);
       lp[0] = 1.2; lp[1] = portrait ? 13 : 10.5; lp[2] = zf; ll[0] = 0; ll[1] = 0.4; ll[2] = COURT.L * (portrait ? 0.42 : 0.5); this.fijaOn = true;
     } else this.fijaOn = false;
-    const enPlano = corte || saqueRv;
+    const enPlano = !!(corte || saqueRv);   // (siempre verdadero o falso: con un null, la cámara se recolocaba en cada fotograma)
     if (enPlano !== !!this.enCorte) { this.enCorte = enPlano; this.camInit = false; }
     if (this.lastCorte && !corte) this.corteN = (this.corteN || 0) + 1;   // (el plano siguiente, en el tanto siguiente)
     this.lastCorte = corte;
@@ -2103,7 +2103,10 @@ export class PelotaMatch {
     // 26 nov: «el botillero del rival tiene que estar en la misma posición que nuestro botillero… todo tiene que ser
     // coherente»). Con un corte al entrar y al salir. Las sillas miran siempre a la cancha, hacia -x, también en el
     // trinquete, dentro junto a su pared derecha)
-    { const D = this.desc, S = this.sillas, on = !!S?.you && D && D.dentro && !D.fuera && !this.replay, charla = on && !!D.charla;
+    // (on y charla, siempre verdadero o falso: sin descanso, D es null y «on» salía null, distinto de false; así, en cada
+    // fotograma se ponía y se quitaba la charla (sin marcador ni botones), se recolocaba la cámara de golpe y todo
+    // parpadeaba y vibraba. Grabación del iPhone del autor, 26 nov 18:58: «estaba parpadeando todo… no podía jugar»)
+    { const D = this.desc, S = this.sillas, on = !!(S?.you && D && D.dentro && !D.fuera && !this.replay), charla = on && !!D.charla;
       // (sin los botones de juego mientras dura: en el descanso no se juega, y se transparentaban por la ventana de la charla)
       if (on !== !!this.descOn) { this.descOn = on; this.camInit = false; this.hud?.controls?.(!on); }
       // (mientras tu botillero te habla, el plano es de los dos, de tres cuartos desde el lado de la nevera: tu botillero de
