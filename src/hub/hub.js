@@ -8,6 +8,7 @@ import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById, esSede, sedeDePueblo } from '../data/levels.js';
 import { REAL_IDS, ATRIBUCION } from '../data/reales/index.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
+import { L as IL } from '../ui/iconosLinea.js';   // (ajustes y selección, en línea blanca; lo demás, en 3D)
 import { showFicha, allFichas } from '../ui/ficha.js';
 import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
@@ -215,7 +216,7 @@ export class Hub {
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div><div class="hub-mapa" id="hMapa"></div>
       <button type="button" class="hub-menu-btn" data-menu aria-label="Menú" aria-expanded="false"></button>
       <div class="hub-velo" data-menu-x></div>
-      <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><div class="hub-tit"><small data-notr>HerrizHerri</small><h2>Menú</h2></div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú" title="Cerrar el menú (Esc)">${ATRAS_SVG}</button></header>
+      <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><div class="hub-tit"><small data-notr>HerrizHerri</small><h2>Menú</h2></div><button type="button" class="app-btn" data-cj-abre hidden>${IL('jugar', 22)}<span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${IL('mando', 22)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú" title="Cerrar el menú (Esc)">${ATRAS_SVG}</button></header>
       <nav class="hub-nav c3" id="hNav" aria-label="Secciones"></nav><div class="hub-info" aria-live="polite"><b></b><span></span></div><button type="button" class="btn primary big hub-abre" data-abre><span>Entrar</span></button><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${ATRAS_SVG}</button></div>`);
     document.body.appendChild(this.root);
     relieve(this.root);   // (con ratón, el fondo se mueve un poco con él: un relieve de capas; ui/motion.js)
@@ -459,7 +460,7 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${isDidactico() ? '' : `<button data-cj class="more-app">${I('play', 34)}<div><b>Cómo jugar</b><small>${appNativa() ? 'Los botones y cómo se juega' : 'En el ordenador, con el móvil de mando o en el móvil; e instalar las apps'}</small></div>${I('play', 20)}</button>`}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" data-cat="${kc(id)}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${isDidactico() ? '' : `<button data-cj class="more-app">${IL('jugar', 30)}<div><b>Cómo jugar</b><small>${appNativa() ? 'Los botones y cómo se juega' : 'En el ordenador, con el móvil de mando o en el móvil; e instalar las apps'}</small></div>${I('play', 20)}</button>`}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" data-cat="${kc(id)}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
     s.querySelector('[data-cj]')?.addEventListener('click', () => { s.remove(); this.sheet = null; comoJugar(this.root); });
@@ -529,7 +530,7 @@ export class Hub {
     // comarcas, o tu club, con el botón de jugar al lado. En horizontal se ven las dos enteras sin desplazar; en vertical,
     // una debajo de la otra)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
-    const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${ic ? I(ic, 16) : ''}${t}</span>`).join('')}</p>`;   // (el 4½, sin icono: así lo pidió el autor)
+    const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${ic ? IL(ic, 15) : ''}${t}</span>`).join('')}</p>`;   // (el 4½, sin icono: así lo pidió el autor)
     // (las cartas, de foto entera, como las portadas de los campeonatos: torneos.css. Arriba a la izquierda, lo tuyo; abajo,
     // sobre un velo suave, el antetítulo, el título y los campeonatos; y debajo, lo que se elige y el botón de jugar)
     const carta = (cls, foto, stat, kick, tit, tg, row) => `<article class="s2 ${cls}">${foto}<span class="sp-stat">${stat}</span>
@@ -552,10 +553,10 @@ export class Hub {
     ${cabeza('Pelota y fútbol', 'trophy', 'Torneos')}
     <section class="sports">
       ${carta('s2-pelota', fotoP, `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
-        'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
+        'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['parejas', 'Parejas'], [null, '4½']],
         `${this.frontonBox(fl)}<button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`)}
       ${carta('s2-futbol', fotoF, `${I('balon', 20)}<b>${fp}</b> ${isEU() ? 'partida' : fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${isEU() ? 'irabazita' : fw === 1 ? 'ganado' : 'ganados'}`,
-        'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
+        'Fútbol · Liga Navarra', 'Torneo de fútbol', [['liga', 'Liga'], ['balon', 'Amistosos'], ['estadio', 'El Sadar']],
         `<div class="sp-box" data-una-linea>${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`)}
     </section>`;
   }
@@ -1165,7 +1166,7 @@ export class Hub {
     // ancho, como una carta de jugador: tu personaje, tu nombre, tu nivel y lo que llevas. Debajo, los ajustes
     // repartidos en tarjetas por tema (juego, sonido, imagen, tu pelotari, cómo jugar, tu partida), en columnas que se
     // llenan una tras otra: nada de media pantalla vacía. Las mismas tarjetas en el material didáctico (ajustes.css)
-    const tarjeta = (ic, t, cuerpo, cls = '') => `<div class="panel aj-card${cls ? ' ' + cls : ''}"><h2 class="aj-t">${I(ic, 26)} ${t}</h2>${cuerpo}</div>`;
+    const tarjeta = (ic, t, cuerpo, cls = '') => `<div class="panel aj-card${cls ? ' ' + cls : ''}"><h2 class="aj-t">${IL(ic, 24)} ${t}</h2>${cuerpo}</div>`;
     const mode = `<label class="set">Modo <select id="pMode"><option value="juego">Juego</option><option value="didactico">Material didáctico</option></select></label>
         <p class="set-note">${isDidactico() ? 'Solo el material para aprender, sin el juego: todo abierto para leer y estudiar.' : 'Con «Material didáctico» se oculta el juego y queda todo lo que se aprende, abierto para leer y estudiar. Tu partida no se borra.'}</p>`;
     const idioma = `<label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>`;
@@ -1174,20 +1175,20 @@ export class Hub {
     const sencilloSet = `<label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>`;
     if (isDidactico()) return `${cabeza('Material didáctico · Ajustes', 'gear', 'Ajustes')}
-      <section class="aj-cols">${tarjeta('gear', 'Ajustes', mode + idioma)}${tarjeta('music', 'Sonido', sonido)}${tarjeta('peak', 'Imagen', sencilloSet)}${this.partida()}${this.creditos()}${this.diagnostico()}</section>`;
+      <section class="aj-cols">${tarjeta('ajustes', 'Ajustes', mode + idioma)}${tarjeta('sonido', 'Sonido', sonido)}${tarjeta('imagen', 'Imagen', sencilloSet)}${this.partida()}${this.creditos()}${this.diagnostico()}</section>`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `${cabeza('Tu partida · Perfil', 'gear', 'Perfil y ajustes')}
       <section class="pf-hero"><div class="pf-fig"><img src="${avatarPortrait(p.avatar, 'hero')}" alt="" decoding="async"></div>
         <div class="pf-datos"><label class="pf-nombre">Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
           <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
-          <button class="btn" data-go="avatars">${I('person', 22)} Cambiar personaje</button></div>
+          <button class="btn" data-go="avatars">${IL('personaje', 22)} Cambiar personaje</button></div>
         <div class="pstats pf-stats"><span>${I('stamp', 26)} ${cnt(stampCount(p), 'sello', 'sellos')}</span><span>${I('check', 26)} ${cnt(doneM, 'misión', 'misiones')}</span><span>${I('book', 26)} ${cnt(p.cards.length, 'carta', 'cartas')}</span><span>${I('peak', 26)} ${cnt(p.peaks.length, 'cima', 'cimas')}</span><span>${I('binoculars', 26)} ${cnt(p.species.length, 'especie', 'especies')}</span><span>${I('ribbon', 26)} ${sal?.ribbons?.length || 0}/8 cintas de Muskilda</span></div></section>
       <section class="aj-cols">
-      ${tarjeta('gear', 'Juego', `${mode}
+      ${tarjeta('ajustes', 'Juego', `${mode}
         <label class="set">Edad <select id="pAge">${EDADES.map(e => `<option value="${e.id}">${e.name}</option>`).join('')}</select></label>
         <p class="set-note">${esc(EDADES.find(e => e.id === edadDe(p)).text)}. Cambiar de edad no borra nada de lo que ya has hecho.</p>
         ${idioma}`)}
-      ${tarjeta('music', 'Sonido y comentarios', `${sonido}
+      ${tarjeta('sonido', 'Sonido y comentarios', `${sonido}
         <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Solo Mikel</option><option value="mujer">Solo Edurne</option><option value="no">Sin comentarios</option></select></label>
         <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
         <p class="set-note">En los partidos de pelota comentan Mikel y Edurne, en castellano: Mikel narra la jugada y Edurne, que jugó a pelota, la explica y cuenta historias del frontón y de los pelotaris. Con uno solo, solo sus frases.</p>`)}
@@ -1198,7 +1199,7 @@ export class Hub {
         <p class="set-note">Los 22 pelotaris del juego: todos juegan igual, cambia el aspecto. En tus cartas y en la cancha sales con el que elijas.</p>
         ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
         <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}`)}
-      ${tarjeta('peak', 'Imagen', `
+      ${tarjeta('imagen', 'Imagen', `
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid"${MOVIL_JUSTO ? ' disabled' : ''}>Media</option><option value="high"${MOVIL_JUSTO ? ' disabled' : ''}>Alta</option></select></label>
         ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
         ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
@@ -1208,25 +1209,25 @@ export class Hub {
         <label class="set">Alto contraste <input type="checkbox" id="pContraste" ${accesible().contraste ? 'checked' : ''}></label>
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones llevan letra blanca, bordes claros y sus colores más oscuros.</p>
         ${sencilloSet}`)}
-      ${tarjeta('play', 'Cómo jugar', `
-        <button class="btn" id="pCj">${I('play', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>
-        ${TACTIL ? '' : `<button class="btn" id="pPad">${I('control', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
-        ${puedeDescargar() ? `<button class="btn" id="pTodo">${I('home', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
+      ${tarjeta('jugar', 'Cómo jugar', `
+        <button class="btn" id="pCj">${IL('jugar', 22)} Cómo jugar e instalar</button><p class="set-note">En el ordenador, con el móvil de mando o en el móvil: los pasos de cada forma y sus botones para instalar el juego o la app Mando.</p>
+        ${TACTIL ? '' : `<button class="btn" id="pPad">${IL('mando', 22)} Usar el móvil como mando</button><p class="set-note">El móvil hace de mando por la wifi, sin instalar nada: el ordenador te enseña un código para escanearlo con la cámara.</p>`}
+        ${puedeDescargar() ? `<button class="btn" id="pTodo">${IL('descargar', 22)} <span>Descargar el juego entero</span></button><p class="set-note" id="pTodoN">Todo se guarda en este ordenador: los pueblos y los minijuegos abren sin esperar a internet, y se puede jugar sin conexión.</p>` : ''}
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>`, 'pjugar')}
       ${this.partida()}${this.privacidad()}${this.creditos()}${this.diagnostico()}
-      ${tarjeta('close', 'Empezar de cero', `<p class="set-note">Borra todo lo que llevas en este aparato: misiones, sellos, cartas y campeonatos. No se puede deshacer.</p><button class="btn danger" id="pReset">Borrar todo el progreso</button>`, 'aj-peligro')}</section>`;
+      ${tarjeta('borrar', 'Empezar de cero', `<p class="set-note">Borra todo lo que llevas en este aparato: misiones, sellos, cartas y campeonatos. No se puede deshacer.</p><button class="btn danger" id="pReset">Borrar todo el progreso</button>`, 'aj-peligro')}</section>`;
   }
   // llevar la partida a otro aparato o a la app nueva (util/traspaso.js): copiar el código aquí y pegarlo allí
   partida() {
-    return `<details class="panel creditos partida"><summary>${I('home', 26)} Llevar tu partida</summary>
+    return `<details class="panel creditos partida"><summary>${IL('partida', 24)} Llevar tu partida</summary>
       <p class="set-note">Para seguir tu partida en otro aparato o en la app nueva: copia aquí el código y pégalo allí, en este mismo sitio.</p>
-      <button class="btn" id="pCopia">${I('book', 22)} <span>Copiar mi partida</span></button><p class="set-note" id="pCopiaN"></p>
+      <button class="btn" id="pCopia">${IL('copiar', 22)} <span>Copiar mi partida</span></button><p class="set-note" id="pCopiaN"></p>
       <textarea id="pPega" rows="3" aria-label="Código de tu partida" placeholder="Pega aquí el código de tu partida" autocomplete="off" spellcheck="false"></textarea>
-      <button class="btn" id="pTrae">${I('check', 22)} <span>Traer esta partida</span></button><p class="set-note" id="pTraeN"></p></details>`;
+      <button class="btn" id="pTrae">${IL('traer', 22)} <span>Traer esta partida</span></button><p class="set-note" id="pTraeN"></p></details>`;
   }
   // qué se guarda y qué sale del aparato (el autor, 24 nov: «revisa a fondo la privacidad, los datos personales»)
   privacidad() {
-    return `<details class="panel creditos privacidad"><summary>${I('shield', 26)} Privacidad</summary><ul>
+    return `<details class="panel creditos privacidad"><summary>${IL('privacidad', 24)} Privacidad</summary><ul>
       <li>Tu partida (tu nombre, lo que llevas y tus ajustes) se guarda solo en este aparato. No hay cuentas ni publicidad, y no se comparte con nadie.</li>
       <li>La cámara de la pelota en casa y de la realidad aumentada se mira dentro del aparato: no se graba ni se manda ninguna imagen.</li>
       <li>El móvil como mando habla con el ordenador cifrado de punta a punta: los servidores que los presentan no pueden leer nada.</li>
@@ -1235,7 +1236,7 @@ export class Hub {
   }
   // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)
   diagnostico() {
-    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>
+    return `<details class="panel creditos diag"><summary>${IL('diagnostico', 24)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>
       <label class="set">Mandar el informe técnico <input type="checkbox" id="pInforme" ${informeActivo() ? 'checked' : ''}></label>
       <p class="set-note">Para arreglar fallos: cómo va el juego en este aparato (fluidez, errores, pantalla y navegador). Nunca lleva tu nombre ni tu partida.</p>${!TACTIL && calidadOrdenador() === 'low' ? `
       <p class="set-note"><b>Para que vaya fluido en un portátil:</b> muchos llevan dos gráficas y Windows le da a Chrome la floja. En Configuración de Windows, Sistema, Pantalla, Gráficos, elige Google Chrome y ponlo en «Alto rendimiento». Enchufa el cargador. Cierra Chrome del todo, también el icono junto al reloj, y vuelve a abrir el juego. Si «Mapa 3D» ya no dice Intel, lo has conseguido.</p>` : ''}
