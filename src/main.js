@@ -66,15 +66,9 @@ const q = new URLSearchParams(location.search);
 // aparte: el menú arranca sin él, se descarga cuando el navegador está desocupado (más abajo, idle) y, si aún no está, al
 // entrar en un pueblo, mientras se monta (antes iba todo en el archivo principal, 2,8 MB)
 const juego = () => Promise.all([import('./game/game.js'), import('./game/townGame.js')]);
-const TIPS = [
-  'Sigue la luz dorada: te lleva al siguiente objetivo de tu misión.',
-  'Las personas con una exclamación amarilla encima tienen una misión para ti.',
-  'Pulsa C para abrir el cuaderno con todas las misiones y sus pasos.',   // (en pantalla táctil, TIP_TOQUE)
-  'Si corres cerca de los animales se asustan: acércate despacio.',
-  'Completa todas las misiones de un pueblo para ganar su sello.',
-  'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
-];
-const TIP_TOQUE = 'En la pausa tienes el cuaderno, con todas las misiones y sus pasos.';
+// (en la carga de un pueblo, sin consejo de juego: el autor, 26 nov, «no me gusta lo del consejo», y eligió quitarlo. Antes,
+// arriba a la derecha, un consejo al azar —«Sigue la luz dorada…», «Pulsa C para abrir el cuaderno…»— y el nombre del sitio
+// de la lámina. En la pelota y la pasaka sigue el «¿Sabías que…?» con un dato de su historia)
 // el «¿Sabías que…?» de la carga de un partido de pelota: un dato de la historia de la pelota a mano, y no lo que se está
 // preparando (antes salía «Preparando el frontón…» como si fuera un dato). Comprobados en octubre de 2026: el récord y las
 // txapelas de Julián Retegi (Noticias de Navarra, Deia), el Labrit (Ayuntamiento de Pamplona), los Juegos Olímpicos (COI y
@@ -207,14 +201,14 @@ async function boot() {
     const cm = COMARCAS.find(c => c.id === d.comarca), eu = isEU(), pasaka = opt.sport === 'pasaka';
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
     const title = pasaka ? 'Pasaka · Iruña' : opt.sport ? `${eu ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name;
-    // (en un pueblo, un consejo de juego, con su rótulo; en la pelota y la pasaka, un dato de su historia)
-    const azar = (L) => L[Math.floor(Math.random() * L.length)], datos = pasaka ? DATOS_PASAKA : DATOS_PELOTA, tip = azar(TIPS);
-    const sub = opt.sport ? azar(eu ? datos.eu : datos.es) : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
+    // (en la pelota y la pasaka, un dato de su historia; en un pueblo, nada: ver arriba, junto a DATOS_PELOTA)
+    const azar = (L) => L[Math.floor(Math.random() * L.length)], datos = pasaka ? DATOS_PASAKA : DATOS_PELOTA;
+    const sub = opt.sport ? azar(eu ? datos.eu : datos.es) : '';
     const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
     // (también desde el mapa del inicio, tras su zoom rápido: la carga entera, con la portada del pueblo, y luego el vuelo
     // de llegada. Antes, desde el mapa, la carga era corta, sin portada, y no había vuelo: parecía que faltaba la intro)
     const entrada = ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
-      foco: opt.sport && laminaUrl('dep-fronton') ? focoDe('dep-fronton') : focoPortada(d), comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+      foco: opt.sport && laminaUrl('dep-fronton') ? focoDe('dep-fronton') : focoPortada(d), comarca: cm?.name, tipTitle: '¿Sabías que…?', caption: opt.sport && laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, video: videoDe(opt.sport ? 'dep-fronton' : portadaDe(d)), missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
