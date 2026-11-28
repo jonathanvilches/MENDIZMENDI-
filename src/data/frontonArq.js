@@ -62,7 +62,7 @@ export const MODELOS = {
   mirafuentes: M('ziordia', { frontis: '#e8e6e1', wall: '#e8e6e1', floor: '#9b9a96', contra: '#b0aea8', chapa: '#e8661c', chapaMetal: false, mark: '#1f1f1f', line: '#1f1f1f' }, { x: { marcoLado: false }, aire: true, es: 'Mirafuentes', eu: 'Mirafuentes' }),
   mendaza: M('igantzi', { stone: '#9c5a44', wall: '#7c5a48', floor: '#a9a69e', contra: '#b9b3a6', chapa: '#5a3428', chapaMetal: false }, { x: { cercha: '#3e2a1e', fondo: '#b6a48c' }, aire: true, es: 'Mendaza', eu: 'Mendaza' }),
   genevilla: M('urroz', { stone: '#c08c66', wall: '#c9805e', floor: '#a8a49a', contra: '#bcb5a6', chapa: '#7a4a34', chapaMetal: false }, { x: { cercha: '#6a3a2a', fondo: '#e0b48e', derecha: 'claro', claro: '#efe6d8' }, aire: true, es: 'Genevilla', eu: 'Genevilla' }),
-  asarta: M('urroz', { frontis: '#d6be78', wall: '#d6be78', marco: '#8c4a38', floor: '#a3a19b', contra: '#b4b0a5', chapa: '#e3d6ad', chapaMetal: false, mark: '#8c4a38' }, { x: { cercha: '#8c4a38', fondo: '#cdb27c' }, aire: true, es: 'Asarta', eu: 'Asarta' }),
+  asarta: M('urroz', { frontis: '#d6be78', wall: '#9a4e3a', marco: '#8c4a38', floor: '#a3a19b', contra: '#b4b0a5', chapa: '#e3d6ad', chapaMetal: false, mark: '#8c4a38' }, { x: { cercha: '#8c4a38', fondo: '#cdb27c' }, aire: true, es: 'Asarta', eu: 'Asarta' }),
   maranon: M('igantzi', { frontis: '#b99c62', wall: '#b99c62', floor: '#b3b0a8', contra: '#c2bdb1', chapa: '#8a7246', chapaMetal: false }, { x: { cercha: '#6a4a2a', fondo: '#d8d0c0', ventanas: 'franja' }, aire: true, es: 'Marañón', eu: 'Marañon' }),
   roncal: M('urroz', { frontis: '#55595d', wall: '#8f908c', floor: '#7d7f80', contra: '#94948f', chapa: '#3a3d40', chapaMetal: false }, { x: { cercha: '#3a3d42', derecha: 'claro', claro: '#d9d8d2', fondo: '#a9a9a4' }, aire: true, es: 'Roncal', eu: 'Erronkari' }),
   leitza: M('urroz', { frontis: '#b3b1aa', wall: '#a9a8a2', floor: '#8a8c8a', contra: '#9a9a94', chapa: '#5a6066', chapaMetal: false }, { x: { cercha: '#8a9096', fondo: '#c9c7c0' }, aire: true, es: 'Leitza', eu: 'Leitza' }),
@@ -91,14 +91,16 @@ export const MODELO_TOWN = {
   // Tierra Estella
   estella: 'allo', viana: 'maranon',
   // Valdizarbe
-  'puente-la-reina': 'bidaurreta', artajona: 'asarta',
+  'puente-la-reina': 'manueta', artajona: 'asarta',
   // Zona Media
-  tafalla: 'sartaguda', olite: 'manueta', ujue: 'mendaza',
+  tafalla: 'sartaguda', olite: 'bidaurreta', ujue: 'mendaza',
   // Ribera
   tudela: 'cabanillas', cortes: 'fontellas', marcilla: 'peralta',
 };
+// (los amarillos claros se oscurecen para que se vea la pelota y salen todos caqui: uno solo por zona. Viana, el de Marañón;
+// Olite, el de Bidaurreta; Artajona, el frontis amarillo de Asarta con la pared del rojo de sus esquinas de arenisca)
 // (un pueblo que no esté en la lista, uno de su comarca)
-const MODELO_COMARCA = { bidasoa: 'igantzi', pirineo: 'isaba', 'larraun-leitzaldea': 'ziordia', sakana: 'iraneta', pamplona: 'navarra-arena', prepirineo: 'urroz', sanguesa: 'petilla', 'tierra-estella': 'allo', 'valdizarbe-novenera': 'bidaurreta', 'zona-media': 'sartaguda', ribera: 'cabanillas', 'ribera-alta': 'peralta' };
+const MODELO_COMARCA = { bidasoa: 'igantzi', pirineo: 'isaba', 'larraun-leitzaldea': 'ziordia', sakana: 'iraneta', pamplona: 'navarra-arena', prepirineo: 'urroz', sanguesa: 'petilla', 'tierra-estella': 'allo', 'valdizarbe-novenera': 'manueta', 'zona-media': 'sartaguda', ribera: 'cabanillas', 'ribera-alta': 'peralta' };
 /** El modelo (clave de MODELOS) del cubierto de un pueblo (su def de data/levels.js). */
 export const arqDe = (def = {}) => MODELO_TOWN[def.id] || MODELO_COMARCA[def.comarca] || 'navarra-arena';
 /** Los colores de la cancha de cada modelo. */
