@@ -35,6 +35,17 @@
   "funciones": 0
  },
  {
+  "fuente": "src/data/botilleroFrases.js",
+  "json": "botilleroFrases.json",
+  "kb": 17,
+  "exporta": [
+   "FR",
+   "RACHA",
+   "RACHA_POR"
+  ],
+  "funciones": 0
+ },
+ {
   "fuente": "src/data/campo.js",
   "json": "campo.json",
   "kb": 1,
@@ -70,7 +81,7 @@
  {
   "fuente": "src/data/comarcas-encaje.json",
   "json": "comarcas-encaje.json",
-  "kb": 49,
+  "kb": 79,
   "exporta": [
    "bidasoa",
    "default",
@@ -118,7 +129,7 @@
  {
   "fuente": "src/data/dolmen.js",
   "json": "dolmen.json",
-  "kb": 36,
+  "kb": 41,
   "exporta": [
    "DOLMEN_TOWNS",
    "SITES"
@@ -442,7 +453,7 @@
  {
   "fuente": "src/data/figuras.js",
   "json": "figuras.json",
-  "kb": 8,
+  "kb": 16,
   "exporta": [
    "FIGURAS",
    "FIGURAS_CARNAVAL",
@@ -472,11 +483,12 @@
  {
   "fuente": "src/data/frontonArq.js",
   "json": "frontonArq.json",
-  "kb": 1,
+  "kb": 15,
   "exporta": [
    "ARQ_LOOK",
    "ARQ_REF",
-   "ARQ_TOWN"
+   "MODELOS",
+   "MODELO_TOWN"
   ],
   "funciones": 1
  },
@@ -566,7 +578,7 @@
  {
   "fuente": "src/data/levels.js",
   "json": "levels.json",
-  "kb": 98,
+  "kb": 105,
   "exporta": [
    "LEVELS",
    "SEDES_EXTERIOR",
@@ -827,7 +839,7 @@
  {
   "fuente": "src/data/reales/altsasu-alsasua.json",
   "json": "reales/altsasu-alsasua.json",
-  "kb": 75,
+  "kb": 150,
   "exporta": [
    "alt0",
    "atribucion",
@@ -856,7 +868,7 @@
  {
   "fuente": "src/data/reales/amaiur-maya-del-baztan.json",
   "json": "reales/amaiur-maya-del-baztan.json",
-  "kb": 28,
+  "kb": 55,
   "exporta": [
    "alt0",
    "atribucion",
@@ -885,7 +897,7 @@
  {
   "fuente": "src/data/reales/aoiz.json",
   "json": "reales/aoiz.json",
-  "kb": 52,
+  "kb": 102,
   "exporta": [
    "alt0",
    "atribucion",
@@ -914,7 +926,7 @@
  {
   "fuente": "src/data/reales/aribe.json",
   "json": "reales/aribe.json",
-  "kb": 25,
+  "kb": 49,
   "exporta": [
    "alt0",
    "atribucion",
@@ -943,7 +955,7 @@
  {
   "fuente": "src/data/reales/artajona.json",
   "json": "reales/artajona.json",
-  "kb": 68,
+  "kb": 134,
   "exporta": [
    "alt0",
    "atribucion",
@@ -972,7 +984,7 @@
  {
   "fuente": "src/data/reales/burgui-burgi.json",
   "json": "reales/burgui-burgi.json",
-  "kb": 40,
+  "kb": 78,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1017,7 +1029,7 @@
  {
   "fuente": "src/data/reales/cortes.json",
   "json": "reales/cortes.json",
-  "kb": 97,
+  "kb": 194,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1046,7 +1058,7 @@
  {
   "fuente": "src/data/reales/elizondo.json",
   "json": "reales/elizondo.json",
-  "kb": 66,
+  "kb": 130,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1075,7 +1087,7 @@
  {
   "fuente": "src/data/reales/emblemas.json",
   "json": "reales/emblemas.json",
-  "kb": 11,
+  "kb": 21,
   "exporta": [
    "default",
    "emblemas",
@@ -1088,7 +1100,7 @@
  {
   "fuente": "src/data/reales/erronkari-roncal.json",
   "json": "reales/erronkari-roncal.json",
-  "kb": 34,
+  "kb": 67,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1117,7 +1129,7 @@
  {
   "fuente": "src/data/reales/estella.json",
   "json": "reales/estella.json",
-  "kb": 92,
+  "kb": 182,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1146,7 +1158,7 @@
  {
   "fuente": "src/data/reales/etxalar.json",
   "json": "reales/etxalar.json",
-  "kb": 52,
+  "kb": 103,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1193,7 +1205,7 @@
  {
   "fuente": "src/data/reales/irulegi.json",
   "json": "reales/irulegi.json",
-  "kb": 23,
+  "kb": 44,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1222,7 +1234,7 @@
  {
   "fuente": "src/data/reales/irurtzun.json",
   "json": "reales/irurtzun.json",
-  "kb": 51,
+  "kb": 100,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1251,7 +1263,7 @@
  {
   "fuente": "src/data/reales/isaba-izaba.json",
   "json": "reales/isaba-izaba.json",
-  "kb": 43,
+  "kb": 85,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1280,7 +1292,7 @@
  {
   "fuente": "src/data/reales/ituren.json",
   "json": "reales/ituren.json",
-  "kb": 37,
+  "kb": 72,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1309,7 +1321,7 @@
  {
   "fuente": "src/data/reales/javier.json",
   "json": "reales/javier.json",
-  "kb": 27,
+  "kb": 52,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1338,7 +1350,7 @@
  {
   "fuente": "src/data/reales/leitza.json",
   "json": "reales/leitza.json",
-  "kb": 51,
+  "kb": 101,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1367,7 +1379,7 @@
  {
   "fuente": "src/data/reales/lekunberri.json",
   "json": "reales/lekunberri.json",
-  "kb": 52,
+  "kb": 102,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1396,7 +1408,7 @@
  {
   "fuente": "src/data/reales/lesaka.json",
   "json": "reales/lesaka.json",
-  "kb": 55,
+  "kb": 109,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1425,7 +1437,7 @@
  {
   "fuente": "src/data/reales/lumbier.json",
   "json": "reales/lumbier.json",
-  "kb": 54,
+  "kb": 107,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1454,7 +1466,7 @@
  {
   "fuente": "src/data/reales/mapa/otsagabia-ochagavia.json",
   "json": "reales/mapa/otsagabia-ochagavia.json",
-  "kb": 46,
+  "kb": 91,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1483,7 +1495,7 @@
  {
   "fuente": "src/data/reales/mapa/pamplona.json",
   "json": "reales/mapa/pamplona.json",
-  "kb": 128,
+  "kb": 254,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1512,7 +1524,7 @@
  {
   "fuente": "src/data/reales/marcilla.json",
   "json": "reales/marcilla.json",
-  "kb": 65,
+  "kb": 128,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1541,7 +1553,7 @@
  {
   "fuente": "src/data/reales/olite.json",
   "json": "reales/olite.json",
-  "kb": 106,
+  "kb": 210,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1570,7 +1582,7 @@
  {
   "fuente": "src/data/reales/orreaga-roncesvalles.json",
   "json": "reales/orreaga-roncesvalles.json",
-  "kb": 26,
+  "kb": 50,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1599,7 +1611,7 @@
  {
   "fuente": "src/data/reales/plantas.json",
   "json": "reales/plantas.json",
-  "kb": 3,
+  "kb": 6,
   "exporta": [
    "default",
    "javier",
@@ -1610,7 +1622,7 @@
  {
   "fuente": "src/data/reales/puente-la-reina.json",
   "json": "reales/puente-la-reina.json",
-  "kb": 79,
+  "kb": 156,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1639,7 +1651,7 @@
  {
   "fuente": "src/data/reales/sanguesa.json",
   "json": "reales/sanguesa.json",
-  "kb": 69,
+  "kb": 137,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1668,7 +1680,7 @@
  {
   "fuente": "src/data/reales/tafalla.json",
   "json": "reales/tafalla.json",
-  "kb": 68,
+  "kb": 135,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1697,7 +1709,7 @@
  {
   "fuente": "src/data/reales/tudela.json",
   "json": "reales/tudela.json",
-  "kb": 131,
+  "kb": 261,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1726,7 +1738,7 @@
  {
   "fuente": "src/data/reales/ujue.json",
   "json": "reales/ujue.json",
-  "kb": 40,
+  "kb": 78,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1755,7 +1767,7 @@
  {
   "fuente": "src/data/reales/viana.json",
   "json": "reales/viana.json",
-  "kb": 63,
+  "kb": 125,
   "exporta": [
    "alt0",
    "atribucion",
@@ -1784,7 +1796,7 @@
  {
   "fuente": "src/data/reales/zugarramurdi.json",
   "json": "reales/zugarramurdi.json",
-  "kb": 39,
+  "kb": 77,
   "exporta": [
    "alt0",
    "atribucion",
@@ -2334,7 +2346,7 @@
  {
   "fuente": "src/game/torneo.js",
   "json": "juego/game/torneo.json",
-  "kb": 6,
+  "kb": 7,
   "exporta": [
    "EXTRA",
    "KINDS",
@@ -2369,6 +2381,18 @@
    "ORIENTA_TIPS"
   ],
   "funciones": 5
+ },
+ {
+  "fuente": "src/game/rankingPelota.js",
+  "json": "juego/game/rankingPelota.json",
+  "kb": 0,
+  "exporta": [
+   "COMP",
+   "LIGUILLA",
+   "PTS",
+   "TXAPELA"
+  ],
+  "funciones": 3
  },
  {
   "fuente": "src/actors/trajes.js",

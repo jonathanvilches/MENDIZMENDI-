@@ -14,10 +14,10 @@ const mods = []; const anda = (d) => { for (const e of fs.readdirSync(d, { withF
 anda('src/data'); mods.sort();
 // y los datos que viven fuera de src/data, junto a su código: las frases y la música (src/audio), el guion y los
 // comentarios de la pelota, los talleres, las actividades y aventuras de los pueblos, los torneos, los trajes, el
-// material didáctico, los emblemas, las señales y Salazar. Salen en exportar/datos/juego/<ruta dentro de src>.json
+// material didáctico, los emblemas, las señales, los puntos del ranking de pelotaris y Salazar. Salen en exportar/datos/juego/<ruta dentro de src>.json
 const EXTRA = ['audio/frases.js', 'audio/instrumentos.js', 'audio/interfaz.js', 'audio/pistas.js', 'i18n.js', 'pelota/guionVoz.js', 'pelota/comenta.js',
   'pelota/rules.js', 'futbol/rules.js', 'game/talleres.js', 'game/townActividades.js', 'game/townAventura.js', 'game/torneo.js', 'game/content.js',
-  'game/senales.js', 'actors/trajes.js', 'actors/outfits.js', 'hub/didactico.js', 'hub/emblemas.js', 'levels/salazar.js'].filter(f => fs.existsSync('src/' + f));
+  'game/senales.js', 'game/rankingPelota.js', 'actors/trajes.js', 'actors/outfits.js', 'hub/didactico.js', 'hub/emblemas.js', 'levels/salazar.js'].filter(f => fs.existsSync('src/' + f));
 mods.push(...EXTRA.map(f => '../' + f));
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined) });
 const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
@@ -26,15 +26,22 @@ const indice = [];
 for (const rel of mods) {
   const r = await p.evaluate(async (rel) => {
     // (de cualquier valor, lo que se puede escribir en JSON; lo que no, fuera, y las funciones apuntadas)
+    // (un objeto que sale en dos sitios, como el aspecto de cada frontón en ARQ_LOOK y en MODELOS, se escribe entero en
+    // los dos: antes el segundo salía como «[repetido]» y en el otro motor faltaba. «[repetido]» queda solo para un
+    // objeto que se contiene a sí mismo, que en JSON no se puede escribir)
     const funciones = [], visto = new WeakSet();
     const limpia = (v, ruta) => {
+      if (!v || typeof v !== 'object' || ArrayBuffer.isView(v)) return limpia0(v, ruta);
+      if (visto.has(v)) return '[repetido]';   // (visto: los objetos por los que se ha bajado hasta aquí, no todos los escritos)
+      visto.add(v); try { return limpia0(v, ruta); } finally { visto.delete(v); }
+    };
+    const limpia0 = (v, ruta) => {
       if (v == null || typeof v === 'string' || typeof v === 'boolean') return v;
       if (typeof v === 'number') return Number.isFinite(v) ? v : null;
       if (typeof v === 'bigint') return Number(v);
       if (typeof v === 'function') { funciones.push(ruta); return undefined; }
       if (ArrayBuffer.isView(v)) return Array.from(v);
       if (typeof v !== 'object') return undefined;
-      if (visto.has(v)) return '[repetido]'; visto.add(v);
       if (v.isColor) return '#' + v.getHexString();
       if (v.isVector2 || v.isVector3 || v.isVector4 || v.isQuaternion || v.isEuler) return v.toArray();
       if (v.isTexture || v.isMaterial || v.isBufferGeometry || v.isObject3D) return undefined;   // (cosas de three.js: no son datos)

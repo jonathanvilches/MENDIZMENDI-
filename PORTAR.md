@@ -59,9 +59,9 @@ Ver `unity/LEEME.md`.
 ```
 npm run exportar            # node tools/exportar-datos.mjs: exportar/datos/<módulo>.json e indice.json
 ```
-Cada módulo de `src/data` (145) sale con todo lo que exporta como datos, y también los que tienen datos junto a su código
-(20 más, en `exportar/datos/juego/`): el guion y los comentarios de la pelota (`pelota/guionVoz`, `pelota/comenta`), las
-reglas de la pelota y del fútbol, los torneos, los talleres, las aventuras de los pueblos, los trajes, el material
+Cada módulo de `src/data` (141) sale con todo lo que exporta como datos, y también los que tienen datos junto a su código
+(21 más, en `exportar/datos/juego/`): el guion y los comentarios de la pelota (`pelota/guionVoz`, `pelota/comenta`), las
+reglas de la pelota y del fútbol, los torneos y los puntos de su ranking (`game/rankingPelota`), los talleres, las aventuras de los pueblos, los trajes, el material
 didáctico, los emblemas y Salazar. En el repositorio va ya una copia hecha
 (`exportar/datos/`, fecha en cada archivo); si los datos cambian, se vuelve a lanzar. Lo principal:
 
@@ -75,7 +75,8 @@ didáctico, los emblemas y Salazar. En el repositorio va ya una copia hecha
 | `legends.json`, `folklore.json`, `cuentos.json` | Leyendas, tradiciones y cuentos |
 | `oficios.json`, `procesos.json`, `laminas.json`, `narraLaminas.json` | Oficios y láminas, con sus pasos y su narración |
 | `fauna.json`, `flora.json`, `setas.json`, `bosques.json`, `mountains.json` | Naturaleza: especies, setas, bosques, las 120 cimas |
-| `frontones.json`, `pelotaris.json`, `frontonArq.json`, `equipo.json` | Pelota: frontones reales, pelotaris, arquitectura de las canchas, equipos |
+| `frontones.json`, `pelotaris.json`, `frontonArq.json`, `equipo.json` | Pelota: frontones reales, pelotaris, equipos, y la cancha de cada pueblo (`frontonArq`: el modelo real de cubierto que copia cada uno, `MODELOS` y `MODELO_TOWN`, con su arquitectura y sus colores) |
+| `botilleroFrases.json` | Lo que dice el botillero en el descanso y cuando pierdes tantos seguidos, en castellano y euskera (`{o}`, `{lo}`, `{el}`, `{e}`: rival chico o chica; `{n}`: cuántas veces) |
 | `eu*.json`, `hitzak.json` | Los textos en euskera |
 
 En cada archivo, `funciones` lista las funciones que tenía el módulo (por ejemplo `levelById` en `levels.js`): son la
