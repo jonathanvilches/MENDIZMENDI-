@@ -44,12 +44,12 @@ export const MODELOS = {
   petilla: M('erminea', { frontis: '#2c6fc0', wall: '#2c6fc0', marco: '#e8862e', line: '#f2cf3a', mark: '#f2cf3a', floor: '#6c8494', contra: '#8b9ba7', chapa: '#1d4a8a', chapaMetal: false }, { x: { marcoLado: false, fondo: '#dfe4ea' }, es: 'Petilla', eu: 'Petilla' }),
   'navarra-arena': M('pabellon', { frontis: '#2b6a56', wall: '#2b6a56' }, { es: 'el Navarra Arena', eu: 'Navarra Arena' }),
   // ---------- cubiertos de los que hay foto de fuera ----------
-  peralta: M('peralta', { frontis: '#4f7f6a', wall: '#4f7f6a', floor: '#8e8a80', contra: '#aaa497' }, { es: 'Peralta', eu: 'Azkoien' }),
+  peralta: M('peralta', { frontis: '#6e2a35', wall: '#6e2a35', floor: '#8e8a80', contra: '#aaa497' }, { es: 'Peralta', eu: 'Azkoien' }),
   allo: M('iraneta', { frontis: '#4a7a8a', wall: '#4a7a8a', marco: '#d9dde0', floor: '#8c8c88', contra: '#a3a39e', chapa: '#2f4f5e', chapaMetal: false }, { x: { boveda: 'metal', cercha: '#c9ced3', derecha: 'claro', claro: '#e6e3dc', fondo: '#cfcac0' }, es: 'Allo', eu: 'Allo' }),
   bidaurreta: M('urroz', { frontis: '#cfb24a', wall: '#cfb24a', floor: '#9e9a8e', contra: '#b2ad9f', chapa: '#6b5a2a', chapaMetal: false }, { x: { cercha: '#a2a7ad', derecha: 'claro', fondo: '#d9c46a' }, es: 'Bidaurreta', eu: 'Bidaurreta' }),
   berrioplano: M('urroz', { frontis: '#d9902e', wall: '#d9902e', marco: '#c8322c', floor: '#8f8d88', contra: '#a7a49c', chapa: '#9a2a24', chapaMetal: false }, { x: { cercha: '#c8322c', fondo: '#e9c86a', derecha: 'claro', claro: '#e9e4d6' }, es: 'Berrioplano', eu: 'Berriobeiti' }),
   almandoz: M('igantzi', { stone: '#8f8a80', wall: '#3e6a8a', floor: '#8a8d88', contra: '#a19e95', chapa: '#38503f', chapaMetal: false }, { x: { ventanas: 'franja', cercha: '#5a3a22', fondo: '#9a958a' }, es: 'Almandoz', eu: 'Almandoz' }),
-  olazagutia: M('erminea', { frontis: '#3f7f55', wall: '#3f7f55', marco: '#b9a77f', floor: '#8b8f8a', contra: '#a4a69e', chapa: '#2f5e40', chapaMetal: false }, { x: { fondo: '#ecebe6', marcoLado: true }, es: 'Olazagutía', eu: 'Olazti' }),
+  olazagutia: M('erminea', { frontis: '#2a4a7a', wall: '#2a4a7a', marco: '#b9a77f', floor: '#8b8f8a', contra: '#a4a69e', chapa: '#7a2b22', chapaMetal: false }, { x: { fondo: '#ecebe6', marcoLado: true }, es: 'Olazagutía', eu: 'Olazti' }),
   manueta: M('pabellon', { frontis: '#7f8c96', wall: '#5f6f7d', floor: '#6f7476', contra: '#8a8e8f', chapa: '#3a444c', chapaMetal: true }, { x: { fondo: '#9a9a96', sobre: '#4a4c50', derecha: 'claro', claro: '#b9b7b0' }, es: 'la Mañueta', eu: 'Mañueta' }),
   // (los dos murales: el pelotari verde de Lakuntza y el trinquete azul verdoso de Lekunberri)
   lakuntza: M('iraneta', { frontis: '#5b9a3e', wall: '#5b9a3e', marco: '#f0d03a', line: '#f4f2ec', floor: '#8d918a', contra: '#a3a69e', chapa: '#d8642a', chapaMetal: false }, { x: { boveda: 'metal', cercha: '#3e6e2e' }, es: 'Lakuntza', eu: 'Lakuntza' }),
