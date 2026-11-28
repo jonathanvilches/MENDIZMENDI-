@@ -129,6 +129,17 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 .gx-card.azul { --eq: var(--azul); } .gx-card.rojo { --eq: var(--rojo); }
 .gx-card.t-oro .gx-st b, .gx-card.t-oro .gx-ovr b { color: #ffe39a; }
 .gx-card.lock { --eq: transparent; }
+/* las estrellas (data/estrellas.js): la carta premium, negra y dorada, con el borde de oro que brilla pasando de lado a lado,
+   las cifras y el nombre en oro y su cinta de «Estrella» arriba; candado: la que aún no es tuya, con cómo se consigue */
+.gx-card.premium { --c1: #2b2108; --c2: #050402; --ac: #ffd56a; filter: drop-shadow(0 0 12px rgba(255, 196, 64, .6)) drop-shadow(0 10px 18px rgba(0, 0, 0, .55)); }
+.gx-card.premium::before { background: linear-gradient(115deg, #7a5410, #ffe49a 18%, #c8901c 32%, #fff4c8 46%, #b07a12 60%, #ffd56a 78%, #6e4a0c); background-size: 300% 100%; animation: gx-oro 3.2s linear infinite; }
+.gx-card.premium .gx-ovr b, .gx-card.premium .gx-st b, .gx-card.premium .gx-nm { color: #ffe39a; }
+.gx-card .gx-star { position: absolute; z-index: 2; top: calc(var(--w) * .05); left: 50%; transform: translateX(-50%); padding: .22em .8em; border-radius: 99px; font: 800 max(11px, calc(var(--w) * .068))/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: #1a1205; background: linear-gradient(180deg, #ffe9a8, #e0a82c); box-shadow: 0 0 10px rgba(255, 200, 80, .7); white-space: nowrap; }
+.gx-card .gx-candado { position: absolute; z-index: 2; left: 8%; right: 8%; top: 52%; padding: .4em .5em; border-radius: 6px; text-align: center; font: 700 max(11px, calc(var(--w) * .07))/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #ffe39a; background: #0b0905; box-shadow: 0 0 0 1px rgba(255, 213, 106, .55); }
+/* (bloqueada, su nombre no asoma por detrás del candado: lo dice debajo, al elegirla) */
+.gx-card.premium:has(.gx-candado) .gx-nm { visibility: hidden; }
+@keyframes gx-oro { to { background-position: 300% 0; } }
+@media (prefers-reduced-motion: reduce) { .gx-card.premium::before { animation: none; } }
 /* las seis cualidades: en una carta estrecha, las tres primeras, en fila; desde 136 px de ancho, las seis en dos columnas de
    tres («73 VEL»), con una raya en medio, como en esas cartas (la carta es su propio contenedor: así vale también cuando el
    torneo la agranda. Container query de la propia carta: vale para los hijos, no para la carta) */

@@ -157,6 +157,15 @@
   "funciones": 1
  },
  {
+  "fuente": "src/data/estrellas.js",
+  "json": "estrellas.json",
+  "kb": 2,
+  "exporta": [
+   "ESTRELLAS"
+  ],
+  "funciones": 1
+ },
+ {
   "fuente": "src/data/eu-armas.js",
   "json": "eu-armas.json",
   "kb": 77,
@@ -511,6 +520,16 @@
    "MEDIDAS",
    "TIPOS",
    "TODOS"
+  ],
+  "funciones": 1
+ },
+ {
+  "fuente": "src/data/frontonesMiticos.js",
+  "json": "frontonesMiticos.json",
+  "kb": 4,
+  "exporta": [
+   "ESCALONES",
+   "MITICOS"
   ],
   "funciones": 1
  },
@@ -2346,7 +2365,7 @@
  {
   "fuente": "src/game/torneo.js",
   "json": "juego/game/torneo.json",
-  "kb": 7,
+  "kb": 10,
   "exporta": [
    "EXTRA",
    "KINDS",

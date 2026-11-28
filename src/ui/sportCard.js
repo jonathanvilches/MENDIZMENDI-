@@ -43,7 +43,9 @@ export function pelotariCard(o) {
   // (la categoría, por la media: el color de la carta, de lila apagado a la especial con brillo; el equipo, azul o
   // colorado, en la cinta de la corona. Con sitio, las seis cualidades en dos columnas de tres, como en esos juegos)
   // (las seis van siempre; el CSS enseña tres o seis según lo ancha que salga la carta: sport.css, @container)
-  const tier = o.lock ? '' : ` t-${cartaTier(r.ovr)}`, N6 = STAT6[o.lang] || STAT6.es;
+  // (las estrellas, data/estrellas.js: la carta premium, negra y dorada con su brillo, en vez de la de su categoría; candado:
+  // aún no es tuya, y dice cómo se consigue)
+  const tier = o.lock ? '' : o.premium ? ' premium' : ` t-${cartaTier(r.ovr)}`, N6 = STAT6[o.lang] || STAT6.es;
   const st = !o.lock && !o.mini ? `<span class="gx-st s6">${[r.vel, r.pot, r.man, r.rem, r.def, r.fon].map((v, i) => `<span><b>${v}</b><small>${N6[i]}</small></span>`).join('')}</span>`
     : `<span class="gx-st">${[r.vel, r.pot, r.man].map((v, i) => `<span><b>${o.lock ? '–' : v}</b><small>${N[i]}</small></span>`).join('')}</span>`;
   // la columna de la izquierda, como en esas cartas: la media, el puesto, donde ellas llevan la bandera el arquetipo (o el
@@ -51,7 +53,7 @@ export function pelotariCard(o) {
   const ico = A ? `<span class="gx-arq ${A.id}" role="img" aria-label="${esc(A.t)}" title="${esc(A.t)}">${A.icon}</span>` : (o.icono || '');
   const escudo = o.lock || o.mini ? null : escudoDe(o.town);
   return `<${tag} class="gx-card ${o.side || 'rojo'}${tier}${o.lock ? ' lock' : ''}${o.pop ? ' pop' : ''}${o.mini ? ' mini' : ''}${escudo ? ' con-escudo' : ''}" style="--w:${o.w || 140}px;--d:${o.d || 0}s" ${o.attr || ''}>
-    <span class="gx-face"></span><span class="gx-eq"></span><span class="gx-lin"></span><span class="gx-fig">${img}</span>
+    <span class="gx-face"></span><span class="gx-eq"></span><span class="gx-lin"></span><span class="gx-fig">${img}</span>${o.premium ? `<span class="gx-star">${o.lang === 'eu' ? 'Izarra' : 'Estrella'}</span>` : ''}${o.candado ? `<span class="gx-candado">${esc(o.candado)}</span>` : ''}
     <span class="gx-ovr"><b>${o.lock ? '?' : r.ovr}</b><small>${esc(o.role || 'Mano')}</small>${ico}${escudo ? `<img class="gx-esc" src="${escudo}" alt="" draggable="false" decoding="async">` : ''}</span>
     <span class="gx-pie"><span class="gx-nm">${esc(o.lock ? '?' : o.name)}</span><span class="gx-tw">${esc(o.town || '')}</span>${st}</span></${tag}>`;
 }

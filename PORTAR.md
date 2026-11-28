@@ -76,6 +76,8 @@ didáctico, los emblemas y Salazar. En el repositorio va ya una copia hecha
 | `oficios.json`, `procesos.json`, `laminas.json`, `narraLaminas.json` | Oficios y láminas, con sus pasos y su narración |
 | `fauna.json`, `flora.json`, `setas.json`, `bosques.json`, `mountains.json` | Naturaleza: especies, setas, bosques, las 120 cimas |
 | `frontones.json`, `pelotaris.json`, `frontonArq.json`, `equipo.json` | Pelota: frontones reales, pelotaris, equipos, y la cancha de cada pueblo (`frontonArq`: el modelo real de cubierto que copia cada uno, `MODELOS` y `MODELO_TOWN`, con su arquitectura y sus colores) |
+| `frontonesMiticos.json` | Los frontones míticos que se comprarán (Ogueta, Astelena, Beti Jai…): sus colores, la grada (filas, fondo y subida), la banda y las cortinas, el marcador, lo que llevan pintado en las paredes con su tamaño en metros (`rotulos`) y el precio de su escalón (`ESCALONES`). La sala la monta `pelota/court.js` (`miticoSala`, `betiJai`) |
+| `estrellas.json` | Los 8 pelotaris estrella: cualidades, apodo, el cuerpo de la plantilla que llevan (`base`), su golpe, cómo se consiguen jugando (`logro`) y su precio. Si ya son tuyos lo dice `game/estrellas.js` |
 | `botilleroFrases.json` | Lo que dice el botillero en el descanso y cuando pierdes tantos seguidos, en castellano y euskera (`{o}`, `{lo}`, `{el}`, `{e}`: rival chico o chica; `{n}`: cuántas veces) |
 | `eu*.json`, `hitzak.json` | Los textos en euskera |
 

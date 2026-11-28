@@ -5,6 +5,7 @@
 // del dibujo es igual): la figura azul es una sola imagen, la camiseta, con el rojo de fondo de esa misma imagen. Así
 // las dos capas ocupan siempre la misma caja (con dos imágenes, Safari en el iPhone dejaba la camiseta suelta a un lado).
 // Las figuras miran a su izquierda (a la derecha de la pantalla): en la pantalla VS se gira solo la roja, una vez.
+import { estrellaDe } from '../data/estrellas.js';
 import { nameGender } from '../data/nombres.js';
 import { hdTable } from '../web/hd.js';
 import { HAIR_COLORS } from '../actors/hairColor.js';
@@ -42,6 +43,8 @@ export const pelotariGirl = (name) => BY.get(pelotariId(name))?.girl ?? false;
 
 /** El pelotari de la plantilla para un nombre («Ane», «Iñaki, pelotari», «Unai · Ane» → el primero) */
 export function pelotariId(name) {
+  // (las estrellas, data/estrellas.js: con el aspecto del pelotari de la plantilla que llevan, base)
+  const E = estrellaDe(name); if (E) return pelotariId(E.base);
   const n = fold(String(name || '').split(/[,·(]/)[0]).split(/\s+/)[0] || '';
   if (BY.has(n)) return n;
   if (ALIAS[n]) return ALIAS[n];

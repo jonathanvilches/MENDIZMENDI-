@@ -20,6 +20,7 @@ import { pasakaMenu, pasakaReward } from '../ui/pasaka.js';
 import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { showChampion } from '../ui/champion.js';
 import { llegaFronton } from './llegadas.js';
+import { miticoDe } from '../data/frontonesMiticos.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { COURT } from '../pelota/rules.js';
 
@@ -353,7 +354,8 @@ export class PuebloDeportes {
         this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true);   // (con el cuadro del torneo delante, nada del pueblo debajo)
         // (antes de la primera ronda de un campeonato nuevo, con qué pelotari lo juegas: como elegir equipo en el FIFA)
         if (sinEmpezar(T) && !T.elegido) { await eligePelotari(T, yo); if (this.disposed) return; }
-        const tq = KINDS[kind]?.trinquete, sel = { sedes: tq ? [] : this.sedes() }, act = await torneoPanel(T, town, sel);
+        // (las ferias se juegan enteras en su frontón: sin elegir sede; data/frontonesMiticos.js o el Labrit)
+        const tq = KINDS[kind]?.trinquete, SEDE = KINDS[kind]?.sede, sel = { sedes: tq || SEDE ? [] : this.sedes() }, act = await torneoPanel(T, town, sel);
         if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
         if (act === 'pick') { await eligePelotari(T, yo); continue; }
         if (act === 'new') { T = torneo(yo, ctx, true, kind); continue; }
@@ -364,7 +366,8 @@ export class PuebloDeportes {
         // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
         // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
         // (el Torneo de Trinquete, en el trinquete de verdad de su ronda: trinqueteDe)
-        const sedeK = tq ? 'trinquete' : sedeDe(T, m, this.sedes()), venue = tq ? this.realVenue(trinqueteDe(T, m)) : await this.venueListo(sedeK, fueraDe(T));
+        const sedeK = tq ? 'trinquete' : sedeDe(T, m, this.sedes()), MIT = SEDE && SEDE !== 'labrit' ? miticoDe(SEDE) : null;
+        const venue = tq ? this.realVenue(trinqueteDe(T, m)) : SEDE === 'labrit' ? this.labritVenue() : MIT ? this.realVenue(MIT) : await this.venueListo(sedeK, fueraDe(T));
         await this.venuePrep(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -375,7 +378,7 @@ export class PuebloDeportes {
           rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: reglaDe(kind) === 'cuatro',
           yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null,   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
           camp: { kind, ronda: m.round, fase: m.ri / Math.max(1, planOf(T).length - 1), fuera: sedeK === 'fuera', est: estDe(T, m), otros: otrosDe(T, m),
-            titulo: (KINDS[kind] || KINDS.mano).full, donde: KINDS[kind]?.global ? 'Navarra' : ctx.comarcaName } });   // (titulo y donde: el rótulo de la entrega de la txapela, pelota/ceremonia.js)   // (el campeonato y la ronda, si se juega en el frontón del rival y cómo llegas, para los comentarios: comenta.js)
+            titulo: (KINDS[kind] || KINDS.mano).full, donde: KINDS[kind]?.donde || (KINDS[kind]?.global ? 'Navarra' : ctx.comarcaName) } });   // (titulo y donde: el rótulo de la entrega de la txapela, pelota/ceremonia.js)   // (el campeonato y la ronda, si se juega en el frontón del rival y cómo llegas, para los comentarios: comenta.js)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;
@@ -394,9 +397,9 @@ export class PuebloDeportes {
           if (pairs) {
             if (!r.ceremonia) await showChampion({ kind: 'pelota', kicker: `${KINDS.parejas.full} · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           } else {
-            const gran = KINDS[kind]?.global, donde = gran ? 'Navarra' : ctx.comarcaName;   // (el acontecimiento del año, de toda Navarra)
+            const gran = KINDS[kind]?.global, donde = KINDS[kind]?.donde || (gran ? 'Navarra' : ctx.comarcaName);   // (el acontecimiento del año, de toda Navarra)
             // (la txapela de cada uno de toda Navarra con su nombre: antes todos decían la Gran Txapela)
-            const suTx = KINDS[kind]?.evento ? 'La Gran Txapela de Navarra' : gran ? `La txapela del ${KINDS[kind].full}` : `La txapela de ${donde}`;
+            const suTx = KINDS[kind]?.evento ? 'La Gran Txapela de Navarra' : gran ? `La txapela ${/^Feria/.test(KINDS[kind].full) ? 'de la' : 'del'} ${KINDS[kind].full}` : `La txapela de ${donde}`;
             // (si ya se le ha visto subir al podio con la txapela y la copa en el frontón, pelota/ceremonia.js, sin la de antes)
             if (!r.ceremonia) await showChampion({ kind: 'pelota', kicker: gran ? KINDS[kind].full : `${(KINDS[kind] || KINDS.mano).full} · ${donde}`, title: '¡Txapeldun!', name: T.yo?.name || P.name || 'Campeón', sub: `${suTx} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           }

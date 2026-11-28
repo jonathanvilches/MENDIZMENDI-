@@ -552,6 +552,10 @@ export function realVenue(scene, out, F) {
     // gris y las rayas amarillas, como el de Elizondo de las fotos; y el techo, claro y bajo, justo encima de los balcones)
     const arq = F.beltza ? 'pabellon' : 'erminea';   // (el oscuro, con el techo oscuro y las cerchas de acero del pabellón)
     REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: legible({ ...hallLook(def, W.seed, arq), ...(F.moderno ? TRINQ_MODERNO : F.beltza ? TRINQ_BELTZA : TRINQ_LOOK) }), hall: true, arq, tipo, moderno: !!F.moderno, trinq: F.beltza ? 'beltza' : undefined, noClear: true });   // (techo claro con sus tubos de luz, como el de las fotos)
+  } else if (F.sala && F.cubierto) {
+    // (los míticos, data/frontonesMiticos.js: réplicas de los de verdad, con su sala entera, court.js miticoSala; sin el
+    // nombre y el escudo del pueblo en la pared izquierda, que no los llevan)
+    REAL = new Fronton(scene, at, town, { ...W, wallName: null, shield: null, estilo: null, look: legible({ ...HALL_LOOK, ...F.look, cap: F.look.wall || F.look.frontis }), hall: true, arq: F.arq || 'pabellon', arqX: F.arqX || {}, mitico: F.sala, tipo, noClear: true });
   } else if (F.cubierto) {
     // (como en su foto: el frontón de verdad con su arquitectura y sus colores, data/frontonArq.js MODELOS; los que no tienen
     // modelo, uno de su tierra)
@@ -561,9 +565,12 @@ export function realVenue(scene, out, F) {
     // (al aire libre, con los colores de su foto si es uno de los calcados: el frontis blanco con la chapa naranja de
     // Mirafuentes, la arenisca roja de Mendaza, el hormigón oscuro de Roncal…; si no, el de su comarca, cada uno distinto)
     const M0 = MODELOS[F.foto]?.look, base = frontonLook(LEVELS.some(l => l.id === def.id) ? def : { ...def, id: F.id });
-    REAL = new Fronton(scene, at, town, { ...W, estilo: tipo === 'plaza' ? 'iglesia' : 'plaza', look: legible({ ...base, ...(M0 ? { stone: null, ...M0, cap: M0.wall || M0.frontis || base.cap } : {}), roof: null }), tipo, noClear: true });
-    // (el prado, hasta el horizonte: del verde del valle a la bruma azulada de lo lejos, debajo de la plaza)
-    const R = 2600, geo = new THREE.CircleGeometry(R, 48, 0, Math.PI * 2), col = [], cA = new THREE.Color('#6f9a4a'), cB = new THREE.Color('#a9c7c9'), c = new THREE.Color();
+    // (y los míticos al aire libre, el Beti Jai: con sus colores y su grada, court.js betiJai; sin el nombre del pueblo)
+    if (F.sala) REAL = new Fronton(scene, at, town, { ...W, wallName: null, shield: null, estilo: 'plaza', look: legible({ ...base, ...F.look, roof: null }), mitico: F.sala, tipo, noClear: true });
+    else REAL = new Fronton(scene, at, town, { ...W, estilo: tipo === 'plaza' ? 'iglesia' : 'plaza', look: legible({ ...base, ...(M0 ? { stone: null, ...M0, cap: M0.wall || M0.frontis || base.cap } : {}), roof: null }), tipo, noClear: true });
+    // (el prado, hasta el horizonte: del verde del valle a la bruma azulada de lo lejos, debajo de la plaza; en el Beti Jai,
+    // que está en medio de Madrid, el gris de las calles)
+    const R = 2600, geo = new THREE.CircleGeometry(R, 48, 0, Math.PI * 2), col = [], cA = new THREE.Color(F.sala ? '#8f8b84' : '#6f9a4a'), cB = new THREE.Color(F.sala ? '#b7bfc4' : '#a9c7c9'), c = new THREE.Color();
     const pos = geo.attributes.position; for (let i = 0; i < pos.count; i++) { const r = Math.hypot(pos.getX(i), pos.getY(i)) / R; c.copy(cA).lerp(cB, Math.min(1, r * 1.6)); col.push(c.r, c.g, c.b); }
     geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
     const prado = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true })); prado.rotation.x = -Math.PI / 2; prado.position.set(0, -0.06, 10); prado.receiveShadow = true; prado.name = 'prado';

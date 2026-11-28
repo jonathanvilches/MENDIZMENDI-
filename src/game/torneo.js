@@ -35,6 +35,9 @@ import { archivaEdicion } from './rankingPelota.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
+import { MITICOS } from '../data/frontonesMiticos.js';
+import { ESTRELLAS, estrellaDe } from '../data/estrellas.js';
+import { estrellaConseguida, logroTxt, statsEstrella } from './estrellas.js';
 // (las imágenes de las cartas del menú de pelota, desde el 17 de noviembre de 2026: la foto de un frontón que existe
 // (el Ogueta, el Beotibar, el trinquete de Elizondo, Nazar, Areso, Marañón...) calcada tal cual con Higgsfield, sin
 // publicidad, letras ni gente, con uno de los pelotaris del autor dentro, de brazos cruzados y al tamaño de un chico de
@@ -135,11 +138,31 @@ export const KINDS = {
     como: { es: 'ocho pelotaris que empiezan, mano a mano en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio. Cuartos y semifinales a 5 tantos y final a 7. El mejor para estrenarse.', eu: 'hasten ari diren zortzi pilotari, buruz buru lau t’erdian: pilotak ezin du lau eta erdiko marratik haratago bote egin. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra. Estreinatzeko onena.' } },
   comarcas: { name: 'Campeonato de Comarcas', full: 'Campeonato de Comarcas', k: 'Por tu comarca', base: 'mano', fmt: 'ko8', lv: 0.6, global: true, comarcas: true,
     como: { es: 'cada pelotari juega por su comarca: tú, por la tuya, contra los campeones de otras siete comarcas de Navarra. Mano a mano: cuartos y semifinales a 5 tantos y la final, a 7, en el frontón Labrit de Iruña.', eu: 'pilotari bakoitzak bere eskualdearen alde jokatzen du: zuk, zurearen alde, Nafarroako beste zazpi eskualdetako txapeldunen aurka. Buruz buru: final-laurdenak eta finalerdiak 5 tantora eta finala, 7ra, Iruñeko Labrit frontoian.' } },
+  // LAS FERIAS DE VERDAD, una por territorio, en su frontón mítico y con rivales de allí (el autor, 28 nov 2026: «abrirnos a
+  // País Vasco y La Rioja», «buscar los campeonatos más importantes, como San Mateo»): feria, la marca; donde, el
+  // territorio (en el rótulo de la txapela); sede, el frontón donde se juega entera (data/frontonesMiticos.js, o el Labrit);
+  // pueblos, de dónde son los rivales. Mano a mano (base mano) o hasta el 4½ (base cuatro)
+  sanfermin: { name: 'San Fermín', full: 'Torneo de San Fermín', k: 'Iruña · julio', base: 'cuatro', fmt: 'ko8', lv: 0.8, global: true, feria: true, donde: 'Navarra', sede: 'labrit',
+    como: { es: 'el de las fiestas de Pamplona, en julio: ocho pelotaris mano a mano en el Cuatro y Medio, en el Labrit. Cuartos y semifinales a 5 tantos y la final, a 7.', eu: 'Iruñeko jaietakoa, uztailean: zortzi pilotari buruz buru lau eta erdian, Labriten. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
+  blanca: { name: 'La Blanca', full: 'Torneo de la Blanca', k: 'Vitoria-Gasteiz · agosto', base: 'mano', fmt: 'ko8', lv: 0.7, global: true, feria: true, donde: 'Álava', sede: 'ogueta',
+    pueblos: ['Vitoria-Gasteiz', 'Laudio', 'Amurrio', 'Agurain', 'Oion', 'Laguardia', 'Artziniega', 'Dulantzi', 'Legutio', 'Zuia'],
+    como: { es: 'el de las fiestas de Vitoria, del 5 al 8 de agosto: ocho pelotaris de Álava mano a mano en el Ogueta. Cuartos y semifinales a 5 tantos y la final, a 7.', eu: 'Gasteizko jaietakoa, abuztuaren 5etik 8ra: Arabako zortzi pilotari buruz buru Oguetan. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
+  semanagrande: { name: 'Semana Grande', full: 'Torneo de la Semana Grande', k: 'Donostia · agosto', base: 'mano', fmt: 'ko8', lv: 0.8, global: true, feria: true, donde: 'Gipuzkoa', sede: 'atano-iii',
+    pueblos: ['Donostia', 'Eibar', 'Tolosa', 'Azpeitia', 'Zarautz', 'Hernani', 'Beasain', 'Oñati', 'Bergara', 'Amezketa', 'Errenteria', 'Irun', 'Ordizia', 'Legazpi', 'Zumaia', 'Lazkao'],
+    como: { es: 'el de la Semana Grande de Donostia, en agosto: ocho pelotaris de Gipuzkoa mano a mano en el Atano III. Cuartos y semifinales a 5 tantos y la final, a 7.', eu: 'Donostiako Aste Nagusikoa, abuztuan: Gipuzkoako zortzi pilotari buruz buru Atano III.ean. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
+  astenagusia: { name: 'Aste Nagusia', full: 'Torneo de Aste Nagusia', k: 'Bilbao · agosto', base: 'cuatro', fmt: 'ko8', lv: 0.8, global: true, feria: true, donde: 'Bizkaia', sede: 'bizkaia',
+    pueblos: ['Bilbao', 'Gernika', 'Markina', 'Durango', 'Bermeo', 'Getxo', 'Barakaldo', 'Lekeitio', 'Ondarroa', 'Mungia', 'Amorebieta', 'Elorrio', 'Balmaseda', 'Basauri', 'Ermua', 'Igorre'],
+    como: { es: 'el de Aste Nagusia de Bilbao, en agosto: ocho pelotaris de Bizkaia mano a mano en el Cuatro y Medio, en el frontón Bizkaia. Cuartos y semifinales a 5 tantos y la final, a 7.', eu: 'Bilboko Aste Nagusikoa, abuztuan: Bizkaiko zortzi pilotari buruz buru lau eta erdian, Bizkaia frontoian. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
+  sanmateo: { name: 'San Mateo', full: 'Feria de San Mateo', k: 'Logroño · septiembre', base: 'mano', fmt: 'ko16', lv: 0.9, global: true, feria: true, donde: 'La Rioja', sede: 'adarraga',
+    pueblos: ['Logroño', 'Calahorra', 'Haro', 'Arnedo', 'Nájera', 'Alfaro', 'Santo Domingo', 'Ezcaray', 'Tricio', 'Baños de Río Tobía', 'Lardero', 'Villamediana', 'Cervera', 'Autol', 'Pradejón', 'Fuenmayor'],
+    como: { es: 'la feria de Logroño, en septiembre: dieciséis pelotaris de La Rioja mano a mano en el Adarraga. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la final, a 9.', eu: 'Logroñoko azoka, irailean: Errioxako hamasei pilotari buruz buru Adarragan. Final-zortzirenak 5 tantora, laurdenak 6ra, finalerdiak 7ra eta finala 9ra.' } },
   gran: { name: 'Gran Txapela de Navarra', full: 'Gran Txapela de Navarra', k: 'El acontecimiento del año', base: 'mano', fmt: 'ko16', lv: 1, global: true, evento: true,
     como: { es: 'el acontecimiento del año: los dieciséis mejores pelotaris de toda Navarra, mano a mano por eliminatorias. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la gran final, a 9, en el frontón Labrit de Iruña lleno hasta arriba. Una sola txapela para todo el viejo reino.', eu: 'urteko gertaera handia: Nafarroa osoko hamasei pilotari onenak, buruz buru kanporaketetan. Final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta final handia, 9ra, Iruñeko Labrit frontoian, beteta. Txapela bakarra erresuma zahar osorako.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
-export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas'];
+// (las ferias de verdad, detrás del acontecimiento del año; fuera del menú el Torneo de Fiestas, el Desafío de los Valles y la
+// Copa de Invierno, para que no haya tantos: el autor, 28 nov 2026. Sus guardados siguen valiendo)
+export const EXTRA = ['gran', 'sanfermin', 'blanca', 'semanagrande', 'astenagusia', 'sanmateo', 'comarcas', 'promesas'];
 /** La final del Torneo de Trinquete, desde el 15 de noviembre de 2026: un trinquete moderno, inventado para el juego, como
  *  los de las dos fotos que pasó el autor después de las del de Elizondo: las paredes azules con sus rayas blancas, la
  *  pared derecha de cristal con la grada detrás y la galería oscura bajo el tejadillo. No está en el catálogo de los
@@ -201,7 +224,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   // ninguna ronda jugada, se rehace con el formato de ahora, en la misma edición)
   // (el acontecimiento del año es uno solo para toda Navarra: con su propia «comarca», y rivales de todas)
   const K = KINDS[kind] || KINDS.mano, suya = { id: ctx.comarca, name: ctx.comarcaName };
-  if (K.global) ctx = { ...ctx, comarca: 'navarra', comarcaName: 'Navarra' };
+  if (K.global) ctx = { ...ctx, comarca: 'navarra', comarcaName: K.donde || 'Navarra' };   // (las ferias de fuera, con su territorio)
   const key = keyOf(ctx.comarca, kind);
   let T = loadAll()[key];
   // (un torneo guardado con menos sedes que las de ahora, de cuando eran cuatro pueblos: con las de ahora, así cada partido
@@ -222,6 +245,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
     let towns = [...ctx.towns.map(t => ({ name: t.name, id: t.id })).filter(t => t.name !== you.town), ...TOWNS.filter(t => t !== you.town && !ctx.towns.some(x => x.name === t)).map(name => ({ name, id: null }))];
     // (por comarcas: cada rival juega por una de las otras comarcas, a suertes en cada edición; tú, por la tuya)
     if (K.comarcas) towns = COMARCAS.filter(c => c.id !== suya.id).map(c => ({ name: c.name, id: null })).sort(() => r() - 0.5);
+    if (K.pueblos) towns = K.pueblos.map(name => ({ name, id: null })).sort(() => r() - 0.5);   // (las ferias de fuera: rivales de allí)
     const townOf = (i) => towns[i % towns.length];
     // nivel de 1 (flojo) a 3 (fuerte): en cada edición, algo más difíciles
     // (y en los inventados, más o menos según cada uno: K.lv, los de promesas más flojos y los del acontecimiento del año,
@@ -235,7 +259,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
       players = [{ id: 'you', name: `${you.name} · ${partner}`, mates: [you.name, partner], town: you.town, lv: 2, you: true }, ...rivals];
     } else {
       // (cada pelotari de la plantilla, de su pueblo de siempre, data/pelotaris.js; en el de comarcas, por una comarca)
-      const rivals = Array.from({ length: N - 1 }, (_, i) => { const f = !K.comarcas && fichaDe(names[i]), t = f ? { name: f.town, id: ctx.towns.find(x => x.name === f.town)?.id || null } : townOf(i); return { id: 'p' + i, name: names[i], town: t.name, townId: t.id, lv: lvOf() }; });
+      const rivals = Array.from({ length: N - 1 }, (_, i) => { const f = !K.comarcas && !K.pueblos && fichaDe(names[i]), t = f ? { name: f.town, id: ctx.towns.find(x => x.name === f.town)?.id || null } : townOf(i); return { id: 'p' + i, name: names[i], town: t.name, townId: t.id, lv: lvOf() }; });
       players = [{ id: 'you', name: you.name, town: K.comarcas ? suya.name || you.town : you.town, lv: 2, you: true }, ...rivals];
     }
     // (de la edición anterior, para lo que cuentan los comentaristas: quién ganó la txapela y contra quién jugaste)
@@ -708,7 +732,7 @@ const hashN = (s) => [...s].reduce((a, c) => Math.imul(a, 31) + c.charCodeAt(0) 
 /** Los pelotaris del juego que se pueden elegir, cada uno con su pueblo y su nivel (de 1 a 3), siempre los mismos */
 export const elegibles = () => NAMES.map((name, i) => ({ name, town: TOWNS[(hashN(name) + i) % TOWNS.length], lv: 1 + hashN(name + ' nivel') % 3 }));
 /** Las cualidades con que juegas este torneo: las del pelotari elegido o, con el tuyo, las tuyas */
-export const tusStats = (T) => T?.yo ? pelotariStats(`${T.yo.name} ${T.yo.town}`, T.yo.lv || 2) : tusCualidades();
+export const tusStats = (T) => T?.yo?.estrella && estrellaDe(T.yo.name) ? statsEstrella(estrellaDe(T.yo.name)) : T?.yo ? pelotariStats(`${T.yo.name} ${T.yo.town}`, T.yo.lv || 2) : tusCualidades();
 /** ¿Aún no se ha jugado nada? Hasta entonces se puede cambiar de pelotari */
 export const sinEmpezar = (T) => !!T && !T.done && !T.round && !T.past?.length && !T.matches.some(m => m.s);
 /** Juegas el torneo con p ({ name, town, lv }, de elegibles) o, con null, con el tuyo (yo: { name, town }) */
@@ -726,7 +750,7 @@ export function ponPelotari(T, p, yo) {
   if (pareja) { Y.mates[0] = nombre; Y.name = Y.mates.join(' · '); Y.mst = null; } else { Y.name = nombre; Y.st = null; }
   if (!KINDS[T.kind]?.comarcas) Y.town = p ? p.town : yo.town;   // (por comarcas, sigues jugando por la tuya)
   Y.lv = p ? p.lv : 2;
-  T.yo = p ? { name: p.name, town: p.town, lv: p.lv } : null; T.elegido = true; save(T);
+  T.yo = p ? { name: p.name, town: p.town, lv: p.lv, ...(p.estrella ? { estrella: p.estrella } : {}) } : null; T.elegido = true; save(T);
 }
 /** «ELIGE TU PELOTARI», a pantalla entera y en el anillo de los campeonatos (18 de noviembre de 2026; el autor: «no aparece
  *  elige tu pelotari», «el carrusel de selección debe ser más estrecho y más ancho», «las cards deben estar animadas»).
@@ -739,12 +763,16 @@ export function ponPelotari(T, p, yo) {
 function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' }) {
   efCss(); cssCarrusel();
   const eu = isEU(), lang = eu ? 'eu' : 'es', L = elegibles();
+  // (detrás de tu carta, las estrellas, con su carta premium: data/estrellas.js; las que aún no son tuyas, con su candado y
+  // cómo se consiguen, y sin poder elegirlas)
   const items = [{ k: '', name: yo.name, town: yo.town, stats: tusCualidades(), bonus, mia: true },
+    ...ESTRELLAS.map(E => ({ k: E.name, name: E.name, town: E.town, stats: statsEstrella(E), bonus: E.bonus, premium: true, fig: E.base, tiene: estrellaConseguida(E), logro: logroTxt(E, eu), apodo: E.apodo })),
     ...L.map(q => ({ k: q.name, name: q.name, town: q.town, stats: pelotariStats(`${q.name} ${q.town}`, q.lv), bonus: (q.lv - 2) * 3 }))];
+  const cerrada = (it) => !!it?.premium && !it.tiene;
   return new Promise(res => {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     // (la carta, del ancho del anillo: --w lo pone el CSS con el de la portada, carrusel3d.js, .ep-port)
-    const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia }).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
+    const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, premium: it.premium, fig: it.fig, candado: cerrada(it) ? it.logro : '', yo: !!it.mia }).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
     const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker), titulo: eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
       ${ptPie({ botones: `${botonBotillero(eu)}<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button>` })}`);
@@ -755,8 +783,8 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = items[0], viva = null, tViva = 0;
     const car = carrusel3d(r.querySelector('.c3-escena'), { ar: CARTA_ALTO, banda: true, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
       alCambiar: (i) => { const it = items[i]; if (!it) return; cur = it;
-        info.querySelector('.c3-que b').textContent = it.name; info.querySelector('.c3-que span').textContent = it.mia ? (eu ? 'Zure pilotaria' : 'Tu pelotari') : it.town;
-        ok.textContent = eu ? `Jokatu: ${it.name}` : `Jugar con ${it.name}`;
+        info.querySelector('.c3-que b').textContent = it.premium ? `${it.name} «${it.apodo}»` : it.name; info.querySelector('.c3-que span').textContent = it.mia ? (eu ? 'Zure pilotaria' : 'Tu pelotari') : it.town;
+        ok.textContent = cerrada(it) ? it.logro : eu ? `Jokatu: ${it.name}` : `Jugar con ${it.name}`; ok.disabled = cerrada(it);
         reanima(info.querySelector('.c3-que'));
         // (la figura animada, cuando el anillo se para en ella: girando deprisa no se descodifica la de cada carta que pasa)
         clearTimeout(tViva); tViva = setTimeout(() => { if (r.isConnected && viva !== figs[i]) { figuraViva(viva, false); viva = figs[i]; figuraViva(viva, true); } }, 260); } });
@@ -767,14 +795,15 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
       if (pausa) return;
       if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
       else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
-      else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); fin(cur.k); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); if (!cerrada(cur)) fin(cur.k); }
     };
     addEventListener('keydown', tecla, true);
     r.addEventListener('click', async (e) => {
-      const c = e.target.closest('.ep-port'); if (c) return fin(c.dataset.p);
+      const c = e.target.closest('.ep-port'); if (c) { const it = items.find(x => x.k === c.dataset.p); if (!cerrada(it)) fin(c.dataset.p); return; }
       const b = e.target.closest('[data-a]'); if (!b) return;
       if (b.dataset.a === 'bot') { if (pausa) return; pausa = true; const id = await anilloBotillero(); pausa = false;
         if (id) { const P = profile(); if (P.botillero !== id) { P.botillero = id; saveProfile(); } b.outerHTML = botonBotillero(eu); } return; }
+      if (b.dataset.a === 'ok' && cerrada(cur)) return;
       fin(b.dataset.a === 'ok' ? cur.k : null);
     });
   });
@@ -845,7 +874,7 @@ function cssBotillero() {
 export async function eligePelotari(T, yo) {
   const k = await anilloPelotari({ kicker: `${(KINDS[T.kind] || KINDS.mano).full} · ${T.comarcaName || ''}`, sel: T.yo?.name || '', yo, bonus: youBonus(T), role: T.kind === 'parejas' ? 'Del' : 'Mano' });
   if (k === null) { if (!T.elegido) { T.elegido = true; save(T); } return false; }
-  ponPelotari(T, k ? elegibles().find(q => q.name === k) : null, yo); return true;
+  ponPelotari(T, k ? elegibles().find(q => q.name === k) || estrellaElegida(k) : null, yo); return true;
 }
 /** Antes de un partido suelto (partido libre, Frontones, pelota en casa): con qué pelotari lo juegas. Se recuerda el
  *  último (perfil, pelotaYo). Devuelve undefined con «Volver»; null, con el tuyo; o { name, town, stats }, que es lo que
@@ -854,9 +883,12 @@ export async function eligePelotariLibre(yo, kicker = '') {
   const P = profile(), k = await anilloPelotari({ kicker, sel: P.pelotaYo || '', yo });
   if (k === null) return undefined;
   if ((P.pelotaYo || '') !== k) { P.pelotaYo = k; saveProfile(); }
+  const E = k && estrellaDe(k); if (E && estrellaConseguida(E)) return { name: E.name, town: E.town, stats: statsEstrella(E), estrella: E.id };
   const q = k && elegibles().find(x => x.name === k);
   return q ? { name: q.name, town: q.town, stats: pelotariStats(`${q.name} ${q.town}`, q.lv) } : null;
 }
+/** Una estrella elegida, como un pelotari de elegibles (solo si ya es tuya) */
+const estrellaElegida = (k) => { const E = estrellaDe(k); return E && estrellaConseguida(E) ? { name: E.name, town: E.town, lv: 3, estrella: E.id } : null; };
 const rivalBonus = (p) => ((p.lv || 2) - 2) * 3;
 // el frontón de cada partido, a elegir antes de jugar: el de la plaza del pueblo (cada pueblo tiene el suyo, de su
 // comarca), el cubierto del pueblo o el Labrit de Iruña; en Campeonatos, también el de otro pueblo (se va allí)
@@ -1001,7 +1033,8 @@ export function frontonesMenu() {
   // tools/frontones-cancha.mjs), y con su aviso, «La cancha del juego», para que no pase por una foto del de verdad.
   // 18 de noviembre de 2026)
   const fotoDe = (F) => (F.foto && fotoFronton(F.foto)) || canchaFoto(F.cancha), imgDe = (F) => fotoDe(F) || canchaFoto('fr-' + F.id);
-  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO].filter(imgDe), eu = isEU();
+  // (delante, los míticos: las réplicas de los grandes frontones de Navarra, Euskadi, La Rioja y Madrid, data/frontonesMiticos.js)
+  const LISTA = [...MITICOS, ...DESTACADOS, ...TRINQ_JUEGO].filter(imgDe), eu = isEU();
   return new Promise(res => {
     let sel = null;
     // (desde el 17 de noviembre de 2026, el mismo carrusel 3D que los campeonatos: el autor no podía elegir frontón en la
@@ -1105,7 +1138,7 @@ export function torneoPanel(T, here = null, o = null) {
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)
     const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
-    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusStats(T), pop: true, lang, yo: !T.yo });
+    const youCard = (w) => pelotariCard({ premium: !!T.yo?.estrella, fig: T.yo?.estrella ? estrellaDe(T.yo.name)?.base : undefined, name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusStats(T), pop: true, lang, yo: !T.yo });
     // (tres franjas, como en los juegos de deportes: la cabecera; dos paneles con su rótulo, el partido y la clasificación;
     // y abajo, de lado a lado, la barra de acciones con Salir, el frontón y ¡A jugar!. Antes los botones y el frontón iban
     // apilados debajo de las cartas)

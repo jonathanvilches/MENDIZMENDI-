@@ -25,6 +25,18 @@ los cubiertos de cada pueblo con su color y los datos para Unity.)
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz y a Principal** (28 nov, noche): por encargo directo del autor («réplicas exactas de
+  frontones importantes, con todos sus graderíos»; «abrirnos a País Vasco y La Rioja»; «pelotaris muy buenos que solo se
+  consigan o pagando o en un nivel muy avanzado… que cambien de color sus cards»). Datos nuevos, míos:
+  `src/data/frontonesMiticos.js` (Ogueta, Astelena y el Beti Jai, con sus colores, gradas, bandas, cortinas y marcador) y
+  `src/data/estrellas.js` + `src/game/estrellas.js` (8 pelotaris estrella inventados y cómo se consiguen). En
+  `src/pelota/court.js` (sin dueño): `opts.mitico` monta la sala de cada uno (`miticoSala`, `betiJai`, marcador LED). En
+  vuestro `src/game/torneo.js`: los míticos en el menú Frontones; cinco ferias nuevas en `KINDS`/`EXTRA` (San Fermín,
+  la Blanca, Semana Grande, Aste Nagusia y San Mateo, con `sede`, `donde` y, la Blanca, `pueblos`); las estrellas en el
+  carrusel de Elige tu pelotari (bloqueadas con su logro hasta conseguirlas). En `src/game/townDeportes.js`: la sede de
+  cada feria (`KINDS[kind].sede`). En `src/ui/sportCard.js` y `sport.css`: la carta `premium` (negra y dorada, con brillo)
+  y el candado; en `src/ui/pelotariFig.js`, la estrella lleva el cuerpo de su base. Partid de lo de `master`.
+
 - **De Auditoría a Pelota · interfaz, a Pelota · personajes y a Principal** (28 nov, tarde): por encargo directo del autor.
   1) «Elimina la ceremonia: tiene personajes viejos y no queda bien la txapela»: fuera `src/pelota/ceremonia.js` (Pelota ·
   interfaz) y sus pruebas (`tools/pelota-ceremonia*.mjs`); en `match.js` ya no se llama (tras la final, el baile, los

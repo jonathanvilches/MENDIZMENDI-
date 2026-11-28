@@ -121,6 +121,9 @@ const THEMES = {
 
 // el Labrit: contracancha ancha y la huella del edificio entero (con los torreones y la escalinata), para buscarle sitio en Iruña
 const LABRIT_CONTRA = 4.4;
+// (la del Beti Jai, ancha como la de verdad: la cancha y la contracancha miden 20 m de ancho, y entre el frontis y la grada
+// cabe la fachada de tres calles de ventanas)
+const BJ_CONTRA = 7;
 // el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
 const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
 // el fondo de los balcones del público del trinquete, encima de las paredes de los lados (buildTrinquete)
@@ -164,11 +167,15 @@ export class PelotaCourt {
     this.moderno = TRQ && !!opts.moderno;   // (el trinquete moderno de la final: pared derecha de cristal con su grada detrás, buildTrinquete)
     this.beltza = TRQ && opts.trinq === 'beltza';   // (y el oscuro: balcones de cristal con el pasamanos rojo, buildTrinquete)
     const HALL = (!!opts.hall || TRQ) && !opts.labrit;   // (frontón cubierto y cerrado: el de los campeonatos; y el trinquete)
+    // (los frontones míticos, réplicas de los de verdad, data/frontonesMiticos.js: su sala, con su alto, su grada, su banda
+    // de arriba, sus cortinas y su techo; buildHall y miticoBanda)
+    const MIT = this.mitico = !TRQ ? (opts.mitico || null) : null; this.hallH = (HALL && MIT?.alto) || HALL_H;
+    const BJ = MIT?.tipo === 'betijai';   // (el Beti Jai de Madrid, al aire libre con su grada curva de cuatro pisos: betiJai)
     const DRY = HALL || !!opts.labrit || !!th.roof;   // (bajo techo: las caras de dentro, sin chorreones de lluvia)
-    const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : TRQ ? 0 : HALL ? HALL_CONTRA : 2.6;   // (el trinquete, sin contracancha: pared)   // (el Labrit, con su contracancha ancha de tarima)
+    const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : TRQ ? 0 : HALL ? HALL_CONTRA : BJ ? BJ_CONTRA : 2.6;   // (el trinquete, sin contracancha: pared)   // (el Labrit, con su contracancha ancha de tarima)
     // (lo que rodea al frontón de la calle de cada pueblo: la plaza con su grada, la iglesia, la casa consistorial o la
     // calle entre casas: src/pelota/entorno.js)
-    const EST = this.estilo = !opts.labrit && !HALL ? (opts.estilo || 'plaza') : null, CALLE = EST === 'calle';
+    const EST = this.estilo = !opts.labrit && !HALL ? (opts.estilo || 'plaza') : null, CALLE = EST === 'calle', NOGRADA = CALLE || BJ;   // (sin la grada de la plaza: la calle y el Beti Jai, que tiene la suya)
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
     this.materials = [];
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
@@ -179,9 +186,9 @@ export class PelotaCourt {
       const sx = w / fw, sz = h / fl, X = (x) => (x + W / 2) * sx, Z = (z) => z * sz;
       c.fillStyle = th.floor; c.fillRect(0, 0, X(W / 2), h);
       c.fillStyle = th.contra; c.fillRect(X(W / 2), 0, w - X(W / 2), h);
-      if (th.parquet) {   // tarima de madera clara en tablillas, como la del Labrit
-        const pw = (w - X(W / 2)) / 7, ph = h / (fl / 0.45);
-        for (let j = 0, z = 0; z < h; z += ph, j++) for (let i = 0; i < 7; i++) { const t = 0.9 + ((i * 7 + j * 13) % 9) / 40; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(160 * t)},${Math.round(98 * t)})`; c.fillRect(X(W / 2) + i * pw + 1, z + ((i % 2) * ph) / 2, pw - 2, ph - 2); }
+      if (th.parquet) {   // tarima de madera clara en tablillas, como la del Labrit (o del tono de la de cada mítico: parquet = su color)
+        const pw = (w - X(W / 2)) / 7, ph = h / (fl / 0.45), PQ = typeof th.parquet === 'string' ? [1, 3, 5].map(k => parseInt(th.parquet.slice(k, k + 2), 16)) : [214, 160, 98];
+        for (let j = 0, z = 0; z < h; z += ph, j++) for (let i = 0; i < 7; i++) { const t = 0.9 + ((i * 7 + j * 13) % 9) / 40; c.fillStyle = `rgb(${Math.round(PQ[0] * t)},${Math.round(PQ[1] * t)},${Math.round(PQ[2] * t)})`; c.fillRect(X(W / 2) + i * pw + 1, z + ((i % 2) * ph) / 2, pw - 2, ph - 2); }
       }
       grain(c, w, h, 9000, 0.07); grain(c, w, h, 3000, 0.05, false);
       // (las rayas ya no se pintan aquí: van en el sombreador del suelo, rayasNitidas, más abajo)
@@ -236,7 +243,8 @@ export class PelotaCourt {
     // (sus rayas, calculadas como las del suelo: la de arriba, bajo la chapa de arriba; la del lado derecho; en la plaza libre,
     // también la del izquierdo; y la de la chapa de abajo, que de lejos crece hacia arriba para no quedarse en menos de dos
     // píxeles y medio. La cara +z de la caja: su u va de izquierda a derecha y su v, de abajo arriba)
-    rayasCara(T, frontMat, { uv: `vec2(${f4(-0.3 - (W + 0.6) / 2)} + uv.x * ${f4(W + 0.6)}, uv.y * ${f4(C.FRONT_H)})`, line: th.line, mark: th.mark, cuerpo: `
+    // (rayaFrontis: la raya del lado derecho del frontis, si no es del color de las del suelo: la amarilla del Ogueta)
+    rayasCara(T, frontMat, { uv: `vec2(${f4(-0.3 - (W + 0.6) / 2)} + uv.x * ${f4(W + 0.6)}, uv.y * ${f4(C.FRONT_H)})`, line: th.rayaFrontis || th.line, mark: th.mark, cuerpo: `
   r = max(r, franja(p.y, ${f4(C.FRONT_TOP + 0.01)}, 0.12, wy, -1.0));
   r = max(r, franja(p.y, ${f4(C.CHAPA - 0.04)}, 0.08, wy, 1.0));
   a = max(a, raya(p.x - ${f4(W / 2 - 0.062)}, 0.062, wx));${PLZ ? `
@@ -254,9 +262,10 @@ export class PelotaCourt {
     { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 512; bc.height = 288;
       const bt = this.bigTex = srgb(T, new T.CanvasTexture(bc));
       const xe = W / 2 + CONTRA + 1.2, ew = xe - W / 2;   // (hasta dónde sigue el frontis en los de la calle)
-      const bw = HALL ? 3.8 : Math.min(3.6, ew - 0.4), bh = bw * 288 / 512, by = 3.9 + bh / 2;   // (grande: se lee desde el rebote)
-      const bx = HALL ? W / 2 + 0.8 + bw / 2 : W / 2 + ew / 2 + 0.05, zw = HALL ? -0.5 : 0;   // (zw: la cara de la pared)
-      if (!HALL && !opts.labrit) {
+      const bw = HALL ? 3.8 : BJ ? 2.6 : Math.min(3.6, ew - 0.4), bh = bw * 288 / 512, by = (BJ ? 4.05 : 3.9) + bh / 2;   // (grande: se lee desde el rebote)
+      // (en el Beti Jai, en su fachada: en la calle de en medio, entre la puerta y el óculo)
+      const bx = HALL ? W / 2 + 0.8 + bw / 2 : BJ ? W / 2 + 0.3 + (CONTRA + 0.3) / 2 : W / 2 + ew / 2 + 0.05, zw = HALL ? -0.5 : 0;   // (zw: la cara de la pared)
+      if (!HALL && !opts.labrit && !BJ) {   // (en el Beti Jai, junto al frontis está su fachada, que baja hasta el suelo)
         const eh = Math.min(C.FRONT_H, by + bh / 2 + 1.6);
         const extTex = canvasTex(T, 512, 1024, (c, w, h) => {
           if (th.stone) ashlar(c, w, h, ew, eh, th.stone);
@@ -361,7 +370,7 @@ export class PelotaCourt {
       }
       const geo = new T.BufferGeometry();
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
-      const nums = new T.Mesh(geo, M({ color: th.line, alphaMap: numTex, transparent: true, depthWrite: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      const nums = new T.Mesh(geo, M({ color: th.numeros || th.line, alphaMap: numTex, transparent: true, depthWrite: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       nums.receiveShadow = true; nums.name = 'cuadros'; g.add(nums);
     }
     const MH = 2.88;   // (la altura de lo que antes era la imagen de los cuadros: los nombres FALTA y PASA se ponen respecto a ella)
@@ -424,7 +433,8 @@ export class PelotaCourt {
     // parpadeaba; vista de lado, se quedaba en menos de un píxel y se cortaba. Ahora va pintada en la pared, pegada por
     // arriba al colchón de la chapa y, de lejos, crece hacia abajo hasta dos píxeles y medio. En el trinquete, una sola línea
     // amarilla fina, como en las fotos del de Elizondo, sin los cuadros. La cara +x de la caja: su u va de +z a −z)
-    rayasCara(T, leftMat, { uv: `vec2(${f4(EXT)} * (1.0 - uv.x), uv.y * ${f4(C.LEFT_H)})`, line: th.line, mark: TRQ ? (th.marco || th.line) : th.mark, cuerpo: TRQ ? `
+    // (numeros: el color de los postes y de los números de la pared, si no es el de las rayas: los amarillos del Ogueta)
+    rayasCara(T, leftMat, { uv: `vec2(${f4(EXT)} * (1.0 - uv.x), uv.y * ${f4(C.LEFT_H)})`, line: th.numeros || th.line, mark: TRQ ? (th.marco || th.line) : th.mark, cuerpo: TRQ ? `
   r = raya(p.y - ${f4(TRINQ.LINEA)}, 0.06, wy);` : `
   float k = floor(p.x / ${f4(C.CUADRO)} + 0.5), dz = p.x - k * ${f4(C.CUADRO)};
   float hay = step(0.5, k) * step(k, ${f4(nK + 0.5)});
@@ -451,7 +461,7 @@ export class PelotaCourt {
     // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la
     // contracancha). En el Labrit, el muro bajo con la grada en herradura detrás. Cuando la cámara queda detrás de él,
     // se ve a través, como en los dibujos de las partes del frontón
-    const RH = this.reboteH = opts.labrit ? 2.2 : TRQ ? TQ_H : HALL ? HALL_H : C.LEFT_H;
+    const RH = this.reboteH = opts.labrit || BJ ? 2.2 : TRQ ? TQ_H : HALL ? this.hallH : C.LEFT_H;
     const rebTex = canvasTex(T, 512, 512, (c, w, h) => {
       if (th.brick) bricks(c, w, h, W + 0.6, RH, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
@@ -472,14 +482,14 @@ export class PelotaCourt {
     if (PLZ) { for (const o of this.rebMeshes) o.visible = false; this.rebMeshes = []; this.rebRaya.visible = false; this.rebRaya = null; }   // (la plaza libre no tiene rebote: lo largo, a la plaza)
     // (los escalones de la grada, de hormigón con su grano, poros y las juntas del encofrado: lisos parecían de cartón. El
     // lienzo es una losa de 2 × 2 m que se repite; las uv de cada cara, en metros)
-    const standTex = (!opts.labrit && !HALL && !CALLE) ? canvasTex(T, 256, 256, (c, w, h) => {
+    const standTex = (!opts.labrit && !HALL && !NOGRADA) ? canvasTex(T, 256, 256, (c, w, h) => {
       c.fillStyle = '#ece8e1'; c.fillRect(0, 0, w, h); grain(c, w, h, 4000, 0.035); grain(c, w, h, 1500, 0.03, false);
       c.fillStyle = 'rgba(0,0,0,.1)'; for (let k = 0; k < 40; k++) { const r = 0.6 + Math.random() * 1.1; c.beginPath(); c.arc(Math.random() * w, Math.random() * h, r, 0, 7); c.fill(); }
       c.strokeStyle = 'rgba(0,0,0,.12)'; c.lineWidth = 1.5; for (const x of [1, w / 2]) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke(); }
       c.beginPath(); c.moveTo(0, h / 2); c.lineTo(w, h / 2); c.stroke();
     }, [1, 1]) : null;
     const enMetros = (geo, wx, hy, dz) => { const uv = geo.attributes.uv, n = geo.attributes.normal; for (let i = 0; i < uv.count; i++) { const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), su = ax > 0.5 ? dz : wx, sv = ay > 0.5 ? dz : hy; uv.setXY(i, uv.getX(i) * su / 2, uv.getY(i) * sv / 2); } return geo; };
-    if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL && !NOGRADA) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(enMetros(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), 1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, map: standTex, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
@@ -495,14 +505,14 @@ export class PelotaCourt {
     // suelo y se sentaban casi en cuclillas)
     const ASIENTO_B = 0.28, benchM = M({ color: '#8a5a34', roughness: 0.7 }), banco = [];
     this.standSpots = [];
-    if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL && !NOGRADA) for (let i = 0; i < 3; i++) {
       const xe = W / 2 + CONTRA + i * 1.1, y = 0.42 * (i + 1);   // (el borde del escalón, del lado de la cancha, y su altura)
       banco.push({ w: 0.42, h: 0.05, d: L * 0.76, x: xe + 0.62, y: y + ASIENTO_B - 0.025, z: L * 0.52 },   // (la tabla del asiento, de xe + 0,41 a xe + 0,83)
         { w: 0.24, h: ASIENTO_B - 0.05, d: L * 0.76, x: xe + 0.7, y: y + (ASIENTO_B - 0.05) / 2, z: L * 0.52 });   // (su pie, metido 17 cm: las pantorrillas, por delante)
       for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([xe + 0.66, y + ASIENTO_B, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
     }
     if (banco.length) { const b = new T.Mesh(boxesGeo(T, banco), benchM); b.castShadow = true; b.receiveShadow = true; b.name = 'bancos'; g.add(b); }
-    if (!opts.labrit && !HALL && !CALLE) { this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO_B; }   // (en la calle, de pie en la acera y en los balcones)
+    if (!opts.labrit && !HALL && !NOGRADA) { this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO_B; }   // (en la calle, de pie en la acera y en los balcones)
     this.extent = EST ? entornoExtent(EST, CONTRA) : { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
     if (EST && EST !== 'plaza') this.platform = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + (CALLE ? 1.5 : 0), z0: -0.8, z1: EXT + 0.4 };   // (se anda por la cancha, no por los edificios)
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 0.6 };   // por donde se entra a la cancha (esquina de la contracancha)
@@ -523,14 +533,15 @@ export class PelotaCourt {
       buildEntorno(EST, { T, M, g, th, CONTRA, EXT, boxes: this.boxes, spots: this.standSpots, roofCol, shield: null, seed: opts.seed || 7 });   // (el escudo, solo en la pared izquierda: la casa consistorial, sin él)
     }
     if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L, opts);
+    if (BJ) this.betiJai(T, M, th, { W, CONTRA, EXT });
     else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
-    if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT, CALLE, PLZ);
-    if (!opts.labrit && !HALL && th.red && !th.roof && !PLZ) this.buildRed(T, M, W, EXT);
+    if (!opts.labrit && !HALL && !BJ) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT, CALLE, PLZ);   // (el Beti Jai, de 1894: sin focos ni red)
+    if (!opts.labrit && !HALL && !BJ && th.red && !th.roof && !PLZ) this.buildRed(T, M, W, EXT);
     // dónde cabe la cámara del partido (match.js, cabe): bajo la cubierta, sin llegar a su estructura (más arriba, las
     // vigas, los tirantes y la chapa quedaban delante y tapaban la imagen entera); en el cubierto, sin pasar del rebote,
     // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
-    this.camTecho = opts.labrit ? 11.6 : TRQ ? TQ_H - 1.2 : HALL ? HALL_H - 2 : th.roof ? C.FRONT_H : Infinity;
+    this.camTecho = opts.labrit ? 11.6 : TRQ ? TQ_H - 1.2 : HALL ? this.hallH - 2 : th.roof ? C.FRONT_H : Infinity;
     this.camZMax = opts.labrit ? EXT + 3.8 : HALL ? C.REBOTE - 0.7 : Infinity;
     // (la cámara del rebote, match.js: detrás de la pared de atrás, que se vuelve transparente; en el cubierto y el trinquete
     // puede pasar al otro lado, que no hay nada; en el Labrit, hasta su grada del fondo)
@@ -541,7 +552,7 @@ export class PelotaCourt {
     if (HALL) {
       const mTras = M({ color: '#2b2a31', roughness: 0.95 });
       const tras = new T.Mesh(new T.PlaneGeometry(W + CONTRA + 30, 10), mTras); tras.rotation.x = -Math.PI / 2; tras.position.set(CONTRA / 2, -0.02, EXT + 0.4 + 5); tras.name = 'suelo-tras-rebote'; g.add(tras);
-      const hT = TRQ ? TQ_H : HALL_H, trasL = new T.Mesh(new T.BoxGeometry(0.6, hT, 10.6), mTras); trasL.position.set(-W / 2 - 0.3, hT / 2, EXT + 5.3); trasL.name = 'pared-tras-rebote'; g.add(trasL);
+      const hT = TRQ ? TQ_H : this.hallH, trasL = new T.Mesh(new T.BoxGeometry(0.6, hT, 10.6), mTras); trasL.position.set(-W / 2 - 0.3, hT / 2, EXT + 5.3); trasL.name = 'pared-tras-rebote'; g.add(trasL);
     }
 
     // --- pelota, sombra, estela y ayudas
@@ -891,7 +902,8 @@ export class PelotaCourt {
     // (el trinquete: la galería del público a la izquierda, tras la red y bajo el tejadillo, y la pared derecha junto a la
     // cancha, sin grada; XL, la pared del fondo de la galería)
     const TQ = this.tipo === 'trinquete', XL = -W / 2 - (TQ ? TRINQ.FONDO : 0);
-    const C = COURT, g = this.group, H = TQ ? TQ_H : HALL_H, xs = TQ ? W / 2 : W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = TQ ? W / 2 : xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
+    const MIT = this.mitico, FILAS = MIT?.filas || HALL_ROWS;   // (la grada de cada mítico: cuántas filas, el fondo y la subida de cada escalón)
+    const C = COURT, g = this.group, H = TQ ? TQ_H : this.hallH, xs = TQ ? W / 2 : W / 2 + CONTRA + 0.2, RD = MIT?.fondo || 0.8, RU = MIT?.subida || 0.42, xr = TQ ? W / 2 : xs + FILAS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
     // (la de su modelo, con lo que cambia en el frontón de verdad que calca: data/frontonArq.js, arqX)
     const A = { ...(ARQ[opts.arq] || ARQ.pabellon), ...(opts.arqX || {}) }, ALTO = A.alto || th.wall, SOBRE = A.sobre || th.wall, FONDO = A.fondo || th.wall;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
@@ -933,8 +945,12 @@ export class PelotaCourt {
         for (let x = 0; x < w; x += 6) { c.fillStyle = `rgba(120,130,150,${x % 12 ? 0.05 : 0.12})`; c.fillRect(x, 0, 3, h); }
         const n = 40, pw = w / n; for (let i = 0; i <= n; i++) { c.fillStyle = 'rgba(70,74,86,.55)'; c.fillRect(i * pw - 3, 0, 6, h); }
         c.fillStyle = 'rgba(70,74,86,.55)'; c.fillRect(0, h * 0.5 - 3, w, 6);
+      } else if (A.derecha === 'bloques') {   // (bloques de hormigón de 40 × 20 cm, a matajunta, con su llaga: la pared del fondo de Ogueta)
+        c.fillStyle = A.claro || '#c9c4bb'; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06);
+        const bw = w / ((zb - za) / 0.4), bh = h / (H / 0.2);
+        for (let j = 0, y = 0; y < h; y += bh, j++) { c.fillStyle = 'rgba(60,56,50,.35)'; c.fillRect(0, y, w, 1.5); for (let x = (j % 2) * bw / 2; x < w; x += bw) c.fillRect(x, y, 1.5, bh); }
       } else { c.fillStyle = A.claro || '#ece8e0'; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.04); }
-      if (A.derecha !== 'policarbonato') { const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); } }
+      if (A.derecha !== 'policarbonato' && A.derecha !== 'bloques') { const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); } }
     });
     const rIn = A.derecha === 'policarbonato' ? M({ map: rTex, emissive: '#ffffff', emissiveMap: rTex, emissiveIntensity: 0.35 }) : M({ map: rTex });
     if (!TQ) { const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, rIn, wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
@@ -999,13 +1015,29 @@ export class PelotaCourt {
         barra(xl, H - 0.4, xR, H - 0.4, zB - 0.2, 0.22, bl); for (let i = 1; i < 6; i++) box(0.1, R + 0.4, 0.1, bl, xl + span * i / 6, H - 0.4 + (R + 0.4) / 2, zA + 0.15);
       }
       tri([[xl, H, za], [xR, H, za], [xR, H + R, za], [xl, H, za], [xR, H + R, za], [xl, H + R, za]], dark);
+    } else if (A.techo === 'claraboyas') {
+      // plano, de chapa clara, con las claraboyas a lo largo (franjas de luz) y la celosía de acero debajo, de lado a lado
+      // cada 3 m (Ogueta)
+      box(span, 0.3, z1r - z0r, M({ color: '#cfd2d6', roughness: 0.85 }), xm, H + 0.15, (za + zb) / 2);
+      const luz = M({ color: '#eef4ff', emissive: '#e6eefc', emissiveIntensity: 0.9, roughness: 0.3 });
+      for (let k = 0; k < 5; k++) box(span / 9, 0.05, zb - za - 2, luz, xl + span * (0.12 + k * 0.19), H - 0.02, (za + zb) / 2);
+      const ac = M({ color: '#9aa1a8', roughness: 0.5, metalness: 0.35 });
+      for (let z = 1.5; z < zb - 0.5; z += 3) { box(span - 0.6, 0.12, 0.12, ac, xm, H - 1.0, z); box(span - 0.6, 0.12, 0.12, ac, xm, H - 0.1, z);
+        for (let i = 0; i < 10; i++) { const xa = xl + 0.3 + (span - 0.6) * i / 10, xb = xl + 0.3 + (span - 0.6) * (i + 0.5) / 10, xc = xl + 0.3 + (span - 0.6) * (i + 1) / 10; barra(xa, H - 1.0, xb, H - 0.1, z, 0.06, ac); barra(xb, H - 0.1, xc, H - 1.0, z, 0.06, ac); } }
+    } else if (A.techo === 'tablas') {
+      // plano, de tablillas de madera barnizada a lo largo, con los focos empotrados (Astelena)
+      const tab = canvasTex(T, 512, 512, (c, w, h) => { const n = 32, pw = w / n;
+        for (let i = 0; i < n; i++) { const k = 0.86 + ((i * 29) % 9) / 40; c.fillStyle = `rgb(${Math.round(150 * k)},${Math.round(98 * k)},${Math.round(58 * k)})`; c.fillRect(i * pw, 0, pw - 3, h); c.fillStyle = 'rgba(30,16,6,.6)'; c.fillRect(i * pw + pw - 3, 0, 3, h); }
+        grain(c, w, h, 4000, 0.05); }, [4, 6]);
+      box(span, 0.25, z1r - z0r, M({ map: tab, roughness: 0.7 }), xm, H + 0.12, (za + zb) / 2);
     }
+    if (MIT && !TQ) this.miticoSala(T, M, th, { W, H, XL, xs, xr, za, zb, EXT, box });
     const lamps = []; for (const x of TQ ? [-W / 4, W / 4] : [-W / 4, W / 4, xs + 1.6]) for (let z = 2.8; z < EXT - 0.5; z += 4) lamps.push([x, z]);
     const LI = new T.InstancedMesh(lampG, lampM, lamps.length), m4 = new T.Matrix4();
     lamps.forEach(([x, z], i) => LI.setMatrixAt(i, m4.makeTranslation(x, H - 1.1, z))); LI.name = 'luces-pabellon'; g.add(LI);
     // la grada: escalones de hormigón a lo largo de la contracancha, con su barandilla y los asientos (una sola llamada)
     const z0 = 1.6, z1 = EXT - 1.6, len = z1 - z0;
-    if (!TQ) for (let i = 0; i < HALL_ROWS; i++) { const top = 0.5 + i * RU; box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
+    if (!TQ) for (let i = 0; i < FILAS; i++) { const top = 0.5 + i * RU; box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
     // (cada asiento: el respaldo detrás y el asiento a 0,45 m del escalón; dos piezas, cada una una sola llamada). Delante,
     // sin murete: la grada empieza en el primer escalón, todo asientos. Cada asiento, al fondo de su escalón (a 0,56 m del
     // borde): el sentado ocupa medio metro por delante con las rodillas y los pies, que así quedan en su escalón. Antes iba
@@ -1015,14 +1047,16 @@ export class PelotaCourt {
     const ASIENTO = 0.28, BA = ASIENTO - 0.45;
     const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41 + BA, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62 + BA, 0), legG = new T.BoxGeometry(0.05, 0.37 + BA, 0.05).translate(0.08, (0.37 + BA) / 2, 0);
     const seats = []; this.standSpots = this.standSpots && TQ ? this.standSpots : [];
-    if (!TQ) for (let i = 0; i < HALL_ROWS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
+    if (!TQ) for (let i = 0; i < FILAS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
       if (Math.abs(z - (z0 + len / 3)) < 0.5 || Math.abs(z - (z0 + 2 * len / 3)) < 0.5) continue;   // (dos pasillos para subir)
       const x = xs + i * RD + 0.56, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + ASIENTO, z, -Math.PI / 2]);   // (la altura del asiento)
     }
     const seatM = M({ color: '#ffffff', roughness: 0.6 }), legM = M({ color: '#a9a8b1', roughness: 0.45, metalness: 0.4 }), col = new T.Color();   // (las patas, un pie fino y claro)
     if (seats.length) for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
       const SI = new T.InstancedMesh(geo, nm === 'patas' ? legM : seatM, seats.length);
-      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
+      // (las del otro color: una de cada once o, en un mítico, las columnas de butacas de su foto, columnas2: [[z0, z1]…], las azules del Ogueta)
+      const otra = (z, i) => MIT?.columnas2 ? MIT.columnas2.some(([a, b]) => z >= a && z <= b) : i % 11 === 0;
+      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(otra(z, i) ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
       SI.receiveShadow = true; SI.name = nm; g.add(SI);
     }
     this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO;   // (el público, sentado en sus asientos: con la cadera sobre el asiento, fronton.js)
@@ -1034,6 +1068,221 @@ export class PelotaCourt {
     this.entry = TQ ? { x: W / 2 - 1, z: EXT - 1.2 } : { x: W / 2 + CONTRA / 2, z: EXT - 1.2 };
     this.hall = true;
     g.traverse(o => { if (o.isMesh) o.castShadow = false; });   // (bajo techo, con la luz del pabellón: sin sombras que crucen la cancha)
+  }
+  // ---------- los míticos ----------
+  // Lo propio de cada frontón mítico que se copia (data/frontonesMiticos.js, sala): la banda de arriba del frontis y de la
+  // pared izquierda, con sus rayas y su letrero (el «Ogueta» de Vitoria), y las cortinas del rebote (la naranja de Ogueta, la
+  // azul de Astelena). Planos delante de las paredes del cubierto, en sus medidas de verdad
+  miticoSala(T, M, th, { W, H, XL, xs, xr, za, zb, EXT }) {
+    const C = COURT, S = this.mitico, g = this.group, B = S.banda;
+    const plano = (w, h, tex, x, y, z, ry) => { const m = new T.Mesh(new T.PlaneGeometry(w, h), M({ map: tex, roughness: 0.9 })); m.position.set(x, y, z); m.rotation.y = ry; g.add(m); return m; };
+    // (la pared por encima de la que se juega: de y0 a H; abajo, del color de la pared hasta B.desde; la banda, de B.alto, con
+    // sus rayas, y por encima, B.arriba hasta el techo. ancho en metros, para que el letrero no salga estirado)
+    // (en la pared izquierda la banda empieza justo encima de su chapa de arriba: desde, la altura donde empieza)
+    const banda = (ancho, y0, pared, texto, xTexto, desde = S.banda?.desde) => canvasTex(T, Math.min(2048, Math.round(ancho * 48)), Math.round((H - y0) * 48), (c, w, h) => {
+      const ky = h / (H - y0), Y = (y) => h - (y - y0) * ky, kx = w / ancho;
+      c.fillStyle = B.arriba || '#d8d4cc'; c.fillRect(0, 0, w, h);
+      c.fillStyle = pared; c.fillRect(0, Y(desde), w, h - Y(desde));
+      c.fillStyle = B.color; c.fillRect(0, Y(desde + B.alto), w, B.alto * ky);
+      for (const r of B.rayas || []) { c.fillStyle = r.c; c.fillRect(0, Y(desde + r.y + r.h), w, r.h * ky); }
+      if (texto) { const fs = (B.textoAlto || 0.9) * ky; c.font = `${B.textoEstilo || 'italic 700'} ${fs}px Georgia, 'Times New Roman', serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.fillStyle = B.textoColor || '#2a3a8e'; c.fillText(texto, xTexto * kx, Y(desde + (B.textoY ?? B.alto * 0.55))); }
+      grain(c, w, h, 2000, 0.03);
+    });
+    if (B) {
+      // la pared izquierda, por encima de su altura de juego, de delante del frontis al rebote
+      const yL = C.LEFT_H + 0.2, lenL = EXT + 0.4;
+      plano(lenL, H - yL, banda(lenL, yL, th.wall, null, 0, yL), XL + 0.01, yL + (H - yL) / 2, lenL / 2 - 0.2, Math.PI / 2);
+      // el frontis, por encima de los 10 m, con el letrero en el centro del frontis (x = 0)
+      const x0 = -W / 2 - 0.3, x1 = xr, wF = x1 - x0;
+      plano(wF, H - C.FRONT_H, banda(wF, C.FRONT_H, th.frontis, B.texto || null, -x0), (x0 + x1) / 2, C.FRONT_H + (H - C.FRONT_H) / 2, za + 0.31, 0);
+    }
+    // las cortinas, con sus pliegues: la del rebote, si la hay, colgada por encima de él hasta R.rebote; y la del lado derecho
+    // del frontis
+    const R = S.cortina;
+    if (R) {
+      // (de un color, la luz de cada pliegue: más claro en el centro y más oscuro en la sombra; sin color-mix, que el lienzo no lo entiende siempre)
+      const tono = (hex, k) => { const v = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)), t = k > 0 ? 255 : 0, a = Math.abs(k); return `rgb(${v.map(x => Math.round(x + (t - x) * a)).join(',')})`; };
+      const tela = (w, h) => canvasTex(T, 512, 256, (c, cw, ch) => { const n = Math.max(8, Math.round(w / 0.35)), pw = cw / n;
+        for (let i = 0; i < n; i++) { const gr = c.createLinearGradient(i * pw, 0, (i + 1) * pw, 0); gr.addColorStop(0, tono(R.color, -0.12)); gr.addColorStop(0.5, tono(R.color, 0.16)); gr.addColorStop(1, tono(R.color, -0.3)); c.fillStyle = gr; c.fillRect(i * pw, 0, pw + 1, ch); }
+        grain(c, cw, ch, 1500, 0.04); });
+      // (la del rebote se vuelve transparente con él cuando la cámara pasa detrás: rebMats)
+      if (R.rebote != null) { const w = W + 0.6, h = H - R.rebote, m = plano(w, h, tela(w, h), -0.3, R.rebote + h / 2, EXT - 0.03, Math.PI); m.material.transparent = true; this.rebMats?.push(m.material); }
+      // (la del lado del frontis: colgada del techo a su derecha, sobre la contracancha, de R.ancho metros, hasta R.desde del suelo:
+      // la naranja de Ogueta y la azul de Astelena)
+      if (R.desde != null) { const xa = W / 2 + 0.3, w = R.ancho || 3, h = H - R.desde; plano(w, h, tela(w, h), xa + w / 2, R.desde + h / 2, za + 0.32, 0); }
+    }
+    // lo que lleva pintado o colgado cada uno, como en sus fotos (S.rotulos): el nombre del pueblo en la pared izquierda (el
+    // escudo con «Eibarko Udala» de Astelena, el «Vitoria-Gasteiz» blanco de Ogueta), los carteles de abajo, el mural del
+    // pelotari y la pantalla. en: 'izq' (la pared izquierda, z a lo largo) o 'frente' (la pared del frontis a su derecha, x)
+    for (const Rt of S.rotulos || []) this.rotulo(T, M, Rt, { W, za });
+  }
+  /** Un rótulo de un mítico: texto en una o varias líneas (con su escudo si lo lleva), un cartel con su fondo, el mural de un
+   *  pelotari o una pantalla; en un plano pegado a la pared, del tamaño que mide de verdad (en metros) */
+  rotulo(T, M, Rt, { W, za }) {
+    const K = 96, lineas = Rt.lineas || [], tipo = Rt.tipo || 'texto';
+    const FU = { serif: 'Georgia, "Times New Roman", serif', cond: '"MZ Cond", "Arial Narrow", Impact, sans-serif', sans: '"Arial Black", "Helvetica Neue", Arial, sans-serif' };
+    const fuente = (px, l) => `${l.peso || Rt.peso || '800'} ${px}px ${FU[l.fuente || Rt.fuente] || FU.sans}`;
+    // (lo que mide: el ancho de las líneas, o el que diga; el alto, el de las líneas con su interlineado, o el que diga)
+    const mc = document.createElement('canvas').getContext('2d');
+    const anchoL = (l) => { mc.font = fuente(100, l); return mc.measureText(l.t).width / 100 * l.alto; };
+    const esc = Rt.escudo ? Rt.escudo.alto : 0, pad = Rt.fondo ? (Rt.pad ?? 0.12) : 0.04;
+    const h = Rt.alto || lineas.reduce((s, l) => s + l.alto * 1.18, 0) + esc + 2 * pad, wm = Rt.marca ? h * 0.32 : 0;   // (marca: el signo grande a la derecha, el «!» de Ogueta)
+    const w = Rt.ancho || Math.max(0.2, ...lineas.map(anchoL)) + 2 * pad + wm;
+    const tex = canvasTex(T, Math.min(2048, Math.round(w * K)), Math.min(2048, Math.round(h * K)), (c, cw, ch) => {
+      const k = cw / w; c.clearRect(0, 0, cw, ch);
+      if (Rt.fondo) { c.fillStyle = Rt.fondo; c.fillRect(0, 0, cw, ch); if (Rt.borde) { c.strokeStyle = Rt.borde; c.lineWidth = 0.03 * k; c.strokeRect(0.015 * k, 0.015 * k, cw - 0.03 * k, ch - 0.03 * k); } }
+      if (tipo === 'pantalla') { c.fillStyle = '#121418'; c.fillRect(0, 0, cw, ch); const gr = c.createLinearGradient(0, 0, cw, ch); gr.addColorStop(0, '#2a3340'); gr.addColorStop(1, '#0c0f14'); c.fillStyle = gr; c.fillRect(0.05 * k, 0.05 * k, cw - 0.1 * k, ch - 0.1 * k); return; }
+      if (tipo === 'mural') {
+        // (el pelotari pintado en la pared, de blanco con sombra gris, en el momento de pegar: el brazo arriba, la pierna atrás)
+        const X = (x) => x * cw, Y = (y) => y * ch, L = (pts, wd, col) => { c.strokeStyle = col; c.lineWidth = wd * cw; c.lineCap = 'round'; c.lineJoin = 'round'; c.beginPath(); pts.forEach(([x, y], i) => i ? c.lineTo(X(x), Y(y)) : c.moveTo(X(x), Y(y))); c.stroke(); };
+        for (const [col, o] of [['rgba(80,80,90,.35)', 0.012], [Rt.color || '#f4f2ee', 0]]) { c.save(); c.translate(o * cw, o * ch);
+          L([[0.46, 0.62], [0.30, 0.80], [0.18, 0.97]], 0.1, col); L([[0.50, 0.62], [0.62, 0.79], [0.66, 0.97]], 0.1, col);   // (las piernas)
+          L([[0.47, 0.30], [0.48, 0.62]], 0.19, col);   // (el cuerpo)
+          L([[0.47, 0.33], [0.66, 0.20], [0.82, 0.05]], 0.08, col); L([[0.45, 0.34], [0.30, 0.44], [0.20, 0.40]], 0.075, col);   // (los brazos)
+          c.fillStyle = col; c.beginPath(); c.arc(X(0.47), Y(0.21), 0.085 * cw, 0, Math.PI * 2); c.fill(); c.restore(); }
+        c.fillStyle = '#c8322c'; c.fillRect(X(0.4), Y(0.52), 0.16 * cw, 0.03 * ch);   // (el gerriko rojo)
+        return;
+      }
+      let y = pad * k;
+      if (Rt.escudo) {
+        // (el escudo de armas, dorado, con su corona: la silueta, sin inventar los cuarteles)
+        const e = Rt.escudo.alto * k, ew = e * 0.72, cx = cw / 2, top = y + e * 0.22;
+        c.fillStyle = Rt.escudo.color || '#d9b23a'; c.strokeStyle = '#7a5a12'; c.lineWidth = e * 0.035;
+        c.beginPath(); c.moveTo(cx - ew / 2, top); c.lineTo(cx + ew / 2, top); c.lineTo(cx + ew / 2, top + e * 0.42); c.quadraticCurveTo(cx + ew / 2, top + e * 0.72, cx, top + e * 0.78); c.quadraticCurveTo(cx - ew / 2, top + e * 0.72, cx - ew / 2, top + e * 0.42); c.closePath(); c.fill(); c.stroke();
+        c.strokeStyle = 'rgba(122,90,18,.7)'; c.lineWidth = e * 0.02; c.beginPath(); c.moveTo(cx - ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.4); c.quadraticCurveTo(cx + ew * 0.38, top + e * 0.64, cx, top + e * 0.69); c.quadraticCurveTo(cx - ew * 0.38, top + e * 0.64, cx - ew * 0.38, top + e * 0.4); c.closePath(); c.stroke(); c.strokeStyle = '#7a5a12'; c.lineWidth = e * 0.035;
+        c.fillStyle = Rt.escudo.color || '#d9b23a'; c.beginPath(); c.moveTo(cx - ew * 0.38, top - e * 0.02); for (let i = 0; i <= 4; i++) { const xx = cx - ew * 0.38 + i * ew * 0.19; c.lineTo(xx, top - e * (i % 2 ? 0.12 : 0.2)); } c.lineTo(cx + ew * 0.38, top - e * 0.02); c.closePath(); c.fill(); c.stroke();
+        y += e;
+      }
+      c.textBaseline = 'middle';
+      for (const l of lineas) { const px = l.alto * k; c.font = fuente(px, l); c.textAlign = l.al || Rt.al || 'center';
+        const x = c.textAlign === 'left' ? pad * k : c.textAlign === 'right' ? cw - (pad + wm) * k : (cw - wm * k) / 2;
+        c.fillStyle = l.color || Rt.color || '#fbf8f0'; c.fillText(l.t, x, y + l.alto * 0.59 * k); y += l.alto * 1.18 * k; }
+      if (Rt.marca) { c.font = fuente(h * 0.98 * k, {}); c.textAlign = 'center'; c.fillStyle = Rt.color || '#fbf8f0'; c.fillText(Rt.marca, cw - wm * k / 2, ch * 0.53); }
+      if (Rt.gastado !== false && !Rt.fondo) { c.globalCompositeOperation = 'destination-out'; for (let i = 0; i < cw * ch / 900; i++) { c.fillStyle = `rgba(0,0,0,${0.25 + (i * 37 % 50) / 100})`; c.fillRect((i * 7919) % cw, (i * 104729) % ch, 2, 2); } c.globalCompositeOperation = 'source-over'; }
+    });
+    const m = new T.Mesh(new T.PlaneGeometry(w, h), M({ map: tex, transparent: true, alphaTest: 0.05, roughness: 0.85, depthWrite: !!Rt.fondo || tipo === 'pantalla' }));
+    if (Rt.en === 'izq') { m.position.set(-W / 2 + 0.016, Rt.y, Rt.z); m.rotation.y = Math.PI / 2; }
+    else { m.position.set(Rt.x, Rt.y, za + 0.34); }
+    m.name = 'rotulo'; m.renderOrder = 2; this.group.add(m);
+  }
+  // ---------- el Beti Jai ----------
+  // El Beti Jai de Madrid (1894, Joaquín Rucoba), como en las fotos del autor y su ficha de Wikipedia: al aire libre; la grada
+  // rodea la cancha por la derecha y el fondo en media elipse, con cuatro plantas (los escalones de abajo y tres galerías con
+  // sus bancos), las barandillas blancas de forja, las columnas de hierro rojizas que suben de planta en planta y los techos
+  // de madera clara; detrás, la pared del edificio; y junto al frontis, la fachada neomudéjar de ladrillo rojo y estuco blanco
+  // con sus ventanas de arco. El público, en todas las plantas (standSpots)
+  betiJai(T, M, th, { W, CONTRA, EXT }) {
+    const g = this.group, xg = W / 2 + CONTRA + 0.6, xl = -W / 2 - 0.6, zc = EXT + 0.6, xc = (xg + xl) / 2, rx = (xg - xl) / 2, rz = 7.5, D = 4.2, TOP = 13.4;
+    // el borde de la grada que da a la cancha: recto por la derecha y en media elipse por detrás del rebote
+    const P = []; for (let z = 0.05; z < zc - 0.01; z += 1.0) P.push([xg, z]);   // (pegada a la fachada, junto al frontis)
+    for (let k = 0; k <= 28; k++) { const t = Math.PI * k / 28; P.push([xc + rx * Math.cos(t), zc + rz * Math.sin(t)]); }
+    const N = P.map((p, i) => { const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], l = Math.hypot(dx, dz) || 1; return [dz / l, -dx / l]; });   // (hacia fuera)
+    const S = [0]; for (let i = 1; i < P.length; i++) S.push(S[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
+    const at = (i, o) => [P[i][0] + N[i][0] * o, P[i][1] + N[i][1] * o];
+    // una cinta a lo largo del borde: horizontal (de o0 a o1, a la altura y) o vertical (en o, de y0 a y1)
+    const cinta = (mat, f) => { const pos = [], uv = [];
+      for (let i = 0; i < P.length - 1; i++) { const q = f(i), r = f(i + 1); pos.push(...q[0], ...r[0], ...r[1], ...q[0], ...r[1], ...q[1]); uv.push(S[i], 0, S[i + 1], 0, S[i + 1], 1, S[i], 0, S[i + 1], 1, S[i], 1); }
+      const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); geo.computeVertexNormals();
+      const m = new T.Mesh(geo, mat); m.receiveShadow = true; g.add(m); return m; };
+    const suelo = (o0, o1, y, mat) => cinta(mat, (i) => { const a = at(i, o0), b = at(i, o1); return [[a[0], y, a[1]], [b[0], y, b[1]]]; });
+    const pared = (o, y0, y1, mat) => cinta(mat, (i) => { const a = at(i, o); return [[a[0], y0, a[1]], [a[0], y1, a[1]]]; });
+    const crema = M({ color: '#efe6d2', roughness: 0.9, side: T.DoubleSide }), blanco = M({ color: '#f6f3ec', roughness: 0.8, side: T.DoubleSide }), escalon = M({ color: '#d9d3c7', roughness: 0.95, side: T.DoubleSide });
+    // (en los techos de las galerías quedan restos de frescos: el claro de la madera, una cenefa ocre a cada lado y rosetones
+    // azulados desvaídos, cada 4 m)
+    const fresco = canvasTex(T, 256, 64, (c, w, h) => { c.fillStyle = '#ece4d2'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(176,122,62,.55)'; c.fillRect(0, 5, w, 3); c.fillRect(0, h - 8, w, 3);
+      for (const x of [64, 192]) { c.strokeStyle = 'rgba(92,120,140,.35)'; c.lineWidth = 3; c.beginPath(); c.arc(x, h / 2, 16, 0, Math.PI * 2); c.stroke(); for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; c.beginPath(); c.arc(x + Math.cos(a) * 9, h / 2 + Math.sin(a) * 9, 4, 0, Math.PI * 2); c.stroke(); } }
+      grain(c, w, h, 600, 0.05); });
+    fresco.wrapS = T.RepeatWrapping; fresco.repeat.set(1 / 4, 1);
+    const techo = M({ map: fresco, roughness: 0.8, side: T.DoubleSide }), hierro = M({ color: '#7a2e22', roughness: 0.55, metalness: 0.3 });   // (los techos de las galerías, claros)
+    const alero = M({ color: '#94502f', roughness: 0.7, side: T.DoubleSide });   // (y la cubierta, de madera rojiza, como en las fotos)
+    // (la barandilla de forja: barrotes y volutas blancas, recortadas)
+    const forja = canvasTex(T, 256, 64, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = '#f6f3ec'; c.lineWidth = 3;
+      c.beginPath(); c.moveTo(0, 3); c.lineTo(w, 3); c.moveTo(0, h - 3); c.lineTo(w, h - 3); c.moveTo(0, h * 0.62); c.lineTo(w, h * 0.62); c.stroke();
+      for (let x = 8; x < w; x += 16) { c.beginPath(); c.moveTo(x, 3); c.lineTo(x, h * 0.62); c.stroke(); }
+      for (let x = 0; x < w; x += 32) { c.beginPath(); c.arc(x + 8, h * 0.81, 6, 0, Math.PI * 2); c.arc(x + 24, h * 0.81, 6, 0, Math.PI * 2); c.stroke(); } });
+    forja.wrapS = T.RepeatWrapping; forja.repeat.set(1 / 4, 1);   // (un dibujo cada 4 m)
+    const forjaM = M({ map: forja, transparent: true, alphaTest: 0.4, side: T.DoubleSide, roughness: 0.6 });
+    // abajo: el murete junto a la contracancha y cuatro escalones con sus bancos
+    pared(0, 0, 1.2, blanco);
+    const spots = this.standSpots = [], banco = M({ color: '#8a5a34', roughness: 0.7, side: T.DoubleSide }), ASI = 0.28;
+    for (let s = 0; s < 4; s++) { const o0 = 0.3 + s * 0.85, y = 0.45 * (s + 1); suelo(o0, o0 + 0.85, y, escalon); pared(o0, 0.45 * s, y, escalon); suelo(o0 + 0.42, o0 + 0.84, y + ASI, banco); }
+    // las tres galerías: el suelo (que es el techo de madera de la de abajo), la barandilla, dos filas de bancos y la pared de detrás
+    const PISOS = [3.6, 6.9, 10.2];
+    for (const h of PISOS) { suelo(0, D, h, crema); suelo(0, D, h - 0.02, techo); pared(0.02, h - 0.3, h, blanco); pared(0.12, h, h + 1.0, forjaM);
+      suelo(0.9, 2.1, h + 0.35, escalon); pared(0.9, h, h + 0.35, escalon); suelo(2.1, D - 0.4, h + 0.7, escalon); pared(2.1, h + 0.35, h + 0.7, escalon);
+      suelo(1.6, 2.0, h + 0.35 + ASI, banco); suelo(3.0, 3.4, h + 0.7 + ASI, banco); }
+    suelo(-0.3, D + 0.3, TOP, alero); suelo(-0.3, D + 0.3, TOP + 0.05, M({ color: '#4b4f55', roughness: 0.9, side: T.DoubleSide })); pared(-0.3, TOP - 0.5, TOP + 0.05, alero);   // (la cubierta)
+    pared(D + 0.2, 0, TOP, crema);   // (la pared del edificio, detrás)
+    // las columnas de hierro, en el borde, cada 3 m, de planta en planta, con su capitel
+    const cols = []; for (let i = 0, next = 0; i < P.length; i++) if (S[i] >= next) { cols.push([...at(i, 0.18), i]); next = S[i] + 3; }   // (x, z y su punto del borde)
+    const cg = new T.CylinderGeometry(0.075, 0.09, 1, 10), capG = new T.BoxGeometry(0.34, 0.12, 0.34), m4 = new T.Matrix4(), q = new T.Quaternion(), sc = new T.Vector3(), v = new T.Vector3();
+    const tramos = [[0, PISOS[0]], [PISOS[0], PISOS[1]], [PISOS[1], PISOS[2]], [PISOS[2], TOP]];
+    const CI = new T.InstancedMesh(cg, hierro, cols.length * tramos.length), KI = new T.InstancedMesh(capG, hierro, cols.length * tramos.length); let n = 0;
+    for (const [x, z] of cols) for (const [y0, y1] of tramos) { m4.compose(v.set(x, (y0 + y1) / 2, z), q, sc.set(1, y1 - y0, 1)); CI.setMatrixAt(n, m4); m4.compose(v.set(x, y1 - 0.06, z), q, sc.set(1, 1, 1)); KI.setMatrixAt(n, m4); n++; }
+    CI.name = 'columnas-beti-jai'; KI.name = 'capiteles-beti-jai'; g.add(CI, KI);
+    // el público: en los cuatro escalones y en las dos filas de cada galería, mirando a la cancha
+    for (let i = 0, next = 0; i < P.length; i++) { if (S[i] < next) continue; next = S[i] + 0.62; const yaw = Math.atan2(-N[i][0], -N[i][1]);
+      for (let s = 0; s < 4; s++) { const [x, z] = at(i, 0.3 + s * 0.85 + 0.62); spots.push([x, 0.45 * (s + 1) + ASI, z, yaw]); }
+      for (const h of PISOS) { const [x1, z1] = at(i, 1.8), [x2, z2] = at(i, 3.2); spots.push([x1, h + 0.35 + ASI, z1, yaw], [x2, h + 0.7 + ASI, z2, yaw]); } }
+    this.seated = true; this.sitAdelante = 0.08; this.asiento = ASI;
+    // abajo, en el murete, sus pilastras, una en cada columna (como en la foto del autor desde el fondo)
+    { const pg = new T.BoxGeometry(0.34, 1.42, 0.22), PI = new T.InstancedMesh(pg, blanco, cols.length), m = new T.Matrix4(), qq = new T.Quaternion(), u = new T.Vector3(0, 1, 0);
+      cols.forEach(([, , i], k) => { qq.setFromAxisAngle(u, Math.atan2(N[i][0], N[i][1])); m.compose(v.set(P[i][0] - N[i][0] * 0.07, 0.71, P[i][1] - N[i][1] * 0.07), qq, sc.set(1, 1, 1)); PI.setMatrixAt(k, m); });
+      PI.name = 'pilastras-beti-jai'; g.add(PI); }
+    // el final de la grada, junto a la pared izquierda: cerrada por la pared del edificio, hasta la cubierta
+    { const [xa, za] = P[P.length - 1], cap = new T.Mesh(new T.PlaneGeometry(D + 0.9, TOP + 0.05), crema); cap.position.set(xa - (D + 0.9) / 2 + 0.6, (TOP + 0.05) / 2, za + 0.02); g.add(cap); }
+    // encima de la pared izquierda, su barandilla de forja blanca (la de la foto, a todo lo largo)
+    { const geo = new T.PlaneGeometry(EXT, 0.9), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setX(i, uv.getX(i) * EXT); uv.needsUpdate = true;
+      const r = new T.Mesh(geo, forjaM); r.rotation.y = Math.PI / 2; r.position.set(-W / 2 - 0.3, COURT.LEFT_H + 0.65, EXT / 2); g.add(r); }
+    // la fachada junto al frontis, como en las fotos: estuco blanco, tres calles de ladrillo rojo con sus ventanas de arco
+    // enmarcadas en blanco (tres plantas; en la de en medio, el óculo; abajo, la puerta), las impostas blancas entre planta
+    // y planta, la cornisa y el pretil. Va pegada al frontis y baja hasta el suelo; lo de detrás de la grada, liso
+    const x0 = W / 2 + 0.3, x1 = xg + D + 0.4, FW = x1 - x0, FV = xg - x0, FH = 15, K = 48;
+    const fach = canvasTex(T, Math.round(FW * K), Math.round(FH * K), (c, w, h) => {
+      const X = (m) => m * K, Y = (m) => h - m * K;   // (de metros a la imagen: y desde el suelo)
+      c.fillStyle = '#f1ece2'; c.fillRect(0, 0, w, h); grain(c, w, h, 5000, 0.035);
+      const lad = (xa, ya, xb, yb) => { c.fillStyle = '#b3553a'; c.fillRect(X(xa), Y(yb), X(xb - xa), X(yb - ya)); c.fillStyle = 'rgba(70,20,10,.28)';
+        for (let yy = ya; yy < yb; yy += 0.075) c.fillRect(X(xa), Y(yy), X(xb - xa), 1);
+        c.fillStyle = 'rgba(255,240,220,.08)'; for (let yy = ya, f = 0; yy < yb; yy += 0.075, f++) for (let xx = xa + (f % 2) * 0.12; xx < xb; xx += 0.24) c.fillRect(X(xx), Y(yy + 0.075), 1, X(0.075)); };
+      const banda = (y0, y1) => { c.fillStyle = '#f6f2e8'; c.fillRect(0, Y(y1), X(FV), X(y1 - y0)); c.fillStyle = 'rgba(0,0,0,.14)'; c.fillRect(0, Y(y0), X(FV), 2); };
+      const arco = (cx, y0, ww, y1, fill, marco = '#f6f2e8') => { const r = ww / 2;
+        c.fillStyle = marco; c.beginPath(); c.moveTo(X(cx - r - 0.12), Y(y0 - 0.08)); c.lineTo(X(cx - r - 0.12), Y(y1 - r)); c.arc(X(cx), Y(y1 - r), X(r + 0.12), Math.PI, 0); c.lineTo(X(cx + r + 0.12), Y(y0 - 0.08)); c.closePath(); c.fill();
+        c.fillStyle = fill; c.beginPath(); c.moveTo(X(cx - r), Y(y0)); c.lineTo(X(cx - r), Y(y1 - r)); c.arc(X(cx), Y(y1 - r), X(r), Math.PI, 0); c.lineTo(X(cx + r), Y(y0)); c.closePath(); c.fill();
+        c.strokeStyle = 'rgba(246,242,232,.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(X(cx), Y(y0)); c.lineTo(X(cx), Y(y1 - 0.1)); c.moveTo(X(cx - r), Y((y0 + y1 - r) / 2)); c.lineTo(X(cx + r), Y((y0 + y1 - r) / 2)); c.stroke(); };
+      const B = FV / 3, AN = Math.min(1.9, B - 0.5);   // (cada calle y lo que mide su ladrillo)
+      for (let i = 0; i < 3; i++) lad(B * (i + 0.5) - AN / 2, 0, B * (i + 0.5) + AN / 2, 13.2);
+      banda(4.4, 4.8); banda(9.0, 9.4);   // (las impostas)
+      for (let i = 0; i < 3; i++) { const cx = B * (i + 0.5);
+        if (i === 1) { arco(cx, 0, 1.5, 3.7, '#4a3a2e'); c.strokeStyle = 'rgba(20,14,10,.6)'; c.lineWidth = 2; for (let xx = cx - 0.7; xx <= cx + 0.7; xx += 0.14) { c.beginPath(); c.moveTo(X(xx), Y(0)); c.lineTo(X(xx), Y(2.9)); c.stroke(); } }   // (la puerta, con su reja)
+        else arco(cx, 1.0, 1.0, 3.7, '#2c3236');
+        if (i === 1) { c.fillStyle = '#f6f2e8'; c.beginPath(); c.arc(X(cx), Y(6.9), X(0.78), 0, Math.PI * 2); c.fill(); c.fillStyle = '#2c3236'; c.beginPath(); c.arc(X(cx), Y(6.9), X(0.62), 0, Math.PI * 2); c.fill(); }   // (el óculo)
+        else arco(cx, 5.6, 1.0, 8.4, '#2c3236');
+        arco(cx, 10.0, 0.95, 12.5, '#2c3236'); }
+      c.fillStyle = '#f6f2e8'; c.fillRect(0, Y(14.0), X(FV), X(0.8)); c.fillStyle = 'rgba(0,0,0,.18)'; c.fillRect(0, Y(13.2), X(FV), 3);   // (la cornisa)
+      // (y en su friso, el nombre, en letras de ladrillo; y en la imposta de arriba, la ciudad y el año)
+      c.fillStyle = '#9c3f28'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${X(0.6)}px Georgia, "Times New Roman", serif`; c.fillText('BETI-JAI', X(FV / 2), Y(13.6));
+      c.font = `700 ${X(0.27)}px Georgia, "Times New Roman", serif`; c.fillStyle = '#7d3320'; c.fillText('MADRID · 1894', X(FV / 2), Y(9.2));   // (en la imposta de arriba)
+      c.fillStyle = '#e9e3d6'; c.fillRect(0, Y(15), X(FV), X(1.0)); c.fillStyle = 'rgba(0,0,0,.12)'; for (let xx = 0.2; xx < FV; xx += 0.3) c.fillRect(X(xx), Y(14.85), X(0.12), X(0.6));   // (el pretil y sus balaustres)
+      c.fillStyle = 'rgba(0,0,0,.05)'; c.fillRect(X(FV), 0, w - X(FV), h);   // (detrás de la grada, en sombra)
+    });
+    const fm = new T.Mesh(new T.PlaneGeometry(FW, FH), M({ map: fach, roughness: 0.9 })); fm.position.set(x0 + FW / 2, FH / 2, -0.01); fm.name = 'fachada-beti-jai'; g.add(fm);
+    // (en el suelo de la contracancha, las rejillas de los sumideros, como en la foto desde el fondo)
+    { const rej = canvasTex(T, 64, 64, (c, w, h) => { c.fillStyle = '#3c3f42'; c.fillRect(0, 0, w, h); c.fillStyle = '#1c1e20'; for (let x = 6; x < w - 4; x += 8) c.fillRect(x, 6, 4, h - 12); c.strokeStyle = '#5c6064'; c.lineWidth = 3; c.strokeRect(1.5, 1.5, w - 3, h - 3); });
+      const rm = M({ map: rej, roughness: 0.6, metalness: 0.4 }); for (const [x, z] of [[W / 2 + CONTRA * 0.55, 6], [W / 2 + CONTRA * 0.55, 18], [W / 2 + CONTRA * 0.55, 30]]) { const q = new T.Mesh(new T.PlaneGeometry(0.5, 0.5), rm); q.rotation.x = -Math.PI / 2; q.position.set(x, 0.012, z); g.add(q); } }
+    // y la ciudad alrededor (está en Chamberí, entre casas de pisos): bloques de seis a nueve plantas, beis, rosados y
+    // blancos, con sus ventanas y balcones, detrás de la pared izquierda, del frontis y de la grada
+    const casaTex = (col) => { const t = canvasTex(T, 256, 256, (c, w, h) => { c.fillStyle = col; c.fillRect(0, 0, w, h); grain(c, w, h, 2500, 0.05);
+      for (let f = 0; f < 4; f++) for (let k = 0; k < 4; k++) { const x = k * 64 + 18, y = f * 64 + 14; c.fillStyle = 'rgba(40,44,50,.85)'; c.fillRect(x, y, 28, 40); c.fillStyle = 'rgba(255,255,255,.55)'; c.fillRect(x - 3, y + 40, 34, 4);
+        if ((f + k) % 2) { c.strokeStyle = 'rgba(30,30,30,.7)'; c.lineWidth = 2; c.strokeRect(x - 4, y + 26, 36, 14); } }
+      c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(0, 0, w, 4); }); t.wrapS = t.wrapT = T.RepeatWrapping; return t; };
+    const tonos = ['#d9c7a3', '#d8b49e', '#e6e0d3', '#cfae7f', '#d2c2b0'].map(casaTex), tejado = M({ color: '#8a8580', roughness: 0.95 });
+    const casa = (x, z, w, d, h, n) => { const t = tonos[n % tonos.length].clone(); t.needsUpdate = true; t.repeat.set(Math.max(w, d) / 12, h / 12);
+      const m = M({ map: t, roughness: 0.9 }), b = new T.Mesh(new T.BoxGeometry(w, h, d), [m, m, tejado, tejado, m, m]); b.position.set(x, h / 2 - 0.05, z); g.add(b); };
+    [[-14, 6, 10, 12, 22], [-15, 22, 12, 12, 26], [-16, 38, 10, 12, 20], [-13, 54, 10, 10, 24], [-6, -12, 14, 12, 25], [9, -11, 10, 10, 21], [21, -10, 12, 12, 27],
+      [26, 8, 10, 14, 23], [27, 26, 10, 14, 19], [24, 46, 12, 12, 25], [6, 58, 14, 10, 22]].forEach(([x, z, w, d, h], n) => casa(x, z, w, d, h, n));
+    this.boxes.push({ x: xg + D / 2, z: EXT / 2, w: D + 0.4, d: EXT });
+    this.extent = { x0: xl - 1, x1: xg + D + 1, z0: -2, z1: zc + rz + D + 1 };
   }
   // ---------- el trinquete ----------
   // Cerrado por las cuatro paredes, como los trinquetes de Navarra (Elizondo, Lekunberri, los de Iruña): a la izquierda,
@@ -1187,6 +1436,40 @@ export class PelotaCourt {
       let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 300) t = t.slice(0, -1); d.fillText(t, 44, y + 62);
       d.fillStyle = col === '#4b3cff' ? '#b9b2ff' : '#ff9fcd'; d.font = '400 104px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'right'; d.fillText(String(n), W2 - 22, y + 66);
     };
+    // (el de los míticos con marcador de leds, el negro de cifras rojas del Ogueta: sala.marcador = 'led')
+    if (this.mitico?.marcador === 'led') {
+      d.fillStyle = '#060606'; d.fillRect(0, 0, W2, H2); d.strokeStyle = '#2a2a2a'; d.lineWidth = 10; d.strokeRect(5, 5, W2 - 10, H2 - 10);
+      const led = (y, col, name, n) => { d.fillStyle = col; d.fillRect(20, y + 30, 14, 64);
+        d.fillStyle = '#e8e4da'; d.font = '700 46px "Courier New", monospace'; d.textBaseline = 'middle'; d.textAlign = 'left';
+        let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 250) t = t.slice(0, -1); d.fillText(t, 50, y + 62);
+        d.shadowColor = '#ff3a1a'; d.shadowBlur = 18; d.fillStyle = '#ff3a1a'; d.font = '700 112px "Courier New", monospace'; d.textAlign = 'right'; d.fillText(String(n).padStart(2, '0'), W2 - 26, y + 66); d.shadowBlur = 0; };
+      led(10, '#2f6fd0', you, a); led(H2 / 2 + 6, '#d03a2f', rival, b);
+      this.bigTex.needsUpdate = true; return;
+    }
+    // (el de pantalla, la tele de Astelena debajo del pelotari pintado: oscura, con el tanteo como en las retransmisiones;
+    // sala.marcador = 'tv')
+    if (this.mitico?.marcador === 'tv') {
+      d.fillStyle = '#0a0c10'; d.fillRect(0, 0, W2, H2); const gr = d.createLinearGradient(0, 0, 0, H2); gr.addColorStop(0, '#1d2a44'); gr.addColorStop(1, '#0b1220'); d.fillStyle = gr; d.fillRect(10, 10, W2 - 20, H2 - 20);
+      const tv = (y, col, name, n) => { d.fillStyle = col; d.fillRect(26, y, 18, 100); d.fillStyle = 'rgba(255,255,255,.08)'; d.fillRect(44, y, W2 - 70, 100);
+        d.fillStyle = '#ffffff'; d.font = '700 50px "MZ Cond", "Arial Narrow", Arial, sans-serif'; d.textBaseline = 'middle'; d.textAlign = 'left';
+        let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 290) t = t.slice(0, -1); d.fillText(t, 62, y + 52);
+        d.fillStyle = col; d.fillRect(W2 - 136, y, 110, 100); d.fillStyle = '#ffffff'; d.font = '800 84px "MZ Cond", "Arial Narrow", Arial, sans-serif'; d.textAlign = 'center'; d.fillText(String(n), W2 - 81, y + 54); };
+      tv(28, '#2f6fd0', you, a); tv(H2 / 2 + 16, '#d03a2f', rival, b);
+      this.bigTex.needsUpdate = true; return;
+    }
+    // (el de tablilla de los frontones antiguos, el Beti Jai: negro, con su marco de madera y los nombres y los tantos
+    // pintados en blanco, de letra de rótulo; sala.marcador = 'tabla')
+    if (this.mitico?.marcador === 'tabla') {
+      d.fillStyle = '#6b4126'; d.fillRect(0, 0, W2, H2); d.fillStyle = '#16191a'; d.fillRect(14, 14, W2 - 28, H2 - 28);
+      d.fillStyle = 'rgba(255,255,255,.05)'; for (let i = 0; i < 40; i++) d.fillRect(14 + (i * 97) % (W2 - 40), 14 + (i * 53) % (H2 - 40), 20 + (i * 31) % 60, 2);   // (el polvo de tiza, siempre igual)
+      d.fillStyle = '#c9b48a'; d.fillRect(14, H2 / 2 - 2, W2 - 28, 4);
+      const tab = (y, col, name, n) => { d.fillStyle = col; d.beginPath(); d.arc(44, y + 62, 13, 0, Math.PI * 2); d.fill();
+        d.fillStyle = '#f2ede0'; d.font = '700 52px Georgia, "Times New Roman", serif'; d.textBaseline = 'middle'; d.textAlign = 'left';
+        let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 290) t = t.slice(0, -1); d.fillText(t, 70, y + 64);
+        d.font = '700 110px Georgia, "Times New Roman", serif'; d.textAlign = 'right'; d.fillText(String(n), W2 - 34, y + 68); };
+      tab(12, '#3f78d8', you, a); tab(H2 / 2 + 4, '#d8402f', rival, b);
+      this.bigTex.needsUpdate = true; return;
+    }
     d.fillStyle = '#0b0618'; d.fillRect(0, 0, W2, H2); d.fillStyle = '#1c1238'; d.fillRect(0, H2 / 2 - 2, W2, 4);
     fila(14, '#4b3cff', you, a); fila(H2 / 2 + 10, '#e8247c', rival, b);
     d.strokeStyle = '#ff2bd6'; d.lineWidth = 6; d.strokeRect(3, 3, W2 - 6, H2 - 6);
