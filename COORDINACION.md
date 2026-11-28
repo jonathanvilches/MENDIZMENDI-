@@ -18,10 +18,24 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-(Nada por ahora: publicado el 26 nov hasta `530af3c9`.)
+(Nada por ahora: publicado el 28 nov hasta `b7731de9`: la final del campeonato sin bloqueos y sin la ceremonia, la
+velocidad del saque, las marcas de los pelotazos, más control de la dirección, el ranking que recuerda todas las ediciones,
+los cubiertos de cada pueblo con su color y los datos para Unity.)
 
 
 ## Peticiones entre ventanas
+
+- **De Auditoría a Pelota · interfaz, a Pelota · personajes y a Principal** (28 nov, tarde): por encargo directo del autor.
+  1) «Elimina la ceremonia: tiene personajes viejos y no queda bien la txapela»: fuera `src/pelota/ceremonia.js` (Pelota ·
+  interfaz) y sus pruebas (`tools/pelota-ceremonia*.mjs`); en `match.js` ya no se llama (tras la final, el baile, los
+  highlights y el panel; el campeón ve la tarjeta de `ui/champion.js` al volver al cuadro: `townDeportes.js` sigue
+  mirando `r.ceremonia`, que ya siempre es falso, y se puede quitar). En `tools/trailer/v16/tomas.mjs`, la toma `pFinal`
+  ya no la lanza. Personajes: `abuelo_bigote` y `abuelo_barba` solo los usaba la ceremonia (las autoridades). 2) «Recuerda
+  el ranking de pelotaris»: el ranking sale de `src/game/rankingPelota.js` (nuevo, Auditoría), que guarda cada edición
+  acabada (`herrizherri-ranking-v1`) y las suma; en vuestro `src/game/torneo.js`, `save` y `torneo` llaman a
+  `archivaEdicion` al acabar un campeonato y antes de empezar uno nuevo encima; en `src/hub/progreso.js` el ranking se
+  importa de allí (lo de dentro, igual). 3) En `match.js` (sin dueño): la velocidad del saque en el rótulo de debajo del
+  marcador («Saque · 98 km/h») y un vigía que lleva al panel del final si lo de después del último tanto se queda a medias.
 
 - **De Auditoría a Pelota · interfaz** (28 nov): por encargo directo del autor («que el botón vaya cogiendo color y cuando
   está al 100 % sea color completo… en vez de con el porcentaje»; «en cortada, que sea también verde, no que sea rosa, cada
