@@ -1,6 +1,6 @@
 // Frontón de los pueblos y partido de pelota a mano con el motor común de src/pelota.
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
-import { arqDe, ARQ_LOOK } from '../data/frontonArq.js';
+import { arqDe, ARQ_LOOK, MODELOS } from '../data/frontonArq.js';
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl, meshyBust } from '../actors/glbChar.js';
 import { sillasDe, MIRA_SENTADO, ASIENTO_Y, DESC, BOTILLEROS, botilleroDe } from '../pelota/botillero.js';
@@ -316,7 +316,9 @@ const LOOK_TOWN = {
 };
 export function frontonLook(def = {}) {
   const cid = LOOK_COMARCA[def.comarca] ? def.comarca : FAMILY[def.family], c = LOOK_COMARCA[cid] || {};
-  const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special && !l.bosque).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
+  // (un frontón que no es de un pueblo del juego, los de «Frontones»: la variante, por su nombre; antes, todos la primera)
+  const j = LEVELS.filter(l => l.comarca === cid && !l.special && !l.bosque).findIndex(l => l.id === def.id), V = VARIANTS[cid] || [{}];
+  const i = j >= 0 ? j : [...String(def.id || '')].reduce((a, ch) => (a * 31 + ch.charCodeAt(0)) >>> 0, 7) % 97;
   return legible({ red: true, ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) });   // (red: la de encima del frontis, en las plazas)
 }
 // que la pelota se vea siempre bien: contra el frontis, la pared izquierda y el suelo, la pelota (casi blanca) ha de ser
@@ -508,16 +510,19 @@ const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contr
 const HALL_PARED = [GREEN, BLUE, '#2b6a56', '#3d5f8a', '#4f7a5c', '#6a5a8c'], HALL_SILLA = [['#5b34c4', '#8e6ae8'], ['#b0262c', '#e0565c'], ['#1f5fa8', '#5a8fd8'], ['#1f7a4a', '#4fb07a'], ['#c06a12', '#eba04a'], ['#2a2a32', '#6a6a78']];
 function hallLook(def, seed = 0, arq = 'pabellon') {
   const L = frontonLook(def), col = L.frontis && !L.stone && L.frontis !== PLASTER ? L.frontis : HALL_PARED[seed % HALL_PARED.length], [s1, s2] = HALL_SILLA[(seed >> 3) % HALL_SILLA.length];
-  // (con la arquitectura de su modelo de verdad, sus colores: data/frontonArq.js; el pabellón, los de antes)
+  // (con los colores del frontón de verdad que calca, data/frontonArq.js MODELOS: arq es la clave de su foto; el pabellón, los de antes)
   const A = ARQ_LOOK[arq] || {};
   return legible({ ...HALL_LOOK, frontis: col, wall: col, seat: s1, seat2: s2, ...A, cap: A.wall || col });
 }
+// la arquitectura del cubierto que calca un frontón de verdad (MODELOS de data/frontonArq.js): la de base de court.js
+// (ARQ) y lo que cambia en este (las cerchas, la bóveda de chapa, el fondo…)
+const arqDeModelo = (k) => { const m = MODELOS[k]; return m ? { arq: m.arq, arqX: m.arqX } : { arq: k }; };
 export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
   if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
-  const arq = arqDe(def || {});
-  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed, arq), hall: true, arq, noClear: true });
+  const mod = arqDe(def || {});   // (cada pueblo, con un frontón de verdad distinto: data/frontonArq.js MODELO_TOWN)
+  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed, mod), hall: true, ...arqDeModelo(mod), noClear: true });
   HALL.town = def?.id; HALL.townName = town;   // (el de otro pueblo, en los campeonatos: su nombre en el partido)
   return HALL;
 }
@@ -534,7 +539,7 @@ const TRINQ_MODERNO = { frontis: '#2f62c6', wall: '#2f62c6', cap: '#2f62c6', sto
 // (y el oscuro, el Trinquete Beltza, como el de Baiona de la otra foto: las paredes casi negras, el tejadillo y el tambor
 // verdes, el suelo claro con las rayas rojas y el techo oscuro del pabellón)
 const TRINQ_BELTZA = { frontis: '#2a2d33', wall: '#2a2d33', cap: '#2f9a5c', stone: null, marco: '#d6402e', floor: '#cdc6b8', contra: '#c4bdaf', line: '#d6402e', mark: '#d6402e', chapa: '#c2412b', chapaMetal: false, tejadillo: '#2f9a5c', tambor: '#2f9a5c' };
-const ARQ_FOTO = { isaba: 'erminea', ziordia: 'ziordia', iraneta: 'iraneta', igantzi: 'igantzi', peralta: 'peralta', 'navarra-arena': 'pabellon' };
+const ARQ_FOTO = { 'euskal-jai-berri': 'manueta', 'euskal-jai': 'navarra-arena', atarrabia: 'berrioplano', alloz: 'allo' };   // (los cubiertos sin foto de dentro, uno de su tierra)
 export function realVenue(scene, out, F) {
   if (REAL && REAL.court.group.parent === scene && REAL.realId === F.id) return REAL;
   if (REAL) { try { REAL.dispose(); } catch (e) { console.warn('frontón', e); } REAL = null; }
@@ -548,10 +553,15 @@ export function realVenue(scene, out, F) {
     const arq = F.beltza ? 'pabellon' : 'erminea';   // (el oscuro, con el techo oscuro y las cerchas de acero del pabellón)
     REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: legible({ ...hallLook(def, W.seed, arq), ...(F.moderno ? TRINQ_MODERNO : F.beltza ? TRINQ_BELTZA : TRINQ_LOOK) }), hall: true, arq, tipo, moderno: !!F.moderno, trinq: F.beltza ? 'beltza' : undefined, noClear: true });   // (techo claro con sus tubos de luz, como el de las fotos)
   } else if (F.cubierto) {
-    const arq = ARQ_FOTO[F.id] || arqDe({ comarca: F.comarca });
-    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: hallLook(def, W.seed, arq), hall: true, arq, tipo, noClear: true });
+    // (como en su foto: el frontón de verdad con su arquitectura y sus colores, data/frontonArq.js MODELOS; los que no tienen
+    // modelo, uno de su tierra)
+    const mod = MODELOS[F.foto] ? F.foto : ARQ_FOTO[F.id] || arqDe({ comarca: F.comarca });
+    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: hallLook(def, W.seed, mod), hall: true, ...arqDeModelo(mod), tipo, noClear: true });
   } else {
-    REAL = new Fronton(scene, at, town, { ...W, estilo: tipo === 'plaza' ? 'iglesia' : 'plaza', look: { ...frontonLook(def), roof: null }, tipo, noClear: true });
+    // (al aire libre, con los colores de su foto si es uno de los calcados: el frontis blanco con la chapa naranja de
+    // Mirafuentes, la arenisca roja de Mendaza, el hormigón oscuro de Roncal…; si no, el de su comarca, cada uno distinto)
+    const M0 = MODELOS[F.foto]?.look, base = frontonLook(LEVELS.some(l => l.id === def.id) ? def : { ...def, id: F.id });
+    REAL = new Fronton(scene, at, town, { ...W, estilo: tipo === 'plaza' ? 'iglesia' : 'plaza', look: legible({ ...base, ...(M0 ? { stone: null, ...M0, cap: M0.wall || M0.frontis || base.cap } : {}), roof: null }), tipo, noClear: true });
     // (el prado, hasta el horizonte: del verde del valle a la bruma azulada de lo lejos, debajo de la plaza)
     const R = 2600, geo = new THREE.CircleGeometry(R, 48, 0, Math.PI * 2), col = [], cA = new THREE.Color('#6f9a4a'), cB = new THREE.Color('#a9c7c9'), c = new THREE.Color();
     const pos = geo.attributes.position; for (let i = 0; i < pos.count; i++) { const r = Math.hypot(pos.getX(i), pos.getY(i)) / R; c.copy(cA).lerp(cB, Math.min(1, r * 1.6)); col.push(c.r, c.g, c.b); }

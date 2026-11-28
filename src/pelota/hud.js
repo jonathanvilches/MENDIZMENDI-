@@ -212,22 +212,32 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-sprint{width:var(--esp);height:var(--esp);font-size:var(--fs-xs);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);transition:transform .08s,filter .08s,background-color .12s,color .12s,opacity .2s}
 .pel-gcol .pel-hit .pel-pw{bottom:calc(100% + var(--esp) + 22px)}
 .pel-cut{background:linear-gradient(180deg,#ff5fae 0%,#d93088 100%)}
-.pel-hit,.pel-cut,.pel-drop{position:relative}
-.pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
-.pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
-.pel-hit.tope::after,.pel-cut.tope::after,.pel-drop.tope::after{background:conic-gradient(#ff9d3b var(--cp),rgba(255,70,70,.5) 0)}
+.pel-hit,.pel-cut,.pel-drop{position:relative;--filo:radial-gradient(farthest-side,transparent calc(100% - 7px),rgba(6,3,14,.7) calc(100% - 7px) calc(100% - 5.5px),transparent calc(100% - 5.5px) calc(100% - 1.5px),rgba(6,3,14,.7) calc(100% - 1.5px))}
+/* el aro de carga, por fuera y separado del botón, del color de cada botón (GOLPE rosa, CORTADA verde, DEJADA azul) y con un
+   filo oscuro a cada lado; lo que falta por cargar, oscuro. Mientras carga, el aro de dentro del botón se pone blanco: así
+   los dos aros no se confunden (el autor, 26 nov 2026: «en cortada, que sea también verde, no que sea rosa, cada cual que
+   tenga su propio color»; «que haya un contraste real entre la circunferencia excéntrica y la concéntrica») */
+.pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-13px;border-radius:50%;background:var(--filo),conic-gradient(var(--anillo,#ff2bd6) var(--cp),rgba(10,6,22,.6) 0 var(--tope,100%),rgba(255,70,70,.55) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6.5px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6.5px));pointer-events:none}
+.pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:var(--filo),var(--anillo,#ff2e88);animation:pel-full .25s infinite alternate}
+.pel-hit.tope::after,.pel-cut.tope::after,.pel-drop.tope::after{background:var(--filo),conic-gradient(var(--anillo,#ff9d3b) var(--cp),rgba(255,70,70,.55) 0)}
 .pel-pw{position:absolute;left:50%;bottom:calc(100% + 12px);z-index:2;min-width:44px;padding:4px 8px;border-radius:6px;transform:translate(-50%,4px) scale(.9);opacity:0;pointer-events:none;white-space:nowrap;
   background:rgba(28,10,52,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-ui,'MZ Texto'),sans-serif;letter-spacing:.04em;text-align:center;font-variant-numeric:tabular-nums;transition:opacity .12s,transform .12s}
 .pel-btn.charging .pel-pw{opacity:1;transform:translate(-50%,0) scale(1)}
-.pel-btn.full .pel-pw{background:linear-gradient(180deg,#ff7fdc,#ff2e88);font-size:var(--fs-sm);letter-spacing:.08em;box-shadow:0 0 0 2px rgba(255,255,255,.85),0 0 18px rgba(255,46,136,.75)}
+.pel-btn.full .pel-pw{background:var(--anillo,#ff2e88);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.65);font-size:var(--fs-sm);letter-spacing:.08em;box-shadow:0 0 0 2px #fff,0 0 16px var(--anillo,#ff2e88)}
 .pel-btn.tope .pel-pw{background:linear-gradient(180deg,#ffb765,#ff8a1f);color:#2a1300}
 .pel-pw.pop{animation:pel-max .42s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pel-max{0%{transform:translate(-50%,6px) scale(.6)}60%{transform:translate(-50%,-3px) scale(1.18)}100%{transform:translate(-50%,0) scale(1)}}
-.pel-drop .pel-pw{left:auto;bottom:auto;right:calc(100% + 10px);top:50%;transform:translate(4px,-50%) scale(.9)}
+.pel-drop .pel-pw{left:auto;bottom:auto;right:calc(100% + 18px);top:50%;transform:translate(4px,-50%) scale(.9)}
 .pel-drop.charging .pel-pw{transform:translate(0,-50%) scale(1)}
 .pel-drop .pel-pw.pop{animation-name:pel-max-l}
 @keyframes pel-max-l{0%{transform:translate(6px,-50%) scale(.6)}60%{transform:translate(-3px,-50%) scale(1.18)}100%{transform:translate(0,-50%) scale(1)}}
 @media (prefers-reduced-motion:reduce){.pel-pw.pop,.pel-drop .pel-pw.pop{animation:none}}
+/* (sin el número de la carga: la fuerza se ve en el color que va cogiendo el botón y en su aro; a tope, «MÁX» en todos, del
+   color de cada botón. El autor, 26 nov 2026: «que el botón vaya cogiendo color y cuando está al 100 % sea color
+   completo»; «y en todos los botones, cuando se alcanza el 100 %, que ponga max») */
+.pel-root .pel-btn:not(.full) .pel-pw{display:none}
+.pel-root .pel-btn.full{transform:scale(1.06)}
+.pel-root .pel-btn.charging::before{border-color:#fff;box-shadow:0 0 0 1px rgba(6,3,14,.55),inset 0 0 0 1px rgba(6,3,14,.35)}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
@@ -996,6 +1006,8 @@ export class PelotaHud {
       // (junto al botón, cuánto lleva cargado y, a tope, «MÁX» con un golpe de luz; cansado, su tope en naranja: encima del
       // golpe y a la izquierda de la cortada y la dejada, que van una encima de otra. Igual en los tres botones. El autor no
       // notaba la diferencia entre pulsar poco y pulsar a tope, 13 nov 2026)
+      // (el botón se va llenando de su color: en reposo, su color con algo de transparencia; a tope, el color entero)
+      b.style.background = v > 0 ? `color-mix(in srgb,var(--anillo) ${Math.round(36 + 64 * Math.min(1, v))}%,rgba(8,8,16,.42))` : '';
       const w = b.querySelector('.pel-pw');
       if (w) {
         const t = full ? (this.txt.potMax || 'MÁX') : top ? `${Math.round(v * 100)} %` : v > 0 ? `${Math.round(v * 100)} %` : '';

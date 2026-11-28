@@ -23,6 +23,14 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Auditoría a Pelota · interfaz** (28 nov): por encargo directo del autor («que el botón vaya cogiendo color y cuando
+  está al 100 % sea color completo… en vez de con el porcentaje»; «en cortada, que sea también verde, no que sea rosa, cada
+  cual que tenga su propio color»; «en todos los botones, cuando se alcanza el 100 %, que ponga max»; «que haya un contraste
+  real entre la circunferencia excéntrica y la concéntrica»), en vuestro `src/pelota/hud.js`: `charge()` llena el botón de
+  su color según la carga (`style.background`, de su 36 % a su color entero); el aro de carga (`::after`) va por fuera y
+  separado (inset −13 px), del color de cada botón (`--anillo`), con un filo oscuro a cada lado (`--filo`) y lo que falta
+  en oscuro; mientras carga, el aro de dentro (`::before`) se pone blanco; ya no sale el porcentaje, solo «MÁX» a tope, del
+  color del botón (`.pel-btn:not(.full) .pel-pw{display:none}`). Partid de lo de `master`.
 - **De Auditoría a Pelota · interfaz y a Principal** (26 nov, tarde): por encargo directo del autor («en este tipo de
   bloques en todo el juego quiero que no delimites por cuadrícula… oscurezcas el fondo y liberes la información»; luego
   «aprovecha más los espacios» y «elimina barras separadoras que no aportan nada»). Capa nueva, mía,

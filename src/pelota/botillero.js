@@ -236,81 +236,158 @@ export function posturaSentado(T, obj, w, fx, fz, o = {}) {
 const FR = {
   es: {
     quien: 'Tu botillero',
-    bien: ['Lo estás haciendo muy bien. Sigue jugando así.', 'Así, así. Sigue con lo mismo, que le estás ganando.', 'Muy bien. No cambies nada: sigue jugando así.'],
-    bienMas: { cansado: 'Y está cansad{o}: hazle una dejada, que no llega.', nada: 'Respira y a seguir igual.' },
-    cansado: ['Está cansad{o}: ya no corre igual. Hazle una dejada, que no llega.', 'Va justo de piernas. Muéve{lo} de lado a lado y remata cuando se quede corto.'],
-    defensor: ['Corre mucho y llega a las dejadas. Juégale largo, al fondo, y cánsa{lo}.'],
-    rematador: ['Pega muy fuerte. No le dejes la pelota cómoda: muéve{lo} de un lado a otro.'],
-    estratega: ['Tiene muy buenas manos y se defiende bien en la pared. Muéve{lo}: una dejada y luego larga.'],
-    zurdo: ['Es zurd{o}: su derecha es la mala. Búscale el ancho, lejos de la pared.'],
-    diestro: ['Juégale a la pared: pegada a la pared le toca darle con la izquierda, su mano mala.'],
+    bien: ['Lo estás haciendo muy bien. Sigue jugando así.', 'Así, así. Sigue con lo mismo, que le estás ganando.', 'Muy bien. No cambies nada: sigue jugando así.',
+      'Vas por delante: no regales nada, juega seguro.', 'Esto va muy bien. Cabeza fría y sigue apretando.'],
+    bienMas: { cansado: ['Y está cansad{o}: hazle una dejada, que no llega.', 'Y ya va justo de piernas: muéve{lo} de lado a lado.'],
+      nada: ['Respira y a seguir igual.', 'No te confíes: cada tanto cuenta.', 'Sigue mandando tú en el peloteo.'] },
+    cansado: ['Está cansad{o}: ya no corre igual. Hazle una dejada, que no llega.', 'Va justo de piernas. Muéve{lo} de lado a lado y remata cuando se quede corto.',
+      'Se le nota cansad{o}. Alarga los peloteos: cuanto más corra, mejor para ti.', 'Le cuesta llegar. Una dejada al txoko y luego una larga al rebote: a las dos no llega.'],
+    defensor: ['Corre mucho y llega a las dejadas. Juégale largo, al fondo, y cánsa{lo}.', 'Lo recoge todo. No tengas prisa: aguanta el peloteo y espera a que se quede corto.',
+      'Llega a todo lo de delante. Juégale al rebote y que corra hacia atrás.'],
+    rematador: ['Pega muy fuerte. No le dejes la pelota cómoda: muéve{lo} de un lado a otro.', 'Si le das la pelota a la altura de la cintura, remata. Juégale bajo, a ras de chapa.',
+      'Tiene mucha pegada: no le dejes armar el brazo. Apúra{lo} con pelotas rápidas.'],
+    estratega: ['Tiene muy buenas manos y se defiende bien en la pared. Muéve{lo}: una dejada y luego larga.', 'Lee muy bien el juego. Sorpréndel{e}: cambia el ritmo y la dirección cada dos golpes.',
+      'Juega con la cabeza. Tú, más rápido: no le des tiempo a pensar.'],
+    zurdo: ['Es zurd{o}: su derecha es la mala. Búscale el ancho, lejos de la pared.', 'Con la derecha le cuesta: mándale la pelota al ancho, al lado contrario de la pared.',
+      'Zurd{o}: busca su derecha y, cuando te la devuelva floja, remata.'],
+    diestro: ['Juégale a la pared: pegada a la pared le toca darle con la izquierda, su mano mala.', 'Su izquierda es la mano mala: pégala a la pared y que tenga que darle de zurda.',
+      'Pelota pegada a la pared y baja: con la izquierda no te hace daño.'],
     estrella: {
-      dejada: 'Lo suyo es la dejada. No te quedes atrás: espérala un paso más adelante.',
-      cortada: 'Lo suyo es la cortada: viene rápida y baja. Espérala un paso más atrás.',
-      dosparedes: 'Lo suyo es el dos paredes. Cuando la pelota vaya a la pared, prepárate para el cruce.',
-      gancho: 'Lo suyo es el gancho: si le das la pelota alta, de aire, te la manda al ancho. Juégale baja.',
-      largo: 'Lo suyo es la pelota larga, al rebote. No te adelantes: espérala atrás.',
+      dejada: ['Lo suyo es la dejada. No te quedes atrás: espérala un paso más adelante.', 'Le gusta mucho la dejada. Cuando le veas adelantarse, sal ya hacia el frontis.'],
+      cortada: ['Lo suyo es la cortada: viene rápida y baja. Espérala un paso más atrás.', 'Su golpe es la cortada. No te pegues al frontis: deja sitio y llegarás.'],
+      dosparedes: ['Lo suyo es el dos paredes. Cuando la pelota vaya a la pared, prepárate para el cruce.', 'Busca mucho el dos paredes. Si la pelota toca la pared izquierda y viene cruzada, ve al ancho.'],
+      gancho: ['Lo suyo es el gancho: si le das la pelota alta, de aire, te la manda al ancho. Juégale baja.', 'Tiene un gancho muy bueno. No le levantes la pelota: rasa y al cuerpo.'],
+      largo: ['Lo suyo es la pelota larga, al rebote. No te adelantes: espérala atrás.', 'Le gusta mandarla al rebote. Quédate un paso más atrás y la tendrás cómoda.'],
     },
     // (lo que ha pasado: n, cuántas veces)
-    suDejada: (n) => `Ya te ha hecho ${n} tantos de dejada. No te quedes tan atrás: espéralas más adelante.`,
-    suCortada: (n) => `Sus cortadas te han ganado ${n} tantos. Ponte un paso más atrás y espérala.`,
-    suSaque: (n) => `Te ha hecho ${n} tantos de saque. Para restar, colócate más atrás.`,
-    suAire: (n) => `Ya van ${n} tantos que te la coge de aire. No le dejes la pelota alta.`,
-    suDos: (n) => `Te ha ganado ${n} tantos con el dos paredes. Cuando vaya a la pared, prepárate para el cruce.`,
-    noLlegas: (n) => `Ya van ${n} tantos que no llegas a su pelota. Vuelve antes al centro después de cada golpe.`,
-    tuChapa: (n) => `Ya van ${n} a la chapa. Pégale un poco más alto, sin miedo.`,
-    tuLarga: (n) => `Se te ha ido larga ${n} veces. No la cargues tanto: con menos fuerza también hace daño.`,
-    tuFuera: (n) => `Se te ha ido fuera ${n} veces por el ancho. Apunta un poco más al centro.`,
-    tuSaque: (n) => `Llevas ${n} saques malos. Asegúralo: que bote entre la raya de falta y la de pasa.`,
-    tuDejada: 'Tus dejadas le hacen daño: sigue con ellas.',
-    tuCortada: 'Tus cortadas le cuestan mucho: sigue por ahí.',
-    fallos: ['Estás fallando mucho. Asegura: echa la pelota atrás, larga y al centro.', 'Espera la pelota y pégale limpio, sin prisas.'],
-    cansadoYo: ['Respira hondo. Estás cansado: juega largo y que corra {el}.', 'Aguanta, que estás justo de fuerzas. Juega largo y que corra {el}.'],
-    pierdes: ['Tranquilo, queda partido. Haz más dejadas y cámbiale el ritmo.', 'Aguanta, resiste, que queda partido.'],
-    mano: ['Intenta meter la pelota en la mano: espérala y pégale en su momento.'],
+    suDejada: [(n) => `Ya te ha hecho ${n} tantos de dejada. No te quedes tan atrás: espéralas más adelante.`, (n) => `Lleva ${n} tantos de dejada. Cuando le veas cerca del frontis, adelántate.`],
+    suCortada: [(n) => `Sus cortadas te han ganado ${n} tantos. Ponte un paso más atrás y espérala.`, (n) => `Ya van ${n} cortadas que no coges. Retrocede un paso cuando le veas cortar.`],
+    suSaque: [(n) => `Te ha hecho ${n} tantos de saque. Para restar, colócate más atrás.`, (n) => `Van ${n} saques que no restas. Ponte más al centro y atrás, y no te precipites.`],
+    suAire: [(n) => `Ya van ${n} tantos que te la coge de aire. No le dejes la pelota alta.`, (n) => `Te ha volado ${n} pelotas de aire. Juega más bajo, a ras de chapa.`],
+    suDos: [(n) => `Te ha ganado ${n} tantos con el dos paredes. Cuando vaya a la pared, prepárate para el cruce.`, (n) => `Van ${n} tantos de dos paredes. Al ver que va a la pared izquierda, sal al ancho.`],
+    noLlegas: [(n) => `Ya van ${n} tantos que no llegas a su pelota. Vuelve antes al centro después de cada golpe.`, (n) => `Van ${n} pelotas que no alcanzas. Usa el esprint para llegar a las que se van lejos.`],
+    tuChapa: [(n) => `Ya van ${n} a la chapa. Pégale un poco más alto, sin miedo.`, (n) => `Van ${n} pelotas a la chapa. No la bajes tanto: apunta un poco más arriba.`],
+    tuLarga: [(n) => `Se te ha ido larga ${n} veces. No la cargues tanto: con menos fuerza también hace daño.`, (n) => `Van ${n} largas. No cargues siempre el golpe al máximo: a media fuerza también se ganan tantos.`],
+    tuFuera: [(n) => `Se te ha ido fuera ${n} veces por el ancho. Apunta un poco más al centro.`, (n) => `Van ${n} fuera por el ancho. Más hacia la pared, que ahí no hay riesgo.`],
+    tuSaque: [(n) => `Llevas ${n} saques malos. Asegúralo: que bote entre la raya de falta y la de pasa.`, (n) => `Van ${n} saques fallados. Saca sin forzar: lo importante es que entre.`],
+    tuDejada: ['Tus dejadas le hacen daño: sigue con ellas.', 'Las dejadas le están matando. Guárdate una para cuando esté atrás.'],
+    tuCortada: ['Tus cortadas le cuestan mucho: sigue por ahí.', 'Tu cortada le cuesta: úsala cuando le veas lejos del frontis.'],
+    fallos: ['Estás fallando mucho. Asegura: echa la pelota atrás, larga y al centro.', 'Espera la pelota y pégale limpio, sin prisas.',
+      'Muchos errores. Juega al centro del frontis, sin arriesgar, hasta que te llegue una fácil.', 'No busques el tanto en cada golpe: aguanta y que falle {el}.'],
+    cansadoYo: ['Respira hondo. Estás cansado: juega largo y que corra {el}.', 'Aguanta, que estás justo de fuerzas. Juega largo y que corra {el}.',
+      'Vas sin energía: no esprintes por nada, guárdalo para lo importante.'],
+    pierdes: ['Tranquilo, queda partido. Haz más dejadas y cámbiale el ritmo.', 'Aguanta, resiste, que queda partido.',
+      'Aún hay partido. Ve tanto a tanto, sin pensar en el marcador.', 'Cambia algo: si no te sale la pelota larga, prueba con dejadas y cortadas.'],
+    mano: ['Intenta meter la pelota en la mano: espérala y pégale en su momento.', 'Pégale cuando la pelota baje a la altura de la cintura: ahí sale con más fuerza.',
+      'Colócate antes y golpea con calma: mejor un golpe limpio que uno rápido.'],
+    // (ideas de cómo ganar, con lo que se puede hacer en el juego: cargar el golpe, la dirección, la cortada a ras de chapa,
+    // el dos paredes, el gancho, la volea, el esprint, el saque. El autor, 26 nov 2026: «que el botillero te dé más tips o
+    // más ideas de cómo ganar el partido, no que siempre se repitan las mismas situaciones»)
+    tactica: ['Mantén pulsado el golpe hasta que el botón se llene: a tope, la pelota llega al rebote.',
+      'Con la dirección hacia abajo, la cortada sale a ras de chapa: muy difícil de devolver.',
+      'Un dos paredes cuando esté pegad{o} a la pared izquierda: la pelota se le va al ancho.',
+      'Alterna: una larga al rebote y luego una dejada. Así no sabe dónde ponerse.',
+      'Después de cada golpe, vuelve al centro de la cancha: así llegas a todo.',
+      'El saque es tu primer golpe: sácale al ancho para que tenga que correr desde el principio.',
+      'Cuando la pelota venga alta, pégale de aire, de volea: le quitas tiempo.',
+      'Si {el} está atrás, dejada. Si está delante, larga. Míralo antes de pegar.',
+      'Guarda el esprint para las dejadas: corriendo normal no llegas a todas.',
+      'Apunta: hacia la derecha, a la raya; hacia la izquierda, pegada a la pared.',
+      'No pegues siempre a tope: a media fuerza la pelota bota más corta y también hace daño.',
+      'El gancho sale cuando la pelota llega alta: búscalo por encima de la cabeza.'],
     final: '¡Mucho ánimo, que es la final!',
-    animo: ['¡Venga, que tú puedes!', 'Aguanta, resiste, que esto se gana.', '¡Ánimo, que esto se gana!', 'Cabeza fría, y a por {el}.'],
+    animo: ['¡Venga, que tú puedes!', 'Aguanta, resiste, que esto se gana.', '¡Ánimo, que esto se gana!', 'Cabeza fría, y a por {el}.', '¡Vamos, que lo tienes!', 'Confía en tu juego.'],
   },
   eu: {
     quien: 'Zure botilleroa',
-    bien: ['Oso ondo ari zara. Jarraitu horrela jokatzen.', 'Horrela, horrela. Jarraitu berdin, irabazten ari zara.', 'Oso ondo. Ez aldatu ezer: jarraitu horrela.'],
-    bienMas: { cansado: 'Eta nekatuta dago: egiozu utzi bat, ez da iristen.', nada: 'Arnasa hartu eta berdin jarraitu.' },
-    cansado: ['Nekatuta dago: ez du lehen bezala korritzen. Egiozu utzi bat, ez da iristen.', 'Hankak justu ditu. Mugi ezazu alde batetik bestera eta errematatu laburra geratzen denean.'],
-    defensor: ['Asko korritzen du eta utziei iristen da. Jokatu luze, atzera, eta neka ezazu.'],
-    rematador: ['Oso gogor jotzen du. Ez utzi pilota eroso: mugi ezazu alde batetik bestera.'],
-    estratega: ['Esku onak ditu eta horman ondo defendatzen da. Mugi ezazu: utzi bat eta gero luze.'],
-    zurdo: ['Ezkertia da: eskuina du txarra. Bilatu zabalera, horman urrun.'],
-    diestro: ['Jokatu paretara: horman itsatsita ezkerrarekin jo behar du, esku txarrarekin.'],
+    bien: ['Oso ondo ari zara. Jarraitu horrela jokatzen.', 'Horrela, horrela. Jarraitu berdin, irabazten ari zara.', 'Oso ondo. Ez aldatu ezer: jarraitu horrela.',
+      'Aurretik zoaz: ez oparitu ezer, jokatu seguru.', 'Oso ondo doa. Burua hotz eta jarraitu estutzen.'],
+    bienMas: { cansado: ['Eta nekatuta dago: egiozu utzi bat, ez da iristen.', 'Eta hankak justu ditu: mugi ezazu alde batetik bestera.'],
+      nada: ['Arnasa hartu eta berdin jarraitu.', 'Ez fidatu: tanto bakoitzak balio du.', 'Jarraitu zuk agintzen peloteoan.'] },
+    cansado: ['Nekatuta dago: ez du lehen bezala korritzen. Egiozu utzi bat, ez da iristen.', 'Hankak justu ditu. Mugi ezazu alde batetik bestera eta errematatu laburra geratzen denean.',
+      'Nekatuta dago. Luzatu peloteoak: zenbat eta gehiago korritu, hobe zuretzat.', 'Kosta egiten zaio iristea. Utzi bat txokora eta gero luze errebotera: bietara ez da iristen.'],
+    defensor: ['Asko korritzen du eta utziei iristen da. Jokatu luze, atzera, eta neka ezazu.', 'Dena jasotzen du. Ez izan presarik: eutsi peloteoari eta itxaron motz geratu arte.',
+      'Aurreko guztira iristen da. Jokatu errebotera eta korri dezala atzera.'],
+    rematador: ['Oso gogor jotzen du. Ez utzi pilota eroso: mugi ezazu alde batetik bestera.', 'Pilota gerriaren parean ematen badiozu, errematatu egiten du. Jokatu baxu, txapatik gertu.',
+      'Indar handia du: ez utzi besoa prestatzen. Estutu pilota azkarrekin.'],
+    estratega: ['Esku onak ditu eta horman ondo defendatzen da. Mugi ezazu: utzi bat eta gero luze.', 'Oso ondo irakurtzen du jokoa. Harritu ezazu: aldatu erritmoa eta norabidea bi kolpetik behin.',
+      'Buruarekin jokatzen du. Zu, azkarrago: ez eman pentsatzeko denborarik.'],
+    zurdo: ['Ezkertia da: eskuina du txarra. Bilatu zabalera, horman urrun.', 'Eskuinarekin kosta egiten zaio: bidali pilota zabalera, hormaren kontrako aldera.',
+      'Ezkertia da: bilatu bere eskuina eta, ahul itzultzen dizunean, errematatu.'],
+    diestro: ['Jokatu paretara: horman itsatsita ezkerrarekin jo behar du, esku txarrarekin.', 'Ezkerra du esku txarra: itsatsi pilota paretari eta ezkerrez jo beharko du.',
+      'Pilota paretari itsatsita eta baxu: ezkerrarekin ez dizu minik egingo.'],
     estrella: {
-      dejada: 'Berea utzia da. Ez geratu atzean: itxaron pauso bat aurrerago.',
-      cortada: 'Berea cortada da: azkar eta baxu dator. Itxaron pauso bat atzerago.',
-      dosparedes: 'Berea bi paretakoa da. Pilota paretara doanean, prestatu gurutzerako.',
-      gancho: 'Berea gancho da: pilota altua ematen badiozu, airean, zabalera bidaltzen dizu. Jokatu baxu.',
-      largo: 'Berea pilota luzea da, errebotera. Ez aurreratu: itxaron atzean.',
+      dejada: ['Berea utzia da. Ez geratu atzean: itxaron pauso bat aurrerago.', 'Asko gustatzen zaio utzia. Aurreratzen ikusten duzunean, atera frontisera.'],
+      cortada: ['Berea cortada da: azkar eta baxu dator. Itxaron pauso bat atzerago.', 'Bere kolpea cortada da. Ez itsatsi frontisari: utzi tartea eta iritsiko zara.'],
+      dosparedes: ['Berea bi paretakoa da. Pilota paretara doanean, prestatu gurutzerako.', 'Bi paretakoa asko bilatzen du. Pilotak ezkerreko paretan jo eta gurutzatuta badator, joan zabalera.'],
+      gancho: ['Berea gancho da: pilota altua ematen badiozu, airean, zabalera bidaltzen dizu. Jokatu baxu.', 'Gancho oso ona du. Ez altxatu pilota: baxu eta gorputzera.'],
+      largo: ['Berea pilota luzea da, errebotera. Ez aurreratu: itxaron atzean.', 'Errebotera bidaltzea gustatzen zaio. Geratu pauso bat atzerago eta eroso izango duzu.'],
     },
-    suDejada: () => 'Behin baino gehiagotan irabazi dizu utziarekin. Ez geratu hain atzean: itxaron aurrerago.',
-    suCortada: () => 'Bere cortadek tantoak irabazi dizkizute. Jarri pauso bat atzerago eta itxaron.',
-    suSaque: () => 'Sakearekin tantoak egin dizkizu. Erantzuteko, jarri atzerago.',
-    suAire: () => 'Behin baino gehiagotan airean hartu dizu. Ez utzi pilota altua.',
-    suDos: () => 'Bi paretakoarekin tantoak irabazi dizkizu. Paretara doanean, prestatu gurutzerako.',
-    noLlegas: () => 'Ez zara bere pilotara iristen. Itzuli lehenago erdira kolpe bakoitzaren ondoren.',
-    tuChapa: () => 'Behin baino gehiagotan txapara bota duzu. Jo pixka bat altuago, beldurrik gabe.',
-    tuLarga: () => 'Luzeegi joan zaizu behin baino gehiagotan. Ez kargatu hainbeste: indar gutxiagorekin ere min ematen du.',
-    tuFuera: () => 'Kanpora joan zaizu zabaletik behin baino gehiagotan. Apuntatu pixka bat erdirago.',
-    tuSaque: () => 'Sake txarrak egin dituzu. Ziurtatu: falta eta pasa marren artean bote dezala.',
-    tuDejada: 'Zure utziek min ematen diote: jarraitu horiekin.',
-    tuCortada: 'Zure cortadak asko kostatzen zaizkio: jarraitu horretan.',
-    fallos: ['Asko huts egiten ari zara. Ziurtatu: bota pilota atzera, luze eta erdira.', 'Itxaron pilota eta jo garbi, presarik gabe.'],
-    cansadoYo: ['Arnasa hartu. Nekatuta zaude: jokatu luze eta korri dezala berak.', 'Eutsi, indar justu zaude. Jokatu luze eta korri dezala berak.'],
-    pierdes: ['Lasai, partida badago oraindik. Egin utzi gehiago eta aldatu erritmoa.', 'Eutsi gogor, partida badago oraindik.'],
-    mano: ['Saiatu pilota eskuan sartzen: itxaron eta jo bere momentuan.'],
+    suDejada: [() => 'Behin baino gehiagotan irabazi dizu utziarekin. Ez geratu hain atzean: itxaron aurrerago.', () => 'Utziekin tantoak egiten ari zaizu. Frontisetik gertu ikusten duzunean, aurreratu.'],
+    suCortada: [() => 'Bere cortadek tantoak irabazi dizkizute. Jarri pauso bat atzerago eta itxaron.', () => 'Ez dituzu bere cortadak hartzen. Atzeratu pauso bat mozten ikusten duzunean.'],
+    suSaque: [() => 'Sakearekin tantoak egin dizkizu. Erantzuteko, jarri atzerago.', () => 'Ez dituzu sakeak erantzuten. Jarri erdirago eta atzerago, eta ez izan presarik.'],
+    suAire: [() => 'Behin baino gehiagotan airean hartu dizu. Ez utzi pilota altua.', () => 'Airean hartzen dizkizu pilotak. Jokatu baxuago, txapatik gertu.'],
+    suDos: [() => 'Bi paretakoarekin tantoak irabazi dizkizu. Paretara doanean, prestatu gurutzerako.', () => 'Bi paretakoarekin irabazten dizu. Ezkerreko paretara doala ikusten duzunean, atera zabalera.'],
+    noLlegas: [() => 'Ez zara bere pilotara iristen. Itzuli lehenago erdira kolpe bakoitzaren ondoren.', () => 'Ez zara pilota batzuetara iristen. Erabili esprinta urrun doazenetara iristeko.'],
+    tuChapa: [() => 'Behin baino gehiagotan txapara bota duzu. Jo pixka bat altuago, beldurrik gabe.', () => 'Txapara joaten zaizu. Ez jaitsi hainbeste: apuntatu pixka bat gorago.'],
+    tuLarga: [() => 'Luzeegi joan zaizu behin baino gehiagotan. Ez kargatu hainbeste: indar gutxiagorekin ere min ematen du.', () => 'Luze joaten zaizu. Ez kargatu kolpea beti gehienera: indar ertainarekin ere tantoak irabazten dira.'],
+    tuFuera: [() => 'Kanpora joan zaizu zabaletik behin baino gehiagotan. Apuntatu pixka bat erdirago.', () => 'Kanpora joaten zaizu zabaletik. Gehiago paretara, hor ez dago arriskurik.'],
+    tuSaque: [() => 'Sake txarrak egin dituzu. Ziurtatu: falta eta pasa marren artean bote dezala.', () => 'Sakeak huts egiten dituzu. Atera behartu gabe: garrantzitsuena sartzea da.'],
+    tuDejada: ['Zure utziek min ematen diote: jarraitu horiekin.', 'Zure utziek asko kostatzen zaizkio. Gorde bat atzean dagoenerako.'],
+    tuCortada: ['Zure cortadak asko kostatzen zaizkio: jarraitu horretan.', 'Zure cortada kosta egiten zaio: erabili frontisetik urrun ikusten duzunean.'],
+    fallos: ['Asko huts egiten ari zara. Ziurtatu: bota pilota atzera, luze eta erdira.', 'Itxaron pilota eta jo garbi, presarik gabe.',
+      'Akats asko. Jokatu frontisaren erdira, arriskatu gabe, pilota erraz bat iritsi arte.', 'Ez bilatu tantoa kolpe bakoitzean: eutsi eta huts egin dezala berak.'],
+    cansadoYo: ['Arnasa hartu. Nekatuta zaude: jokatu luze eta korri dezala berak.', 'Eutsi, indar justu zaude. Jokatu luze eta korri dezala berak.',
+      'Energiarik gabe zoaz: ez egin esprintik alferrik, gorde garrantzitsurako.'],
+    pierdes: ['Lasai, partida badago oraindik. Egin utzi gehiago eta aldatu erritmoa.', 'Eutsi gogor, partida badago oraindik.',
+      'Partida badago oraindik. Tantoz tanto, markagailuan pentsatu gabe.', 'Aldatu zerbait: pilota luzea ateratzen ez bazaizu, saiatu utziekin eta cortadekin.'],
+    mano: ['Saiatu pilota eskuan sartzen: itxaron eta jo bere momentuan.', 'Jo pilota gerriaren parera jaisten denean: hor indar gehiagorekin ateratzen da.',
+      'Kokatu lehenago eta jo lasai: hobe kolpe garbi bat azkar bat baino.'],
+    tactica: ['Eutsi golpea sakatuta botoia bete arte: gehienera, pilota errebotera iristen da.',
+      'Norabidea behera duzula, cortada txapatik gertu ateratzen da: oso zaila itzultzen.',
+      'Bi paretakoa ezkerreko paretari itsatsita dagoenean: pilota zabalera joaten zaio.',
+      'Txandakatu: luze bat errebotera eta gero utzi bat. Horrela ez daki non jarri.',
+      'Kolpe bakoitzaren ondoren, itzuli kantxaren erdira: horrela denera iristen zara.',
+      'Sakea zure lehen kolpea da: atera zabalera, hasieratik korri dezan.',
+      'Pilota altu datorrenean, jo airean, bolean: denbora kentzen diozu.',
+      'Atzean badago, utzia. Aurrean badago, luzea. Begiratu jo aurretik.',
+      'Gorde esprinta utzietarako: korrika arruntean ez zara denetara iristen.',
+      'Apuntatu: eskuinera, marrara; ezkerrera, paretari itsatsita.',
+      'Ez jo beti gehienera: indar ertainarekin pilotak motzago egiten du bote eta min ematen du.',
+      'Ganchoa pilota altu iristen denean ateratzen da: bilatu buruaren gainetik.'],
     final: 'Animo handia, finala da!',
-    animo: ['Tira, zuk ahal duzu!', 'Eutsi gogor, hau irabazten da.', 'Animo, hau irabazten da!', 'Burua hotz, eta aurrera!'],
+    animo: ['Tira, zuk ahal duzu!', 'Eutsi gogor, hau irabazten da.', 'Animo, hau irabazten da!', 'Burua hotz, eta aurrera!', 'Goazen, zurea da!', 'Fidatu zure jokoaz.'],
   },
 };
 const gen = (s, chica) => s.replace(/\{o\}/g, chica ? 'a' : 'o').replace(/\{lo\}/g, chica ? 'la' : 'lo').replace(/\{el\}/g, chica ? 'ella' : 'él').replace(/\{e\}/g, chica ? 'a' : 'e');
 const NUM = { es: ['cero', 'un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez'] };
 const num = (n, lang) => (NUM[lang] || [])[n] || String(n);
+
+// (lo que ya te ha dicho, también en partidos anteriores: las últimas frases, guardadas en este aparato, para no repetir
+// siempre lo mismo. De cada consejo hay varias frases y se elige una que no haya dicho hace poco; si las ha dicho todas,
+// la que dijo hace más tiempo)
+const MEM_K = 'herrizherri-botillero-dichos';
+let MEM = null;
+const memoria = () => {
+  if (MEM) return MEM;
+  try { MEM = JSON.parse(localStorage.getItem(MEM_K) || '[]'); } catch (e) { MEM = []; }
+  if (!Array.isArray(MEM)) MEM = [];
+  return MEM;
+};
+const recuerda = (id) => {
+  const m = memoria(), i = m.indexOf(id); if (i >= 0) m.splice(i, 1); m.push(id); while (m.length > 80) m.shift();
+  try { localStorage.setItem(MEM_K, JSON.stringify(m)); } catch (e) { /* sin guardado: solo en este partido */ }
+};
+// (una frase de la lista: de las que no ha dicho hace poco, una cualquiera; si no, la más antigua)
+function elige(clave, arr, chica, dichos) {
+  const m = memoria(), ids = arr.map((_, i) => `${clave}:${i}`);
+  const nuevas = ids.map((id, i) => [id, i]).filter(([id]) => !m.includes(id) && !dichos.has(id));
+  const [id, i] = nuevas.length ? nuevas[Math.floor(Math.random() * nuevas.length)] : ids.map((id, i) => [id, i]).sort((a, b) => m.indexOf(a[0]) - m.indexOf(b[0]))[0];
+  dichos.add(id); recuerda(id);
+  return gen(arr[i], chica);
+}
+// (cuánto de lo de una lista ha dicho ya hace poco: 0, nada; 1, todo)
+const gastado = (clave, arr) => { const m = memoria(); return arr.filter((_, i) => m.includes(`${clave}:${i}`)).length / Math.max(1, arr.length); };
 
 /** El consejo del botillero a tu pelotari, por lo que ha pasado en el partido. g: la partida (game.js); arq: el estilo
  *  del rival (rules.js, pelotariArq: { arq, zurdo, estrella }); chica: si el rival es chica; dichos: lo ya dicho en
@@ -320,21 +397,25 @@ const num = (n, lang) => (NUM[lang] || [])[n] || String(n);
 export function consejo(g, arq = {}, lang = 'es', chica = false, dichos = new Set(), final = false) {
   const L = FR[lang] || FR.es;
   const rv = g.players?.rival, yo = g.players?.you, por = g.stats?.por || {}, mio = por.you || {}, suyo = por.rival || {}, F = mio.faltas || {};
-  const enR = rv?.en ?? 1, enY = yo?.en ?? 1, dif = (g.score?.you ?? 0) - (g.score?.rival ?? 0), n = (g.score?.you || 0) + (g.score?.rival || 0) + dichos.size;
+  const enR = rv?.en ?? 1, enY = yo?.en ?? 1, dif = (g.score?.you ?? 0) - (g.score?.rival ?? 0);
   const ag = g.qual?.rival?.agilidad ?? 3;   // (cuanta más agilidad, menos le cuesta su mano mala: game.js, calidad)
-  const una = (arr) => gen(arr[n % arr.length], chica), N = (k) => num(k, lang);
+  const N = (k) => num(k, lang);
   // (lo que hace daño: tus tantos ganados, por cómo)
-  const tuyo = (mio.dejada || 0) >= 2 ? L.tuDejada : (mio.cortada || 0) >= 2 ? L.tuCortada : null;
-  // (vas bien: por delante en el marcador y sin fallar más de lo que aciertas. Que sigas así, y con qué)
+  const tuyo = (mio.dejada || 0) >= 2 ? ['tuDejada', L.tuDejada] : (mio.cortada || 0) >= 2 ? ['tuCortada', L.tuCortada] : null;
+  // (vas bien: por delante en el marcador y sin fallar más de lo que aciertas. Que sigas así, y con qué; y una idea más)
   if (dif >= 2 && (mio.fallos || 0) <= Math.max(2, mio.hechos || 0) && enY > 0.3) {
     dichos.add('bien');
-    const l = [una(L.bien), tuyo || gen(enR < 0.45 ? L.bienMas.cansado : L.bienMas.nada, chica)]; if (final) l.push(L.final);
+    const l = [elige('bien', L.bien, chica, dichos), tuyo ? elige(tuyo[0], tuyo[1], chica, dichos) : enR < 0.45 ? elige('bienCansado', L.bienMas.cansado, chica, dichos) : elige('tactica', L.tactica, chica, dichos)];
+    if (final) l.push(L.final); else if (!tuyo && enR >= 0.45) l.push(elige('bienNada', L.bienMas.nada, chica, dichos));
     return { quien: L.quien, bien: true, lineas: l };
   }
   const op = [];
-  const pon = (clave, peso, lista) => { if (lista) op.push({ clave, peso: dichos.has(clave) ? peso * 0.35 : peso, arr: Array.isArray(lista) ? lista : [lista] }); };
+  // (fijo: lo que sabe por la ficha del rival o las ideas de siempre; si ya lo ha dicho casi todo hace poco, pesa menos
+  // y sale otra cosa)
+  const pon = (clave, peso, lista, fijo = false) => { if (!lista) return; const arr = Array.isArray(lista) ? lista : [lista];
+    op.push({ clave, peso: peso * (dichos.has(clave) ? 0.35 : 1) * (fijo ? 1 - 0.45 * gastado(clave, arr) : 1), arr }); };
   // 1) lo que ha pasado en este partido: con qué te gana tantos el rival y dónde fallas tú (lo que más pesa)
-  const ev = (clave, k, f, base = 2.6) => { if (k >= 2) pon(clave, base + k * 0.3, f(N(k))); };
+  const ev = (clave, k, f, base = 2.6) => { if (k >= 2) pon(clave, base + k * 0.3, (Array.isArray(f) ? f : [f]).map(fn => fn(N(k)))); };
   ev('suDejada', suyo.dejada || 0, L.suDejada);
   ev('suCortada', suyo.cortada || 0, L.suCortada);
   ev('suSaque', suyo.saque || 0, L.suSaque);
@@ -345,26 +426,30 @@ export function consejo(g, arq = {}, lang = 'es', chica = false, dichos = new Se
   ev('tuLarga', (F.largo || 0) + (F.cuatro || 0), L.tuLarga, 2.7);
   ev('tuFuera', (F.fuera || 0) + (F.lado || 0), L.tuFuera, 2.7);
   ev('tuSaque', (F.falta || 0) + (F.pasa || 0) + (F.falta45 || 0) + (F.pasa45 || 0), L.tuSaque, 2.7);
-  if (tuyo) pon('tuyo', 1.9, tuyo);
+  if (tuyo) pon(tuyo[0], 1.9, tuyo[1]);
   // 2) cómo está el partido: el cansancio de cada uno (la barra de energía) y el marcador
   if (enR < 0.5) pon('cansado', 3 + (0.5 - enR) * 10, L.cansado);
   if (enY < 0.35) pon('cansadoYo', 2.5, L.cansadoYo);
   if ((mio.fallos || 0) >= 3 && (mio.fallos || 0) > (mio.hechos || 0)) pon('fallos', 2.2 + (mio.fallos || 0) * 0.1, L.fallos);
   if (dif <= -3) pon('pierdes', 1.9, L.pierdes);
   // 3) lo que sabe del rival por su ficha: su mano mala, su estilo y su golpe estrella
-  if (arq.zurdo) pon('zurdo', 1.5 + (5 - ag) * 0.25, L.zurdo); else pon('diestro', 1.0 + (5 - ag) * 0.25, L.diestro);
-  if (arq.arq === 'defensor') pon('defensor', 1.6, L.defensor);
-  if (arq.arq === 'rematador') pon('rematador', 1.6, L.rematador);
-  if (arq.arq === 'estratega') pon('estratega', 1.6, L.estratega);
-  if (arq.estrella && L.estrella[arq.estrella]) pon('estrella', 1.7, L.estrella[arq.estrella]);
-  pon('mano', 0.9, L.mano);
+  if (arq.zurdo) pon('zurdo', 1.5 + (5 - ag) * 0.25, L.zurdo, true); else pon('diestro', 1.0 + (5 - ag) * 0.25, L.diestro, true);
+  if (arq.arq === 'defensor') pon('defensor', 1.6, L.defensor, true);
+  if (arq.arq === 'rematador') pon('rematador', 1.6, L.rematador, true);
+  if (arq.arq === 'estratega') pon('estratega', 1.6, L.estratega, true);
+  if (arq.estrella && L.estrella[arq.estrella]) pon('estrella-' + arq.estrella, 1.7, L.estrella[arq.estrella], true);
+  // 4) ideas de cómo ganar el partido, con lo que se puede hacer en el juego (la segunda frase, casi siempre)
+  pon('tactica', 1.85, L.tactica, true);
+  pon('mano', 0.9, L.mano, true);
   op.sort((a, b) => b.peso - a.peso);
   // (el consejo más claro y, si hay otro que también pesa, el segundo; si no, una palabra de ánimo)
   const [a, b] = op; dichos.add(a.clave);
-  const lineas = [una(a.arr)];
-  if (b && b.peso >= 1.8) { lineas.push(una(b.arr)); dichos.add(b.clave); } else lineas.push(una(L.animo));
+  const lineas = [elige(a.clave, a.arr, chica, dichos)];
+  // (dos ideas casi siempre: la segunda, otra cosa que pese algo, la ficha del rival o una idea de juego)
+  const dos = b && b.peso >= 1.5;
+  if (dos) { lineas.push(elige(b.clave, b.arr, chica, dichos)); dichos.add(b.clave); } else lineas.push(elige('animo', L.animo, chica, dichos));
   // (y siempre una palabra de ánimo al final; en la final, la de la final)
-  if (final) lineas.push(L.final); else if (b && b.peso >= 1.8) lineas.push(una(L.animo));
+  if (final) lineas.push(L.final); else if (dos) lineas.push(elige('animo', L.animo, chica, dichos));
   return { quien: L.quien, bien: false, lineas };
 }
 
@@ -374,19 +459,33 @@ export function consejo(g, arq = {}, lang = 'es', chica = false, dichos = new Se
 // perdido igual, eso es lo que te dice: con qué te los ha ganado o dónde has fallado)
 const RACHA = {
   es: ['Tranquilo, respira. Un tanto y cambiamos esto.', 'Venga, que tú puedes. Aguanta, resiste.', 'No te precipites: juega largo y espera tu pelota.',
-    'Intenta meter la pelota en la mano y pégale limpio.', 'Cabeza fría. Échala atrás y que corra {el}.', 'Cambia el ritmo: una dejada y luego atrás.'],
+    'Intenta meter la pelota en la mano y pégale limpio.', 'Cabeza fría. Échala atrás y que corra {el}.', 'Cambia el ritmo: una dejada y luego atrás.',
+    'Paciencia: un buen tanto y se pone nervios{o}.', 'Juega más seguro: pelota al centro del frontis y a esperar.', 'Respira entre tanto y tanto. No hay prisa.',
+    'Le estás dejando la pelota fácil. Muéve{lo} más.'],
   eu: ['Lasai, arnasa hartu. Tanto bat eta hau aldatuko dugu.', 'Tira, zuk ahal duzu. Eutsi gogor.', 'Ez presarik izan: jokatu luze eta itxaron zure pilota.',
-    'Saiatu pilota eskuan sartzen eta jo garbi.', 'Burua hotz. Bota atzera eta korri dezala berak.', 'Aldatu erritmoa: utzi bat eta gero atzera.'],
+    'Saiatu pilota eskuan sartzen eta jo garbi.', 'Burua hotz. Bota atzera eta korri dezala berak.', 'Aldatu erritmoa: utzi bat eta gero atzera.',
+    'Pazientzia: tanto on bat eta urduri jarriko da.', 'Jokatu seguruago: pilota frontisaren erdira eta itxaron.', 'Arnasa hartu tanto batetik bestera. Ez dago presarik.',
+    'Pilota errazegi uzten diozu. Mugi ezazu gehiago.'],
 };
 const RACHA_POR = {
-  es: { dejada: 'Te está ganando con dejadas. No te quedes tan atrás.', cortada: 'Sus cortadas te están ganando. Espérala un paso más atrás.',
-    saque: 'Te gana con el saque. Para restar, colócate más atrás.', aire: 'Te la coge de aire. No le dejes la pelota alta.',
-    dosparedes: 'Te gana con el dos paredes. Atento al cruce.', chapa: 'Le estás dando a la chapa. Pégale un poco más alto.',
-    largo: 'Se te va larga. No la cargues tanto.', fuera: 'Se te va fuera por el ancho. Apunta más al centro.', saqueMal: 'Asegura el saque, sin arriesgar.' },
-  eu: { dejada: 'Utziekin irabazten ari zaizu. Ez geratu hain atzean.', cortada: 'Bere cortadak irabazten ari dira. Itxaron pauso bat atzerago.',
-    saque: 'Sakearekin irabazten dizu. Erantzuteko, jarri atzerago.', aire: 'Airean hartzen dizu. Ez utzi pilota altua.',
-    dosparedes: 'Bi paretakoarekin irabazten dizu. Adi gurutzeari.', chapa: 'Txapara ari zara botatzen. Jo pixka bat altuago.',
-    largo: 'Luzeegi joaten zaizu. Ez kargatu hainbeste.', fuera: 'Kanpora joaten zaizu zabaletik. Apuntatu erdirago.', saqueMal: 'Ziurtatu sakea, arriskatu gabe.' },
+  es: { dejada: ['Te está ganando con dejadas. No te quedes tan atrás.', 'Otra dejada. Adelántate un paso, que te pilla lejos.'],
+    cortada: ['Sus cortadas te están ganando. Espérala un paso más atrás.', 'Las cortadas vienen bajas y rápidas: retrocede un paso.'],
+    saque: ['Te gana con el saque. Para restar, colócate más atrás.', 'Ese saque te hace daño. Ponte más al centro para restar.'],
+    aire: ['Te la coge de aire. No le dejes la pelota alta.', 'Te la vuela. Juega más bajo, a ras de chapa.'],
+    dosparedes: ['Te gana con el dos paredes. Atento al cruce.', 'Cuando vaya a la pared izquierda, sal al ancho: viene el dos paredes.'],
+    chapa: ['Le estás dando a la chapa. Pégale un poco más alto.', 'Otra a la chapa. Sin miedo: un poco más arriba.'],
+    largo: ['Se te va larga. No la cargues tanto.', 'Larga otra vez: suelta el golpe un poco antes.'],
+    fuera: ['Se te va fuera por el ancho. Apunta más al centro.', 'Fuera por el ancho. Más hacia la pared.'],
+    saqueMal: ['Asegura el saque, sin arriesgar.', 'Saca tranquilo: que entre, aunque no haga daño.'] },
+  eu: { dejada: ['Utziekin irabazten ari zaizu. Ez geratu hain atzean.', 'Beste utzi bat. Aurreratu pauso bat, urrun harrapatzen zaitu.'],
+    cortada: ['Bere cortadak irabazten ari dira. Itxaron pauso bat atzerago.', 'Cortadak baxu eta azkar datoz: atzeratu pauso bat.'],
+    saque: ['Sakearekin irabazten dizu. Erantzuteko, jarri atzerago.', 'Sake horrek min ematen dizu. Jarri erdirago erantzuteko.'],
+    aire: ['Airean hartzen dizu. Ez utzi pilota altua.', 'Airean kentzen dizu. Jokatu baxuago, txapatik gertu.'],
+    dosparedes: ['Bi paretakoarekin irabazten dizu. Adi gurutzeari.', 'Ezkerreko paretara doanean, atera zabalera: bi paretakoa dator.'],
+    chapa: ['Txapara ari zara botatzen. Jo pixka bat altuago.', 'Beste bat txapara. Beldurrik gabe: pixka bat gorago.'],
+    largo: ['Luzeegi joaten zaizu. Ez kargatu hainbeste.', 'Luze berriro: askatu kolpea pixka bat lehenago.'],
+    fuera: ['Kanpora joaten zaizu zabaletik. Apuntatu erdirago.', 'Kanpora zabaletik. Gehiago paretara.'],
+    saqueMal: ['Ziurtatu sakea, arriskatu gabe.', 'Atera lasai: sar dadila, min egiten ez badu ere.'] },
 };
 /** Por qué has perdido un tanto, para el botillero (match.js, en cada tanto perdido): 'dejada', 'cortada', 'saque',
  *  'aire', 'dosparedes' (te lo ha ganado así), 'chapa', 'largo', 'fuera', 'saqueMal' (has fallado así) o ''. */
@@ -404,6 +503,7 @@ export function animoRacha(lang = 'es', vez = 0, chica = false, causas = []) {
   const P = RACHA_POR[lang] || RACHA_POR.es, ult = causas.slice(-3).filter(Boolean), cuenta = {};
   for (const c of ult) cuenta[c] = (cuenta[c] || 0) + 1;
   const [mas] = Object.entries(cuenta).sort((a, b) => b[1] - a[1]);
-  if (mas && mas[1] >= 2 && P[mas[0]]) return gen(P[mas[0]], chica);
-  const L = RACHA[lang] || RACHA.es; return gen(L[vez % L.length], chica);
+  // (cada frase, de las que no ha dicho hace poco: elige, como el consejo del descanso)
+  if (mas && mas[1] >= 2 && P[mas[0]]) return elige('racha-' + mas[0], P[mas[0]], chica, new Set());
+  return elige('racha', RACHA[lang] || RACHA.es, chica, new Set());
 }

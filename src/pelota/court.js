@@ -883,7 +883,8 @@ export class PelotaCourt {
     // cancha, sin grada; XL, la pared del fondo de la galería)
     const TQ = this.tipo === 'trinquete', XL = -W / 2 - (TQ ? TRINQ.FONDO : 0);
     const C = COURT, g = this.group, H = TQ ? TQ_H : HALL_H, xs = TQ ? W / 2 : W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = TQ ? W / 2 : xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
-    const A = ARQ[opts.arq] || ARQ.pabellon, ALTO = A.alto || th.wall, SOBRE = A.sobre || th.wall, FONDO = A.fondo || th.wall;
+    // (la de su modelo, con lo que cambia en el frontón de verdad que calca: data/frontonArq.js, arqX)
+    const A = { ...(ARQ[opts.arq] || ARQ.pabellon), ...(opts.arqX || {}) }, ALTO = A.alto || th.wall, SOBRE = A.sobre || th.wall, FONDO = A.fondo || th.wall;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
     // una barra de x0,y0 a x1,y1 en el plano z (las cerchas, los arcos y las correas)
     const barra = (x0, y0, x1, y1, z, t, mat, d = t) => { const m = new T.Mesh(new T.BoxGeometry(Math.hypot(x1 - x0, y1 - y0), t, d), mat); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, z); m.rotation.z = Math.atan2(y1 - y0, x1 - x0); g.add(m); return m; };
@@ -951,7 +952,7 @@ export class PelotaCourt {
       // (los dos hastiales, cerrando el techo por delante y por detrás)
       const hastM = M({ color: SOBRE, roughness: 0.9, side: T.DoubleSide }), fondoD = M({ color: FONDO, roughness: 0.9, side: T.DoubleSide });
       tri([[xl, H, za], [xR, H, za], [xm, ym, za]], hastM); tri([[xl, H, zb], [xR, H, zb], [xm, ym, zb]], fondoD);
-      const cer = M({ color: madera ? '#8a5a30' : '#c22a24', roughness: madera ? 0.7 : 0.45, metalness: madera ? 0 : 0.25 });
+      const cer = M({ color: A.cercha || (madera ? '#8a5a30' : '#c22a24'), roughness: madera ? 0.7 : 0.45, metalness: madera ? 0 : 0.25 });
       for (let z = 1.8; z < zb - 0.5; z += 4) {
         barra(xl + 0.3, H - 0.1, xm, ym - 0.12, z, t, cer); barra(xR - 0.3, H - 0.1, xm, ym - 0.12, z, t, cer);   // (los pares)
         barra(xl + 0.3, bajo, xR - 0.3, bajo, z, t, cer);   // (el tirante)
@@ -964,13 +965,14 @@ export class PelotaCourt {
       // bóveda de madera laminada (Irañeta): arcos de lado a lado cada 4 m, el techo de tablas y, por encima del frontis,
       // el ventanal en arco que llena la cancha de luz
       const R = 3.6, N = 18, curva = (k) => [xl + span * k, H + R * Math.sin(Math.PI * k)];
-      const tab = canvasTex(T, 512, 512, (c, w, h) => { const n = 28, ph = h / n; for (let i = 0; i < n; i++) { const k = 0.88 + ((i * 29) % 9) / 40; c.fillStyle = `rgb(${Math.round(200 * k)},${Math.round(150 * k)},${Math.round(96 * k)})`; c.fillRect(0, i * ph, w, ph - 2); } grain(c, w, h, 6000, 0.05); }, [6, 8]);
+      const tab = A.boveda === 'metal' ? canvasTex(T, 512, 512, (c, w, h) => { c.fillStyle = '#d3d8dc'; c.fillRect(0, 0, w, h); for (let x = 0; x < w; x += 16) { c.fillStyle = 'rgba(255,255,255,.4)'; c.fillRect(x, 0, 5, h); c.fillStyle = 'rgba(0,0,0,.14)'; c.fillRect(x + 8, 0, 4, h); } }, [6, 3])   // (la bóveda de chapa ondulada, como la de Allo)
+        : canvasTex(T, 512, 512, (c, w, h) => { const n = 28, ph = h / n; for (let i = 0; i < n; i++) { const k = 0.88 + ((i * 29) % 9) / 40; c.fillStyle = `rgb(${Math.round(200 * k)},${Math.round(150 * k)},${Math.round(96 * k)})`; c.fillRect(0, i * ph, w, ph - 2); } grain(c, w, h, 6000, 0.05); }, [6, 8]);
       const pos = [], uv = [];
       for (let i = 0; i < N; i++) { const [x0, y0] = curva(i / N), [x1, y1] = curva((i + 1) / N);
         pos.push(x0, y0, z0r, x1, y1, z0r, x1, y1, z1r, x0, y0, z0r, x1, y1, z1r, x0, y0, z1r); uv.push(i / N, 0, (i + 1) / N, 0, (i + 1) / N, 1, i / N, 0, (i + 1) / N, 1, i / N, 1); }
       const vg = new T.BufferGeometry(); vg.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); vg.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); vg.computeVertexNormals();
       g.add(new T.Mesh(vg, M({ map: tab, side: T.DoubleSide, roughness: 0.75 })));
-      const lam = M({ color: '#b07a44', roughness: 0.65 });
+      const lam = M(A.boveda === 'metal' ? { color: A.cercha || '#c9ced3', roughness: 0.45, metalness: 0.3 } : { color: A.cercha || '#b07a44', roughness: 0.65 });
       for (let z = 1.8; z < zb - 0.5; z += 4) for (let i = 0; i < N; i++) { const [x0, y0] = curva(i / N), [x1, y1] = curva((i + 1) / N); barra(x0, y0 - 0.32, x1, y1 - 0.32, z, 0.55, lam, 0.24); }
       // (los dos tímpanos: el de delante, acristalado con sus montantes; el de detrás, de la pared)
       const vid = M({ color: '#dfe9fb', emissive: '#cfdcf5', emissiveIntensity: 0.55, roughness: 0.2, side: T.DoubleSide }), fondoD = M({ color: FONDO, roughness: 0.9, side: T.DoubleSide });
