@@ -262,7 +262,8 @@ export class PelotaCourt {
     { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 512; bc.height = 288;
       const bt = this.bigTex = srgb(T, new T.CanvasTexture(bc));
       const xe = W / 2 + CONTRA + 1.2, ew = xe - W / 2;   // (hasta dónde sigue el frontis en los de la calle)
-      const bw = HALL ? 3.8 : BJ ? 2.6 : Math.min(3.6, ew - 0.4), bh = bw * 288 / 512, by = (BJ ? 4.05 : 3.9) + bh / 2;   // (grande: se lee desde el rebote)
+      // (el de cada mítico, de su tamaño y a su altura: el pequeño de leds del Atano III, sala.marcadorAncho y marcadorY)
+      const MS = this.mitico || {}, bw = MS.marcadorAncho || (HALL ? 3.8 : BJ ? 2.6 : Math.min(3.6, ew - 0.4)), bh = bw * 288 / 512, by = MS.marcadorY ?? (BJ ? 4.05 : 3.9) + bh / 2;   // (grande: se lee desde el rebote)
       // (en el Beti Jai, en su fachada: en la calle de en medio, entre la puerta y el óculo)
       const bx = HALL ? W / 2 + 0.8 + bw / 2 : BJ ? W / 2 + 0.3 + (CONTRA + 0.3) / 2 : W / 2 + ew / 2 + 0.05, zw = HALL ? -0.5 : 0;   // (zw: la cara de la pared)
       if (!HALL && !opts.labrit && !BJ) {   // (en el Beti Jai, junto al frontis está su fachada, que baja hasta el suelo)
@@ -378,9 +379,11 @@ export class PelotaCourt {
     // los frontones de verdad, pequeños y pegados a la raya, por el lado de atrás y justo debajo del disco (antes iban
     // encima, de 1,1 m de ancho)
     const LAB_DZ = this.labDZ = 0.56;
+    // (los míticos, con los suyos: «LUZE» y «MOTZ» en euskera en el Atano III, «P» y «F» en Ogueta; sala.rayas)
+    const PAL = this.mitico?.rayas || {};
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
       // (como los números: una máscara fundida en vez de una imagen recortada, que de lejos se rompía en puntos)
-      const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
+      const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(PAL[word] || word, w / 2, h * 0.54); });
       if ('colorSpace' in tex) tex.colorSpace = T.NoColorSpace;
       const lab = new T.Mesh(new T.PlaneGeometry(0.9, 0.27), M({ color: th.line, alphaMap: tex, transparent: true, depthWrite: false, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       lab.position.set(-W / 2 + 0.014, MH - 0.82, z + LAB_DZ); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
@@ -929,7 +932,9 @@ export class PelotaCourt {
     if (!TQ) box(xr - (W / 2 + 0.3), C.FRONT_H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, C.FRONT_H / 2, za);
     // el marco del frontis por su lado derecho (el Erminea de Isaba, Ziordia, Igantzi): la franja de color que lo cierra,
     // fuera de la cancha, sobre la pared de delante de la contracancha
-    if (th.marco && A.marcoLado && !TQ) { const mm = M({ color: th.marco, roughness: 0.6 }); box(0.5, C.FRONT_H, 0.04, mm, W / 2 + 0.55, C.FRONT_H / 2, za + 0.32); box(0.32, C.FRONT_H, 0.3, mm, W / 2 + 0.16, C.FRONT_H / 2, -0.18); }
+    // (o solo el filo, de 10 cm, como el blanco del Atano III: marcoLado 'fino')
+    if (th.marco && A.marcoLado && !TQ) { const mm = M({ color: A.marcoColor || th.marco, roughness: 0.6 }), fino = A.marcoLado === 'fino', sw = fino ? 0.1 : 0.32;
+      if (!fino) box(0.5, C.FRONT_H, 0.04, mm, W / 2 + 0.55, C.FRONT_H / 2, za + 0.32); box(sw, C.FRONT_H, 0.3, mm, W / 2 + sw / 2, C.FRONT_H / 2, -0.18); }
     // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
     if (!TQ) box(xr - (W / 2 + 0.3), H, 0.6, fondoM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
     // la pared derecha, detrás de la grada: de tablas de pino barnizado con ventanales arriba (el pabellón, Irañeta,
@@ -1024,6 +1029,13 @@ export class PelotaCourt {
       const ac = M({ color: '#9aa1a8', roughness: 0.5, metalness: 0.35 });
       for (let z = 1.5; z < zb - 0.5; z += 3) { box(span - 0.6, 0.12, 0.12, ac, xm, H - 1.0, z); box(span - 0.6, 0.12, 0.12, ac, xm, H - 0.1, z);
         for (let i = 0; i < 10; i++) { const xa = xl + 0.3 + (span - 0.6) * i / 10, xb = xl + 0.3 + (span - 0.6) * (i + 0.5) / 10, xc = xl + 0.3 + (span - 0.6) * (i + 1) / 10; barra(xa, H - 1.0, xb, H - 0.1, z, 0.06, ac); barra(xb, H - 0.1, xc, H - 1.0, z, 0.06, ac); } }
+    } else if (A.techo === 'reticula') {
+      // plano, de placas cuadradas claras en retícula, con su perfil oscuro y, cada pocas, la luz empotrada (Atano III)
+      const ret = canvasTex(T, 512, 512, (c, w, h) => { const n = 8, q = w / n; c.fillStyle = '#d6d9dd'; c.fillRect(0, 0, w, h);
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { c.fillStyle = (i * 7 + j * 3) % 5 ? '#e1e3e6' : '#d2d5d9'; c.fillRect(i * q + 2, j * q + 2, q - 4, q - 4); if (i % 4 === 1 && j % 4 === 1) { c.fillStyle = '#55595f'; c.fillRect(i * q + q * 0.3, j * q + q * 0.3, q * 0.4, q * 0.4); } }
+        c.strokeStyle = '#8d9196'; c.lineWidth = 2; for (let k = 0; k <= n; k++) { c.beginPath(); c.moveTo(k * q, 0); c.lineTo(k * q, h); c.moveTo(0, k * q); c.lineTo(w, k * q); c.stroke(); }
+        grain(c, w, h, 3000, 0.03); }, [span / 9.6, (z1r - z0r) / 9.6]);   // (placas de 1,2 m)
+      box(span, 0.25, z1r - z0r, M({ map: ret, roughness: 0.8 }), xm, H + 0.12, (za + zb) / 2);
     } else if (A.techo === 'tablas') {
       // plano, de tablillas de madera barnizada a lo largo, con los focos empotrados (Astelena)
       const tab = canvasTex(T, 512, 512, (c, w, h) => { const n = 32, pw = w / n;
@@ -1037,7 +1049,13 @@ export class PelotaCourt {
     lamps.forEach(([x, z], i) => LI.setMatrixAt(i, m4.makeTranslation(x, H - 1.1, z))); LI.name = 'luces-pabellon'; g.add(LI);
     // la grada: escalones de hormigón a lo largo de la contracancha, con su barandilla y los asientos (una sola llamada)
     const z0 = 1.6, z1 = EXT - 1.6, len = z1 - z0;
-    if (!TQ) for (let i = 0; i < FILAS; i++) { const top = 0.5 + i * RU; box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
+    // (en un mítico, el piso de arriba: desde la fila SA.fila, todas SA.alto más arriba, con el murete y la barandilla delante,
+    // como la grada alta del Atano III; sala.salto)
+    const SA = MIT?.salto, alto = (i) => 0.5 + i * RU + (SA && i >= SA.fila ? SA.alto : 0);
+    if (!TQ) for (let i = 0; i < FILAS; i++) { const top = alto(i); box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
+    if (SA && !TQ) { const xb = xs + SA.fila * RD, yb = alto(SA.fila), rail = M({ color: SA.barandilla || '#8d9298', roughness: 0.4, metalness: 0.5 });
+      box(0.06, 0.06, len, rail, xb + 0.08, yb + 1.0, (z0 + z1) / 2); box(0.04, 0.04, len, rail, xb + 0.08, yb + 0.5, (z0 + z1) / 2);
+      for (let z = z0; z <= z1; z += 2) box(0.05, 1.0, 0.05, rail, xb + 0.08, yb + 0.5, z); }
     // (cada asiento: el respaldo detrás y el asiento a 0,45 m del escalón; dos piezas, cada una una sola llamada). Delante,
     // sin murete: la grada empieza en el primer escalón, todo asientos. Cada asiento, al fondo de su escalón (a 0,56 m del
     // borde): el sentado ocupa medio metro por delante con las rodillas y los pies, que así quedan en su escalón. Antes iba
@@ -1049,14 +1067,15 @@ export class PelotaCourt {
     const seats = []; this.standSpots = this.standSpots && TQ ? this.standSpots : [];
     if (!TQ) for (let i = 0; i < FILAS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
       if (Math.abs(z - (z0 + len / 3)) < 0.5 || Math.abs(z - (z0 + 2 * len / 3)) < 0.5) continue;   // (dos pasillos para subir)
-      const x = xs + i * RD + 0.56, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + ASIENTO, z, -Math.PI / 2]);   // (la altura del asiento)
+      const x = xs + i * RD + 0.56, y = alto(i); seats.push([x, y, z, i]); this.standSpots.push([x, y + ASIENTO, z, -Math.PI / 2]);   // (la altura del asiento)
     }
     const seatM = M({ color: '#ffffff', roughness: 0.6 }), legM = M({ color: '#a9a8b1', roughness: 0.45, metalness: 0.4 }), col = new T.Color();   // (las patas, un pie fino y claro)
     if (seats.length) for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
       const SI = new T.InstancedMesh(geo, nm === 'patas' ? legM : seatM, seats.length);
       // (las del otro color: una de cada once o, en un mítico, las columnas de butacas de su foto, columnas2: [[z0, z1]…], las azules del Ogueta)
-      const otra = (z, i) => MIT?.columnas2 ? MIT.columnas2.some(([a, b]) => z >= a && z <= b) : i % 11 === 0;
-      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(otra(z, i) ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
+      // (o las primeras filas, filas2: las negras de delante del Atano III; y las del piso de arriba, del color de su salto)
+      const otra = (z, i, f) => MIT?.columnas2 ? MIT.columnas2.some(([a, b]) => z >= a && z <= b) : MIT?.filas2 ? f < MIT.filas2 : i % 11 === 0;
+      seats.forEach(([x, y, z, f], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(SA?.color && f >= SA.fila ? SA.color : otra(z, i, f) ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
       SI.receiveShadow = true; SI.name = nm; g.add(SI);
     }
     this.seated = true; this.sitAdelante = 0.08; this.asiento = ASIENTO;   // (el público, sentado en sus asientos: con la cadera sobre el asiento, fronton.js)
@@ -1126,9 +1145,10 @@ export class PelotaCourt {
     // (lo que mide: el ancho de las líneas, o el que diga; el alto, el de las líneas con su interlineado, o el que diga)
     const mc = document.createElement('canvas').getContext('2d');
     const anchoL = (l) => { mc.font = fuente(100, l); return mc.measureText(l.t).width / 100 * l.alto; };
-    const esc = Rt.escudo ? Rt.escudo.alto : 0, pad = Rt.fondo ? (Rt.pad ?? 0.12) : 0.04;
-    const h = Rt.alto || lineas.reduce((s, l) => s + l.alto * 1.18, 0) + esc + 2 * pad, wm = Rt.marca ? h * 0.32 : 0;   // (marca: el signo grande a la derecha, el «!» de Ogueta)
-    const w = Rt.ancho || Math.max(0.2, ...lineas.map(anchoL)) + 2 * pad + wm;
+    // (el escudo encima del texto, o a su izquierda: escudo.lado 'izq', el de Donostia del Atano III)
+    const EL = Rt.escudo?.lado === 'izq', esc = Rt.escudo ? Rt.escudo.alto : 0, pad = Rt.fondo ? (Rt.pad ?? 0.12) : 0.04, altoT = lineas.reduce((s, l) => s + l.alto * 1.18, 0);
+    const h = Rt.alto || (EL ? Math.max(altoT, esc) : altoT + esc) + 2 * pad, wm = Rt.marca ? h * 0.32 : 0, we = EL ? esc * 0.85 : 0;   // (marca: el signo grande a la derecha, el «!» de Ogueta)
+    const w = Rt.ancho || Math.max(0.2, ...lineas.map(anchoL)) + 2 * pad + wm + we;
     const tex = canvasTex(T, Math.min(2048, Math.round(w * K)), Math.min(2048, Math.round(h * K)), (c, cw, ch) => {
       const k = cw / w; c.clearRect(0, 0, cw, ch);
       if (Rt.fondo) { c.fillStyle = Rt.fondo; c.fillRect(0, 0, cw, ch); if (Rt.borde) { c.strokeStyle = Rt.borde; c.lineWidth = 0.03 * k; c.strokeRect(0.015 * k, 0.015 * k, cw - 0.03 * k, ch - 0.03 * k); } }
@@ -1147,22 +1167,26 @@ export class PelotaCourt {
       let y = pad * k;
       if (Rt.escudo) {
         // (el escudo de armas, dorado, con su corona: la silueta, sin inventar los cuarteles)
-        const e = Rt.escudo.alto * k, ew = e * 0.72, cx = cw / 2, top = y + e * 0.22;
-        c.fillStyle = Rt.escudo.color || '#d9b23a'; c.strokeStyle = '#7a5a12'; c.lineWidth = e * 0.035;
+        const e = Rt.escudo.alto * k, ew = e * 0.72, cx = EL ? (pad + we / 2) * k : cw / 2, top = (EL ? (h - esc) / 2 * k : y) + e * 0.22;
+        const ES = Rt.escudo, tz = ES.trazo || '#7a5a12'; c.fillStyle = ES.color || '#d9b23a'; c.strokeStyle = tz; c.lineWidth = e * 0.035;
         c.beginPath(); c.moveTo(cx - ew / 2, top); c.lineTo(cx + ew / 2, top); c.lineTo(cx + ew / 2, top + e * 0.42); c.quadraticCurveTo(cx + ew / 2, top + e * 0.72, cx, top + e * 0.78); c.quadraticCurveTo(cx - ew / 2, top + e * 0.72, cx - ew / 2, top + e * 0.42); c.closePath(); c.fill(); c.stroke();
-        c.strokeStyle = 'rgba(122,90,18,.7)'; c.lineWidth = e * 0.02; c.beginPath(); c.moveTo(cx - ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.4); c.quadraticCurveTo(cx + ew * 0.38, top + e * 0.64, cx, top + e * 0.69); c.quadraticCurveTo(cx - ew * 0.38, top + e * 0.64, cx - ew * 0.38, top + e * 0.4); c.closePath(); c.stroke(); c.strokeStyle = '#7a5a12'; c.lineWidth = e * 0.035;
-        c.fillStyle = Rt.escudo.color || '#d9b23a'; c.beginPath(); c.moveTo(cx - ew * 0.38, top - e * 0.02); for (let i = 0; i <= 4; i++) { const xx = cx - ew * 0.38 + i * ew * 0.19; c.lineTo(xx, top - e * (i % 2 ? 0.12 : 0.2)); } c.lineTo(cx + ew * 0.38, top - e * 0.02); c.closePath(); c.fill(); c.stroke();
-        y += e;
+        c.strokeStyle = ES.interior || 'rgba(122,90,18,.7)'; c.lineWidth = e * 0.02; c.beginPath(); c.moveTo(cx - ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.06); c.lineTo(cx + ew * 0.38, top + e * 0.4); c.quadraticCurveTo(cx + ew * 0.38, top + e * 0.64, cx, top + e * 0.69); c.quadraticCurveTo(cx - ew * 0.38, top + e * 0.64, cx - ew * 0.38, top + e * 0.4); c.closePath(); c.stroke();
+        // (el barco del escudo de Donostia, en línea: el casco, el mástil y la vela; ES.barco)
+        if (ES.barco) { c.strokeStyle = ES.interior; c.lineWidth = e * 0.03; c.beginPath(); c.moveTo(cx - ew * 0.26, top + e * 0.42); c.quadraticCurveTo(cx, top + e * 0.56, cx + ew * 0.26, top + e * 0.42); c.closePath(); c.moveTo(cx, top + e * 0.42); c.lineTo(cx, top + e * 0.14); c.lineTo(cx + ew * 0.2, top + e * 0.36); c.lineTo(cx, top + e * 0.36); c.stroke(); }
+        c.strokeStyle = tz; c.lineWidth = e * 0.035;
+        c.fillStyle = ES.color || '#d9b23a'; c.beginPath(); c.moveTo(cx - ew * 0.38, top - e * 0.02); for (let i = 0; i <= 4; i++) { const xx = cx - ew * 0.38 + i * ew * 0.19; c.lineTo(xx, top - e * (i % 2 ? 0.12 : 0.2)); } c.lineTo(cx + ew * 0.38, top - e * 0.02); c.closePath(); c.fill(); c.stroke();
+        if (EL) y = (h - altoT) / 2 * k; else y += e;
       }
       c.textBaseline = 'middle';
       for (const l of lineas) { const px = l.alto * k; c.font = fuente(px, l); c.textAlign = l.al || Rt.al || 'center';
-        const x = c.textAlign === 'left' ? pad * k : c.textAlign === 'right' ? cw - (pad + wm) * k : (cw - wm * k) / 2;
+        const x = c.textAlign === 'left' ? (pad + we + (EL ? 0.12 : 0)) * k : c.textAlign === 'right' ? cw - (pad + wm) * k : (cw - wm * k + we * k) / 2;
         c.fillStyle = l.color || Rt.color || '#fbf8f0'; c.fillText(l.t, x, y + l.alto * 0.59 * k); y += l.alto * 1.18 * k; }
       if (Rt.marca) { c.font = fuente(h * 0.98 * k, {}); c.textAlign = 'center'; c.fillStyle = Rt.color || '#fbf8f0'; c.fillText(Rt.marca, cw - wm * k / 2, ch * 0.53); }
       if (Rt.gastado !== false && !Rt.fondo) { c.globalCompositeOperation = 'destination-out'; for (let i = 0; i < cw * ch / 900; i++) { c.fillStyle = `rgba(0,0,0,${0.25 + (i * 37 % 50) / 100})`; c.fillRect((i * 7919) % cw, (i * 104729) % ch, 2, 2); } c.globalCompositeOperation = 'source-over'; }
     });
     const m = new T.Mesh(new T.PlaneGeometry(w, h), M({ map: tex, transparent: true, alphaTest: 0.05, roughness: 0.85, depthWrite: !!Rt.fondo || tipo === 'pantalla' }));
     if (Rt.en === 'izq') { m.position.set(-W / 2 + 0.016, Rt.y, Rt.z); m.rotation.y = Math.PI / 2; }
+    else if (Rt.en === 'frontis') { m.position.set(Rt.x, Rt.y, 0.02); }   // (sobre el frontis: lo de su chapa de abajo)
     else { m.position.set(Rt.x, Rt.y, za + 0.34); }
     m.name = 'rotulo'; m.renderOrder = 2; this.group.add(m);
   }
@@ -1442,7 +1466,7 @@ export class PelotaCourt {
       const led = (y, col, name, n) => { d.fillStyle = col; d.fillRect(20, y + 30, 14, 64);
         d.fillStyle = '#e8e4da'; d.font = '700 46px "Courier New", monospace'; d.textBaseline = 'middle'; d.textAlign = 'left';
         let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 250) t = t.slice(0, -1); d.fillText(t, 50, y + 62);
-        d.shadowColor = '#ff3a1a'; d.shadowBlur = 18; d.fillStyle = '#ff3a1a'; d.font = '700 112px "Courier New", monospace'; d.textAlign = 'right'; d.fillText(String(n).padStart(2, '0'), W2 - 26, y + 66); d.shadowBlur = 0; };
+        const lc = this.mitico.ledColor || '#ff3a1a'; d.shadowColor = lc; d.shadowBlur = 18; d.fillStyle = lc; d.font = '700 112px "Courier New", monospace'; d.textAlign = 'right'; d.fillText(String(n).padStart(2, '0'), W2 - 26, y + 66); d.shadowBlur = 0; };
       led(10, '#2f6fd0', you, a); led(H2 / 2 + 6, '#d03a2f', rival, b);
       this.bigTex.needsUpdate = true; return;
     }
