@@ -16,6 +16,7 @@ import { avatarPortrait } from '../ui/portraits.js';
 import { profile, levelOf, rankOf, comarcaProgress, comarcaTowns, navarraProgress, BADGES, checkBadges } from '../game/profile.js';
 import { tuPelotari, tusCualidades, CUALIDADES } from '../game/pelotariProgreso.js';
 import { esc } from '../util/html.js';
+import { rankingPelota } from '../game/rankingPelota.js';
 import { reducido } from '../ui/motion.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
@@ -37,41 +38,7 @@ function tuLiga() {
   const tabla = Object.values(T).sort((a, b) => b.pts - a.pts || (b.gf - b.gc) - (a.gf - a.gc) || b.gf - a.gf || (CLUBS[b.id]?.ovr || 0) - (CLUBS[a.id]?.ovr || 0));
   return { S, tabla, pos: tabla.findIndex(r => r.id === S.club) + 1, jornadas: S.rounds.length, titulos: S.titles || 0 };
 }
-/** El ranking de pelotaris de tus campeonatos, por puntos como el de la ATP (el autor, noviembre de 2026: «un ranking
- *  de pelotaris por competición… y de Mi pelotari, tipo ATP»): cada campeonato da puntos por la ronda a la que llega cada
- *  uno (la txapela, 2000; la final, 1200; las semifinales, 720; los cuartos, 360; los octavos, 180; quedarse en la
- *  liguilla, 90) y se suman. El que gana una ronda ya tiene los de la siguiente, aunque aún no se haya jugado. Tus
- *  txapelas de ediciones anteriores, 2000 cada una (de las de los demás no queda nada guardado). Además, los ganados, los
- *  perdidos y los tantos. Uno con todos y otro por cada competición (Manomanista, 4½…), para elegir en el panel. */
-const PTS = { 'Octavos de final': 180, 'Cuartos de final': 360, 'Semifinales': 720, 'Final': 1200 }, ORDEN = Object.keys(PTS), TXAPELA = 2000, LIGUILLA = 90;
-const COMP = { mano: 'Manomanista', parejas: 'Parejas', cuatro: 'Cuatro y Medio', trinquete: 'Trinquete', fiestas: 'Fiestas', valles: 'Valles', invierno: 'Invierno', promesas: 'Promesas', comarcas: 'Comarcas' };
-function rankingPelota() {
-  const todos = new Map(), por = new Map(); let txapelas = 0, campeonatos = 0;
-  const fila = (M, key, pl) => { let r = M.get(key); if (!r) M.set(key, r = { name: pl.you ? (profile().name || 'Tú') : pl.name, town: pl.town, you: !!pl.you, g: 0, p: 0, tf: 0, tc: 0, pts: 0 }); return r; };
-  for (const [clave, T] of Object.entries(lee('herrizherri-torneo-v1', {}) || {})) {
-    if (!T?.players?.length || !(T.past?.length || T.txapelas)) continue;
-    campeonatos++; txapelas += T.txapelas || 0;
-    const k = COMP[T.kind] ? T.kind : (clave.split(':')[1] in COMP ? clave.split(':')[1] : 'mano');
-    if (!por.has(k)) por.set(k, new Map()); const M = por.get(k), llega = new Map();
-    const key = (pl) => pl.you ? '·tú' : `${pl.name}|${pl.town}`;
-    for (const P of T.past || []) for (const m of P.matches || []) {
-      if (!m?.s) continue;
-      for (const [i, j, o] of [[m.a, 0, 1], [m.b, 1, 0]]) {
-        const pl = T.players[i]; if (!pl) continue;
-        const gana = m.s[j] > m.s[o];
-        for (const r of [fila(todos, key(pl), pl), fila(M, key(pl), pl)]) { r.tf += m.s[j]; r.tc += m.s[o]; gana ? r.g++ : r.p++; }
-        const ix = ORDEN.indexOf(P.name), pts = P.liga || ix < 0 ? LIGUILLA : !gana ? PTS[P.name] : P.name === 'Final' ? TXAPELA : PTS[ORDEN[ix + 1]];
-        llega.set(i, Math.max(llega.get(i) || 0, pts));
-      }
-    }
-    for (const [i, pts] of llega) { const pl = T.players[i]; fila(todos, key(pl), pl).pts += pts; fila(M, key(pl), pl).pts += pts; }
-    // (tus txapelas de antes: la de esta edición ya cuenta arriba)
-    const yo = T.players.find((q) => q.you), antes = (T.txapelas || 0) - (T.done && T.players[T.champion]?.you ? 1 : 0);
-    if (yo && antes > 0) { fila(todos, '·tú', yo).pts += antes * TXAPELA; fila(M, '·tú', yo).pts += antes * TXAPELA; }
-  }
-  const orden = (M) => { const lista = [...M.values()].sort((a, b) => b.pts - a.pts || b.g - a.g || (b.tf - b.tc) - (a.tf - a.tc) || a.p - b.p); return { lista, pos: lista.findIndex((r) => r.you) + 1 }; };
-  return { ...orden(todos), comps: [...por].map(([k, M]) => ({ k, name: COMP[k], ...orden(M) })), txapelas, campeonatos };
-}
+// (el ranking de pelotaris de tus campeonatos, por puntos como el de la ATP, de todas las ediciones jugadas: game/rankingPelota.js)
 
 // ---------- las piezas ----------
 // una esfera de anillos concéntricos: aros [{ f (0 a 1), c (color o url del degradado) }], de fuera adentro, con las
@@ -102,7 +69,7 @@ export function progresoHTML(cabeza) {
   checkBadges();
   const P = tuPelotari(), Q = tusCualidades(), qm = CUALIDADES.reduce((a, k) => a + Q[k], 0) / CUALIDADES.length;
   const F = (() => { try { return { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, ...(lee('herrizherri-futbol-v1', {}) || {}) }; } catch (e) { return { played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0 }; } })();
-  const LG = tuLiga(), RK = rankingPelota();
+  const LG = tuLiga(), RK = rankingPelota(profile().name || 'Tú');
   const navPct = Math.round(pc(N.stamps, N.towns) * 100);
   const col = (s, id) => s.replace('{id}', id);
 

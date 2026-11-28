@@ -31,6 +31,7 @@ import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
+import { archivaEdicion } from './rankingPelota.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
@@ -156,7 +157,8 @@ export const TRINQ_JUEGO = [TRINQ_FINAL, TRINQ_BELTZA];
  *  para los cuartos y el de Lekunberri para las semifinales, y la final en el moderno, TRINQ_FINAL. El de Sangüesa es del
  *  siglo XVI y ya no existe */
 export const trinqueteDe = (T, m) => m?.round === 'Final' ? ((T?.edition || 1) % 2 ? TRINQ_FINAL : TRINQ_BELTZA) : DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
-const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
+// (y el campeonato acabado, también en el ranking de pelotaris, que guarda todas las ediciones: rankingPelota.js)
+const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } if (T.done) archivaEdicion(T); };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
 const clamp01 = (v) => Math.max(0.1, Math.min(0.9, v));
@@ -206,6 +208,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   // sigue yendo a un frontón distinto; antes repetía el cubierto del mismo pueblo)
   if (T && ctx.towns?.length > (T.venues?.length || 0)) T.venues = ctx.towns;
   const rehacer = !!T && !T.fmt && !T.past?.length && !T.done;
+  if (T?.done && fresh) archivaEdicion(T);   // (antes de dejar sitio al nuevo: lo de esta edición queda en el ranking)
   if (T && ((T.done && fresh) || rehacer)) T = null;
   if (!T) {
     let prev = loadAll()[key];
