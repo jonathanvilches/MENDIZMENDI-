@@ -69,8 +69,15 @@ export const MITICOS = [
     look: { frontis: '#2b2d30', wall: '#46494d', floor: '#2f3236', contra: '#33363a', parquet: false, line: '#f2f2f0', mark: '#f2f2f0', numeros: '#f2f2f0', rayaFrontis: '#f2f2f0', chapa: '#d6e4f2', chapaMetal: false, marco: '#2f6ed6', seat: '#b8743c', seat2: '#1d1e21', stone: null },
     arq: 'pabellon', arqX: { techo: 'reticula', derecha: 'claro', claro: '#2f6ed6', alto: '#2f6ed6', sobre: '#2f6ed6', fondo: '#2f6ed6', marcoLado: 'fino', marcoColor: '#f2f2f0' },   // (encima de las rayas, azul; el filo del frontis, blanco)
     sala: {
-      alto: 15, filas: 20, fondo: 0.8, subida: 0.42, filas2: 3, salto: { fila: 13, alto: 1.6, color: '#8f9399' },
+      // (la grada lateral, grande: quince filas de butacas abajo y, encima, la grada alta de doce filas hasta casi el techo; y
+      // el suelo, de placas grandes, oscuro, gastado y con brillo)
+      alto: 15, filas: 27, fondo: 0.8, subida: 0.42, filas2: 3, salto: { fila: 15, alto: 1.8, color: '#8f9399' },
+      suelo: { placa: 1.5, brillo: true },
       marcador: 'led', ledColor: '#ffb31f', marcadorAncho: 1.9, marcadorY: 5.8, rayas: { FALTA: 'MOTZ', PASA: 'LUZE' },
+      // (por la foto del Diario Vasco que pasó el autor: al fondo no hay rebote hasta el techo, sino uno azul más bajo, con la
+      // cristalera y la salida, y encima la grada del fondo, de frente blanco y butacas rojas, hasta el techo)
+      rebote: { alto: 5.4, color: '#2f6ed6', puertas: true },
+      gradaFondo: { desde: 5.4, filas: 13, fondo: 0.85, subida: 0.62, color: '#b8342c', frente: '#f2f2f0', pared: '#2f6ed6' },
       banda: { desde: 10, alto: 0.1, color: '#2f6ed6', arriba: '#2f6ed6', rayas: [] },
       rotulos: [
         { en: 'izq', z: 20, y: 6.3, al: 'left', color: '#f2f2f0', escudo: { alto: 1.5, lado: 'izq', color: '#f2f2f0', trazo: '#f2f2f0', interior: '#46494d', barco: true },

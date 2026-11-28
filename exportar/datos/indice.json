@@ -526,7 +526,7 @@
  {
   "fuente": "src/data/frontonesMiticos.js",
   "json": "frontonesMiticos.json",
-  "kb": 5,
+  "kb": 6,
   "exporta": [
    "ESCALONES",
    "MITICOS"
