@@ -847,7 +847,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, tBase, level, fixedLevel, rivalStats: rStats,
-      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou, rig, girl: yo ? pelotariGirl(yo.name) : ella },   // (rig: su esqueleto, para la entrega de la txapela; pelota/ceremonia.js)   // (sombra: la redonda de los móviles, que en primera persona se esconde)
+      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou, rig, girl: yo ? pelotariGirl(yo.name) : ella },   // (rig: su esqueleto, para el dorsal y la elección de material; pelota/dorsal.js, cestano3d.js)   // (sombra: la redonda de los móviles, que en primera persona se esconde)
       rival: { obj: rival.obj, name: rivName, animate: animRival, rig: red, girl: pelotariGirl(rivName) },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
@@ -871,7 +871,6 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }
         if (e.type === 'aplausoSaque' && seated) { seated.cheer(true, null, 2.4); cheerT = Math.max(cheerT, 2.6); }   // (el saque del tanto de partido: la grada aplaude hasta que se saca; match.js lo repite cada 1,8 s)   // (la grada, al salir los pelotaris)
         if (e.type === 'grada' && seated) { seated.cheer(true, null, e.dur || 3, true); cheerT = (e.dur || 3) + 1.5; }   // (un buen tanto: casi todos en pie, y la cámara los enseña desde las de la retransmisión; match.js, dronGrada)
-        if (e.type === 'ceremonia' && seated) { seated.cheer(true, e.color ? colors[e.color] || null : null, e.dur || 6); cheerT = e.dur || 6; }   // (la entrega de la txapela: todos en pie)
         if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { cheerT = e.final ? 4.6 : 1.6; seated.cheer(true, colors[e.winner] || null, cheerT); }
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p);
         // (el consejo del botillero en el descanso, en la ventana de conversación de los vecinos, con su retrato; mientras
@@ -938,7 +937,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
         // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
         safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null, remonta: !!r.remonta, ceremonia: !!r.ceremonia });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null, remonta: !!r.remonta });
       }
     }
   });

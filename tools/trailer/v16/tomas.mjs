@@ -36,8 +36,8 @@ export const TOMAS = {
   // «Elige tu pelotari»: las cartas girando y, al final, «Jugar»: entra el cuadro del campeonato con el VS
   pElige: { ...UI, seg: 6.0, listo: aElige,
     guion: [[0.3, gira()], [1.2, gira()], [2.1, gira('izq')], [3.4, (p) => p.evaluate(() => document.querySelector('.lg-root:not(.out) .c3-jugar')?.click())]] },
-  // el partido del campeonato (con el marcador, el público y los pelotaris nuevos) ; la entrega de la txapela en el podio
-  // (pelota/ceremonia.js) se graba detrás, pero no entra en el tráiler (el autor: «sin txapela»)
+  // el partido del campeonato (con el marcador, el público y los pelotaris nuevos; la entrega de la txapela en el podio
+  // ya no está en el juego: el autor, 28 nov 2026, «elimina la ceremonia»)
   pFinal: { ...UI, seg: 11.0, antes: 2, usa: [[0, 4.4], [4.9, 11.0]],
     listo: async (p) => {
       await aElige(p);
@@ -51,13 +51,10 @@ export const TOMAS = {
           if (!g?.phase || g.phase === 'intro') bt?.click(); return g?.phase || ''; });
         if (/^(serveWait|servePrep|rally)/.test(f)) break; await p.waitForTimeout(1500);
       }
-      await p.evaluate(async () => { const M = window.__game.pelotaMatch; M.game.autoplay = true; const h = M.hud; if (h?.teclas) { h.teclas(false); h.teclas = () => {}; }
-        await import('/src/pelota/ceremonia.js'); });
+      await p.evaluate(async () => { const M = window.__game.pelotaMatch; M.game.autoplay = true; const h = M.hud; if (h?.teclas) { h.teclas(false); h.teclas = () => {}; } });
       await p.waitForTimeout(8000);
     },
-    guion: [[4.5, (p) => p.evaluate(() => { const M = window.__game.pelotaMatch; window.__ceremonia = 1; M.o.final = true;
-      M.o.camp = Object.assign({ titulo: 'Txapela de Baztan-Bidasoa', donde: 'Lesaka' }, M.o.camp || {});
-      if (M.game.score) { M.game.score.you = 22; M.game.score.rival = 17; } M.game.autoplay = false; M.cerePend = { win: true }; M.ceremonia(); })]] },
+    guion: [] },
 
   // ---------- los joaldunak de Ituren: la comparsa por las calles (la fiesta de la misión del carnaval, game/townLeyendas.js),
   // de frente, a la altura de los ojos, y desde arriba ----------

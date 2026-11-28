@@ -354,7 +354,7 @@ export class PelotaMatch {
     this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => [t.kinds[clase(b)], pesoTxt(b)], mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
   }
   newGame() {
-    this.bailePl = null;
+    this.bailePl = null; this.finE = null;
     this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hl = []; this.hlN = 0; this.hlCola = null; this.hlTodos = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
     this.com = new Comentarios(this.lang); this.com.sinMano = this.herrDe() !== 'mano'; this.com.tiene = tiene; this.forma = { mano: { you: [], rival: [] }, fallo: { you: [], rival: [] }, err: { you: 0, rival: 0 }, cort: { you: 0, rival: 0 }, ados: {}, perf: {}, lado: { you: '', rival: '' } }; this.comIni = false; this.vocesC = null; this.mpLider = null; this.escapo = false; this.mitadDicha = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
@@ -622,7 +622,7 @@ export class PelotaMatch {
     const call = F.find(f => f.call)?.ts ?? ts, t0 = Math.max(0, call - 5);   // (los 5 últimos segundos del tanto y lo de después)
     const RP = this.txt.replay || TEXT.es.replay, H = hl?.h, ganador = H ? H.winner : this.lastWin;
     const n = (this.repN = (this.repN || 0) + 1), w = (H ? hl.n === 1 : n % 5 === 4) && F.some(f => f.P[ganador]) ? ganador : null;   // (una de cada cinco, desde el que gana; en los highlights, el mejor)
-    this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n, w, hl: !!H };
+    this.replay = { F, t: t0, end: ts, d0: ts - t0, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n, w, hl: !!H };
     const el = this.repEl = document.createElement('div'); el.className = 'pel-rep' + (H ? ' hl' : '');
     const pv = H ? `<span class="pv">${esc((RP.hlN || TEXT.es.replay.hlN)(hl.n))}</span>` : w ? `<span class="pv">${esc((RP.desde || TEXT.es.replay.desde)(this.nomLimpio(w)))}</span>` : '';
     const que = H ? [H.nm, H.quien, H.marcador].filter(Boolean).join(' · ') : '';
@@ -766,9 +766,11 @@ export class PelotaMatch {
     return { n: 2, p, l, fov: port ? 46 : 36 };
   }
   finPartido(e) {
+    this.finE = e;   // (para el vigía: si lo de después se queda a medias, el panel del final igual, vigia)
     const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
-    // (en la final de un campeonato, después de los highlights, la entrega de la txapela en el podio: pelota/ceremonia.js)
-    this.cerePend = this.o.final && this.game.mode === 'match' && !this.o.reto && !(navigator.webdriver && !window.__ceremonia) ? e : null;
+    // (la entrega de la txapela en el podio que venía después en las finales, pelota/ceremonia.js, ya no está: el autor,
+    // 28 nov 2026, «elimina la ceremonia: tiene personajes viejos y no queda bien la txapela». Al campeón le queda la
+    // tarjeta de campeón con su txapela, ui/champion.js, al volver al cuadro del campeonato)
     // EL BAILE DEL QUE GANA (el autor, 25 nov 2026: «quiero que se vean las escenas del personaje bailando cuando gana»).
     // El que gana ya bailaba al acabar (fronton.js, doDance), pero a los 2,4 s empezaban los highlights y desde la cámara
     // de lejos apenas se veía. Ahora, si ganas tú, tras el «¡Tanto y partido!» un plano cercano de tu pelotari bailando,
@@ -778,11 +780,10 @@ export class PelotaMatch {
     const baila = e.win && this.game.mode === 'match' && !this.o.reto && !(navigator.webdriver && !window.__baile);
     const conHl = this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl);
     if (conHl) this.hlTodos = H;
-    const sigue = () => { if (!this.active) return; if (conHl) this.verHl(e, 0); else if (this.cerePend) this.ceremonia(); else this.endPanel(e); };
+    const sigue = () => { if (!this.active) return; if (conHl) this.verHl(e, 0); else this.endPanel(e); };
     if (baila) { this.bailePl = { t0: this.t + BAILE_T0, t1: this.t + BAILE_T0 + BAILE_S, sigue }; return; }
     this.bailePl = null;
-    if (conHl) this.verHl(e, 2400);
-    else if (this.cerePend) setTimeout(() => this.ceremonia(), 2400); else this.endPanel(e);
+    if (conHl) this.verHl(e, 2400); else this.endPanel(e);
   }
   /** El plano del baile: delante de tu pelotari (que mira al frontis), a la altura del pecho, acercándose un poco y
    *  girando despacio a su alrededor. En las medidas de la cancha. */
@@ -816,32 +817,8 @@ export class PelotaMatch {
   }
   sigHl() {
     const h = this.hlCola?.shift();
-    if (!h) { const e = this.hlFin; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; if (this.cerePend) { this.ceremonia(); return; } if (e) this.endPanel(e); return; }
+    if (!h) { const e = this.hlFin; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; if (e) this.endPanel(e); return; }
     this.startReplay(h.F, { n: this.hlCola.length + 1, h });
-  }
-  // la entrega de la txapela al acabar la final (pelota/ceremonia.js): el podio en la cancha, delante del frontis; los
-  // que ganan, en el 1 con la txapela y la copa; los otros, en el 2. Al tocar «Continuar», el panel del final
-  async ceremonia() {
-    const e = this.cerePend; this.cerePend = null; if (!e || !this.active || this.cere) return;
-    const g = this.game, gana = e.win ? 'you' : 'rival', pierde = e.win ? 'rival' : 'you';
-    const lado = (sd) => { const M = this.pairs ? this.mateObjs?.[sd === 'you' ? 'youMate' : 'rivalMate'] : null;
-      const L = [{ ...this.o[sd], nombre: String(this.names[sd] || '').replace(/\s*\([^)]*\)/g, '').split(',')[0].trim() }];
-      if (M?.obj) L.push({ obj: M.obj, animate: M.animate, rig: M.rig, nombre: (M.name || '').split(/[,(]/)[0].trim() });
-      return L; };
-    this.hud.closePanel(); this.hud.controls(false); this.hud.tip('');
-    try {
-      const { Ceremonia } = await import('./ceremonia.js');
-      if (!this.active) return;
-      const C = this.o.camp || {}, sc = g.score || { you: 0, rival: 0 };
-      this.hud.root.classList.add('cere'); this.cereHecha = true;
-      this.cere = new Ceremonia({ T: this.T, grp: this.court.group, cam: this.cam, root: this.hud.root, audio: this.audio, lang: this.lang,
-        gana: lado(gana), pierde: lado(pierde), color: this.cols?.[gana] || 'azul', titulo: C.titulo || (this.o.comp || '').replace(/\s*·\s*(Final|Finala)\s*$/i, ''), donde: C.donde || this.o.venue || '',
-        marcador: `${Math.max(sc.you, sc.rival)}–${Math.min(sc.you, sc.rival)}`, ligero: !!this.o.ligero,
-        // (al posarse la txapela: la grada en pie y los comentaristas, «¡Txapela, Edurne! ¿Cómo se vive esto?»)
-        onGrito: () => { this.o.onEvent?.({ type: 'ceremonia', dur: 7, color: gana }); this.decir(this.com?.dialogo?.('txapela') || this.com?.frase?.('m-txapela-e'), 300); },
-        onFin: () => { this.cere = null; this.hud.root.classList.remove('cere'); this.camInit = false; if (this.active) this.endPanel(e); } });
-      this.o.onEvent?.({ type: 'ceremonia', dur: 5 });
-    } catch (err) { console.warn('ceremonia', err); this.cere = null; this.hud.root.classList.remove('cere'); if (this.active) this.endPanel(e); }
   }
   stepReplay(dt) {
     const R = this.replay, C = this.court, T = this.T, grp = C.group;
@@ -1091,7 +1068,7 @@ export class PelotaMatch {
     // destroy, que se lleva las rachas)
     const remonta = !!e.win && (this.rachas?.peor?.you ?? 0) <= -3;
     this.destroy();
-    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level, reto: e.reto || null, remonta, ceremonia: !!this.cereHecha });
+    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level, reto: e.reto || null, remonta });
   }
 
   // ------------------------------------------------------------ entrada
@@ -1360,7 +1337,9 @@ export class PelotaMatch {
     V.pausa = this.paused && !menu && !h.panelEl && !this.fichaOpen ? V.pausa + dt : 0;
     if (V.pausa > 1.5) { V.pausa = 0; apunta('pausa sin menú'); this.paused = false; this.menuPausa = false; }
     V.repe = this.replay && !this.paused ? V.repe + dt : 0;
-    if (V.repe > 14) { V.repe = 0; apunta('repetición sin fin'); this.endReplay(); }
+    // (lo que dura de verdad: la del tanto, a cámara algo lenta, más su margen; un tanto muy largo de los highlights pasaba
+    // de 14 s y se cortaba antes de acabar)
+    if (V.repe > Math.max(14, (this.replay?.d0 || 0) * 1.7 + 5)) { V.repe = 0; apunta('repetición sin fin'); this.endReplay(); }
     if (!this.replay && !this.bailaOn) h.root.classList.remove('repe');   // (en el plano del baile también va sin botones)
     if (!this.entra) h.root.classList.remove('sale');
     // (en pleno juego: ni en la repetición, ni con una ventana, ni en la llegada, la salida, el VS o el recorrido)
@@ -1370,6 +1349,11 @@ export class PelotaMatch {
     const b = juego && h.$('.pel-btns');
     V.mandos = b && b.style.visibility === 'hidden' ? V.mandos + dt : 0;
     if (V.mandos > 2) { V.mandos = 0; apunta('mandos escondidos'); h.controls(true); }
+    // (acabado el partido, siempre se llega al panel del final: tras el baile, los highlights y sus repeticiones nunca
+    // pasan más de unos segundos sin nada en pantalla; si pasa, algo se quedó a medias y se va derecho al panel. El autor,
+    // 28 nov 2026: «se me bloqueaba al final del campeonato»)
+    V.fin = g.phase === 'end' && this.finE && !h.panelEl && !this.replay && !this.paused && !menu && !this.fichaOpen ? (V.fin || 0) + dt : 0;
+    if (V.fin > (this.bailePl ? 12 : 6)) { V.fin = 0; apunta('final sin panel'); this.bailePl = null; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; this.endPanel(this.finE); }
   }
   update(dt) {
     if (!this.active) return false;
@@ -1381,7 +1365,6 @@ export class PelotaMatch {
       if (this.paused || !/^serve/.test(this.game?.phase || '')) { this.paraAplausoSaque(0.8); this.paraAplausoSaque = null; }
       else if (this.t - (this.apsT ?? -9) > 1.8) { this.apsT = this.t; this.o.onEvent?.({ type: 'aplausoSaque' }); }
     }
-    if (this.cere) { this.cere.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la entrega de la txapela: ni juego ni cámara del partido)
     if (this.cestano) { this.cestano.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la elección de material, con la caja: igual)
     if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     this.chapa?.update(dt);   // (la chapa del sorteo)
@@ -1411,7 +1394,8 @@ export class PelotaMatch {
     // (al cantar el tanto, la repetición, salvo en las pruebas automáticas)
     if (e.type === 'call') { this.recCall = true; if (g.mode === 'match' && this.repe && !e.final && this.rec?.length > 30 && !(navigator.webdriver && !window.__repe)) this.repAt = this.t + 1.15; }   // (el último tanto no: luego vienen los highlights)
     switch (e.type) {
-      case 'serveReady':   // (cansado y con descansos, ya no hay aviso escrito: brilla el botón de la pelota y el descanso)
+      case 'serveReady': C.marcasFuera?.();   // (las marcas de los pelotazos del tanto de antes, fuera: court.js marca)
+   // (cansado y con descansos, ya no hay aviso escrito: brilla el botón de la pelota y el descanso)
         this.callada = false;
         if (g.reto) this.retoMarcador(); else this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
@@ -1452,6 +1436,9 @@ export class PelotaMatch {
           const pelotazo = this.golpazo && e.label === 'perfect' && pw >= 0.9;
           const rotulo = e.volea ? (t.deAire || TEXT.es.deAire) : pelotazo ? nm : '';
           if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
+          // (la velocidad del saque, cada vez que se saca, como en la tele del tenis: el autor, 28 nov 2026, «me gustaría que
+          // saliera la velocidad del saque cada vez que sacamos». La de la pelota al salir de la mano, en km/h)
+          if (e.shot === 'saque' && Number.isFinite(e.vel) && e.vel > 0) this.hud.golpe(`${this.lang === 'eu' ? 'Sakea' : 'Saque'} · ${Math.round(e.vel * 3.6)} km/h`, this.cols[g.side(e.who)]);
           // (y en los que deciden, la cámara se mete un poco más en la jugada)
           if (this.golpazo && this.camDyn && e.q > 0.3) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); }
         if (this.fp?.on) { if (e.who === 'you') this.fp.golpe(pw); else this.fp.impacto(0.35); }   // (en primera persona)
@@ -1472,7 +1459,7 @@ export class PelotaMatch {
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       // (la chapa: su destello, sin sacudir la cámara ni sonar: el «¡clonc!» del fallo no gustaba; el fallo se oye en los
       // aplausos)
-      case 'front': if (!e.chapa) this.jugadaVa('front'); if (e.chapa) { C.chapaT = 0.6; if (!this.callada) A.chapa(1); } else if (e.alta) { if (!this.callada) A.chapa(0.85); } else if (!this.callada) { const v = g.ball?.v, sp = v ? Math.hypot(v.x, v.y, v.z) : 16; A.front(0.62 + 0.38 * Math.min(1, Math.max(0, (sp - 8) / 18))); } C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
+      case 'front': if (!e.chapa) this.jugadaVa('front'); if (e.chapa) { C.chapaT = 0.6; if (!this.callada) A.chapa(1); } else if (e.alta) { if (!this.callada) A.chapa(0.85); } else if (!this.callada) { const v = g.ball?.v, sp = v ? Math.hypot(v.x, v.y, v.z) : 16; A.front(0.62 + 0.38 * Math.min(1, Math.max(0, (sp - 8) / 18))); } C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (!e.chapa && !e.alta) C.marca?.(e.x, e.y); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
       case 'wall': if (!this.callada) { if (e.alta) A.chapa(0.8); else A.wall(); } break;
       case 'back': if (e.live) this.jugadaVa('back'); if (!this.callada) A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
       case 'floor': this.botaT = this.t; if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;   // (botaT: para el bote pronto, swingAnim)
@@ -2356,7 +2343,7 @@ export class PelotaMatch {
     this.paraAplausoSaque?.(0.3); this.paraAplausoSaque = null;
     { const quita = (o) => { if (!o?.isObject3D) return; o.parent?.remove(o); o.traverse(m => { m.geometry?.dispose?.(); m.material?.dispose?.(); }); };
       quita(this.sillasG); this.sillasG = null; this.desc = null; this.asientos = null; }
-    this.finalFin?.(); this.dianaQuita(); this.quitaCestano(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
+    this.finalFin?.(); this.dianaQuita(); this.quitaCestano();
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);

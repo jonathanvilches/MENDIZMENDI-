@@ -563,6 +563,15 @@ export class PelotaCourt {
     zone.rotation.x = -Math.PI / 2; zone.position.set(0, 0.015, (C.FALTA + C.PASA) / 2); zone.visible = false; g.add(zone);
     const flash = this.flash = new T.Mesh(new T.RingGeometry(0.1, 0.35, 28), new T.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide }));
     flash.visible = false; g.add(flash);
+    // las marcas de los pelotazos en el frontis (el autor, 28 nov 2026: «los pelotazos, los puntos en el frontón, como en
+    // tenis»): cada pelotazo que da en el frontis deja su punto claro, como la marca de la pelota en la tierra batida. Se
+    // quedan todo el tanto, también en su repetición, y se van al preparar el saque siguiente (marca, marcasFuera, tick)
+    { const mt = canvasTex(T, 64, 64, (c, w, h) => { const r = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+        r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.38, 'rgba(255,255,255,.9)'); r.addColorStop(0.62, 'rgba(255,255,255,.28)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+        c.fillStyle = r; c.fillRect(0, 0, w, h); }), mg = new T.PlaneGeometry(0.3, 0.3);
+      this.marcas = Array.from({ length: 16 }, () => { const m = new T.Mesh(mg, new T.MeshBasicMaterial({ map: mt, color: '#fff2d2', transparent: true, opacity: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+        m.visible = false; m.renderOrder = 2; m.name = 'marca-pelotazo'; g.add(m); this.materials?.push(m.material); return { m, t: 0, fuera: 0 }; });
+      this.marcaI = 0; }
     // marca de puntería en el frontis (cortada y dejada): un aro amarillo que sube con la fuerza
     const aim = this.aimMark = new T.Mesh(new T.RingGeometry(0.2, 0.32, 28), new T.MeshBasicMaterial({ color: '#ff7ac8', transparent: true, opacity: 0.85, depthWrite: false, side: T.DoubleSide }));
     aim.add(new T.Mesh(new T.CircleGeometry(0.06, 12), aim.material)); aim.visible = false; aim.renderOrder = 3; g.add(aim);
@@ -1312,12 +1321,22 @@ export class PelotaCourt {
     m.opacity = 0.08 + k * 0.5; m.color.setRGB(1, 0.97 - k * 0.12, 0.85 - k * 0.45);
     this.trail.forEach((t, i) => { t.scale.setScalar((0.85 - i * 0.08) * (0.8 + k * 0.45)); });
   }
+  /** Un pelotazo en el frontis: su marca, en x, y (en la cancha) */
+  marca(x, y) {
+    const M = this.marcas; if (!M || !Number.isFinite(x) || !Number.isFinite(y)) return;
+    const k = M[this.marcaI++ % M.length]; k.m.position.set(x, Math.max(0.05, y), 0.012); k.m.visible = true; k.t = 0; k.fuera = 0; k.m.material.opacity = 1;
+  }
+  /** Las marcas del tanto, fuera (en medio segundo) */
+  marcasFuera() { for (const k of this.marcas || []) if (k.m.visible && !k.fuera) k.fuera = 1e-3; }
   pop(p, normal = 'z') {
     const f = this.flash; f.visible = true; f.position.set(p.x, Math.max(0.03, p.y), p.z + (normal === 'z' ? 0.06 : 0));
     f.rotation.set(normal === 'y' ? -Math.PI / 2 : 0, normal === 'x' ? Math.PI / 2 : 0, 0);
     f.material.opacity = 0.9; f.scale.setScalar(0.6); this.flashT = 0.35;
   }
   tick(dt) {
+    // (la marca nueva, más viva, y enseguida como las demás; al irse, se apagan)
+    for (const k of this.marcas || []) { if (!k.m.visible) continue; k.t += dt; let o = k.t < 0.5 ? 1 - 0.3 * k.t / 0.5 : 0.7;
+      if (k.fuera) { k.fuera += dt; if (k.fuera >= 0.5) { k.m.visible = false; continue; } o *= 1 - k.fuera / 0.5; } k.m.material.opacity = o; }
     if (this.flashT > 0) { this.flashT -= dt; const k = 1 - this.flashT / 0.35; this.flash.scale.setScalar(0.6 + k * 2.2); this.flash.material.opacity = 0.9 * (1 - k); if (this.flashT <= 0) this.flash.visible = false; }
     if (this.chapaT > 0) { this.chapaT = Math.max(0, this.chapaT - dt); this.chapaMat.emissive.setRGB(this.chapaT * 1.6, 0.1 * this.chapaT, 0.1 * this.chapaT); }
   }
